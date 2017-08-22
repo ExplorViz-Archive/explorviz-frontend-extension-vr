@@ -2,7 +2,9 @@ import Router from "explorviz-ui-frontend/router";
 
 export function initialize(app) {
 	let service = app.lookup("service:navbar-labels");
-	service.get("navbarLabels").push("vr");
+	if(service){
+		service.get("navbarLabels").push("VR");
+}
 	
 	Router.map(function(){
 		this.route("vr");
