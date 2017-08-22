@@ -1,23 +1,28 @@
 import Ember from 'ember';
-import HammerInteraction from '../hammer-interaction';
+import HammerInteraction from 'explorviz-ui-frontend/utils/hammer-interaction';
 import HoverHandler from './hover-handler';
+import HoverHandlerApp3D from 'explorviz-ui-frontend/utils/application-rendering/hover-handler';
+import HoverHandlerLandscape from 'explorviz-ui-frontend/utils/landscape-rendering/hover-handler';
 import AlertifyHandler from 'explorviz-ui-frontend/mixins/alertify-handler';
-import Highlighter from './highlighter';
+//import Highlighter from './highlighter';
 
 export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   scene: null,
   canvas: null,
   camera: null,
+  cameraDolly: null,
   renderer: null,
   raycaster: null,
   raycastObjectsLandscape: null,
   controller1: null,
   rotationObject: null,
   controller2: null,
-  highlighter: null, 
+  //highlighter: null, 
+  toolTips: {},
   vrEnvironment:null,
   colorList: null,
+  font: null,
 
   app3DBinded: false,
 
@@ -26,11 +31,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   //previousControllerdirektion: new THREE.Vector3(),
   //previousControllerPosition: new THREE.Vector3(),
   //previousControllerAxes: new THREE.Vector2(),
-  //intersectionObjectID: null,
+
   oldControllerPosition: new THREE.Vector3(),
   previousDistance: null,
   application3D: null,
   colorListApp: null,
+  textBox: null,
 
 
   highlightedEntities: {},
@@ -38,6 +44,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   hammerHandler: null,
   hoverHandler: null,
+  hoverHandlerLandscape: null,
+  hoverHandlerApp3D: null,
 
   raycastObjects: Ember.computed('rotationObject', function() {
     return this.get('rotationObject.children');
@@ -47,7 +55,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('application3D', application3D);
   },
 
-  setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, controller2, parentObject, vrEnvironment, colorList, colorListApp) {
+  setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, controller2, parentObject, vrEnvironment, colorList, colorListApp, cameraDolly, textBox) {
     this.set('scene', scene);
     this.set('canvas', canvas);
     this.set('camera', camera);
@@ -59,42 +67,47 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('rotationObject', parentObject);
     this.set('vrEnvironment', vrEnvironment);    
     this.set('colorList', colorList);  
-    this.set('colorListApp', colorListApp);        
+    this.set('colorListApp', colorListApp);   
+    this.set('cameraDolly', cameraDolly);  
+    this.set('textBox', textBox);  
+
+
+   
+
 
     const self = this;
 
+     new THREE.FontLoader()
+      .load('three.js/fonts/roboto_mono_bold_typeface.json', function(font) {
+        self.set('font', font);
+      });
+
     // Interaction for Controller
-    self.get('controller1').addEventListener('triggerdown', registerControllerTriggerDownController1);
-    self.get('controller2').addEventListener('triggerdown', registerControllerTriggerDownController2);
-    self.get('controller1').addEventListener('thumbpaddown', registerControllerThumbpadDownController1);
-    self.get('controller2').addEventListener('thumbpaddown', registerControllerThumbpadDownController2);
-    self.get('controller1').addEventListener('thumbpadup', registerControllerThumbpadUpController1);
-    self.get('controller2').addEventListener('thumbpadup', registerControllerThumbpadUpController2);
+    self.get('controller1').addEventListener('triggerdown', registerControllerTriggerDownController);
+    self.get('controller1').addEventListener('thumbpaddown', registerControllerThumbpadDownController);
+    self.get('controller1').addEventListener('thumbpadup', registerControllerThumbpadUpController);
+    self.get('controller1').addEventListener('gripsdown', registerControllerGrispDownController);
 
 
-
-    function registerControllerTriggerDownController1(evt){
+    function registerControllerTriggerDownController(evt){
       console.log("trigger down");
-      self.onControllerTriggerDown(self.get('controller1'), evt);
-    }
-    function registerControllerTriggerDownController2(evt){
-      console.log("trigger down");
-      self.onControllerTriggerDown(self.get('controller2'), evt);
+      self.onControllerTriggerDown(evt);
     }    
 
-    function registerControllerThumbpadDownController1(evt){
-      self.onThumbpadControllerDown(self.get('controller1'),evt);
+    function registerControllerGrispDownController(evt){
+      console.log("grisp down");
+      self.onControllerGrispDown(evt);
     }
-    function registerControllerThumbpadDownController2(evt){
-      self.onThumbpadControllerDown(self.get('controller2'),evt);
-    }    
 
-    function registerControllerThumbpadUpController1(evt){
-      self.onThumbpadControllerUp(self.get('controller1'),evt);
+    function registerControllerThumbpadDownController(evt){
+      self.onThumbpadControllerDown(evt);
     }
-    function registerControllerThumbpadUpController2(evt){
-      self.onThumbpadControllerUp(self.get('controller2'),evt);
-    }   
+   
+
+    function registerControllerThumbpadUpController(evt){
+      self.onThumbpadControllerUp(evt);
+    }
+  
 
     // mouseout handler for disabling notifications
     canvas.addEventListener('mouseout', registerMouseOut, false);
@@ -127,10 +140,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     if (!this.get('hoverHandler')) {
       this.set('hoverHandler', HoverHandler.create());
     }
+     // init HoverHandler
+    if (!this.get('hoverHandlerLandscape')) {
+      this.set('hoverHandlerLandscape', HoverHandlerLandscape.create());
+    }   
 
-    // init Highlighter
-    if (!this.get('highlighter')) {
-      this.set('highlighter', Highlighter.create());
+    if (!this.get('hoverHandlerApp3D')) {
+      this.set('hoverHandlerApp3D', HoverHandlerApp3D.create());
     }
 
     // hover handler
@@ -180,8 +196,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     }
 
       // Case for intersection object present
-      if(intersectedViewObj) {
-
+      if(intersectedViewObj){
+        
         // Verify controllers
         let id2;
         if(id === this.get('controller1').id){
@@ -194,14 +210,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // scale ray distance to distance of intersection
         controller.getObjectByName('controllerLine').scale.z = intersectedViewObj.distance;
 
-        // hide tooltip
-        //this.get('hoverHandler').hideTooltip();
-        
-
         const emberModel = intersectedViewObj.object.userData.model;
         const emberModelName = emberModel.constructor.modelName;
-
-        //this.get('hoverHandler').showTooltip(intersectedViewObj.point, emberModel);
 
         let color = new THREE.Color("rgb(255, 0, 0)");
           
@@ -244,6 +254,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           }
         }
       }
+ 
       else{
         // Delete highlighted object entry for system and nodegroups
         this.get('highlightedEntities')[id] = null;
@@ -275,10 +286,101 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
 
   /*
+   * This method is used to show information 
+   * about the intersected object
+   */
+  onControllerGrispDown(evt){
+
+    const controller = evt.target;
+
+    var tempMatrix = new THREE.Matrix4();
+
+    // Id to verfify which controller triggered the event
+    let id = controller.id;
+
+    tempMatrix.identity().extractRotation( controller.matrixWorld );
+    
+    const origin = new THREE.Vector3();
+    origin.setFromMatrixPosition(controller.matrixWorld);
+
+    const direction = new THREE.Vector3(0,0,-1);
+    direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
+
+    const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
+      null, this.get('raycastObjectsLandscape'));
+
+    
+    if(intersectedViewObj){
+      // Verify controllers
+      let id2;
+      if(id === this.get('controller1').id){
+        id2 = this.get('controller2').id;
+      }
+      else{
+        id2 = this.get('controller1').id;
+      }
+
+      if(!this.get('toolTips')[id]){
+        this.get('toolTips')[id] = "true";
+      }
+      if(this.get('toolTips')[id] === "true"){
+
+        const emberModel = intersectedViewObj.object.userData.model;
+        const emberModelName = emberModel.constructor.modelName;
+
+        var content;
+
+        if(emberModelName === "nodegroup" || emberModelName === "system" || emberModelName === "node" || emberModelName === "application"){
+          content = this.get('hoverHandler').buildContent(emberModel);
+        }
+        else if(emberModelName === "package" || emberModelName === "clazz" || emberModelName === "component"){ 
+          content = this.get('hoverHandlerApp3D').buildContent(emberModel);
+
+        }
+        // TODO: REMOVE plane
+
+
+   
+        console.log("content",this.get('font'));
+
+        
+        // place text box next to controller
+
+        // Add object to controller
+      
+        controller.add(this.get('textBox').clone());
+        console.log("plane added!", controller.children);
+        // store object 
+        controller.userData.selected = this.get('textBox').clone();
+        this.get('toolTips')[id] = "false";
+      }
+
+    }
+
+    else{
+
+      if(controller.userData.selected !== undefined){
+        var textBox = controller.userData.selected;
+        // get stored application3D from controller
+               controller.remove(textBox);
+        console.log("delete", controller.children);
+ 
+        
+        // delete stored application3D 
+        controller.userData.selected = undefined;
+    }
+    this.get('toolTips')[controller.id] = null;
+    }
+
+  },
+  /*
    * This method is used to release the app3D from controller 
    * and put it back into the scene
    */
-  onThumbpadControllerUp(controller, evt){
+  onThumbpadControllerUp(evt){
+
+    const controller = evt.target;
+
     //this.set('intersectionObjectID', null);
     if(controller.userData.selected !== undefined){
       // set bool for application3D not binded
@@ -416,54 +518,60 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     3D application. Raycast on "2D" application on node and button down
     => application 3D is created width coordinates of intersection point 
   */
-  onControllerTriggerDown(controller, evt){
+  onControllerTriggerDown(evt){
 
-    var tempMatrix = new THREE.Matrix4();
+    const controller = evt.target;
 
-    tempMatrix.identity().extractRotation( controller.matrixWorld );
-    
-    const origin = new THREE.Vector3();
-    origin.setFromMatrixPosition(controller.matrixWorld);
+    if(!this.get('app3DBinded')){
 
-    const direction = new THREE.Vector3(0,0,-1);
-    direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
+      var tempMatrix = new THREE.Matrix4();
 
-    const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
-      null, this.get('raycastObjectsLandscape'));
-
-    // open and close systems+nodegroups´+c packages and clazzes
-    if(intersectedViewObj) {
-     
-    // hide tooltip
-    this.get('hoverHandler').hideTooltip();
-
-      const emberModel = intersectedViewObj.object.userData.model;
-      const emberModelName = emberModel.constructor.modelName;
+      tempMatrix.identity().extractRotation( controller.matrixWorld );
       
-      if(emberModelName === "application"){
+      const origin = new THREE.Vector3();
+      origin.setFromMatrixPosition(controller.matrixWorld);
 
-        if(emberModel.get('components').get('length') === 0) {
-          // no data => show message
+      const direction = new THREE.Vector3(0,0,-1);
+      direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
-          const message = "Sorry, no details for <b>" + emberModel.get('name') + 
-            "</b> are available.";
+      const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
+        null, this.get('raycastObjectsLandscape'));
 
-          this.showAlertifyMessage(message);
+      // open and close systems+nodegroups´+c packages and clazzes
+      if(intersectedViewObj) {
+       
+      // hide tooltip
+      this.get('hoverHandler').hideTooltip();
+      this.get('hoverHandlerApp3D').hideTooltip();
 
-        } else {
-          // data available => open application-rendering
-          this.closeAlertifyMessages();
-          this.trigger('showApplication', emberModel, intersectedViewObj.point);
+        const emberModel = intersectedViewObj.object.userData.model;
+        const emberModelName = emberModel.constructor.modelName;
+        
+        if(emberModelName === "application"){
+
+          if(emberModel.get('components').get('length') === 0) {
+            // no data => show message
+
+            const message = "Sorry, no details for <b>" + emberModel.get('name') + 
+              "</b> are available.";
+
+            this.showAlertifyMessage(message);
+
+          } else {
+            // data available => open application-rendering
+            this.closeAlertifyMessages();
+            this.trigger('showApplication', emberModel, intersectedViewObj.point);
+          }
+        } 
+        
+        else if (emberModelName === "nodegroup" || emberModelName === "system"){
+          emberModel.setOpened(!emberModel.get('opened'));
+          this.trigger('redrawScene'); 
         }
-      } 
-      
-      else if (emberModelName === "nodegroup" || emberModelName === "system"){
-        emberModel.setOpened(!emberModel.get('opened'));
-        this.trigger('redrawScene'); 
-      }
-      else if(emberModelName === "component" ||emberModelName === "clazz"  ){
-        emberModel.setOpenedStatus(!emberModel.get('opened'));
-        this.trigger('redrawApp');
+        else if(emberModelName === "component" ||emberModelName === "clazz"  ){
+          emberModel.setOpenedStatus(!emberModel.get('opened'));
+          this.trigger('redrawApp');
+        }
       }
     }
   },
@@ -473,8 +581,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   /* 
     This method is used to move and rotate application3D
   */
-  onThumbpadControllerDown(controller, evt){
+  onThumbpadControllerDown(evt){
 
+    const controller = evt.target;
+    
     var tempMatrix = new THREE.Matrix4();
 
     tempMatrix.identity().extractRotation( controller.matrixWorld );
@@ -490,8 +600,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     if(intersectedViewObj) {
 
+      console.log("intersectedViewObj", intersectedViewObj.object);
+
       // hide tooltip
       this.get('hoverHandler').hideTooltip();
+      this.get('hoverHandlerApp3D').hideTooltip();
 
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
@@ -514,23 +627,28 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // store object 
         controller.userData.selected = object; 
       }
+      // intersection with floor
+      else if(emberModelName === "floor"){
+        console.log("intersection point floor:", intersectedViewObj.point);
+      }
     }
   },
 
   onMouseWheelStart(evt) {
 
     // Hide (old) tooltip
-    this.get('hoverHandler').hideTooltip();
+    this.get('hoverHandlerLandscape').hideTooltip();
+    this.get('hoverHandlerApp3D').hideTooltip();
 
     var delta = Math.max(-1, Math.min(1, (evt.wheelDelta || -evt.detail)));
 
     // zoom in
     if (delta > 0) {
-      this.get('camera').position.z -= delta * 1.5;
+      this.get('cameraDolly').position.z -= delta * 1.5;
     }
     // zoom out
     else {
-      this.get('camera').position.z -= delta * 1.5;
+      this.get('cameraDolly').position.z -= delta * 1.5;
     }
   },
 
@@ -538,11 +656,16 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   onMouseOut() {
     this.set('hoverHandler.enableTooltips', false);
     this.get('hoverHandler').hideTooltip();
+    this.set('hoverHandlerLandscape.enableTooltips', false);
+    this.get('hoverHandlerLandscape').hideTooltip();
+    this.set('hoverHandlerApp3D.enableTooltips', false);
+    this.get('hoverHandlerApp3D').hideTooltip();
   },
 
 
   onMouseEnter() {
-    this.set('hoverHandler.enableTooltips', true);
+    this.set('hoverHandlerLandscape.enableTooltips', true);
+    this.set('hoverHandlerApp3D.enableTooltips', true);   
   },
 
 
@@ -554,7 +677,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       self.handleDoubleClick(mouse);
     });
 
-    this.get('hammerHandler').on('panning', function(delta, event, mouse) {
+    this.get('hammerHandler').on('panning', function(delta, event) {
       self.handlePanning(delta, event);
     });
 
@@ -591,6 +714,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             
             // When moving, hide (old) tooltip
             self.get('hoverHandler').hideTooltip();
+            self.get('hoverHandlerLandscape').hideTooltip();
+            self.get('hoverHandlerApp3D').hideTooltip();
         });
     })(300);
 
@@ -632,7 +757,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     if(intersectedViewObj) {
 
       // hide tooltip
-      this.get('hoverHandler').hideTooltip();
+      this.get('hoverHandlerLandscape').hideTooltip();
+      this.get('hoverHandlerApp3D').hideTooltip();
 
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
@@ -697,10 +823,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     // Case for intersection object present
     if(intersectedViewObj) {
 
-      this.get('hoverHandler').showTooltip(mouse, emberModel);
+      //this.get('hoverHandler').showTooltip(mouse, emberModel);
 
       // hide tooltip
-      this.get('hoverHandler').hideTooltip();
+      this.get('hoverHandlerLandscape').hideTooltip();
+      this.get('hoverHandlerApp3D').hideTooltip();
 
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
@@ -801,6 +928,40 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   //}
   },
 
+    /*handleHoverController(evt) {
+
+    const mouse = {
+      x: evt.detail.clientX,
+      y: evt.detail.clientY
+    };
+
+    const origin = {};
+
+    origin.x = ((mouse.x - (this.get('renderer').domElement.offsetLeft+0.66)) / 
+      this.get('renderer').domElement.clientWidth) * 2 - 1;
+
+    origin.y = -((mouse.y - (this.get('renderer').domElement.offsetTop+0.665)) / 
+      this.get('renderer').domElement.clientHeight) * 2 + 1;
+
+    const intersectedViewObj = this.get('raycaster').raycasting(null, origin, 
+      this.get('camera'), this.get('raycastObjectsLandscape'));
+
+    if(intersectedViewObj) {
+      
+      const emberModel = intersectedViewObj.object.userData.model;
+      const emberModelName = emberModel.constructor.modelName;
+
+      if(emberModelName === "nodegroup" || emberModelName === "system" || emberModelName === "node" || emberModelName === "application"){
+        this.get('hoverHandler').showTooltip(mouse, emberModel);
+      }
+      else if(emberModelName === "package" || emberModelName === "clazz" || emberModelName === "component"){ 
+        this.get('hoverHandlerApp3D').showTooltip(mouse, emberModel);
+      }
+
+    }
+
+  },*/
+
 
   handleHover(evt) {
 
@@ -821,10 +982,16 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.get('camera'), this.get('raycastObjectsLandscape'));
 
     if(intersectedViewObj) {
-
+      
       const emberModel = intersectedViewObj.object.userData.model;
+      const emberModelName = emberModel.constructor.modelName;
 
-      this.get('hoverHandler').showTooltip(mouse, emberModel);
+      if(emberModelName === "nodegroup" || emberModelName === "system" || emberModelName === "node" || emberModelName === "application"){
+        this.get('hoverHandlerLandscape').showTooltip(mouse, emberModel);
+      }
+      else if(emberModelName === "package" || emberModelName === "clazz" || emberModelName === "component"){ 
+        this.get('hoverHandlerApp3D').showTooltip(mouse, emberModel);
+      }
 
     }
 
@@ -834,4 +1001,4 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
 
 
-})
+});

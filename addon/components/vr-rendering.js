@@ -1,30 +1,21 @@
 import Ember from 'ember';
 import THREE from "npm:three";
-//import config from '../config/environment';
 import THREEPerformance from 'explorviz-ui-frontend/mixins/threejs-performance';
-
 import Raycaster from '../utils/vr-rendering/raycaster';
-
 import applyKlayLayout from '../utils/vr-rendering/klay-layouter';
 import Interaction from '../utils/vr-rendering/interaction';
-//import InteractionApp from '../utils/application-rendering/interaction';
 import Labeler from '../utils/vr-rendering/labeler';
 import LabelerApp from 'explorviz-ui-frontend/utils/application-rendering/labeler';
 import CalcCenterAndZoom from '../utils/vr-rendering/center-and-zoom-calculator';
 import HoverHandler from '../utils/vr-rendering/hover-handler';
-
 import ImageLoader from 'explorviz-ui-frontend/utils/three-image-loader';
-
 import Meshline from "npm:three.meshline";
-
 import ObjectLoader from 'npm:three-obj-loader';
 import applyCityLayout from 'explorviz-ui-frontend/utils/application-rendering/city-layouter';
-
 import {
   createFoundation,
   removeFoundation
-} from '../utils/application-rendering/foundation-builder';
-
+} from 'explorviz-ui-frontend/utils/application-rendering/foundation-builder';
 
 
 /**
@@ -43,9 +34,6 @@ import {
  * @extends Ember.Component
  */
 export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
-
-
-
 
   state: null,
 
@@ -126,17 +114,16 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   initialPositions: {},
 
 
-  trash: null,
+
 
   // Stores mesh for 3D application
   app3DMesh: null,
 
-
-
   // Application
   application3D: null,
-
   applicationID: null,
+
+  textBox: null,
 
 
 
@@ -162,9 +149,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
    * @method initRendering
    */
   initRendering() {
-
-
-
 
     const self = this;
 
@@ -195,9 +179,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('vrEnvironment').scale.x = 0.1;
     this.get('vrEnvironment').scale.y = 0.2;
     //this.get('vrEnvironment').scale.z = 0.2;
-
-    this.set('trash', new THREE.Object3D());
-    this.get('trash').name = 'trash';
 
     // remove stored applications
     this.set('landscapeRepo.latestApplication', null);
@@ -263,6 +244,20 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('controller2').add(this.get('line').clone());
 
     this.get('scene').add(this.get('vrEnvironment'));
+
+
+    // create text box 
+    this.set('textBox', new THREE.Object3D());
+    var color = new THREE.Color("rgb(253,245,230)");
+    const material = new THREE.MeshBasicMaterial({ color });
+
+    this.set('textBox', new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0), material));
+    this.get('textBox').name = 'textBox';
+    // Position next to controller
+    this.get('textBox').position.x +=0.2;
+    // rotate text box
+    this.get('textBox').rotateX(1.5707963267949);
+
 
     // Loader for VIVE-Controller texture
     new ObjectLoader(THREE);
@@ -332,8 +327,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     };
 
     this.onResized = function() {
-      this.set('centerAndZoomCalculator.centerPoint', null);
-      this.cleanAndUpdateScene();
+      //this.set('centerAndZoomCalculator.centerPoint', null);
+      //this.cleanAndUpdateScene();
     };
 
     if (!this.get('interaction')) {
@@ -388,7 +383,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     this.set('centerAndZoomCalculator.centerPoint', null);
 
-
     // create floor
     var floorTexture = new THREE.TextureLoader().load('images/materials/floor.jpg');
     var floorGeometry = new THREE.BoxGeometry(3, 0.1, 1.5);
@@ -397,73 +391,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     });
     var floorMesh = new THREE.Mesh(floorGeometry, floorMaterial); ///// End floor
     floorMesh.name = 'floor';
-    floorMesh.userData['type'] = 'floor';
-
-    //floorMesh.userData.model.constructor.modelName = 'floor';
-
     this.get('floor').add(floorMesh);
     this.get('floor').position.set(0,0,0);
-
     self.get('scene').add(this.get('floor'));
 
-    /*
-    // create table
-    var texture = new THREE.TextureLoader().load('images/materials/holz.jpg');
-    var tabletopGeometry = new THREE.BoxGeometry(3, 0.2, 1.5);
-    // Big
-    //var tabletopGeometry = new THREE.BoxGeometry(30,0.2,10);
-    var material = new THREE.MeshBasicMaterial({
-      map: texture
-    });
-    var tabletop = new THREE.Mesh(tabletopGeometry, material);
-    tabletop.position.set(0, -3, 0);
-    tabletop.name = "tableTop";
-
-    var tableLegGeometry = new THREE.BoxBufferGeometry(0.01, 1, 0.01);
-    // var tableLegGeometry = new THREE.BoxBufferGeometry(1,10,1);
-    var tableLeg1 = new THREE.Mesh(tableLegGeometry, material);
-    tableLeg1.position.set(1.5, -3.4, 0.75);
-    //tableLeg1.position.set(12,-8, 3);
-    tableLeg1.name = "tableLeg1";
-
-    var tableLeg2 = new THREE.Mesh(tableLegGeometry, material);
-    tableLeg2.position.set(1.5, -3.4, -0.75);
-    //tableLeg2.position.set(12,-8,-3);     
-    tableLeg2.name = "tableLeg2";
-
-    var tableLeg3 = new THREE.Mesh(tableLegGeometry, material);
-    tableLeg3.position.set(-1.5, -3.4, -0.75);
-    //tableLeg3.position.set(-12,-8, -3);
-    tableLeg3.name = "tableLeg3";
-
-    var tableLeg4 = new THREE.Mesh(tableLegGeometry, material);
-    tableLeg4.position.set(-1.5, -3.4, 0.75);
-    //tableLeg4.position.set(-12,-8, 3);      
-    tableLeg4.name = "tableLeg4";
-
-    self.get('table').add(tabletop);
-    self.get('table').add(tableLeg1);
-    self.get('table').add(tableLeg2);
-    self.get('table').add(tableLeg3);
-    self.get('table').add(tableLeg4);
-    self.get('table').position.y = 3;
-    //self.get('scene').add(self.get('table'));
-
-    // Create trashbin
-    var trashGeometry = new THREE.CylinderBufferGeometry(tableLeg4.geometry.parameters.height / 2, tableLeg4.geometry.parameters.height / 2, tableLeg4.geometry.parameters.height * 1.2, 32);
-    var trashMaterial = new THREE.MeshBasicMaterial({
-      color: 0x2E2E2E
-    });
-    var trashCylinder = new THREE.Mesh(trashGeometry, trashMaterial);
-    trashCylinder.name = 'trash';
-    self.get('trash').add(trashCylinder);
-    //self.get('scene').add(self.get('trash'));
-
-    // position trash next to table
-    self.get('trash').position.x = tabletop.position.x + tabletop.geometry.parameters.width * 2;
-    self.get('trash').position.y = tableLeg4.position.y + tableLeg4.geometry.parameters.height / 2;
-    self.get('trash').position.z = tabletop.position.z;
-    */
     // VR-Button
     WEBVR.getVRDisplay(function(display) {
       self.set('vrAvailable', true);
@@ -479,7 +410,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     const self = this;
 
-    this.$(window).on('resize.visualization', function() {
+    /*this.$(window).on('resize.visualization', function() {
       const outerDiv = this.$('.viz')[0];
 
       if (outerDiv) {
@@ -495,7 +426,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         self.onResized();
       }
     });
-
+    */
 
     this.get('viewImporter').on('transmitView', function(newState) {
       self.set('newState', newState);
@@ -586,7 +517,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     this.removePerformanceMeasurement();
 
-    this.$(window).off('resize.visualization');
+    //this.$(window).off('resize.visualization');
     this.get('viewImporter').off('transmitView');
     this.get('renderingService').off('reSetupScene');
     this.get('landscapeRepo').off('updated');
@@ -693,6 +624,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   // @Override
   populateScene() {
     this._super(...arguments);
+
+    console.log("vr", this.get('scene').children);
     const self = this;
     let landscapeMeshes = [];
     let communicationMeshes= [];
@@ -835,6 +768,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           // Draw box for closed and plane for opened systems
           var systemMesh;
           if (system.get('opened')) {
+            console.log("system model", system);
             systemMesh = createPlane(system);
             systemMesh.name = 'systemOpened';
             // Transform z-position of closed system to opened system 
@@ -1141,7 +1075,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
         removeAllChildren(child);
         const arrayType = ['AmbientLight', 'SpotLight', 'DirectionalLight', 'PerspectiveCamera'];
-        const arrayName = ['app3DFoundation', 'table', 'tableTop', 'controller', 'controllerLine', 'viveTexture', 'vr_controller_vive_1_5_polySurface1', 'app3D', 'labelApp3D', 'trash', 'tableLeg1', 'tableLeg2', 'tableLeg3', 'tableLeg4', 'label2D', 'dolly'];
+        const arrayName = ['app3DFoundation', 'table', 'tableTop', 'controller', 'controllerLine', 'viveTexture', 'vr_controller_vive_1_5_polySurface1', 'app3D', 'labelApp3D', 'trash', 'tableLeg1', 'tableLeg2', 'tableLeg3', 'tableLeg4', 'label2D', 'dolly', 'textPlane'];
         if (!arrayType.includes(child.type) && !arrayName.includes(child.name)) {
           if (child.type !== 'Object3D') {
             child.geometry.dispose();
@@ -1575,9 +1509,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const vrEnvironment = this.get('vrEnvironment');
 
     // init interaction objects
-
+    console.log(self.get('textBox'));
     this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,
-      raycaster, raycastObjects, controller1, controller2, parentObjects, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('cameraDolly'));
+      raycaster, raycastObjects, controller1, controller2, parentObjects, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('cameraDolly'), this.get('textBox'));
 
     // set listeners
     this.get('interaction').on('redrawScene', function() {
@@ -1585,7 +1519,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     });
 
     this.get('interaction').on('checkIntersection', function() {
-      self.calculateDistanceToTrash();
+      //self.calculateDistanceToTrash();
     });
 
     /*
@@ -1681,34 +1615,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }); 
 
   }, // END initInteraction
-
-  /*
-    This method is used to calculate the intersection box of the 3D application and the
-    trash bin. The application will be removed if the intersection box is big enough, which
-    means that the application is deep enough in the trash bin
-
-  */
-  calculateDistanceToTrash() {
-
-    var bboxTrash = new THREE.Box3().setFromObject(this.get('trash'));
-
-    var bboxApp = new THREE.Box3().setFromObject(this.get('application3D'));
-
-    var intersectionVector = bboxApp.intersect(bboxTrash);
-
-    // No intersection if vectors is infinite
-    if (isFinite(intersectionVector.max.x)) {
-
-      /* The intersection box should have a minimum width, height and depth so that the application
-          is not removed by the first intersection
-      */
-      if (Math.abs(Math.abs(intersectionVector.max.x) - Math.abs(intersectionVector.min.x)) > 0.4 && Math.abs(Math.abs(intersectionVector.max.y) - Math.abs(intersectionVector.min.y)) > 0.1 && Math.abs(Math.abs(intersectionVector.max.z) - Math.abs(intersectionVector.min.z)) > 0.1) {
-        this.removeApp3D();
-        this.set('landscapeRepo.latestApplication', null);
-        this.set("app3DExists", false);
-      }
-    }
-  },
 
 
   /*

@@ -168,9 +168,12 @@ export default Ember.Object.extend({
 
   saveTextForLabeling(textToShow, parent, color) {
 
+
+
     const emberModelName = parent.userData.model.constructor.modelName;
     const text = textToShow ? textToShow : parent.userData.model.get('name');
 
+      
     let textCache = 'systemTextCache';
 
     if(emberModelName === "node"){
@@ -223,11 +226,6 @@ export default Ember.Object.extend({
 
       }
       else {
-      	var materials = [
-					new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } ), // front
-					new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.SmoothShading } ) // side
-				];
-
        // console.log("new label");
         const labelGeo = new THREE.TextBufferGeometry(textObj.text, {
           font: self.get('font'),
@@ -374,7 +372,6 @@ export default Ember.Object.extend({
       
       this.repositionAppLabel(labelMesh);
 
-
     });
   },
 
@@ -394,11 +391,25 @@ export default Ember.Object.extend({
 
     const yOffset = 0.6;
 
-    labelMesh.position.x = - (labelLength / 2.0);
+
+    let parentSize = bboxParent.getSize();
+    let labelSize = labelBoundingBox.getSize();
+
+    // compute scale if label doesnt fit on top of the box
+    if(parentSize.x-labelSize.x<=0){
+      let scaleX = (parentSize.x / labelSize.x) * 0.9;
+      labelMesh.scale.x = scaleX;
+      labelMesh.position.x = - (labelSize.x*scaleX / 2.0);
+    }
+    else{
+      labelMesh.position.x = - (labelLength / 2.0);
+    }
+
     labelMesh.position.y = bboxParent.max.y -yOffset;
 
     // Compute y max (rotated 90) for label position
-    labelMesh.position.z = parent.geometry.boundingBox.max.z + 0.001;
+    labelMesh.position.z = bboxParent.max.z + 0.001;
+
   },
 
 
@@ -419,7 +430,7 @@ export default Ember.Object.extend({
 
     labelMesh.position.x = - (labelLength / 2.0);
     labelMesh.position.y = bboxParent.min.y + yOffset;
-    labelMesh.position.z = parent.position.z + parent.geometry.parameters.depth/2 + 0.001;
+    labelMesh.position.z = bboxParent.max.z + 0.001;
     
   },
 
@@ -439,10 +450,11 @@ export default Ember.Object.extend({
 
     const xOffset = 0.1;
 
+    const center = bboxParent.getCenter();
+
     labelMesh.position.x = bboxParent.min.x + xOffset;
     labelMesh.position.y = -(labelHeight / 2.0);
-    labelMesh.position.z = parent.position.z + parent.geometry.parameters.depth/2 + 0.002;
-    
+    labelMesh.position.z = center.z + 0.001;
   },
 
 

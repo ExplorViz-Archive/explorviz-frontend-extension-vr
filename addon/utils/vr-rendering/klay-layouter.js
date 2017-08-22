@@ -23,7 +23,7 @@ export default function applyKlayLayout(landscape) {
       $klay.layout({
         graph: graph,
         success: function(layouted) {
-          //console.log("success", layouted);
+          console.log("success", layouted);
         },
         error: function(error) {
           console.log("error", error);
@@ -754,7 +754,7 @@ export default function applyKlayLayout(landscape) {
 
                 }
               }
-
+              let newPoints = [];
               points.forEach((point) => {
                 let resultPoint = {
                   x: 0,
@@ -764,10 +764,11 @@ export default function applyKlayLayout(landscape) {
                 resultPoint.x = (point.x + pOffsetX) / CONVERT_TO_KIELER_FACTOR;
                 resultPoint.y = (point.y * -1 + pOffsetY) / CONVERT_TO_KIELER_FACTOR; // KIELER has inverted Y coords
                 communication.points.push(resultPoint);
+                newPoints.push(resultPoint);
 
               });
 
-              alreadyCalculatedPoints[edge.id] = points;
+              alreadyCalculatedPoints[edge.id] = newPoints;
 
             } // END if (parentNode != null)
           }
