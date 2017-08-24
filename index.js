@@ -4,15 +4,12 @@ var Funnel = require('broccoli-funnel');
 
 module.exports = {
   name: 'explorviz-frontend-plugin-vr',
-
-  treeForVendor: function(tree) {
-    var packagePath = path.dirname(require.resolve('three-obj-loader'));
-    var packageTree = new Funnel(this.treeGenerator(packagePath), {
-      srcDir: '/',
-      destDir: 'three-obj-loader'
+  
+    treeForPublic: function(tree) {
+    var assetsTree = new Funnel('public');
+    return mergeTrees([tree, assetsTree], {
+      overwrite: true
     });
-
-    return mergeTrees([tree, packageTree]);
   },
 
   included: function(app) {

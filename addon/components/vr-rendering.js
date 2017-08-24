@@ -385,7 +385,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('centerAndZoomCalculator.centerPoint', null);
 
     // create floor
-    var floorTexture = new THREE.TextureLoader().load('images/materials/floor.jpg');
+    var floorTexture = new THREE.TextureLoader().load('images/materials/floor.JPG');
     var floorGeometry = new THREE.BoxGeometry(3, 0.1, 1.5);
     var floorMaterial = new THREE.MeshBasicMaterial({
       map: floorTexture
