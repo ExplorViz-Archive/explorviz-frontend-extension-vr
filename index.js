@@ -1,6 +1,6 @@
 var path = require('path');
 var mergeTrees = require('broccoli-merge-trees');
-var Funnel = require('broccoli-funnel')
+var Funnel = require('broccoli-funnel');
 
 module.exports = {
   name: 'explorviz-frontend-plugin-vr',
@@ -16,7 +16,7 @@ module.exports = {
   },
 
   included: function(app) {
-    this._super.included(app);
+    this._super.included.apply(this, arguments);
 
     if (app.import) {
       this.importDependencies(app);
@@ -24,24 +24,14 @@ module.exports = {
   },
 
   importDependencies: function(app) {
+    app.import('vendor/OBJLoader.js');
 
-     // export for threex.dynamictexture
-  app.import('vendor/three.min.js');
-
-  app.import('vendor/vr/WebVR.js');
-  app.import('vendor/vr/WebVRCamera.js');
-  app.import('vendor/vr/ViveController.js');
-  app.import('vendor/vr/VRControls.js');
-  app.import('vendor/vr/VRController.js');  
-  app.import('vendor/vr/VREffect.js');
-
-  app.import('vendor/layout/klay.js');
-  app.import('vendor/threex/threex.rendererstats.min.js');
-  app.import('vendor/threex/threex.dynamictexture.min.js');
-
-  app.import('vendor/alertifyjs/alertify.min.js');
-  app.import('vendor/alertifyjs/css/alertify.min.css');
-  app.import('vendor/alertifyjs/css/themes/default.min.css');
+    app.import('vendor/vr/VRController.js');
+    app.import('vendor/vr/VRControls.js');
+    app.import('vendor/vr/VREffect.js');
+    app.import('vendor/vr/ViveController.js');
+    app.import('vendor/vr/WebVR.js');
+    app.import('vendor/vr/WebVRCamera.js');
 
   return app.toTree();
   }
