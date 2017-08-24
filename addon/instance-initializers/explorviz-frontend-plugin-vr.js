@@ -7,7 +7,7 @@ export function initialize(app) {
 }
 	
 	Router.map(function(){
-		this.route("vr");
+		this.route("VR");
 	});
 }
 

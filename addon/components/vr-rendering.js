@@ -10,7 +10,7 @@ import CalcCenterAndZoom from '../utils/vr-rendering/center-and-zoom-calculator'
 import HoverHandler from '../utils/vr-rendering/hover-handler';
 import ImageLoader from 'explorviz-ui-frontend/utils/three-image-loader';
 import Meshline from "npm:three.meshline";
-import ObjectLoader from "npm:three-obj-loader";
+//import ObjectLoader from "npm:three-obj-loader";
 import applyCityLayout from 'explorviz-ui-frontend/utils/application-rendering/city-layouter';
 import {
   createFoundation,
@@ -68,7 +68,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   configuration: Ember.inject.service("configuration"),
 
-  configurationApplication: Ember.inject.service("configuration-application"),
+  configurationApplication: Ember.inject.service("configuration"),
 
   hammerManager: null,
 
