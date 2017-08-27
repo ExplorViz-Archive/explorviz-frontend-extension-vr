@@ -57,6 +57,7 @@ export default Ember.Object.extend(Ember.Evented, {
 
     const modelType = emberModel.constructor.modelName;
 
+    // Landscape 
     if(modelType === 'application') {
       content = buildApplicationContent(emberModel);
     }
@@ -68,42 +69,36 @@ export default Ember.Object.extend(Ember.Evented, {
     }
     else if(modelType === 'nodegroup') {
       content = buildNodegroupContent(emberModel);
-    }    
+    } 
+    // Application3D
     else if(modelType === 'component') {
       content = buildComponentContent(emberModel);
     }
     else if(modelType === 'clazz') {
       content = buildClazzContent(emberModel);
-    }    
+    }     
+
     return content;
 
 
 
-    // Helper functions
+    // Helper functions landscape
     
     function buildApplicationContent(application) {
 
-      let content = {title: '', html: ''};
+      let content = {title: '', innerContent: "", innerContentLength: 2};
+
+      content.innerContent = {entry1: '', entry2: ""};
+
+      content.innerContent.entry1 = {name1: 'Last Usage:', value1: ""};
+      content.innerContent.entry2 = {name2: 'Language:', value2: ""};
 
       content.title = application.get('name');
 
       const year = new Date(application.get('lastUsage')).toLocaleString();
 
-      content.html = 
-        '<table style="width:100%">' + 
-          '<tr>' + 
-            '<td>Last Usage:</td>' + 
-            '<td style="text-align:right;padding-left:10px;">' +
-              year + 
-            '</td>' + 
-          '</tr>' + 
-          '<tr>' + 
-            '<td>Language:</td>' + 
-            '<td style="text-align:right;padding-left:10px;">' +
-              application.get('programmingLanguage') + 
-            '</td>' +
-          '</tr>' + 
-        '</table>';
+      content.innerContent.entry1.value1 = year;
+      content.innerContent.entry2.value2 = application.get('programmingLanguage');
 
       return content;
     }
@@ -111,7 +106,12 @@ export default Ember.Object.extend(Ember.Evented, {
 
     function buildSystemContent(system) {
 
-      let content = {title: '', nodesCount: '', applicationCount: ''};
+      let content = {title: '', innerContent: "", innerContentLength: 2};
+
+      content.innerContent = {entry1: '', entry2: ""};
+
+      content.innerContent.entry1 = {name1: 'Nodes:', value1: ""};
+      content.innerContent.entry2 = {name2: 'Applications:', value2: ""};
 
       content.title = system.get('name');
 
@@ -133,9 +133,8 @@ export default Ember.Object.extend(Ember.Evented, {
 
       });
 
-
-      content.nodesCount = nodesCount;
-      content.applicationCount = applicationCount;
+      content.innerContent.entry1.value1 = nodesCount;
+      content.innerContent.entry2.value2 = applicationCount;
 
       return content;
     }
@@ -143,31 +142,19 @@ export default Ember.Object.extend(Ember.Evented, {
 
     function buildNodeContent(node) {
 
-      let content = {title: '', html: ''};
+      let content = {title: '', innerContent: "", innerContentLength: 3};
+
+      content.innerContent = {entry1: '', entry2: "", entry3: ""};
+
+      content.innerContent.entry1 = {name1: 'CPU Utilization(%):', value1: ""};
+      content.innerContent.entry2 = {name2: 'Total RAM(GB):', value2: ""};
+      content.innerContent.entry3 = {name3: 'Free RAM(%):', value3: ""};
 
       content.title = node.getDisplayName();
 
-      content.html = 
-        '<table style="width:100%">' + 
-          '<tr>' + 
-            '<td>CPU Utilization:</td>' + 
-            '<td style="text-align:right;padding-left:10px;">' +
-              node.get('cpuUtilization') + ' %' +
-            '</td>' + 
-          '</tr>' + 
-          '<tr>' + 
-            '<td>Total RAM:</td>' + 
-            '<td style="text-align:right;padding-left:10px;">' +
-              node.get('freeRAM') + ' GB' +
-            '</td>' + 
-          '</tr>' + 
-          '<tr>' + 
-            '<td>Free RAM:</td>' + 
-            '<td style="text-align:right;padding-left:10px;">' +
-              node.get('usedRAM') + ' %' +
-            '</td>' +
-          '</tr>' + 
-        '</table>';
+      content.innerContent.entry1.value1 = node.get('cpuUtilization');
+      content.innerContent.entry2.value2 = node.get('freeRAM');  
+      content.innerContent.entry3.value3 = node.get('usedRAM'); 
 
       return content;
     }
@@ -175,7 +162,13 @@ export default Ember.Object.extend(Ember.Evented, {
 
     function buildNodegroupContent(nodeGroup) {
 
-      let content = {title: '', html: ''};
+      let content = {title: '', innerContent: "", innerContentLength: 3};
+
+      content.innerContent = {entry1: '', entry2: "", entry3: ""};
+
+      content.innerContent.entry1 = {name1: 'Nodes:', value1: ""};
+      content.innerContent.entry2 = {name2: 'Applications:', value2: ""};
+      content.innerContent.entry3 = {name3: 'Avg. CPU Utilization:', value3: ""};
 
       content.title = nodeGroup.get('name');
 
@@ -193,58 +186,33 @@ export default Ember.Object.extend(Ember.Evented, {
 
       });
 
-
-      content.html = 
-        '<table style="width:100%">' + 
-          '<tr>' + 
-            '<td>Nodes:</td>' + 
-            '<td style="text-align:right;padding-left:10px;">' +
-              nodes.get('length') + 
-            '</td>' + 
-          '</tr>' + 
-          '<tr>' + 
-            '<td>Applications:</td>' + 
-            '<td style="text-align:right;padding-left:10px;">' +
-              applicationCount + 
-            '</td>' +
-          '</tr>' +
-          '<tr>' + 
-            '<td>Avg. CPU Utilization:</td>' + 
-            '<td style="text-align:right;padding-left:10px;">' +
-              avgNodeCPUUtil + 
-            '</td>' +
-          '</tr>' + 
-        '</table>';
+      content.innerContent.entry1.value1 = nodes.get('length');
+      content.innerContent.entry2.value2 = applicationCount;
+      content.innerContent.entry3.value3 = avgNodeCPUUtil;
 
       return content;
-    }
-    // Helper functions
-    
+    } // END Helper function Landscape
+
+
+    // Helper function application 3D
     function buildComponentContent(component) {
 
-      let content = {title: '', html: ''};
+      let content = {title: '', innerContent: "", innerContentLength: 2};
+
+      content.innerContent = {entry1: '', entry2: ""};
+
+      content.innerContent.entry1 = {name1: 'Contained Classes:', value1: ""};
+      content.innerContent.entry2 = {name2: 'Contained Packages:', value2: ""};
 
       content.title = component.get('name');
-
+      
       const clazzesCount = getClazzesCount(component);
       const packageCount = getPackagesCount(component);
 
-      content.html = 
-        '<table style="width:100%">' + 
-          '<tr>' + 
-            '<td>Contained Classes:</td>' + 
-            '<td style="text-align:right;padding-left:10px;">' +
-              clazzesCount + 
-            '</td>' + 
-          '</tr>' + 
-          '<tr>' + 
-            '<td>Contained Packages:</td>' + 
-            '<td style="text-align:right;padding-left:10px;">' +
-              packageCount + 
-            '</td>' +
-          '</tr>' + 
-        '</table>';
+      content.innerContent.entry1.value1 = clazzesCount;
+      content.innerContent.entry2.value2 = packageCount;
 
+      // Inner helper functions
       function getClazzesCount(component) {
         let result = component.get('clazzes').get('length');
 
@@ -267,38 +235,28 @@ export default Ember.Object.extend(Ember.Evented, {
         });
 
         return result;   
-      }
+      } // END inner helper functions
 
       return content;
     }
 
-
     function buildClazzContent(clazz) {
 
-      let content = {title: '', html: ''};
+      let content = {title: '', innerContent: "", innerContentLength: 2};
+
+      content.innerContent = {entry1: '', entry2: ""};
+
+      content.innerContent.entry1 = {name1: 'Active Instances:', value1: ""};
+      content.innerContent.entry2 = {name2: 'Called Methods:', value2: ""};
 
       content.title = clazz.get('name');
 
       const calledMethods = getCalledMethods(clazz);
-      
-      content.html = 
-        '<table style="width:100%">' + 
-          '<tr>' + 
-            '<td>Active Instances:</td>' + 
-            '<td style="text-align:right;padding-left:10px;">' +
-              clazz.get('instanceCount') + 
-            '</td>' + 
-          '</tr>' + 
-          '<tr>' + 
-            '<td>Called Methods:</td>' + 
-            '<td style="text-align:right;padding-left:10px;">' +
-              calledMethods + 
-            '</td>' +
-          '</tr>' + 
-        '</table>';
+
+      content.innerContent.entry1.value1 = clazz.get('instanceCount');
+      content.innerContent.entry2.value2 = calledMethods; 
 
       return content;
-
 
       function getCalledMethods(clazz) {
         console.log(clazz);
@@ -322,11 +280,9 @@ export default Ember.Object.extend(Ember.Evented, {
       }
 
 
-    }
+    } // END helper function application 3D
 
-    
+  } // END build Content
 
-
-  } // END buildApplicationContent
 
 });

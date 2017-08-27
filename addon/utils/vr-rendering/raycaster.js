@@ -5,7 +5,7 @@ export default Ember.Object.extend({
 
   raycaster: new THREE.Raycaster(),
 
-  landscapeObjects: ['node', 'system', 'nodegroup', 'application', 'communication', 'label'],
+  landscapeObjects: ['node', 'system', 'nodegroup', 'application', 'communication', 'label', 'floor'],
   applicationObjects: ['component', 'clazz', 'communication'],
   objectCatalog: 'landscapeObjects',
   objectCatalogApp: 'applicationObjects',
