@@ -357,7 +357,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // create floor
     var floorTexture = new THREE.TextureLoader().load('images/materials/floor.jpg');
-    var floorGeometry = new THREE.BoxGeometry(3, 0.1, 1.5);
+    var floorGeometry = new THREE.BoxGeometry(3, 0, 1.5);
     var floorMaterial = new THREE.MeshBasicMaterial({
       map: floorTexture
     });
@@ -1085,8 +1085,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       // Compute size of floor
       const floorSize = bboxFloor.getSize();  
 
-      floor.scale.x =  (landscapeSize.x*1.8 / floorSize.x) * floor.scale.x;
-      floor.scale.z =  (landscapeSize.z*1.8 / floorSize.z) * floor.scale.z;   
+      floor.scale.x =  (landscapeSize.x*3 / floorSize.x) * floor.scale.x;
+      floor.scale.z =  (landscapeSize.z*8 / floorSize.z) * floor.scale.z;   
     }
 
 
