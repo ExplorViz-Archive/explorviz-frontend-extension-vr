@@ -319,7 +319,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           content = this.get('hoverHandler').buildContent(emberModel);
         }
         else if(emberModelName === "package" || emberModelName === "clazz" || emberModelName === "component"){ 
-          content = this.get('hoverHandlerApp3D').buildContent(emberModel);
+          content = this.get('hoverHandler').buildContent(emberModel);
 
         }
         
@@ -333,9 +333,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         ctx.fillRect(0, 0, canvas2.width, canvas2.height);
         ctx.fillStyle = '#FDF5E6';
         ctx.fillRect(0.4, 0.4, canvas2.width - 0.8, canvas2.height - 0.8);
-
-        //  Get number of entries
-        let entries = content.innerContentLength;
       
         // Draw title
         ctx.font = '20px arial';
@@ -347,7 +344,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         ctx.fillText("-------------------------------------------------", canvas2.width / 2, 32);
 
         // Spilt up remaining canvas for each entry
-        let offset = (canvas2.height-52)/entries;
+        let offset = (canvas2.height-52)/3;
         
         let tempOffset = offset;
 
@@ -639,10 +636,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     if(intersectedViewObj) {
 
-      // hide tooltip
-      this.get('hoverHandler').hideTooltip();
-      this.get('hoverHandlerApp3D').hideTooltip();
-
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
 
@@ -689,8 +682,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
 
   onMouseOut() {
-    this.set('hoverHandler.enableTooltips', false);
-    this.get('hoverHandler').hideTooltip();
     this.set('hoverHandlerLandscape.enableTooltips', false);
     this.get('hoverHandlerLandscape').hideTooltip();
     this.set('hoverHandlerApp3D.enableTooltips', false);
@@ -748,7 +739,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             }, delay);
             
             // When moving, hide (old) tooltip
-            self.get('hoverHandler').hideTooltip();
             self.get('hoverHandlerLandscape').hideTooltip();
             self.get('hoverHandlerApp3D').hideTooltip();
         });
