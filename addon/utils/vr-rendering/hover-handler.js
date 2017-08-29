@@ -6,58 +6,17 @@ export default Ember.Object.extend(Ember.Evented, {
 
   enableTooltips: true,
 
-
-  showTooltip(mouse, emberModel) {
-
-    if(!this.get('enableTooltips')) {
-      return;
-    }
-
-    let content = this.buildContent(emberModel);
-
-    if(content.title === '' && content.html === '') {
-      return;
-    }
-
-    Ember.$('#vizContainer').popover(
-      {
-        title: '<div style="font-weight:bold;text-align:center;">' + 
-          content.title + '</div>',
-        content : content.html,
-        placement:'top',
-        trigger:'manual',
-        html:true
-      }
-    );
-
-    Ember.$('#vizContainer').popover('show');
-
-    const topOffset = Ember.$('.popover').height() + 7;
-    const leftOffset = Ember.$('.popover').width() / 2;
-
-    Ember.$('.popover').css('top', mouse.y - topOffset + 'px');
-    Ember.$('.popover').css('left', mouse.x - leftOffset + 'px');
-
-    this.set('alreadyDestroyed', false);
-
-  },
-
-
-  hideTooltip() {
-
-    if(!this.get('alreadyDestroyed')) {
-      Ember.$('#vizContainer').popover('destroy');
-      this.set('alreadyDestroyed', true);
-    }
-  },
-
+  /*
+   *  The following functions are used to collect
+   *  informations about a given entity
+   */
 
   buildContent(emberModel) {
-    let content = {title: '', html: ''};
+    let content = {title: '', innerContent: ""};
 
     const modelType = emberModel.constructor.modelName;
 
-    // Landscape 
+    // Build information for landscape 
     if(modelType === 'application') {
       content = buildApplicationContent(emberModel);
     }
@@ -70,7 +29,7 @@ export default Ember.Object.extend(Ember.Evented, {
     else if(modelType === 'nodegroup') {
       content = buildNodegroupContent(emberModel);
     } 
-    // Application3D
+    // Build information for application3D
     else if(modelType === 'component') {
       content = buildComponentContent(emberModel);
     }
@@ -84,9 +43,13 @@ export default Ember.Object.extend(Ember.Evented, {
 
     // Helper functions landscape
     
+    /*
+     *  This function is used to build the information about 
+     *  applications
+     */    
     function buildApplicationContent(application) {
 
-      let content = {title: '', innerContent: "", innerContentLength: 2};
+      let content = {title: '', innerContent: ""};
 
       content.innerContent = {entry1: '', entry2: ""};
 
@@ -103,10 +66,13 @@ export default Ember.Object.extend(Ember.Evented, {
       return content;
     }
 
-
+    /*
+     *  This function is used to build the information about 
+     *  systems
+     */   
     function buildSystemContent(system) {
 
-      let content = {title: '', innerContent: "", innerContentLength: 2};
+      let content = {title: '', innerContent: ""};
 
       content.innerContent = {entry1: '', entry2: ""};
 
@@ -139,10 +105,13 @@ export default Ember.Object.extend(Ember.Evented, {
       return content;
     }
 
-
+    /*
+     *  This function is used to build the information about 
+     *  nodes
+     */   
     function buildNodeContent(node) {
 
-      let content = {title: '', innerContent: "", innerContentLength: 3};
+      let content = {title: '', innerContent: ""};
 
       content.innerContent = {entry1: '', entry2: "", entry3: ""};
 
@@ -159,10 +128,13 @@ export default Ember.Object.extend(Ember.Evented, {
       return content;
     }
 
-
+    /*
+     *  This function is used to build the information about 
+     *  nodegroups
+     */   
     function buildNodegroupContent(nodeGroup) {
 
-      let content = {title: '', innerContent: "", innerContentLength: 3};
+      let content = {title: '', innerContent: ""};
 
       content.innerContent = {entry1: '', entry2: "", entry3: ""};
 
@@ -195,9 +167,14 @@ export default Ember.Object.extend(Ember.Evented, {
 
 
     // Helper function application 3D
+
+    /*
+     *  This function is used to build the information about 
+     *  packages
+     */   
     function buildComponentContent(component) {
 
-      let content = {title: '', innerContent: "", innerContentLength: 2};
+      let content = {title: '', innerContent: ""};
 
       content.innerContent = {entry1: '', entry2: ""};
 
@@ -240,9 +217,13 @@ export default Ember.Object.extend(Ember.Evented, {
       return content;
     }
 
+    /*
+     *  This function is used to build the information about 
+     *  clazzes
+     */   
     function buildClazzContent(clazz) {
 
-      let content = {title: '', innerContent: "", innerContentLength: 2};
+      let content = {title: '', innerContent: ""};
 
       content.innerContent = {entry1: '', entry2: ""};
 
