@@ -14,7 +14,8 @@ import {
   createFoundation,
   removeFoundation
 } from 'explorviz-ui-frontend/utils/application-rendering/foundation-builder';
-import layout from "../templates/components/vr-rendering";
+
+import layout from "../templates/components/vr-rendering"
 
 /**
  * This component contains the core mechanics of the different (three.js-based) 
@@ -80,8 +81,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   initialRendering: true,
 
   // VR
-  vrControls: null,
-  vrEffect: null,
   vrEnvironment: null,
   vrLandscape: null,
   vrCommunications: null,
@@ -175,7 +174,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // Frame to manipulate camera
     this.set("cameraDolly", new THREE.Group());
-    this.get("cameraDolly").position.set(0, 0, 0);
+   //this.get("cameraDolly").position.set(0, 0, 0);
     this.get("cameraDolly").add(this.get("camera"));
     this.get("scene").add(this.get("cameraDolly"));
     this.get('cameraDolly').name = 'dolly';
@@ -185,21 +184,22 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       antialias: true,
       canvas: canvas
     }));
-
     this.get('webglrenderer').setPixelRatio(window.devicePixelRatio);
     this.get('webglrenderer').setSize(width, height);
-
-    this.set('vrControls', new VRControls(this.get('camera')));
-    this.set('vrEffect', new VREffect(this.get('webglrenderer')));
+  this.get('webglrenderer').vr.enabled = true;
+  this.get('webglrenderer').vr.standing = true;
+  this.get('webglrenderer').shadowMap.enabled = true;
+  this.get('webglrenderer').gammaInput = true;
+  this.get('webglrenderer').gammaOutput = true
 
     // Controller
     this.set('controller1', new ViveController(0));
-    this.get('controller1').standingMatrix = this.get('vrControls').getStandingMatrix();
+    this.get('controller1').standingMatrix = this.get('webglrenderer').vr.getStandingMatrix();
     this.get('controller1').name = "controller";
     this.get('scene').add(this.get('controller1'));
 
     this.set('controller2', new ViveController(1));
-    this.get('controller2').standingMatrix = this.get('vrControls').getStandingMatrix();
+    this.get('controller2').standingMatrix = this.get('webglrenderer').vr.getStandingMatrix();
     this.get('controller2').name = "controller";
     this.get('scene').add(this.get('controller2'));
 
@@ -235,7 +235,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
 
     // Loader for VIVE-Controller texture
-    var loader = new OBJLoader();
+    injectOBJLoaderIntoTHREE(THREE);
+    var loader = new THREE.OBJLoader();
     loader.setPath('vive-controller/');
     loader.load('vr_controller_vive_1_5.obj', function(object) {
       const obj = object;
@@ -248,11 +249,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.get('controller1').add(obj.clone());
       self.get('controller2').add(obj.clone());
     });
-
+  
     // VR Rendering loop //
+  function animate() {
+        self.get('webglrenderer').animate(render);
+      }
+      
     function render() {
 
-      self.get('vrControls').update();
       self.get('controller1').update();
       self.get('controller2').update();
 
@@ -267,17 +271,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         }
       }
 
-      self.get('vrEffect').render(self.get('scene'), self.get('camera'));
+      self.get('webglrenderer').render(self.get('scene'), self.get('camera'));
 
-      const animationId = requestAnimationFrame(render);
-
-      self.set('animationFrameId', animationId);
     }
-    render();
+    animate();
 
-    // Activate and set userhight
-    this.get('vrControls').standing = true;
-    this.get('vrControls').userHight = 1.90;
 
     ////////////////////
 
@@ -293,7 +291,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     this.onReSetupScene = function() {
       this.set('centerAndZoomCalculator.centerPoint', null);
-      this.get('camera.position').set(0, 0, 0);
       this.populateScene();
     };
 
@@ -365,13 +362,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     floorMesh.name = 'floor';
 
     this.get('floor').add(floorMesh);
-    this.get('floor').position.set(0,0,0);
 
     self.get('scene').add(this.get('floor'));
 
     // VR-Button
     WEBVR.getVRDisplay(function(display) {
       self.set('vrAvailable', true);
+    self.get('webglrenderer').vr.setDevice(display);
       document.body.appendChild(WEBVR.getButton(display, self.get('webglrenderer').domElement));
     });
 

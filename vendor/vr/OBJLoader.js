@@ -2,7 +2,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 
-THREE.OBJLoader = ( function () {
+OBJLoader = ( function () {
 
 	// o object_name | g group_name
 	var object_pattern           = /^[og]\s*(.+)?/;
@@ -669,4 +669,6 @@ THREE.OBJLoader = ( function () {
 
 } )();
 
-OBJLoader = THREE.OBJLoader;
+function injectOBJLoaderIntoTHREE(THREE){
+	THREE.OBJLoader = OBJLoader;
+}

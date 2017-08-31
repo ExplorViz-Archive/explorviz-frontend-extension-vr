@@ -21,14 +21,9 @@ module.exports = {
   },
 
   importDependencies: function(app) {
-    app.import('vendor/OBJLoader.js');
-
-    app.import('vendor/vr/VRController.js');
-    app.import('vendor/vr/VRControls.js');
-    app.import('vendor/vr/VREffect.js');
+    app.import('vendor/vr/OBJLoader.js');
     app.import('vendor/vr/ViveController.js');
     app.import('vendor/vr/WebVR.js');
-    app.import('vendor/vr/WebVRCamera.js');
 
   return app.toTree();
   }
