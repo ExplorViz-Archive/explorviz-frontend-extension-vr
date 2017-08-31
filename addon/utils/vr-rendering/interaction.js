@@ -671,26 +671,25 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('hoverHandlerLandscape').hideTooltip();
     this.get('hoverHandlerApp3D').hideTooltip();
 
-    var delta = Math.max(-1, Math.min(1, (evt.wheelDelta || -evt.detail)));
+    var delta = evt.wheelDelta;
+	console.log(this.get('vrEnvironment').position.y);
+	
 
     // zoom in
-    if (delta > 0) {
-		let posZ = this.get('vrEnvironment').position.z + 0.1;
+    if (delta < 0) {
+		let posZ = this.get('vrEnvironment').position.y - 0.1;
 		if(posZ > 0){
-			this.get('vrEnvironment').translateZ(posZ);
+			this.get('vrEnvironment').translateZ(-0.1);
 		}
     }
     // zoom out
     else {
-		
-		let posZ = this.get('vrEnvironment').position.z + 0.1;
-
-		if(posZ < this.get('userHeight')){
-			this.get('vrEnvironment').translateZ(posZ);
+		let posZ = this.get('vrEnvironment').position.y + 0.1;
+		if(posZ < this.get('userHeight')/2){
+			this.get('vrEnvironment').translateZ(0.1);
 		}
     }
 	
-	console.log(this.get('vrEnvironment'));
   },
 
 
