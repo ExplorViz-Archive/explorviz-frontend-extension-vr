@@ -39,6 +39,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   hoverHandler: null,
   hoverHandlerLandscape: null,
   hoverHandlerApp3D: null,
+  userHeight: null,
 
   raycastObjects: Ember.computed('rotationObject', function() {
     return this.get('rotationObject.children');
@@ -48,7 +49,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('application3D', application3D);
   },
 
-  setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, controller2, parentObject, vrEnvironment, colorList, colorListApp, cameraDolly, textBox) {
+  setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, controller2, parentObject, vrEnvironment, colorList, colorListApp, cameraDolly, textBox, userHeight) {
     this.set('scene', scene);
     this.set('canvas', canvas);
     this.set('camera', camera);
@@ -62,7 +63,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('colorList', colorList);  
     this.set('colorListApp', colorListApp);   
     this.set('cameraDolly', cameraDolly);  
-    this.set('textBox', textBox);  
+    this.set('textBox', textBox); 
+	
+	this.set('userHeight', userHeight);
 
     const self = this;
 
@@ -672,12 +675,22 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     // zoom in
     if (delta > 0) {
-      this.get('cameraDolly').position.z -= delta * 1.5;
+		let posZ = this.get('vrEnvironment').position.z + 0.1;
+		if(posZ > 0){
+			this.get('vrEnvironment').translateZ(posZ);
+		}
     }
     // zoom out
     else {
-      this.get('cameraDolly').position.z -= delta * 1.5;
+		
+		let posZ = this.get('vrEnvironment').position.z + 0.1;
+
+		if(posZ < this.get('userHeight')){
+			this.get('vrEnvironment').translateZ(posZ);
+		}
     }
+	
+	console.log(this.get('vrEnvironment'));
   },
 
 

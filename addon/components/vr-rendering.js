@@ -127,6 +127,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   initRendering() {
 
     const self = this;
+	
+	let userHeight = 1.9;
 
     // Check if WebVR is supported
     WEBVR.checkAvailability().catch(function(reject) {
@@ -171,6 +173,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('scene.background', new THREE.Color(0xffffff));
 
     this.set('camera', new THREE.PerspectiveCamera(75, width / height, 0.1, 1000));
+	this.get('camera').positionZ = userHeight;
 
     // Frame to manipulate camera
     this.set("cameraDolly", new THREE.Group());
@@ -191,6 +194,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   this.get('webglrenderer').shadowMap.enabled = true;
   this.get('webglrenderer').gammaInput = true;
   this.get('webglrenderer').gammaOutput = true
+  
+
 
     // Controller
     this.set('controller1', new ViveController(0));
@@ -257,10 +262,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       
     function render() {
 
-      self.get('controller1').update();
-      self.get('controller2').update();
-
-      // Check raycast for intersection
+	   // Check raycast for intersection
       if (self.get('interaction')) {
         // only if no application3D binded on controller
         if(self.get('controller1').userData.selected === undefined){
@@ -270,7 +272,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           self.get('interaction').checkIntersection(self.get('controller2'));
         }
       }
-
+	  
+      self.get('controller1').update();
+      self.get('controller2').update();
       self.get('webglrenderer').render(self.get('scene'), self.get('camera'));
 
     }
@@ -1061,7 +1065,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       // set new position of vrEnvironment
       vrEnvironment.position.x += centerFloor.x - centerLandscape.x;
       vrEnvironment.position.y += bboxFloor.max.y - bboxLandscape.min.y + 0.001;
-      vrEnvironment.position.z += centerFloor.z - centerLandscape.z;
+//      vrEnvironment.position.z += centerFloor.z - centerLandscape.z;
     }
 
     /* 
@@ -1114,12 +1118,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       for (let i = 0; i < tiles.length; i++) {
         let tile = tiles[i];
-        tile.lineThickness = 0.07 * categories[tile.requestsCache] + 0.1;
+        tile.lineThickness = (0.07 * categories[tile.requestsCache] + 0.1) *0.07;
       }
 
+	let canvas = self.get('canvas')
       for (let i = 0; i < tiles.length; i++) {
         let tile = tiles[i];
-        createLine(tile, tiles, meshes);
+        createLine(tile, tiles, meshes, canvas);
       }
 
 
@@ -1228,37 +1233,42 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }
 
 
-    function createLine(tile, tiles, meshes) {
+    function createLine(tile, tiles, meshes, canvas) {
       const resolution =
-        new THREE.Vector2(self.$("#threeCanvas")[0].width, self.$("#threeCanvas")[0].height);
+        new THREE.Vector2(canvas.width, canvas.height);
 
       const material = new Meshline.MeshLineMaterial({
         color: tile.pipeColor,
-        lineWidth: 0.07 * tile.lineThickness,
+        lineWidth: tile.lineThickness,
         sizeAttenuation: 1,
         resolution: resolution
       });
 
+     
       const geometry = new THREE.Geometry();
-
-      geometry.vertices.push(
-        new THREE.Vector3(tile.startPoint.x - centerPoint.x,
-          tile.startPoint.y - centerPoint.y, tile.positionZ)
-      );
-
-      geometry.vertices.push(
-        new THREE.Vector3(tile.endPoint.x - centerPoint.x,
-          tile.endPoint.y - centerPoint.y, tile.positionZ)
-      );
-
-      const followingTiles = tiles.filter(isNextTile, tile);
-      const length = followingTiles.length;
+      let firstVector = new THREE.Vector3(tile.startPoint.x - centerPoint.x, 
+        tile.startPoint.y - centerPoint.y, tile.positionZ);
+      let secondVector = new THREE.Vector3(tile.endPoint.x - centerPoint.x,
+          tile.endPoint.y - centerPoint.y, tile.positionZ);
 
 
-      for (let i = 0; i < length; i++) {
-        let followingTile = followingTiles[i];
-        createGoodEdges(tile, followingTile,  meshes);
+      let helpVector = new THREE.Vector3();
+      helpVector.subVectors(secondVector, firstVector);
+      if(helpVector.y > 0){
+        helpVector.cross(new THREE.Vector3(0,0,1));
+      }else{
+        helpVector.cross(new THREE.Vector3(0,0,-1));
       }
+      helpVector.normalize();
+      helpVector.multiplyScalar(tile.lineThickness * 0.4);
+
+      geometry.vertices.push(firstVector);
+
+      geometry.vertices.push(secondVector);
+
+      geometry.vertices.unshift(new THREE.Vector3(firstVector.x - helpVector.x, firstVector.y, firstVector.z));
+
+	  geometry.vertices.push(new THREE.Vector3(secondVector.x + helpVector.x, secondVector.y, secondVector.z));
 
       const line = new Meshline.MeshLine();
       line.setGeometry(geometry);
@@ -1267,50 +1277,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       lineMesh.name = "communication";
       meshes.push(lineMesh);
 
-
-      //----------Helper functions
-      function createGoodEdges(firstTile, secondTile, meshes) {
-
-        const resolution = new THREE.Vector2(self.$("#threeCanvas")[0].width,
-          self.$("#threeCanvas")[0].height);
-
-        let lineThickness =
-          (firstTile.lineThickness < secondTile.lineThickness) ?
-          firstTile.lineThickness : secondTile.lineThickness;
-
-        const material = new Meshline.MeshLineMaterial({
-          color: secondTile.pipeColor,
-          lineWidth: lineThickness * 0.07,
-          sizeAttenuation: 1,
-          resolution: resolution
-        });
-
-        let geometry = new THREE.Geometry();
-
-        geometry.vertices.push(
-          new THREE.Vector3(firstTile.startPoint.x - centerPoint.x,
-            firstTile.startPoint.y - centerPoint.y, firstTile.positionZ)
-        );
-
-        geometry.vertices.push(
-          new THREE.Vector3(firstTile.endPoint.x - centerPoint.x,
-            firstTile.endPoint.y - centerPoint.y, firstTile.positionZ)
-        );
-
-        geometry.vertices.push(
-          new THREE.Vector3(secondTile.endPoint.x - centerPoint.x,
-            secondTile.endPoint.y - centerPoint.y, secondTile.positionZ)
-        );
-
-
-        const line = new Meshline.MeshLine();
-        line.setGeometry(geometry);
-
-        var lineMesh = new THREE.Mesh(line.geometry, material);
-
-        meshes.push(lineMesh);
-
-      }
 
     } // END createLine
 
@@ -1377,10 +1343,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const controller2 = this.get('controller2');
     const parentObjects = this.get('application3D');
     const vrEnvironment = this.get('vrEnvironment');
+	const userHeight = 1.9;
 
     // init interaction objects
     this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,
-      raycaster, raycastObjects, controller1, controller2, parentObjects, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('cameraDolly'), this.get('textBox'));
+      raycaster, raycastObjects, controller1, controller2, parentObjects, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('cameraDolly'), this.get('textBox'), userHeight);
 
     // set listeners
     this.get('interaction').on('redrawScene', function() {
