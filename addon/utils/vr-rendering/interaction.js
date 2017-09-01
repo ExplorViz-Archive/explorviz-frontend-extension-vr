@@ -49,7 +49,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('application3D', application3D);
   },
 
-  setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, controller2, parentObject, vrEnvironment, colorList, colorListApp, cameraDolly, textBox, userHeight) {
+  setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, controller2, parentObject, vrEnvironment, colorList, colorListApp, textBox, userHeight) {
     this.set('scene', scene);
     this.set('canvas', canvas);
     this.set('camera', camera);
@@ -62,7 +62,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('vrEnvironment', vrEnvironment);    
     this.set('colorList', colorList);  
     this.set('colorListApp', colorListApp);   
-    this.set('cameraDolly', cameraDolly);  
     this.set('textBox', textBox); 
 	
 	this.set('userHeight', userHeight);

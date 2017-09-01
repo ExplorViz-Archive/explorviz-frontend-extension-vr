@@ -173,14 +173,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('scene.background', new THREE.Color(0xffffff));
 
     this.set('camera', new THREE.PerspectiveCamera(75, width / height, 0.1, 1000));
-	this.get('camera').positionZ = userHeight;
+    this.get('camera').translateZ = 1.9;
 
-    // Frame to manipulate camera
-    this.set("cameraDolly", new THREE.Group());
-   //this.get("cameraDolly").position.set(0, 0, 0);
-    this.get("cameraDolly").add(this.get("camera"));
-    this.get("scene").add(this.get("cameraDolly"));
-    this.get('cameraDolly').name = 'dolly';
 
     // first renderer
     this.set('webglrenderer', new THREE.WebGLRenderer({
@@ -1348,7 +1342,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // init interaction objects
     this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,
-      raycaster, raycastObjects, controller1, controller2, parentObjects, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('cameraDolly'), this.get('textBox'), userHeight);
+      raycaster, raycastObjects, controller1, controller2, parentObjects, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('textBox'), userHeight);
 
     // set listeners
     this.get('interaction').on('redrawScene', function() {
