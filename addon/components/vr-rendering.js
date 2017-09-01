@@ -93,7 +93,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   cameraDolly: null,
   vrAvailable: false,
-  floor: null,
+  room: null,
 
   initialPositions: {},
 
@@ -136,8 +136,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     });
 
     // dummy object for raycasting
-    this.set('floor',  new THREE.Object3D());
-    this.get('floor').name = 'floor';   
+    this.set('room',  new THREE.Object3D());
+    this.get('room').name = 'room';   
 
     this.set('vrLandscape', new THREE.Group());
     this.get('vrLandscape').name = 'landscape';
@@ -350,16 +350,16 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // create floor
     var floorTexture = new THREE.TextureLoader().load('images/materials/floor.jpg');
-    var floorGeometry = new THREE.BoxGeometry(3, 0, 1.5);
+    var floorGeometry = new THREE.BoxGeometry(5, 0, 3);
     var floorMaterial = new THREE.MeshBasicMaterial({
       map: floorTexture
     });
     var floorMesh = new THREE.Mesh(floorGeometry, floorMaterial); ///// End floor
     floorMesh.name = 'floor';
 
-    this.get('floor').add(floorMesh);
+    this.get('room').add(floorMesh);
 
-    self.get('scene').add(this.get('floor'));
+    self.get('scene').add(this.get('room'));
 
     // VR-Button
     WEBVR.getVRDisplay(function(display) {
@@ -925,9 +925,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }.bind(this));
 
     // Scale floor bigger as landscape(3D)
-    scaleFloor(this.get('vrEnvironment'), this.get('floor'));
+    //scaleFloor(this.get('vrEnvironment'), this.get('floor'));
     // Center landscape(3D) on the floor 
-    centerVREnvironment(this.get('vrEnvironment'), this.get('floor'));
+    centerAndScaleVREnvironment(this.get('vrEnvironment'), this.get('floor'));
 
     
     // Helper functions //
