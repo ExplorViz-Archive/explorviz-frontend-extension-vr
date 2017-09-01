@@ -233,14 +233,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
 
     // Loader for VIVE-Controller texture
-    var loader = new OBJLoader();
+    let loader = new OBJLoader();
     loader.setPath('vive-controller/');
     loader.load('vr_controller_vive_1_5.obj', function(object) {
       const obj = object;
       obj.name = "viveTexture";
-      var loader = new THREE.TextureLoader();
+      let loader = new THREE.TextureLoader();
       loader.setPath('vive-controller/');
-      var controller = obj.children[0];
+      let controller = obj.children[0];
       controller.material.map = loader.load('onepointfive_texture.png');
       controller.material.specularMap = loader.load('onepointfive_spec.png');
       self.get('controller1').add(obj.clone());
@@ -925,9 +925,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }.bind(this));
 
     // Scale floor bigger as landscape(3D)
-    //scaleFloor(this.get('vrEnvironment'), this.get('floor'));
+    scaleFloor(this.get('vrEnvironment'), this.get('floor'));
     // Center landscape(3D) on the floor 
-    //centerVREnvironment(this.get('vrEnvironment'), this.get('floor'));
+    centerVREnvironment(this.get('vrEnvironment'), this.get('floor'));
 
     
     // Helper functions //
