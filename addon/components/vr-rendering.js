@@ -350,7 +350,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // create floor
     var floorTexture = new THREE.TextureLoader().load('images/materials/floor.jpg');
-    var floorGeometry = new THREE.BoxGeometry(3, 0, 5);
+    var floorGeometry = new THREE.BoxGeometry(5, 0, 3);
     var floorMaterial = new THREE.MeshBasicMaterial({
       map: floorTexture
     });
@@ -927,7 +927,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // Scale floor bigger as landscape(3D)
     //scaleFloor(this.get('vrEnvironment'), this.get('floor'));
     // Center landscape(3D) on the floor 
-    centerAndScaleVREnvironment(this.get('vrEnvironment'), this.get('floor'));
+    centerAndScaleVREnvironment(this.get('vrEnvironment'), this.get('room'));
 
     
     // Helper functions //
@@ -1040,7 +1040,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      *  The object3D which contains the landscape(3D) and communication
      *  is centered relative to the floor.
      */
-    function centerVREnvironment(vrEnvironment, floor) {
+    function centerAndScaleVREnvironment(vrEnvironment, floor) {
 
       // Compute bounding box of the floor
       const bboxFloor = new THREE.Box3().setFromObject(floor);
@@ -1060,6 +1060,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       if(bboxLandscape.min.y < bboxFloor.min.y){
         vrEnvironment.position.y += bboxFloor.max.y - bboxLandscape.min.y + 0.001;
       }
+
+      //scale vrEnvironment
+
+      
     }
 
     /* 
