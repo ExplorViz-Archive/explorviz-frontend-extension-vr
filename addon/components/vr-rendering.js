@@ -350,7 +350,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // create floor
     var floorTexture = new THREE.TextureLoader().load('images/materials/floor.jpg');
-    var floorGeometry = new THREE.BoxGeometry(5, 0, 3);
+    var floorGeometry = new THREE.BoxGeometry(3, 0, 5);
     var floorMaterial = new THREE.MeshBasicMaterial({
       map: floorTexture
     });
