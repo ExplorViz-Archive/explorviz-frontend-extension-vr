@@ -173,7 +173,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('scene.background', new THREE.Color(0xffffff));
 
     this.set('camera', new THREE.PerspectiveCamera(75, width / height, 0.1, 1000));
-    this.get('camera').translateZ = 1.9;
 
 
     // first renderer
