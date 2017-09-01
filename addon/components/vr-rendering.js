@@ -925,9 +925,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }.bind(this));
 
     // Scale floor bigger as landscape(3D)
-    scaleFloor(this.get('vrEnvironment'), this.get('floor'));
+    //scaleFloor(this.get('vrEnvironment'), this.get('floor'));
     // Center landscape(3D) on the floor 
-    centerVREnvironment(this.get('vrEnvironment'), this.get('floor'));
+    //centerVREnvironment(this.get('vrEnvironment'), this.get('floor'));
 
     
     // Helper functions //
