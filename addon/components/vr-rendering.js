@@ -182,12 +182,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }));
     this.get('webglrenderer').setPixelRatio(window.devicePixelRatio);
     this.get('webglrenderer').setSize(width, height);
-  this.get('webglrenderer').vr.enabled = true;
-  this.get('webglrenderer').vr.standing = true;
-  this.get('webglrenderer').shadowMap.enabled = true;
-  this.get('webglrenderer').gammaInput = true;
-  this.get('webglrenderer').gammaOutput = true
-  
+    this.get('webglrenderer').vr.enabled = true;
+    this.get('webglrenderer').vr.standing = true;
+    this.get('webglrenderer').shadowMap.enabled = true;
+    this.get('webglrenderer').gammaInput = true;
+    this.get('webglrenderer').gammaOutput = true
 
 
     // Controller
@@ -427,7 +426,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     const self = this;
 
-    cancelAnimationFrame(this.get('animationFrameId'));
+   // cancelAnimationFrame(this.get('animationFrameId'));
+    this.get('webglrenderer').dispose();
 
     this.set('scene', null);
     this.set('webglrenderer', null);
@@ -928,6 +928,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     //scaleFloor(this.get('vrEnvironment'), this.get('floor'));
     // Center landscape(3D) on the floor 
     centerAndScaleVREnvironment(this.get('vrEnvironment'), this.get('room'));
+    this.get('webglrenderer').vr.submitFrame();
 
     
     // Helper functions //
@@ -1119,7 +1120,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         tile.lineThickness = (0.07 * categories[tile.requestsCache] + 0.1) *0.07;
       }
 
-	let canvas = self.get('canvas')
+      let canvas = self.get('canvas')
       for (let i = 0; i < tiles.length; i++) {
         let tile = tiles[i];
         createLine(tile, tiles, meshes, canvas);
