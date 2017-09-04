@@ -151,15 +151,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('vrEnvironment').name = 'landscape';
     this.get('vrEnvironment').add(this.get('vrCommunications'));
     this.get('vrEnvironment').add(this.get('vrLandscape'));
-
-    this.get('vrEnvironment').scale.x = 0.1;
-    this.get('vrEnvironment').scale.y = 0.2;
+	
+	this.get('vrEnvironment').matrixAutoUpdate = false;
+	this.get('vrLandscape').matrixAutoUpdate = false;
+	this.get('vrCommunications'). matrixAutoUpdate = false;
+	
     // rotate landscape by 90 degrees (radiant)
     this.get('vrEnvironment').rotateX(-1.5707963);
-    this.get('vrEnvironment').matrixAutoUpdate = false;
-
-    this.get('vrEnvironment').matrixWorldNeedsUpdate = true;
-
+	this.get('vrEnvironment').updateMatrix();
 
 
     // remove stored applications
@@ -918,21 +917,27 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     //The landscape(3D) will be deleted an rewritten
     removeAllChildren(this.get('vrCommunications'));
-
+	this.get('vrCommunications').updateMatrix();
     communicationMeshes.forEach(function(mesh) {
       this.get('vrCommunications').add(mesh);
     }.bind(this));
+	this.get('vrCommunications').updateMatrix();
 
     removeAllChildren(this.get('vrLandscape'));
+	this.get('vrLandscape').updateMatrix();
     landscapeMeshes.forEach(function(mesh){
       this.get('vrLandscape').add(mesh);
     }.bind(this));
+	this.get('vrLandscape').updateMatrix();
 
     // Scale floor bigger as landscape(3D)
     //scaleFloor(this.get('vrEnvironment'), this.get('floor'));
     // Center landscape(3D) on the floor 
-    centerAndScaleVREnvironment(this.get('vrEnvironment'), this.get('room'));
-    this.get('vrEnvironment').matrixWorldNeedsUpdate = true;
+	this.get('vrEnvironment').updateMatrix();
+	scaleVREnvironment(this.get('vrEnvironment'), this.get('room'));
+	this.get('vrEnvironment').updateMatrix();
+    centerVREnvironment(this.get('vrEnvironment'), this.get('room'));
+    this.get('vrEnvironment').updateMatrix();
     this.get('webglrenderer').vr.submitFrame();
 
     
@@ -1046,7 +1051,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      *  The object3D which contains the landscape(3D) and communication
      *  is centered relative to the floor.
      */
-    function centerAndScaleVREnvironment(vrEnvironment, floor) {
+    function centerVREnvironment(vrEnvironment, floor) {
 
       // Compute bounding box of the floor
       const bboxFloor = new THREE.Box3().setFromObject(floor);
@@ -1069,6 +1074,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       //scale vrEnvironment
 
+	  
+
       
     }
 
@@ -1076,22 +1083,27 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      *  This function is used to resize the foor so 
      *  the landscape(3D) fits on it
      */
-    function scaleFloor(vrEnvironment, floor) {
-
-      // Compute bounding box for landscape(3D)
-      const bboxLandscape = new THREE.Box3().setFromObject(vrEnvironment);
-
-      // Compute size of landscape(3D)
-      const landscapeSize = bboxLandscape.getSize();
-
-      // Compute bounding box for floor
+    function scaleVREnvironment(vrEnvironment, floor) {
+	
+	  // Compute bounding box of the floor
       const bboxFloor = new THREE.Box3().setFromObject(floor);
-
-      // Compute size of floor
-      const floorSize = bboxFloor.getSize();  
-
-      floor.scale.x =  (landscapeSize.x*3 / floorSize.x) * floor.scale.x;
-      floor.scale.z =  (landscapeSize.z*8 / floorSize.z) * floor.scale.z;   
+      const bboxLandscape = new THREE.Box3().setFromObject(vrEnvironment);
+	  
+	  
+	  
+	  let floorSize = bboxFloor.getSize();
+	  let landscapeSize = bboxLandscape.getSize();
+	  
+	  if(landscapeSize.x > (floorSize.x - 1)){
+		  let scale = (floorSize.x - 1)/ landscapeSize.x;
+		  vrEnvironment.scale.x *= scale;
+	  }
+	  
+	  if(landscapeSize.z > (floorSize.z - 1)){
+		  let scale = (floorSize.z - 1)/ landscapeSize.z;
+		  vrEnvironment.scale.y *= scale;
+	  }
+	  
     }
 
 
