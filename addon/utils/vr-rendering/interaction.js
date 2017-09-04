@@ -679,6 +679,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 		let posZ = this.get('vrEnvironment').position.y - 0.1;
 		if(posZ > 0){
 			this.get('vrEnvironment').translateZ(-0.1);
+			this.get('vrEnvironment').updateMatrix();
 		}
     }
     // zoom out
@@ -686,6 +687,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 		let posZ = this.get('vrEnvironment').position.y + 0.1;
 		if(posZ < this.get('userHeight')/2){
 			this.get('vrEnvironment').translateZ(0.1);
+			this.get('vrEnvironment').updateMatrix();
 		}
     }
 	

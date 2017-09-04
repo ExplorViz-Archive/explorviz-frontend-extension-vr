@@ -26,21 +26,11 @@ export default Ember.Object.extend({
     // calculate objects intersecting the picking ray (true => recursive)
     const intersections = raycaster.intersectObjects(possibleObjects,
       false);
+	  
 
     if (intersections.length > 0) {
-
-      const result = intersections.filter(function(obj) {
-        if (obj.object.userData.model) {
-          const modelName = obj.object.userData.model.constructor.modelName;
-          return (self.get(self.get('objectCatalog')).includes(modelName) || self.get(self.get('objectCatalogApp')).includes(modelName));
-        }
-      });
-      if (result.length <= 0) {
-        return;
-      }
-
-      return result[0];
-
+		console.log(intersections);
+		return intersections[0];
     }
   }
   
