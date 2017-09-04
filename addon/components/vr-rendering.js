@@ -154,12 +154,17 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     this.get('vrEnvironment').scale.x = 0.1;
     this.get('vrEnvironment').scale.y = 0.2;
+    // rotate landscape by 90 degrees (radiant)
+    this.get('vrEnvironment').rotateX(-1.5707963);
+    this.get('vrEnvironment').matrixAutoUpdate = false;
+
+    this.get('vrEnvironment').matrixWorldNeedsUpdate = true;
+
+
 
     // remove stored applications
     this.set('landscapeRepo.latestApplication', null);
 
-    // rotate landscape by 90 degrees (radiant)
-    this.get('vrEnvironment').rotateX(-1.5707963);
 
     // get size if outer ember div
     const height = this.$()[0].clientHeight;
@@ -247,30 +252,29 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     });
   
     // VR Rendering loop //
-  function animate() {
-        self.get('webglrenderer').animate(render);
-      }
-      
+    function animate() {
+      self.get('webglrenderer').animate(render);
+    }
+
     function render() {
 
-	   // Check raycast for intersection
+      // Check raycast for intersection
       if (self.get('interaction')) {
         // only if no application3D binded on controller
-        if(self.get('controller1').userData.selected === undefined){
+        if (self.get('controller1').userData.selected === undefined) {
           self.get('interaction').checkIntersection(self.get('controller1'));
         }
-        if(self.get('controller2').userData.selected === undefined){
+        if (self.get('controller2').userData.selected === undefined) {
           self.get('interaction').checkIntersection(self.get('controller2'));
         }
       }
-	  
+
       self.get('controller1').update();
       self.get('controller2').update();
       self.get('webglrenderer').render(self.get('scene'), self.get('camera'));
 
     }
     animate();
-
 
     ////////////////////
 
@@ -368,7 +372,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     });
 
     // Stop data flow
-   // this.get('reloadHandler').stopExchange();
+    this.get('reloadHandler').stopExchange();
 
   },
 
@@ -928,6 +932,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     //scaleFloor(this.get('vrEnvironment'), this.get('floor'));
     // Center landscape(3D) on the floor 
     centerAndScaleVREnvironment(this.get('vrEnvironment'), this.get('room'));
+    this.get('vrEnvironment').matrixWorldNeedsUpdate = true;
     this.get('webglrenderer').vr.submitFrame();
 
     
