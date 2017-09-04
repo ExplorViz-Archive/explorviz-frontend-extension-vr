@@ -235,20 +235,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('textBox').geometry.rotateY(1.5707963267949*2);
 
 
-    // Loader for VIVE-Controller texture
-    let loader = new OBJLoader();
-    loader.setPath('vive-controller/');
-    loader.load('vr_controller_vive_1_5.obj', function(object) {
-      const obj = object;
-      obj.name = "viveTexture";
-      let loader = new THREE.TextureLoader();
-      loader.setPath('vive-controller/');
-      let controller = obj.children[0];
-      controller.material.map = loader.load('onepointfive_texture.png');
-      controller.material.specularMap = loader.load('onepointfive_spec.png');
-      self.get('controller1').add(obj.clone());
-      self.get('controller2').add(obj.clone());
-    });
+   
   
     // VR Rendering loop //
     function animate() {
@@ -277,13 +264,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     ////////////////////
 
-    // load font for labels and synchronously proceed with populating the scene
-    new THREE.FontLoader()
-      .load('three.js/fonts/roboto_mono_bold_typeface.json', function(font) {
-        self.set('font', font);
-        self.set('initDone', true);
-        self.populateScene();
-      });
 
     this.debug("init vr-rendering");
 
@@ -372,6 +352,29 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // Stop data flow
     this.get('reloadHandler').stopExchange();
+	
+	 // Loader for VIVE-Controller texture
+    let loader = new OBJLoader();
+    loader.setPath('vive-controller/');
+    loader.load('vr_controller_vive_1_5.obj', function(object) {
+      const obj = object;
+      obj.name = "viveTexture";
+      let loader = new THREE.TextureLoader();
+      loader.setPath('vive-controller/');
+      let controller = obj.children[0];
+      controller.material.map = loader.load('onepointfive_texture.png');
+      controller.material.specularMap = loader.load('onepointfive_spec.png');
+      self.get('controller1').add(obj.clone());
+      self.get('controller2').add(obj.clone());
+	  
+		// load font for labels and synchronously proceed with populating the scene
+		new THREE.FontLoader()
+		  .load('three.js/fonts/roboto_mono_bold_typeface.json', function(font) {
+			self.set('font', font);
+			self.set('initDone', true);
+			self.populateScene();
+		  });
+    });
 
   },
 
@@ -1336,7 +1339,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }
 
     this.get('labeler').drawTextLabels(self.get('font'),
-      self.get('configuration'));
+    self.get('configuration'));
 
   },
   //////////// END populateScene
@@ -1363,7 +1366,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // init interaction objects
     this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,
-      raycaster, raycastObjects, controller1, controller2, parentObjects, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('textBox'), userHeight);
+      raycaster, this.get('vrLandscape').children, controller1, controller2, parentObjects, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('textBox'), userHeight);
 
     // set listeners
     this.get('interaction').on('redrawScene', function() {

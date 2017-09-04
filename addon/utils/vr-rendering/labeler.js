@@ -72,7 +72,8 @@ export default Ember.Object.extend({
         const labelGeo = new THREE.TextBufferGeometry(textObj.text, {
           font: self.get('font'),
           size: 0.4,
-          height: 0
+          height: 0,
+		  curveSegments: 1
         });
 
         const material = new THREE.MeshBasicMaterial({
@@ -134,6 +135,7 @@ export default Ember.Object.extend({
 
         const labelGeo = new THREE.TextBufferGeometry(text, {
           font: self.get('font'),
+		  curveSegments: 1,		  
           size: 0.3,
           height: 0
         });
@@ -191,6 +193,7 @@ export default Ember.Object.extend({
 
         const labelGeo = new THREE.TextBufferGeometry(textObj.text, {
           font: self.get('font'),
+		  curveSegments: 1,		  
           size: 0.25,
           height: 0
         });
