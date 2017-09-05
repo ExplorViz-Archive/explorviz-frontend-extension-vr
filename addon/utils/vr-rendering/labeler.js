@@ -71,7 +71,7 @@ export default Ember.Object.extend({
 
     // Draw old box color
     ctx.fillStyle = color;
-    ctx.fillRect(0.4, 0.4, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = textColor;
     // Handle opened and closed systems
     if(entity.userData.model.get('opened')){
@@ -127,20 +127,12 @@ export default Ember.Object.extend({
       
       let size = bbox.getSize();
       
-      // calculate aspect ratio
-      let valueX = 64 * size.x/size.y;
-      let valueY = 32 * size.x/size.y;
-      // caluculate power of 2 
-      let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(valueX)/Math.log(2)));
-      let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(valueY)/Math.log(2)));
+
+      // calculate aspect ratio and next power of 2 
+      let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(size.x*40)/Math.log(2)));
+      let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(size.y*40)/Math.log(2)));
 
       // Adapt canvas to size of box
-      if(valueY-32 < nextPowerOf2Y-valueY){
-        nextPowerOf2Y = 64;
-      }
-      if(valueX-64 < nextPowerOf2X-valueX){
-        nextPowerOf2Y = 64;
-      }
       this.get('canvasList')[textObj.parent.id].width = nextPowerOf2X;
       this.get('canvasList')[textObj.parent.id].height = nextPowerOf2Y;
       
@@ -153,19 +145,19 @@ export default Ember.Object.extend({
 
       // Draw old box color
       ctx.fillStyle = color;
-      ctx.fillRect(0.4, 0.4, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Handle opened and closed systems
       if(textObj.parent.userData.model.get('opened')){
         // Draw title for opened systems
-        ctx.font = '15px arial';
+        ctx.font = '20px arial';
         ctx.fillStyle = textObj.color;
         ctx.textAlign = "center";
         ctx.fillText(textObj.text, canvas.width/2,canvas.height/10,canvas.width-4);
       }
       else{
         // Draw title for closed systems
-        ctx.font = '32px arial';
+        ctx.font = '40px arial';
         ctx.fillStyle = textObj.color;
         ctx.textAlign = "center";
         ctx.fillText(textObj.text, canvas.width/2,canvas.height/2,canvas.width-4);
@@ -189,7 +181,7 @@ export default Ember.Object.extend({
         oldMaterial, // Back   
         oldMaterial, // Front
         canvasMaterial, // Top
-        oldMaterial  // Buttom
+        canvasMaterial  // Buttom
       ];
 
       textObj.parent.material = materials;
@@ -213,20 +205,11 @@ export default Ember.Object.extend({
       
       let size = bbox.getSize();
       
-      // calculate aspect ratio
-      let valueX = 64 * size.x/size.y;
-      let valueY = 32 * size.x/size.y;
-      // caluculate power of 2 
-      let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(valueX)/Math.log(2)));
-      let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(valueY)/Math.log(2)));
+      // calculate aspect ratio and next power of 2 
+      let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(size.x*30)/Math.log(2)));
+      let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(size.y*40)/Math.log(2)));
 
       // Adapt canvas to size of box
-      if(valueY-32 < nextPowerOf2Y-valueY){
-        nextPowerOf2Y = 64;
-      }
-      if(valueX-64 < nextPowerOf2X-valueX){
-        nextPowerOf2Y = 64;
-      }
       this.get('canvasList')[textObj.parent.id].width = nextPowerOf2X;
       this.get('canvasList')[textObj.parent.id].height = nextPowerOf2Y;
 
@@ -239,12 +222,12 @@ export default Ember.Object.extend({
 
       // Draw old box color
       ctx.fillStyle = color;
-      ctx.fillRect(0.4, 0.4, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Handle opened nodegroups
       if(!textObj.parent.userData.model.get('opened')){
         // Draw title for opened nodegroups
-        ctx.font = '25px arial';
+        ctx.font = '30px arial';
         ctx.fillStyle = textObj.color;
         ctx.textAlign = "center";
         ctx.fillText(textObj.text, canvas.width/2,canvas.height/2,canvas.width-4);
@@ -294,20 +277,11 @@ export default Ember.Object.extend({
       
       let size = bbox.getSize();
       
-      // calculate aspect ratio
-      let valueX = 64 * size.x/size.y;
-      let valueY = 32 * size.x/size.y;
-      // caluculate power of 2 
-      let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(valueX)/Math.log(2)));
-      let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(valueY)/Math.log(2)));
+      // calculate aspect ratio and next power of 2 
+      let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(size.x*40)/Math.log(2)));
+      let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(size.y*80)/Math.log(2)));
 
-      // Adapt canvas to size of box
-      if(valueY-32 < nextPowerOf2Y-valueY){
-        nextPowerOf2Y = 64;
-      }
-      if(valueX-64 < nextPowerOf2X-valueX){
-        nextPowerOf2Y = 64;
-      }
+       // Adapt canvas to size of box
       this.get('canvasList')[textObj.parent.id].width = nextPowerOf2X;
       this.get('canvasList')[textObj.parent.id].height = nextPowerOf2Y;
       
@@ -320,14 +294,14 @@ export default Ember.Object.extend({
 
       // Draw old box color
       ctx.fillStyle = color;
-      ctx.fillRect(0.4, 0.4, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     
       // Draw title for nodes
-      ctx.font = '20px arial';
+      ctx.font = '25px arial';
       ctx.fillStyle = textObj.color;
       ctx.textAlign = "center";
       ctx.textBaseline="bottom";
-      ctx.fillText(textObj.text, canvas.width/2,canvas.height-4,canvas.width-4);
+      ctx.fillText(textObj.text, canvas.width/2,canvas.height*0.9,canvas.width*0.9);
       
 
       // create texture out of canvas
@@ -374,20 +348,11 @@ export default Ember.Object.extend({
       
       let size = bbox.getSize();
       
-      // calculate aspect ratio
-      let valueX = 64 * size.x/size.y;
-      let valueY = 32 * size.x/size.y;
-      // caluculate power of 2 
-      let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(valueX)/Math.log(2)));
-      let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(valueY)/Math.log(2)));
+      // calculate aspect ratio and next power of 2 
+      let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(size.x*75)/Math.log(2)));
+      let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(size.y*90)/Math.log(2)));
 
-      // Adapt canvas to size of box
-      if(valueY-32 < nextPowerOf2Y-valueY){
-        nextPowerOf2Y = 64;
-      }
-      if(valueX-64 < nextPowerOf2X-valueX){
-        nextPowerOf2Y = 64;
-      }
+       // Adapt canvas to size of box
       this.get('canvasList')[textObj.parent.id].width = nextPowerOf2X;
       this.get('canvasList')[textObj.parent.id].height = nextPowerOf2Y;
       
@@ -400,14 +365,14 @@ export default Ember.Object.extend({
 
       // Draw old box color
       ctx.fillStyle = color;
-      ctx.fillRect(0.4, 0.4, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     
       // Draw title for nodes
       ctx.font = '30px arial';
       ctx.fillStyle = textObj.color;
       ctx.textAlign = "center";
       // save some space for images (canvas.width/2-6)
-      ctx.fillText(textObj.text, canvas.width/2-6,canvas.height/2,canvas.width-4);
+      ctx.fillText(textObj.text, canvas.width/2*0.8,canvas.height/2,canvas.width*0.5);
       
 
       // create texture out of canvas
