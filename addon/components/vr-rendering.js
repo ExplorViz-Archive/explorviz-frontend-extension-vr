@@ -127,8 +127,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   initRendering() {
 
     const self = this;
-	
-	let userHeight = 1.9;
+  
+  let userHeight = 1.9;
 
     // Check if WebVR is supported
     WEBVR.checkAvailability().catch(function(reject) {
@@ -151,14 +151,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('vrEnvironment').name = 'landscape';
     this.get('vrEnvironment').add(this.get('vrCommunications'));
     this.get('vrEnvironment').add(this.get('vrLandscape'));
-	
-	this.get('vrEnvironment').matrixAutoUpdate = false;
-	this.get('vrLandscape').matrixAutoUpdate = false;
-	this.get('vrCommunications'). matrixAutoUpdate = false;
-	
+  
+  this.get('vrEnvironment').matrixAutoUpdate = false;
+  this.get('vrLandscape').matrixAutoUpdate = false;
+  this.get('vrCommunications'). matrixAutoUpdate = false;
+  
     // rotate landscape by 90 degrees (radiant)
     this.get('vrEnvironment').rotateX(-1.5707963);
-	this.get('vrEnvironment').updateMatrix();
+  this.get('vrEnvironment').updateMatrix();
 
 
     // remove stored applications
@@ -352,9 +352,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // Stop data flow
     this.get('reloadHandler').stopExchange();
-	
-	 // Loader for VIVE-Controller texture
-	 let OBJLoader = createOBJLoader(THREE);
+  
+   // Loader for VIVE-Controller texture
+   let OBJLoader = createOBJLoader(THREE);
     let loader = new OBJLoader(THREE.DefaultLoadingManager);
     loader.setPath('vive-controller/');
     loader.load('vr_controller_vive_1_5.obj', function(object) {
@@ -367,14 +367,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       controller.material.specularMap = loader.load('onepointfive_spec.png');
       self.get('controller1').add(obj.clone());
       self.get('controller2').add(obj.clone());
-	  
-		// load font for labels and synchronously proceed with populating the scene
-		new THREE.FontLoader()
-		  .load('three.js/fonts/roboto_mono_bold_typeface.json', function(font) {
-			self.set('font', font);
-			self.set('initDone', true);
-			self.populateScene();
-		  });
+    
+    // load font for labels and synchronously proceed with populating the scene
+    new THREE.FontLoader()
+      .load('three.js/fonts/roboto_mono_bold_typeface.json', function(font) {
+      self.set('font', font);
+      self.set('initDone', true);
+      self.populateScene();
+      });
     });
 
   },
@@ -670,7 +670,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           const textColor =
             self.get('configuration.landscapeColors.textsystem');
 
-          self.get('labeler').saveTextForLabeling(null, systemMesh, textColor);
+          let emberModelName = system.constructor.modelName;
+
+          let boxColor = self.get('configuration.landscapeColors.' + emberModelName);  
+
+          self.get('labeler').saveTextForLabeling(null, systemMesh, textColor, boxColor);
 
         }
 
@@ -773,6 +777,16 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
               landscapeMeshes.push(nodeMesh);
               node.set('threeJSModel', nodeMesh);
+
+              // labeler creates box color
+              let textColor = self.get('configuration.landscapeColors.textnode');
+
+              let emberModelName = node.constructor.modelName;
+
+              let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
+
+              self.get('labeler').saveTextForLabeling(node.getDisplayName(),
+                nodeMesh, textColor, boxColor);
             
               const applications = node.get('applications');
 
@@ -833,12 +847,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
                   let textColor =
                     self.get('configuration.landscapeColors.textapp');
 
-                  self.get('labeler').saveTextForLabeling(null, applicationMesh,
-                    textColor);
+                  let emberModelName = application.constructor.modelName;
 
-                  textColor = self.get('configuration.landscapeColors.textnode');
-                  self.get('labeler').saveTextForLabeling(node.getDisplayName(),
-                    nodeMesh, textColor);
+                  let boxColor = self.get('configuration.landscapeColors.' + emberModelName);  
+
+                  self.get('labeler').saveTextForLabeling(null, applicationMesh,
+                    textColor, boxColor);
 
                 }
               });
@@ -847,8 +861,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
             else{ 
               let textColor = self.get('configuration.landscapeColors.textapp');
 
+              let emberModelName = nodegroup.constructor.modelName;
+
+              let boxColor = self.get('configuration.landscapeColors.' + emberModelName); 
+
               textColor = self.get('configuration.landscapeColors.textnode');
-              self.get('labeler').saveTextForLabeling(node.getDisplayName(), nodegroupMesh, textColor);
+              self.get('labeler').saveTextForLabeling(node.getDisplayName(), nodegroupMesh, textColor, boxColor);
             }
           });
         });
@@ -921,25 +939,25 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     //The landscape(3D) will be deleted an rewritten
     removeAllChildren(this.get('vrCommunications'));
-	this.get('vrCommunications').updateMatrix();
+  this.get('vrCommunications').updateMatrix();
     communicationMeshes.forEach(function(mesh) {
       this.get('vrCommunications').add(mesh);
     }.bind(this));
-	this.get('vrCommunications').updateMatrix();
+  this.get('vrCommunications').updateMatrix();
 
     removeAllChildren(this.get('vrLandscape'));
-	this.get('vrLandscape').updateMatrix();
+  this.get('vrLandscape').updateMatrix();
     landscapeMeshes.forEach(function(mesh){
       this.get('vrLandscape').add(mesh);
     }.bind(this));
-	this.get('vrLandscape').updateMatrix();
+  this.get('vrLandscape').updateMatrix();
 
     // Scale floor bigger as landscape(3D)
     //scaleFloor(this.get('vrEnvironment'), this.get('floor'));
     // Center landscape(3D) on the floor 
-	this.get('vrEnvironment').updateMatrix();
-	scaleVREnvironment(this.get('vrEnvironment'), this.get('room'));
-	this.get('vrEnvironment').updateMatrix();
+  this.get('vrEnvironment').updateMatrix();
+  scaleVREnvironment(this.get('vrEnvironment'), this.get('room'));
+  this.get('vrEnvironment').updateMatrix();
     centerVREnvironment(this.get('vrEnvironment'), this.get('room'));
     this.get('vrEnvironment').updateMatrix();
     this.get('webglrenderer').vr.submitFrame();
@@ -1078,7 +1096,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       //scale vrEnvironment
 
-	  
+    
 
       
     }
@@ -1088,26 +1106,26 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      *  the landscape(3D) fits on it
      */
     function scaleVREnvironment(vrEnvironment, floor) {
-	
-	  // Compute bounding box of the floor
+  
+    // Compute bounding box of the floor
       const bboxFloor = new THREE.Box3().setFromObject(floor);
       const bboxLandscape = new THREE.Box3().setFromObject(vrEnvironment);
-	  
-	  
-	  
-	  let floorSize = bboxFloor.getSize();
-	  let landscapeSize = bboxLandscape.getSize();
-	  
-	  if(landscapeSize.x > (floorSize.x - 1)){
-		  let scale = (floorSize.x - 1)/ landscapeSize.x;
-		  vrEnvironment.scale.x *= scale;
-	  }
-	  
-	  if(landscapeSize.z > (floorSize.z - 1)){
-		  let scale = (floorSize.z - 1)/ landscapeSize.z;
-		  vrEnvironment.scale.y *= scale;
-	  }
-	  
+    
+    
+    
+    let floorSize = bboxFloor.getSize();
+    let landscapeSize = bboxLandscape.getSize();
+    
+    if(landscapeSize.x > (floorSize.x - 1)){
+      let scale = (floorSize.x - 1)/ landscapeSize.x;
+      vrEnvironment.scale.x *= scale;
+    }
+    
+    if(landscapeSize.z > (floorSize.z - 1)){
+      let scale = (floorSize.z - 1)/ landscapeSize.z;
+      vrEnvironment.scale.y *= scale;
+    }
+    
     }
 
 
@@ -1288,7 +1306,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       geometry.vertices.unshift(new THREE.Vector3(firstVector.x - helpVector.x, firstVector.y, firstVector.z));
 
-	  geometry.vertices.push(new THREE.Vector3(secondVector.x + helpVector.x, secondVector.y, secondVector.z));
+    geometry.vertices.push(new THREE.Vector3(secondVector.x + helpVector.x, secondVector.y, secondVector.z));
 
       const line = new Meshline.MeshLine();
       line.setGeometry(geometry);
@@ -1363,7 +1381,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const controller2 = this.get('controller2');
     const parentObjects = this.get('application3D');
     const vrEnvironment = this.get('vrEnvironment');
-	const userHeight = 1.9;
+  const userHeight = 1.9;
 
     // init interaction objects
     this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,
