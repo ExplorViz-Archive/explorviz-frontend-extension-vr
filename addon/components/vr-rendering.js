@@ -663,11 +663,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           const textColor =
             self.get('configuration.landscapeColors.textsystem');
 
-          let emberModelName = system.constructor.modelName;
-          
-          let boxColor = self.get('configuration.landscapeColors.' + emberModelName);  
-          
-          self.get('labeler').saveTextForLabeling(null, systemMesh, textColor, boxColor);
+          self.get('labeler').saveTextForLabeling(null, systemMesh, textColor);
 
         }
 
@@ -770,17 +766,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
               landscapeMeshes.push(nodeMesh);
               node.set('threeJSModel', nodeMesh);
-
-              // labeler creates box color
-              let textColor = self.get('configuration.landscapeColors.textnode');
-
-              let emberModelName = node.constructor.modelName;
-
-              let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
-
-              self.get('labeler').saveTextForLabeling(node.getDisplayName(),
-                nodeMesh, textColor, boxColor);
-
             
               const applications = node.get('applications');
 
@@ -841,14 +826,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
                   let textColor =
                     self.get('configuration.landscapeColors.textapp');
 
-                  let emberModelName = application.constructor.modelName;
-
-                  let boxColor = self.get('configuration.landscapeColors.' + emberModelName);  
-
                   self.get('labeler').saveTextForLabeling(null, applicationMesh,
-                    textColor, boxColor);
+                    textColor);
 
-  
+                  textColor = self.get('configuration.landscapeColors.textnode');
+                  self.get('labeler').saveTextForLabeling(node.getDisplayName(),
+                    nodeMesh, textColor);
+
                 }
               });
             }
@@ -856,12 +840,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
             else{ 
               let textColor = self.get('configuration.landscapeColors.textapp');
 
-              let emberModelName = nodegroup.constructor.modelName;
-
-              let boxColor = self.get('configuration.landscapeColors.' + emberModelName); 
-
               textColor = self.get('configuration.landscapeColors.textnode');
-              self.get('labeler').saveTextForLabeling(node.getDisplayName(), nodegroupMesh, textColor, boxColor);
+              self.get('labeler').saveTextForLabeling(node.getDisplayName(), nodegroupMesh, textColor);
             }
           });
         });
