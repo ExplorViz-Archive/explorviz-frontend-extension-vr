@@ -6,15 +6,12 @@ export default Ember.Object.extend({
   textLabels: {},
 
   systemTextCache: [],
-  nodegroupTextCache: [],
   nodeTextCache: [],
   appTextCache: [],
-  canvasList: {},
 
   font: null,
 
-
-  saveTextForLabeling(textToShow, parent, color, boxColor) {
+  saveTextForLabeling(textToShow, parent, color) {
 
     const emberModelName = parent.userData.model.constructor.modelName;
     const text = textToShow ? textToShow : parent.userData.model.get('name');
@@ -24,14 +21,11 @@ export default Ember.Object.extend({
     if(emberModelName === "node"){
       textCache = 'nodeTextCache';
     }
-    else if(textToShow){
-      textCache = 'nodegroupTextCache';
-    }
     else if(emberModelName === "application") {
       textCache = 'appTextCache';
     }
 
-    this.get(textCache).push({text: text, parent: parent, color: color, boxColor: boxColor});
+    this.get(textCache).push({text: text, parent: parent, color: color});
   },
 
 
@@ -41,401 +35,302 @@ export default Ember.Object.extend({
     this.set('configuration', configuration);
 
     this.drawSystemTextLabels();
-    this.drawNodeGroupTextLabels();
     this.drawNodeTextLabels();
     this.drawAppTextLabels();
 
     // After drawing, reset all caches for next tick
     this.set('systemTextCache', []);
-    this.set('nodegroupTextCache', []);
     this.set('nodeTextCache', []);
     this.set('appTextCache', []);
 
   },
 
-  redrawLabel(entity, textColor, name, color){
-
-    // Create one canvas for each entity
-    if(!this.get('canvasList')[entity.id]){
-      let canvas = document.createElement('canvas');
-      canvas.width = 64;
-      canvas.height = 32;
-      this.get('canvasList')[entity.id] = canvas;
-    }
-
-    let oldMaterial = new THREE.MeshBasicMaterial({color});
-
-    let canvas = this.get('canvasList')[entity.id];
-    
-    var ctx = canvas.getContext('2d');
-
-    // Draw old box color
-    ctx.fillStyle = color;
-    ctx.fillRect(0.4, 0.4, canvas.width, canvas.height);
-    ctx.fillStyle = textColor;
-    // Handle opened and closed systems
-    if(entity.userData.model.get('opened')){
-      // Draw title for opened systems
-      ctx.font = '15px arial';
-      ctx.textAlign = "center";
-      ctx.fillText(name, canvas.width/2,canvas.height/10,canvas.width-4);
-    }
-    else{
-      // Draw title for closed systems
-      ctx.font = '32px arial';
-      ctx.textAlign = "center";
-      ctx.fillText(name, canvas.width/2,canvas.height/2,canvas.width-4);
-    }
- 
-    // create texture out of canvas
-    let texture = new THREE.Texture(canvas);
-
-    // map texture
-    let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
-
-    // Update texture      
-    texture.needsUpdate = true;   
-
-    
-    // Define each side of the box
-    var materials = [oldMaterial, // Right side
-      oldMaterial, // Left side
-      oldMaterial, // Back   
-      oldMaterial, // Front
-      canvasMaterial , // Top
-      oldMaterial  // Buttom
-    ];
-
-    entity.material = materials;
-
-  },
 
   drawSystemTextLabels() {
 
+    const self = this;
+
     this.get('systemTextCache').forEach((textObj) => {
 
-      // Create one canvas for each entity
-      if(!this.get('canvasList')[textObj.parent.id]){
-        let canvas = document.createElement('canvas');
-        canvas.width = 64;
-        canvas.height = 32;
-        this.get('canvasList')[textObj.parent.id] = canvas;
-      }
+      const threejsModel = textObj.parent;
+      const emberModel = threejsModel.userData.model;
 
-      textObj.parent.geometry.computeBoundingBox();
-      let bbox = textObj.parent.geometry.boundingBox;
+      let labelMesh = this.isLabelAlreadyCreated(emberModel);
+
+      if(labelMesh && labelMesh.mesh) {
+
+        //console.log("old label");
+        // update meta-info for model
+        labelMesh.mesh.userData['model'] = emberModel;
+        threejsModel['label'] = labelMesh.mesh;
+        threejsModel.add(labelMesh.mesh);
+        labelMesh = labelMesh.mesh;
+
+      }
+      else {
+       // console.log("new label");
+        const labelGeo = new THREE.TextBufferGeometry(textObj.text, {
+          font: self.get('font'),
+          size: 0.4,
+          height: 0
+        });
+
+        const material = new THREE.MeshBasicMaterial({
+          color: textObj.color
+        });
+
+        labelMesh = new THREE.Mesh(labelGeo, material);
+
+        labelMesh.userData['type'] = 'label';
+        labelMesh.userData['model'] = emberModel;      
       
-      let size = bbox.getSize();
-      
-      // calculate aspect ratio
-      let valueX = 64 * size.x/size.y;
-      let valueY = 32 * size.x/size.y;
-      // caluculate power of 2 
-      let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(valueX)/Math.log(2)));
-      let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(valueY)/Math.log(2)));
+        self.get('textLabels')[emberModel.get('id')] = 
+          {"mesh": labelMesh};
 
-      // Adapt canvas to size of box
-      if(valueY-32 < nextPowerOf2Y-valueY){
-        nextPowerOf2Y = 64;
-      }
-      if(valueX-64 < nextPowerOf2X-valueX){
-        nextPowerOf2Y = 64;
-      }
-      this.get('canvasList')[textObj.parent.id].width = nextPowerOf2X;
-      this.get('canvasList')[textObj.parent.id].height = nextPowerOf2Y;
-      
-      // get entity color and material
-      let color = textObj.boxColor;
+        threejsModel['label'] = labelMesh;
+        threejsModel.add(labelMesh);
 
-      let canvas = this.get('canvasList')[textObj.parent.id];
-    
-      var ctx = canvas.getContext('2d');
 
-      // Draw old box color
-      ctx.fillStyle = color;
-      ctx.fillRect(0.4, 0.4, canvas.width, canvas.height);
-
-      // Handle opened and closed systems
-      if(textObj.parent.userData.model.get('opened')){
-        // Draw title for opened systems
-        ctx.font = '15px arial';
-        ctx.fillStyle = textObj.color;
-        ctx.textAlign = "center";
-        ctx.fillText(textObj.text, canvas.width/2,canvas.height/10,canvas.width-4);
-      }
-      else{
-        // Draw title for closed systems
-        ctx.font = '32px arial';
-        ctx.fillStyle = textObj.color;
-        ctx.textAlign = "center";
-        ctx.fillText(textObj.text, canvas.width/2,canvas.height/2,canvas.width-4);
       }
 
-      // create texture out of canvas
-      let texture = new THREE.Texture(canvas);
-      // map texture
-      let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
 
-      // Update texture      
-      texture.needsUpdate = true;
-      // Update mesh material    
-    
-      // use old material
-      let oldMaterial = textObj.parent.material;
+      this.repositionSystemLabel(labelMesh);
 
-      // Define each side of the box
-      var materials = [oldMaterial, // Right side
-        oldMaterial, // Left side
-        oldMaterial, // Back   
-        oldMaterial, // Front
-        canvasMaterial, // Top
-        oldMaterial  // Buttom
-      ];
-
-      textObj.parent.material = materials;
 
     });
   },
-  drawNodeGroupTextLabels() {
 
-    this.get('nodegroupTextCache').forEach((textObj) => {
-
-      // Create one canvas for each entity
-      if(!this.get('canvasList')[textObj.parent.id]){
-        let canvas = document.createElement('canvas');
-        canvas.width = 64;
-        canvas.height = 32;
-        this.get('canvasList')[textObj.parent.id] = canvas;
-      }
-
-      textObj.parent.geometry.computeBoundingBox();
-      let bbox = textObj.parent.geometry.boundingBox;
-      
-      let size = bbox.getSize();
-      
-      // calculate aspect ratio
-      let valueX = 64 * size.x/size.y;
-      let valueY = 32 * size.x/size.y;
-      // caluculate power of 2 
-      let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(valueX)/Math.log(2)));
-      let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(valueY)/Math.log(2)));
-
-      // Adapt canvas to size of box
-      if(valueY-32 < nextPowerOf2Y-valueY){
-        nextPowerOf2Y = 64;
-      }
-      if(valueX-64 < nextPowerOf2X-valueX){
-        nextPowerOf2Y = 64;
-      }
-      this.get('canvasList')[textObj.parent.id].width = nextPowerOf2X;
-      this.get('canvasList')[textObj.parent.id].height = nextPowerOf2Y;
-
-      // get entity color and material
-      let color = textObj.boxColor;
-
-      let canvas = this.get('canvasList')[textObj.parent.id];
-    
-      var ctx = canvas.getContext('2d');
-
-      // Draw old box color
-      ctx.fillStyle = color;
-      ctx.fillRect(0.4, 0.4, canvas.width, canvas.height);
-
-      // Handle opened nodegroups
-      if(!textObj.parent.userData.model.get('opened')){
-        // Draw title for opened nodegroups
-        ctx.font = '25px arial';
-        ctx.fillStyle = textObj.color;
-        ctx.textAlign = "center";
-        ctx.fillText(textObj.text, canvas.width/2,canvas.height/2,canvas.width-4);
-      }
-
-      // create texture out of canvas
-      let texture = new THREE.Texture(canvas);
-      // map texture
-      let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
-
-      // Update texture      
-      texture.needsUpdate = true;
-      // Update mesh material    
-    
-      // use old material
-      let oldMaterial = new THREE.MeshBasicMaterial({
-        color
-      });
-      
-      // Define each side of the box
-      var materials = [oldMaterial, // Right side
-        oldMaterial, // Left side
-        oldMaterial, // Back   
-        oldMaterial, // Front
-        canvasMaterial, // Top
-        oldMaterial  // Buttom
-      ];
-
-      textObj.parent.material = materials;
-    });
-  },
 
   drawNodeTextLabels() {
 
+    const self = this;
+
     this.get('nodeTextCache').forEach((textObj) => {
 
-      // Create one canvas for each entity
-      if(!this.get('canvasList')[textObj.parent.id]){
-        let canvas = document.createElement('canvas');
-        canvas.width = 64;
-        canvas.height = 32;
-        this.get('canvasList')[textObj.parent.id] = canvas;
+      const threejsModel = textObj.parent;
+      const emberModel = threejsModel.userData.model;
+
+      let labelMesh = this.isLabelAlreadyCreated(emberModel);
+
+      const nodegroupstate = emberModel.get('parent.opened');
+
+      if(labelMesh && labelMesh.mesh && 
+        labelMesh.nodegroupopenstate === nodegroupstate) {
+
+        //console.log("old label");
+        // update meta-info for model
+        labelMesh.mesh.userData['model'] = emberModel;  
+        threejsModel['label'] = labelMesh.mesh;
+        threejsModel.add(labelMesh.mesh);
+        labelMesh = labelMesh.mesh;  
+
+      }
+      else {
+
+        //console.log("new label");
+
+        const text = emberModel.getDisplayName();
+        textObj.text = text;
+
+        const labelGeo = new THREE.TextBufferGeometry(text, {
+          font: self.get('font'),
+          size: 0.3,
+          height: 0
+        });
+
+        const material = new THREE.MeshBasicMaterial({
+          color: textObj.color
+        });
+
+        labelMesh = new THREE.Mesh(labelGeo, material);
+
+        labelMesh.userData['type'] = 'label';
+        labelMesh.userData['model'] = emberModel;
+        
+        self.get('textLabels')[emberModel.get('id')] = 
+          {"mesh": labelMesh, "nodegroupopenstate": emberModel.get('parent.opened')};
+
+        threejsModel['label'] = labelMesh;
+        threejsModel.add(labelMesh);
+
       }
 
-      textObj.parent.geometry.computeBoundingBox();
-      let bbox = textObj.parent.geometry.boundingBox;
       
-      let size = bbox.getSize();
-      
-      // calculate aspect ratio
-      let valueX = 64 * size.x/size.y;
-      let valueY = 32 * size.x/size.y;
-      // caluculate power of 2 
-      let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(valueX)/Math.log(2)));
-      let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(valueY)/Math.log(2)));
+      this.repositionNodeLabel(labelMesh);
 
-      // Adapt canvas to size of box
-      if(valueY-32 < nextPowerOf2Y-valueY){
-        nextPowerOf2Y = 64;
-      }
-      if(valueX-64 < nextPowerOf2X-valueX){
-        nextPowerOf2Y = 64;
-      }
-      this.get('canvasList')[textObj.parent.id].width = nextPowerOf2X;
-      this.get('canvasList')[textObj.parent.id].height = nextPowerOf2Y;
-      
-      // get entity color
-      let color = textObj.boxColor;
-      
-      let canvas = this.get('canvasList')[textObj.parent.id];
-    
-      var ctx = canvas.getContext('2d');
 
-      // Draw old box color
-      ctx.fillStyle = color;
-      ctx.fillRect(0.4, 0.4, canvas.width, canvas.height);
-    
-      // Draw title for nodes
-      ctx.font = '20px arial';
-      ctx.fillStyle = textObj.color;
-      ctx.textAlign = "center";
-      ctx.textBaseline="bottom";
-      ctx.fillText(textObj.text, canvas.width/2,canvas.height-4,canvas.width-4);
-      
-
-      // create texture out of canvas
-      let texture = new THREE.Texture(canvas);
-      // map texture
-      let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
-
-      // Update texture      
-      texture.needsUpdate = true;
-      // Update mesh material    
-    
-      // use old material
-      let oldMaterial = new THREE.MeshBasicMaterial({
-        color
-      });
-      
-      // Define each side of the box
-      var materials = [oldMaterial, // Right side
-        oldMaterial, // Left side
-        oldMaterial, // Back   
-        oldMaterial, // Front
-        canvasMaterial, // Top
-        oldMaterial  // Buttom
-      ];
-
-      textObj.parent.material = materials;
     });
   },
 
 
 
   drawAppTextLabels() {
+
+    const self = this;
+
     this.get('appTextCache').forEach((textObj) => {
 
-      // Create one canvas for each entity
-      if(!this.get('canvasList')[textObj.parent.id]){
-        let canvas = document.createElement('canvas');
-        canvas.width = 64;
-        canvas.height = 32;
-        this.get('canvasList')[textObj.parent.id] = canvas;
+      const threejsModel = textObj.parent;
+      const emberModel = threejsModel.userData.model;
+
+      let labelMesh = this.isLabelAlreadyCreated(emberModel);
+
+      if(labelMesh && labelMesh.mesh) {
+
+        //console.log("old label");
+        // update meta-info for model
+        labelMesh.mesh.userData['model'] = emberModel;  
+        threejsModel['label'] = labelMesh.mesh;
+        threejsModel.add(labelMesh.mesh);
+        labelMesh = labelMesh.mesh;
+
       }
-      textObj.parent.geometry.computeBoundingBox();
-      let bbox = textObj.parent.geometry.boundingBox;
-      
-      let size = bbox.getSize();
-      
-      // calculate aspect ratio
-      let valueX = 64 * size.x/size.y;
-      let valueY = 32 * size.x/size.y;
-      // caluculate power of 2 
-      let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(valueX)/Math.log(2)));
-      let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(valueY)/Math.log(2)));
+      else {
 
-      // Adapt canvas to size of box
-      if(valueY-32 < nextPowerOf2Y-valueY){
-        nextPowerOf2Y = 64;
+        //console.log("new label");
+
+        const labelGeo = new THREE.TextBufferGeometry(textObj.text, {
+          font: self.get('font'),
+          size: 0.25,
+          height: 0
+        });
+
+        const material = new THREE.MeshBasicMaterial({
+          color: textObj.color
+        });
+
+        labelMesh = new THREE.Mesh(labelGeo, material);
+
+        labelMesh.userData['type'] = 'label';
+        labelMesh.userData['model'] = emberModel;
+        
+        self.get('textLabels')[emberModel.get('id')] = 
+          {"mesh": labelMesh};
+
+        threejsModel['label'] = labelMesh;
+        threejsModel.add(labelMesh);
       }
-      if(valueX-64 < nextPowerOf2X-valueX){
-        nextPowerOf2Y = 64;
-      }
-      this.get('canvasList')[textObj.parent.id].width = nextPowerOf2X;
-      this.get('canvasList')[textObj.parent.id].height = nextPowerOf2Y;
+
       
-      // get entity color and material
-      let color = textObj.boxColor;
+      this.repositionAppLabel(labelMesh);
 
-      let canvas = this.get('canvasList')[textObj.parent.id];
-    
-      var ctx = canvas.getContext('2d');
-
-      // Draw old box color
-      ctx.fillStyle = color;
-      ctx.fillRect(0.4, 0.4, canvas.width, canvas.height);
-    
-      // Draw title for nodes
-      ctx.font = '30px arial';
-      ctx.fillStyle = textObj.color;
-      ctx.textAlign = "center";
-      // save some space for images (canvas.width/2-6)
-      ctx.fillText(textObj.text, canvas.width/2-6,canvas.height/2,canvas.width-4);
-      
-
-      // create texture out of canvas
-      let texture = new THREE.Texture(canvas);
-      // map texture
-      let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
-
-      // Update texture      
-      texture.needsUpdate = true;
-      // Update mesh material    
-    
-      // use old material
-      let oldMaterial = new THREE.MeshBasicMaterial({
-        color
-      });
-      
-      // Define each side of the box
-      var materials = [oldMaterial, // Right side
-        oldMaterial, // Left side
-        oldMaterial, // Back   
-        oldMaterial, // Front
-        canvasMaterial, // Top
-        oldMaterial  // Buttom
-      ];
-
-      textObj.parent.material = materials;
     });
+  },
+
+
+  repositionSystemLabel(labelMesh) {
+
+    const parent = labelMesh.parent;
+
+    parent.geometry.computeBoundingBox();
+    const bboxParent = parent.geometry.boundingBox;
+
+    labelMesh.geometry.computeBoundingBox();
+    const labelBoundingBox = labelMesh.geometry.boundingBox;
+    
+    const labelLength = Math.abs(labelBoundingBox.max.x) - 
+      Math.abs(labelBoundingBox.min.x);
+
+    const yOffset = 0.6;
+
+
+    let parentSize = bboxParent.getSize();
+    let labelSize = labelBoundingBox.getSize();
+
+    // compute scale if label doesnt fit on top of the box
+    if(parentSize.x-labelSize.x<=0){
+      let scaleX = (parentSize.x / labelSize.x) * 0.9;
+      labelMesh.scale.x = scaleX;
+      labelMesh.position.x = - (labelSize.x*scaleX / 2.0);
+    }
+    else{
+      labelMesh.position.x = - (labelLength / 2.0);
+    }
+
+    labelMesh.position.y = bboxParent.max.y -yOffset;
+
+    // Compute y max (rotated 90) for label position
+    labelMesh.position.z = bboxParent.max.z + 0.001;
 
   },
+
+
+  repositionNodeLabel(labelMesh) {
+
+    const parent = labelMesh.parent;
+
+    parent.geometry.computeBoundingBox();
+    const bboxParent = parent.geometry.boundingBox;
+
+    labelMesh.geometry.computeBoundingBox();
+    const labelBoundingBox = labelMesh.geometry.boundingBox;
+    
+    const labelLength = Math.abs(labelBoundingBox.max.x) - 
+      Math.abs(labelBoundingBox.min.x);
+
+    const yOffset = 0.2;
+
+    labelMesh.position.x = - (labelLength / 2.0);
+    labelMesh.position.y = bboxParent.min.y + yOffset;
+    labelMesh.position.z = bboxParent.max.z + 0.001;
+    
+  },
+
+
+  repositionAppLabel(labelMesh) {
+
+    const parent = labelMesh.parent;
+    
+    parent.geometry.computeBoundingBox();
+    const bboxParent = parent.geometry.boundingBox;
+
+    labelMesh.geometry.computeBoundingBox();
+    const labelBoundingBox = labelMesh.geometry.boundingBox;
+
+    const labelHeight = Math.abs(labelBoundingBox.max.y) - 
+      Math.abs(labelBoundingBox.min.y);
+
+    const xOffset = 0.1;
+
+    const center = bboxParent.getCenter();
+
+    labelMesh.position.x = bboxParent.min.x + xOffset;
+    labelMesh.position.y = -(labelHeight / 2.0);
+    labelMesh.position.z = center.z + 0.001;
+  },
+
+
+
+  isLabelAlreadyCreated(emberModel) {
+
+    // label already created and color didn't change?
+    if(this.get('textLabels')[emberModel.get('id')] && 
+      !this.get('configuration.landscapeColors.textchanged')) {
+
+      const oldTextLabelObj = 
+        this.get('textLabels')[emberModel.get('id')];
+
+      return oldTextLabelObj;
+    }
+
+    return null;
+
+  },
+
+
+  findLongestTextLabel(labelStrings) {
+    let longestString = "";
+
+    labelStrings.map(function(obj){
+
+      if(obj.text.length >= longestString.length) {
+        //console.log(obj.text);
+        longestString = obj.text;
+      }
+    });
+
+    return longestString;
+
+  }
 
 });
