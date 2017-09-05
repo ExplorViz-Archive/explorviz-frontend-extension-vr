@@ -176,7 +176,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('scene', new THREE.Scene());
     this.set('scene.background', new THREE.Color(0xffffff));
 
-    this.set('camera', new THREE.PerspectiveCamera(75, width / height, 0.1, 1000));
+    this.set('camera', new THREE.PerspectiveCamera(70, width / height, 0.1, 10));
 
 
     // first renderer
@@ -243,6 +243,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }
 
     function render() {
+		
+		self.get('threexStats').update(self.get('webglrenderer'));
+        self.get('stats').begin();
+		
+		self.get('controller1').update();
+		self.get('controller2').update();
 
       // Check raycast for intersection
       if (self.get('interaction')) {
@@ -255,9 +261,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         }
       }
 
-      self.get('controller1').update();
-      self.get('controller2').update();
+
       self.get('webglrenderer').render(self.get('scene'), self.get('camera'));
+	  self.get('stats').end();
 
     }
     animate();
@@ -933,7 +939,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       });
 
-      addCommunicationLineDrawing(tiles, communicationMeshes);
+     // addCommunicationLineDrawing(tiles, communicationMeshes);
     }
     
 
@@ -1357,7 +1363,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       const material = new THREE.MeshBasicMaterial({
         color
       });
-
+	  
       const box = new THREE.Mesh(new THREE.BoxGeometry(model.get('width'),
         model.get('height'), model.get('depth')), material);
 
@@ -1391,7 +1397,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const parentObjects = this.get('application3D');
     const vrEnvironment = this.get('vrEnvironment');
 	const userHeight = 1.9;
-
+		
+	const intersectionObjects = new THREE.Object3D();
+	
+	
     // init interaction objects
     this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,
       raycaster, this.get('vrLandscape').children, controller1, controller2, parentObjects, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('textBox'), userHeight, this.get('labeler'));

@@ -226,10 +226,14 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         // scale ray distance to distance of intersection
         controller.getObjectByName('controllerLine').scale.z = intersectedViewObj.distance;
-
+		
+		// exclude requests
+		if (intersectedViewObj.object.name === 'earth'){
+			return;
+		};
         const emberModel = intersectedViewObj.object.userData.model;
         const emberModelName = emberModel.constructor.modelName;
-
+		
         
         if (emberModelName === "nodegroup" || emberModelName === "system" || emberModelName === "application"){
                     
@@ -336,6 +340,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Create tool tip for intersected object
       if(!this.get('previousToolTipObjects')[id]){
+		  
+		 // exclude requests
+		if (intersectedViewObj.object.name === 'earth'){
+			return;
+		}; 
 
         const emberModel = intersectedViewObj.object.userData.model;
         const emberModelName = emberModel.constructor.modelName;
@@ -422,7 +431,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         // Add mesh to controller
         controller.add(textBox);
-        console.log("text box added!", controller.children);
         this.get('previousToolTipObjects')[id] = intersectedViewObj.object;
       }
     }
@@ -581,6 +589,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // open and close systems+nodegroups´+c packages and clazzes
       if(intersectedViewObj) {
+		  
+		// exclude requests
+		if (intersectedViewObj.object.name === 'earth'){
+			return;
+		}; 
 
         const emberModel = intersectedViewObj.object.userData.model;
         const emberModelName = emberModel.constructor.modelName;
@@ -644,6 +657,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       null, this.get('raycastObjectsLandscape'));
 
     if(intersectedViewObj) {
+		
+	  // exclude requests
+	  if (intersectedViewObj.object.name === 'earth'){
+		return;
+	  };	
 
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
@@ -809,6 +827,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // hide tooltip
       this.get('hoverHandlerLandscape').hideTooltip();
       this.get('hoverHandlerApp3D').hideTooltip();
+	  
+	  // exclude requests
+	  if (intersectedViewObj.object.name === 'earth'){
+	    return;
+	  };
 
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
@@ -896,6 +919,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // hide tooltip
       this.get('hoverHandlerLandscape').hideTooltip();
       this.get('hoverHandlerApp3D').hideTooltip();
+	  
+	  // exclude requests
+	  if (intersectedViewObj.object.name === 'earth'){
+	    return;
+	  };
 
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
@@ -997,7 +1025,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.get('camera'), this.get('raycastObjectsLandscape'));
 
     if(intersectedViewObj) {
-      
+      // exclude requests
+	  if (intersectedViewObj.object.name === 'earth'){
+	    return;
+	  };
+		
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
 
