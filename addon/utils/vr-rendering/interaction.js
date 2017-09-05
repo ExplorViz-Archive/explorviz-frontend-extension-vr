@@ -1,8 +1,8 @@
 import Ember from 'ember';
-import HammerInteraction from 'explorviz-ui-frontend/utils/hammer-interaction';
+import HammerInteraction from '../hammer-interaction';
 import HoverHandler from './hover-handler';
-import HoverHandlerApp3D from 'explorviz-ui-frontend/utils/application-rendering/hover-handler';
-import HoverHandlerLandscape from 'explorviz-ui-frontend/utils/landscape-rendering/hover-handler';
+import HoverHandlerApp3D from '../application-rendering/hover-handler';
+import HoverHandlerLandscape from '../landscape-rendering/hover-handler';
 import AlertifyHandler from 'explorviz-ui-frontend/mixins/alertify-handler';
 
 export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
@@ -18,6 +18,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   controller1: null,
   controller2: null,
   rotationObject: null,
+  labeler: null,
   
   vrEnvironment:null,
 
@@ -39,7 +40,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   hoverHandler: null,
   hoverHandlerLandscape: null,
   hoverHandlerApp3D: null,
-  userHeight: null,
 
   raycastObjects: Ember.computed('rotationObject', function() {
     return this.get('rotationObject.children');
@@ -49,7 +49,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('application3D', application3D);
   },
 
-  setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, controller2, parentObject, vrEnvironment, colorList, colorListApp, textBox, userHeight) {
+  setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, controller2, parentObject, vrEnvironment, colorList, colorListApp, cameraDolly, textBox, labeler) {
     this.set('scene', scene);
     this.set('canvas', canvas);
     this.set('camera', camera);
@@ -62,9 +62,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('vrEnvironment', vrEnvironment);    
     this.set('colorList', colorList);  
     this.set('colorListApp', colorListApp);   
-    this.set('textBox', textBox); 
-	
-	this.set('userHeight', userHeight);
+    this.set('cameraDolly', cameraDolly);  
+    this.set('textBox', textBox);  
+    this.set('labeler', labeler);
 
     const self = this;
 
@@ -180,10 +180,28 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
       null, this.get('raycastObjectsLandscape'));
 
-    // look for highlighted entity and unhighlight it if the same controller id highlighted it
+    // look for highlighted entity 'landscape' and unhighlight it if the same controller id highlighted it
     if(this.get('highlightedEntities')[id] && this.get('highlightedEntities')[id].type && this.get('colorList')[this.get('highlightedEntities')[id].type]){  
-      //console.log("highlightedEntities", this.get('highlightedEntities')[id], id);
       this.get('highlightedEntities')[id].material.color =  new THREE.Color(this.get('colorList')[this.get('highlightedEntities')[id].type]);
+      
+
+      let entity = this.get('highlightedEntities')[id];
+      let index = "text"+entity.type;
+
+      let name;
+
+      if(entity.type === "nodegroup"){
+        index = "textnode";
+        
+      }
+      else if(entity.type === "application"){
+        index = "textapp";
+       
+      }
+      name = entity.userData.model.get('name');
+
+      this.get('labeler').redrawLabel(entity, this.get('colorList')[index],name,this.get('colorList')[entity.type]);
+
     }
 
     // look for highlighted entity 'app3D' and unhighlight the package it if the same controller id highlighted it
@@ -213,23 +231,31 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         const emberModel = intersectedViewObj.object.userData.model;
         const emberModelName = emberModel.constructor.modelName;
 
-        let color = new THREE.Color("rgb(255, 0, 0)");
-          
+        
         if (emberModelName === "nodegroup" || emberModelName === "system" || emberModelName === "application"){
                     
-            if(intersectedViewObj.object.type === "system" || intersectedViewObj.object.type === "nodegroup" || intersectedViewObj.object.type === "application" || intersectedViewObj.object.parent.label === intersectedViewObj.object){
+            if(intersectedViewObj.object.type === "system" || intersectedViewObj.object.type === "nodegroup" || intersectedViewObj.object.type === "application"){
 
               // Highlight if not aready highlighted by the second controller
               if(!this.get('highlightedEntities')[id2] || (this.get('highlightedEntities')[id2].id && this.get('highlightedEntities')[id2].id !== intersectedViewObj.object.id)){ 
 
+                let index = "text"+intersectedViewObj.object.type;
 
-                // Check if label of box is hit and highlight box anyway
-                if(intersectedViewObj.object.parent.label === intersectedViewObj.object){
-                  intersectedViewObj.object.parent.material.color = color;
+                let name;
+
+                if(intersectedViewObj.object.type === "nodegroup"){
+                  index = "textnode";
+                  name = intersectedViewObj.object.userData.model.get('name');
+                }
+                else if(intersectedViewObj.object.type === "application"){
+                  index = "textapp";
+                  name = intersectedViewObj.object.userData.model.get('name');
                 }
                 else{
-                  intersectedViewObj.object.material.color = color;
+                  name = emberModel.get('name');
                 }
+ 
+                this.get('labeler').redrawLabel(intersectedViewObj.object, this.get('colorList')[index],name,"rgb(255, 0, 0)");
 
                 // save highlighted object and bind it on controller id to quarantee that only this controller can unhighlight it
                 this.get('highlightedEntities')[id] = intersectedViewObj.object;
@@ -237,7 +263,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             }
         }
         else if((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded')){
-
+          let color = new THREE.Color("rgb(255, 0, 0)");
           // Highlight if not aready highlighted by the second controller
           if(!this.get('highlightedEntitiesApp')[id2] || (this.get('highlightedEntitiesApp')[id2].id && this.get('highlightedEntitiesApp')[id2].id !== intersectedViewObj.object.id)){
           
@@ -670,27 +696,16 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('hoverHandlerLandscape').hideTooltip();
     this.get('hoverHandlerApp3D').hideTooltip();
 
-    var delta = evt.wheelDelta;
-	console.log(this.get('vrEnvironment').position.y);
-	
+    var delta = Math.max(-1, Math.min(1, (evt.wheelDelta || -evt.detail)));
 
     // zoom in
-    if (delta < 0) {
-		let posZ = this.get('vrEnvironment').position.y - 0.1;
-		if(posZ > 0){
-			this.get('vrEnvironment').translateZ(-0.1);
-			this.get('vrEnvironment').updateMatrix();
-		}
+    if (delta > 0) {
+      this.get('cameraDolly').position.z -= delta * 1.5;
     }
     // zoom out
     else {
-		let posZ = this.get('vrEnvironment').position.y + 0.1;
-		if(posZ < this.get('userHeight')/2){
-			this.get('vrEnvironment').translateZ(0.1);
-			this.get('vrEnvironment').updateMatrix();
-		}
+      this.get('cameraDolly').position.z -= delta * 1.5;
     }
-	
   },
 
 
@@ -840,6 +855,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     const origin = {};
 
+    const self = this;
+
     origin.x = ((mouse.x - (this.get('renderer').domElement.offsetLeft+0.66)) / 
       this.get('renderer').domElement.clientWidth) * 2 - 1;
 
@@ -854,6 +871,25 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     // look for highlighted entity 'landscape' and unhighlight it if the same controller id highlighted it
     if(this.get('highlightedEntities')[id] && this.get('highlightedEntities')[id].type && this.get('colorList')[this.get('highlightedEntities')[id].type]){  
       this.get('highlightedEntities')[id].material.color =  new THREE.Color(this.get('colorList')[this.get('highlightedEntities')[id].type]);
+      
+
+      let entity = this.get('highlightedEntities')[id];
+      let index = "text"+entity.type;
+
+      let name;
+
+      if(entity.type === "nodegroup"){
+        index = "textnode";
+        
+      }
+      else if(entity.type === "application"){
+        index = "textapp";
+       
+      }
+      name = entity.userData.model.get('name');
+
+      this.get('labeler').redrawLabel(entity, this.get('colorList')[index],name,this.get('colorList')[entity.type]);
+
     }
 
     // look for highlighted entity 'app3D' and unhighlight the package it if the same controller id highlighted it
@@ -873,27 +909,36 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
-
-      let color = new THREE.Color("rgb(255, 0, 0)");
         
       if (emberModelName === "nodegroup" || emberModelName === "system" || emberModelName === "application"){
-                  
-          if(intersectedViewObj.object.type === "system" || intersectedViewObj.object.type === "nodegroup" || intersectedViewObj.object.type === "application" || intersectedViewObj.object.parent.label === intersectedViewObj.object){
+               
+          if(intersectedViewObj.object.type === "system" || intersectedViewObj.object.type === "nodegroup" || intersectedViewObj.object.type === "application"){
+        
+              let index = "text"+intersectedViewObj.object.type;
 
-              // Check if label of box is hit and highlight box anyway
-              if(intersectedViewObj.object.parent.label === intersectedViewObj.object){
-                intersectedViewObj.object.parent.material.color = color;
+              let name;
+
+              if(intersectedViewObj.object.type === "nodegroup"){
+                index = "textnode";
+                name = intersectedViewObj.object.userData.model.get('name');
+              }
+              else if(intersectedViewObj.object.type === "application"){
+                index = "textapp";
+                name = intersectedViewObj.object.userData.model.get('name');
               }
               else{
-                intersectedViewObj.object.material.color = color;
+                name = emberModel.get('name');
               }
+                console.log(name);
+              this.get('labeler').redrawLabel(intersectedViewObj.object, this.get('colorList')[index],name,"rgb(255, 0, 0)");
 
               // save highlighted object and bind it on controller id to quarantee that only this controller can unhighlight it
               this.get('highlightedEntities')[id] = intersectedViewObj.object;
          }
       }
       else if(emberModelName === "component" || emberModelName === "clazz"){
-    
+        let color = new THREE.Color("rgb(255, 0, 0)");
+        
         // Check if label of box is hit and highlight box anyway
         if(intersectedViewObj.object.parent.label === intersectedViewObj.object){
           intersectedViewObj.object.parent.material.color = color;
