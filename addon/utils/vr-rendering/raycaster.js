@@ -29,9 +29,10 @@ export default Ember.Object.extend({
 	  
 
     if (intersections.length > 0) {
-		console.log(intersections);
 		return intersections[0];
-    }
+    }else{
+		return;
+	}
   }
   
 });

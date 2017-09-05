@@ -354,7 +354,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('reloadHandler').stopExchange();
 	
 	 // Loader for VIVE-Controller texture
-    let loader = new OBJLoader();
+	 let OBJLoader = createOBJLoader(THREE);
+    let loader = new OBJLoader(THREE.DefaultLoadingManager);
     loader.setPath('vive-controller/');
     loader.load('vr_controller_vive_1_5.obj', function(object) {
       const obj = object;

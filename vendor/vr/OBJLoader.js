@@ -2,7 +2,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 
-OBJLoader = ( function () {
+createOBJLoader = function (mod) {
 
 	// o object_name | g group_name
 	var object_pattern           = /^[og]\s*(.+)?/;
@@ -316,7 +316,7 @@ OBJLoader = ( function () {
 
 	function OBJLoader( manager ) {
 
-		this.manager = ( manager !== undefined ) ? manager : THREE.DefaultLoadingManager;
+		this.manager = ( manager !== undefined ) ? manager : mod.DefaultLoadingManager;
 
 		this.materials = null;
 
@@ -330,7 +330,7 @@ OBJLoader = ( function () {
 
 			var scope = this;
 
-			var loader = new THREE.FileLoader( scope.manager );
+			var loader = new mod.FileLoader( scope.manager );
 			loader.setPath( this.path );
 			loader.load( url, function ( text ) {
 
@@ -561,7 +561,7 @@ OBJLoader = ( function () {
 
 			state.finalize();
 
-			var container = new THREE.Group();
+			var container = new mod.Group();
 			container.materialLibraries = [].concat( state.materialLibraries );
 
 			for ( var i = 0, l = state.objects.length; i < l; i ++ ) {
@@ -574,13 +574,13 @@ OBJLoader = ( function () {
 				// Skip o/g line declarations that did not follow with any faces
 				if ( geometry.vertices.length === 0 ) continue;
 
-				var buffergeometry = new THREE.BufferGeometry();
+				var buffergeometry = new mod.BufferGeometry();
 
-				buffergeometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array( geometry.vertices ), 3 ) );
+				buffergeometry.addAttribute( 'position', new mod.BufferAttribute( new Float32Array( geometry.vertices ), 3 ) );
 
 				if ( geometry.normals.length > 0 ) {
 
-					buffergeometry.addAttribute( 'normal', new THREE.BufferAttribute( new Float32Array( geometry.normals ), 3 ) );
+					buffergeometry.addAttribute( 'normal', new mod.BufferAttribute( new Float32Array( geometry.normals ), 3 ) );
 
 				} else {
 
@@ -590,7 +590,7 @@ OBJLoader = ( function () {
 
 				if ( geometry.uvs.length > 0 ) {
 
-					buffergeometry.addAttribute( 'uv', new THREE.BufferAttribute( new Float32Array( geometry.uvs ), 2 ) );
+					buffergeometry.addAttribute( 'uv', new mod.BufferAttribute( new Float32Array( geometry.uvs ), 2 ) );
 
 				}
 
@@ -608,9 +608,9 @@ OBJLoader = ( function () {
 						material = this.materials.create( sourceMaterial.name );
 
 						// mtl etc. loaders probably can't create line materials correctly, copy properties to a line material.
-						if ( isLine && material && ! ( material instanceof THREE.LineBasicMaterial ) ) {
+						if ( isLine && material && ! ( material instanceof mod.LineBasicMaterial ) ) {
 
-							var materialLine = new THREE.LineBasicMaterial();
+							var materialLine = new mod.LineBasicMaterial();
 							materialLine.copy( material );
 							material = materialLine;
 
@@ -620,7 +620,7 @@ OBJLoader = ( function () {
 
 					if ( ! material ) {
 
-						material = ( ! isLine ? new THREE.MeshPhongMaterial() : new THREE.LineBasicMaterial() );
+						material = ( ! isLine ? new mod.MeshPhongMaterial() : new mod.LineBasicMaterial() );
 						material.name = sourceMaterial.name;
 
 					}
@@ -644,11 +644,11 @@ OBJLoader = ( function () {
 
 					}
 
-					mesh = ( ! isLine ? new THREE.Mesh( buffergeometry, createdMaterials ) : new THREE.LineSegments( buffergeometry, createdMaterials ) );
+					mesh = ( ! isLine ? new mod.Mesh( buffergeometry, createdMaterials ) : new mod.LineSegments( buffergeometry, createdMaterials ) );
 
 				} else {
 
-					mesh = ( ! isLine ? new THREE.Mesh( buffergeometry, createdMaterials[ 0 ] ) : new THREE.LineSegments( buffergeometry, createdMaterials[ 0 ] ) );
+					mesh = ( ! isLine ? new mod.Mesh( buffergeometry, createdMaterials[ 0 ] ) : new mod.LineSegments( buffergeometry, createdMaterials[ 0 ] ) );
 				}
 
 				mesh.name = object.name;
@@ -667,4 +667,4 @@ OBJLoader = ( function () {
 
 	return OBJLoader;
 
-} )();
+};
