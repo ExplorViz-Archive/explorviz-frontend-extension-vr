@@ -516,7 +516,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
    * @method populateScene
    */
   populateScene() {
-    this._super(...arguments);
 
     const self = this;
     let landscapeMeshes = [];
@@ -670,7 +669,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           const textColor =
             self.get('configuration.landscapeColors.textsystem');
 
-          self.get('labeler').saveTextForLabeling(null, systemMesh, textColor);
+          let emberModelName = system.constructor.modelName;
+
+          let boxColor = self.get('configuration.landscapeColors.' + emberModelName);  
+
+          self.get('labeler').saveTextForLabeling(null, systemMesh, textColor, boxColor);
 
         }
 
@@ -773,6 +776,16 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
               landscapeMeshes.push(nodeMesh);
               node.set('threeJSModel', nodeMesh);
+              
+              // labeler creates box color
+              let textColor = self.get('configuration.landscapeColors.textnode');
+
+              let emberModelName = node.constructor.modelName;
+
+              let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
+
+              self.get('labeler').saveTextForLabeling(node.getDisplayName(),
+                nodeMesh, textColor, boxColor);
             
               const applications = node.get('applications');
 
@@ -833,12 +846,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
                   let textColor =
                     self.get('configuration.landscapeColors.textapp');
 
-                  self.get('labeler').saveTextForLabeling(null, applicationMesh,
-                    textColor);
+                  let emberModelName = application.constructor.modelName;
 
-                  textColor = self.get('configuration.landscapeColors.textnode');
-                  self.get('labeler').saveTextForLabeling(node.getDisplayName(),
-                    nodeMesh, textColor);
+                  let boxColor = self.get('configuration.landscapeColors.' + emberModelName);  
+
+                  self.get('labeler').saveTextForLabeling(null, applicationMesh,
+                    textColor, boxColor);
+
 
                 }
               });
@@ -847,8 +861,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
             else{ 
               let textColor = self.get('configuration.landscapeColors.textapp');
 
+              let emberModelName = nodegroup.constructor.modelName;
+
+              let boxColor = self.get('configuration.landscapeColors.' + emberModelName); 
+
               textColor = self.get('configuration.landscapeColors.textnode');
-              self.get('labeler').saveTextForLabeling(node.getDisplayName(), nodegroupMesh, textColor);
+              self.get('labeler').saveTextForLabeling(node.getDisplayName(), nodegroupMesh, textColor, boxColor);
             }
           });
         });
@@ -958,7 +976,16 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         removeAllChildren(child);
         if (child.type !== 'Object3D') {
           child.geometry.dispose();
-          child.material.dispose();
+          // dispose array of material
+          if(child.material.length){
+            for (let i = 0; i < child.material.length; i++) {
+               let tempMaterial = child.material[i];
+               tempMaterial.dispose();
+             }
+          }
+          else{
+            child.material.dispose();
+          } 
         }
 
         entity.remove(child);
@@ -1367,7 +1394,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // init interaction objects
     this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,
-      raycaster, this.get('vrLandscape').children, controller1, controller2, parentObjects, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('textBox'), userHeight);
+      raycaster, this.get('vrLandscape').children, controller1, controller2, parentObjects, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('textBox'), userHeight, this.get('labeler'));
 
     // set listeners
     this.get('interaction').on('redrawScene', function() {
