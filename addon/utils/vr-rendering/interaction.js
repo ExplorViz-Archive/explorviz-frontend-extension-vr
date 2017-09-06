@@ -87,6 +87,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     self.get('controller2').addEventListener('thumbpadup', registerControllerThumbpadUp);
     self.get('controller1').addEventListener('gripsdown', registerControllerGripsDownController1);
     self.get('controller2').addEventListener('gripsdown', registerControllerGripsDownController2);
+    self.get('controller1').addEventListener('menudown', registerControllerMenuDownController1);
+    self.get('controller2').addEventListener('menudown', registerControllerMenuDownController2);
+    self.get('controller1').addEventListener('menuup', registerControllerMenuUpController1);
+    self.get('controller2').addEventListener('menuup', registerControllerMenuUpController2);
+
+
+   
 
 
     function registerControllerTriggerDown(event){
@@ -109,6 +116,21 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       self.onControllerGripsDown(evt, true);
     } 
 
+    function registerControllerMenuDownController1(event){
+      self.onControllerMenuDown(event);
+    } 
+
+    function registerControllerMenuDownController2(event){
+      self.onControllerMenuDown(event);
+    }
+
+    function registerControllerMenuUpController1(event){
+      self.onControllerMenuUp(event);
+    } 
+
+    function registerControllerMenuUpController2(event){
+      self.onControllerMenuUp(event);
+    }
 
     // mouseout handler for disabling notifications
     canvas.addEventListener('mouseout', registerMouseOut, false);
@@ -180,6 +202,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
       null, this.get('raycastObjectsLandscape'));
+
+    if(intersectedViewObj && this.get('highlightedEntities')[id] && this.get('highlightedEntities')[id].id === intersectedViewObj.object.id){
+      return;
+    }
 
     // look for highlighted entity 'landscape' and unhighlight it if the same controller id highlighted it
     if(this.get('highlightedEntities')[id] && this.get('highlightedEntities')[id].type && this.get('colorList')[this.get('highlightedEntities')[id].type]){  
@@ -282,6 +308,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             this.get('highlightedEntitiesApp')[id] = intersectedViewObj.object; 
           }
         }
+        else{
+
+          this.get('highlightedEntities')[id] = null;
+          // Delete highlighted object entry for app3D
+          this.get('highlightedEntitiesApp')[id] = null;
+        }
       }
  
       else{
@@ -295,12 +327,48 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   },
   //////// END checkIntersection
 
+  /*
+   *  This method is used to allow brain-interface push command
+   *
+   */
+  onControllerMenuDown(evt){
+    const controller = evt.target;
 
+    let canvas = $(document)[0];
+    let event = new Event("keyup", 
+      {
+        "bubbles":true, 
+        "cancelable":false
+    });
+    event.ctrlKey=true;
+    event.key="b";
+    canvas.dispatchEvent(event);
+  },
+
+  /*
+   *  This method is used to allow brain-interface pull command
+   *
+   */
+  onControllerMenuUp(evt){
+    const controller = evt.target;
+
+    let canvas = $(document)[0];
+    let event = new Event("keyup", 
+      {
+        "bubbles":true, 
+        "cancelable":false
+    });
+    event.ctrlKey=true;
+    event.key="b";
+    canvas.dispatchEvent(event);
+
+  },
   /*
    * This method is used to show information 
    * about the intersected object. 
    * The additional parameter assigns a users hand to the controller
    * and adapts the position of the text box. 
+   * @method - onControllerGripsDown
    */
   onControllerGripsDown(event, rightHand){
 
@@ -804,6 +872,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('controller2').removeEventListener('thumbpadup',this.onControllerThumbpadUp);
     this.get('controller1').removeEventListener('gripsdown',this.onControllerGrispDown);
     this.get('controller2').removeEventListener('gripsdown',this.onControllerGrispDown);
+
+    this.get('controller1').removeEventListener('menudown',this.onControllerThumbpadUp);
+    this.get('controller2').removeEventListener('menudown',this.onControllerThumbpadUp);
+    this.get('controller1').removeEventListener('menuup',this.onControllerGrispDown);
+    this.get('controller2').removeEventListener('menuup',this.onControllerGrispDown);
 
   },
 

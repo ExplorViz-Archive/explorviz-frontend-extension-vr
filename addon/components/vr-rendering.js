@@ -965,7 +965,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       });
 
-      // addCommunicationLineDrawing(tiles, communicationMeshes);
+      //addCommunicationLineDrawing(tiles, communicationMeshes);
     }
 
 
