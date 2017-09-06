@@ -1514,9 +1514,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           entity.remove(child);
         }
       }
-
-      this.actualizeRaycastObjects();
     }
+    this.actualizeRaycastObjects();
     // remove foundation for re-rendering
     const emberApplication = this.get('application3D.userData.model');
     removeFoundation(emberApplication, this.get('store'));
