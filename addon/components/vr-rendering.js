@@ -112,6 +112,31 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.initListener();
   },
 
+  // An Observer calculating the new raycastObjects
+
+  actualizeRaycastObjects() {
+    const self = this;
+    let result = (this.get('vrLandscape')) ? this.get('vrLandscape').children : [];
+    result = (this.get('application3D')) ? result.concat(this.get('application3D').children) : result;
+    filterResult(result);
+    this.get('interaction').raycastObjects = result;
+
+
+    function filterResult(result) {
+
+      let allowedObjects = ['node', 'system', 'nodegroup', 'application', 'communication', 'label', 'floor','component', 'clazz', 'communication'];
+
+      result = result.filter(function(obj) {
+        if (obj.userData.model) {
+          const modelName = obj.userData.model.constructor.modelName;
+          return allowedObjects.includes(modelName);
+        }
+      });
+    }
+  },
+
+  raycastObjectsNeedsUpdate: "",
+
   willDestroyElement() {
     this._super(...arguments);
     this.cleanup();
@@ -127,8 +152,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   initRendering() {
 
     const self = this;
-	
-	let userHeight = 1.9;
+
+    let userHeight = 1.9;
 
     // Check if WebVR is supported
     WEBVR.checkAvailability().catch(function(reject) {
@@ -136,29 +161,29 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     });
 
     // dummy object for raycasting
-    this.set('room',  new THREE.Object3D());
-    this.get('room').name = 'room';   
+    this.set('room', new THREE.Object3D());
+    this.get('room').name = 'room';
 
     this.set('vrLandscape', new THREE.Group());
     this.get('vrLandscape').name = 'landscape';
     this.get('vrLandscape').renderOrder = 2;
 
     this.set('vrCommunications', new THREE.Group());
-    this.get('vrCommunications').name = 'vrCommunications';   
+    this.get('vrCommunications').name = 'vrCommunications';
     this.get('vrCommunications').renderOrder = 1;
 
     this.set('vrEnvironment', new THREE.Object3D());
     this.get('vrEnvironment').name = 'landscape';
     this.get('vrEnvironment').add(this.get('vrCommunications'));
     this.get('vrEnvironment').add(this.get('vrLandscape'));
-	
-	this.get('vrEnvironment').matrixAutoUpdate = false;
-	this.get('vrLandscape').matrixAutoUpdate = false;
-	this.get('vrCommunications'). matrixAutoUpdate = false;
-	
+
+    this.get('vrEnvironment').matrixAutoUpdate = false;
+    this.get('vrLandscape').matrixAutoUpdate = false;
+    this.get('vrCommunications').matrixAutoUpdate = false;
+
     // rotate landscape by 90 degrees (radiant)
     this.get('vrEnvironment').rotateX(-1.5707963);
-	this.get('vrEnvironment').updateMatrix();
+    this.get('vrEnvironment').updateMatrix();
 
 
     // remove stored applications
@@ -224,31 +249,32 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // create text box 
     var color = new THREE.Color("rgb(253,245,230)");
 
-    let material = new THREE.MeshBasicMaterial({color});
+    let material = new THREE.MeshBasicMaterial({
+      color
+    });
 
-    this.set('textBox', new THREE.Mesh(new THREE.BoxGeometry(0.2,0.2,0), material));
+    this.set('textBox', new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0), material));
 
     this.get('textBox').name = 'textBox';
 
     // rotate text box
     this.get('textBox').geometry.rotateX(1.5707963267949);
-    this.get('textBox').geometry.rotateY(1.5707963267949*2);
+    this.get('textBox').geometry.rotateY(1.5707963267949 * 2);
 
 
-   
-  
+
     // VR Rendering loop //
     function animate() {
       self.get('webglrenderer').animate(render);
     }
 
     function render() {
-		
-		self.get('threexStats').update(self.get('webglrenderer'));
-        self.get('stats').begin();
-		
-		self.get('controller1').update();
-		self.get('controller2').update();
+
+      self.get('threexStats').update(self.get('webglrenderer'));
+      self.get('stats').begin();
+
+      self.get('controller1').update();
+      self.get('controller2').update();
 
       // Check raycast for intersection
       if (self.get('interaction')) {
@@ -263,7 +289,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
 
       self.get('webglrenderer').render(self.get('scene'), self.get('camera'));
-	  self.get('stats').end();
+      self.get('stats').end();
 
     }
     animate();
@@ -307,7 +333,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     if (!this.get('raycaster')) {
       this.set('raycaster', Raycaster.create());
-    }  
+    }
 
     if (!this.get('centerAndZoomCalculator')) {
       this.set('centerAndZoomCalculator', CalcCenterAndZoom.create());
@@ -352,15 +378,15 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // VR-Button
     WEBVR.getVRDisplay(function(display) {
       self.set('vrAvailable', true);
-    self.get('webglrenderer').vr.setDevice(display);
+      self.get('webglrenderer').vr.setDevice(display);
       document.body.appendChild(WEBVR.getButton(display, self.get('webglrenderer').domElement));
     });
 
     // Stop data flow
     this.get('reloadHandler').stopExchange();
-	
-	 // Loader for VIVE-Controller texture
-	 let OBJLoader = createOBJLoader(THREE);
+
+    // Loader for VIVE-Controller texture
+    let OBJLoader = createOBJLoader(THREE);
     let loader = new OBJLoader(THREE.DefaultLoadingManager);
     loader.setPath('vive-controller/');
     loader.load('vr_controller_vive_1_5.obj', function(object) {
@@ -373,14 +399,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       controller.material.specularMap = loader.load('onepointfive_spec.png');
       self.get('controller1').add(obj.clone());
       self.get('controller2').add(obj.clone());
-	  
-		// load font for labels and synchronously proceed with populating the scene
-		new THREE.FontLoader()
-		  .load('three.js/fonts/roboto_mono_bold_typeface.json', function(font) {
-			self.set('font', font);
-			self.set('initDone', true);
-			self.populateScene();
-		  });
+
+      // load font for labels and synchronously proceed with populating the scene
+      new THREE.FontLoader()
+        .load('three.js/fonts/roboto_mono_bold_typeface.json', function(font) {
+          self.set('font', font);
+          self.set('initDone', true);
+          self.populateScene();
+        });
     });
 
   },
@@ -428,7 +454,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   },
 
 
-  
 
   /**
    * This function is called when the willDestroyElement event is fired. 
@@ -439,7 +464,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     const self = this;
 
-   // cancelAnimationFrame(this.get('animationFrameId'));
+    // cancelAnimationFrame(this.get('animationFrameId'));
     this.get('webglrenderer').dispose();
 
     this.set('scene', null);
@@ -475,21 +500,21 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       emberLandscape.get('systems').forEach(function(system) {
         system.setOpened(true);
         system.set('positionZ', self.get('initialPositions')[system.get('id')]);
-  
+
         const nodegroups = system.get('nodegroups');
-          nodegroups.forEach(function(nodegroup) {
-            nodegroup.set('positionZ', self.get('initialPositions')[nodegroup.get('id')]);
+        nodegroups.forEach(function(nodegroup) {
+          nodegroup.set('positionZ', self.get('initialPositions')[nodegroup.get('id')]);
 
-            const nodes = nodegroup.get('nodes');
-            nodes.forEach(function(node) {
-              node.set('positionZ', self.get('initialPositions')[node.get('id')]);
+          const nodes = nodegroup.get('nodes');
+          nodes.forEach(function(node) {
+            node.set('positionZ', self.get('initialPositions')[node.get('id')]);
 
-              const applications = node.get('applications');
-                applications.forEach(function(application) {
-                  application.set('positionZ', self.get('initialPositions')[application.get('id')]);
-              });
+            const applications = node.get('applications');
+            applications.forEach(function(application) {
+              application.set('positionZ', self.get('initialPositions')[application.get('id')]);
             });
           });
+        });
       });
       this.set('initialRendering', true);
     }
@@ -525,7 +550,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     const self = this;
     let landscapeMeshes = [];
-    let communicationMeshes= [];
+    let communicationMeshes = [];
 
     const emberLandscape = this.get('landscapeRepo.latestLandscape');
 
@@ -556,7 +581,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
               node.set('depth', self.get('depth'));
 
               const applications = node.get('applications');
-                applications.forEach(function(application) {
+              applications.forEach(function(application) {
                 self.get('initialPositions')[application.get('id')] = application.get('positionZ');
                 application.set('depth', 0);
               });
@@ -588,7 +613,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       }
 
       // compute the amount of requests for every id
-      let allRequests = computeRequests(emberLandscape.get('applicationCommunication')); 
+      let allRequests = computeRequests(emberLandscape.get('applicationCommunication'));
 
       var centerPoint = this.get('centerAndZoomCalculator.centerPoint');
 
@@ -623,7 +648,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           requests.position.set(centerX, centerYClosed, system.get('positionZ'));
 
           // scale requests
-          requests.scale.x = requests.scale.x/ self.get('vrEnvironment').scale.x;
+          requests.scale.x = requests.scale.x / self.get('vrEnvironment').scale.x;
 
           landscapeMeshes.push(requests);
         }
@@ -642,7 +667,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           var oldSystemDepth = system.get('depth');
 
           // calculate system depth (height) depending on the amount of traget requests
-          if(allRequests[system.get('id')]){
+          if (allRequests[system.get('id')]) {
             system.set('depth', assignDepth(allRequests[system.get('id')]));
           }
 
@@ -653,14 +678,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
             systemMesh.name = 'systemOpened';
             // Transform z-position of closed system to opened system 
             systemMesh.position.set(centerX, centerYOpened, system.get('positionZ') - system.get('depth') / 2);
-          } 
-          else {
+          } else {
             // new depth only influences closed boxes
             var diffSystemDepth = system.get('depth') - oldSystemDepth;
             systemMesh = createBox(system);
             systemMesh.name = 'systemClosed';
             // store new position
-            system.set('positionZ', system.get('positionZ')+ diffSystemDepth/2);
+            system.set('positionZ', system.get('positionZ') + diffSystemDepth / 2);
 
             // set new position for box
             systemMesh.position.set(centerX, centerYClosed, system.get('positionZ'));
@@ -677,7 +701,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
           let emberModelName = system.constructor.modelName;
 
-          let boxColor = self.get('configuration.landscapeColors.' + emberModelName);  
+          let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
 
           self.get('labeler').saveTextForLabeling(null, systemMesh, textColor, boxColor);
 
@@ -707,44 +731,44 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
               centerYOpened = nodegroup.get('positionY') - extensionY - centerPoint.y;
               centerYClosed = nodegroup.get('positionY') - extensionY - centerPoint.y;
 
-               // save old depth
-              let oldNodegroupDepth= nodegroup.get('depth');
+              // save old depth
+              let oldNodegroupDepth = nodegroup.get('depth');
 
               /* calculate depth (height) for nodegroups relative to the 
               amount of traget requests */
-              if(allRequests[nodegroup.get('id')]){
+              if (allRequests[nodegroup.get('id')]) {
                 nodegroup.set('depth', assignDepth(allRequests[nodegroup.get('id')]));
               }
-              
+
               // calculate difference of depths
               let diffNodegroupDepth = nodegroup.get('depth') - oldNodegroupDepth;
 
               // create box for opened nodegroup
-              if(nodegroup.get('opened')){
+              if (nodegroup.get('opened')) {
                 nodegroupMesh = createPlane(nodegroup);
                 nodegroupMesh.name = 'nodegroupOpened';
                 // Transform z-position of closed system to opened system 
                 nodegroupMesh.position.set(centerX, centerYOpened, nodegroup.get('positionZ') - nodegroup.get('depth') / 2 + 0.001);
               }
               // create box for closed nodegroup
-              else{
+              else {
                 nodegroupMesh = createBox(nodegroup);
                 nodegroupMesh.name = 'nodegroupOpened';
                 // store new position
-                nodegroup.set('positionZ', nodegroup.get('positionZ') + diffNodegroupDepth/2);
+                nodegroup.set('positionZ', nodegroup.get('positionZ') + diffNodegroupDepth / 2);
 
                 // set new position with offset for new depth
                 nodegroupMesh.position.set(centerX, centerYOpened, nodegroup.get('positionZ') + 0.001);
               }
-          
+
               nodegroupMesh.type = 'nodegroup';
-     
+
               // add mesh
               landscapeMeshes.push(nodegroupMesh);
               nodegroup.set('threeJSModel', nodegroupMesh);
             }
           }
-          
+
           // Draw nodes  
           nodes.forEach(function(node) {
             if (nodes.content.length === 1 || nodegroup.get('opened')) {
@@ -757,7 +781,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
               let oldNodeDepth = nodegroup.get('depth');
 
               // set nodegroup depth relative to the amount of traget requests
-              if(allRequests[node.get('id')]){
+              if (allRequests[node.get('id')]) {
                 node.set('depth', assignDepth(allRequests[node.get('id')]));
               }
 
@@ -774,15 +798,15 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
               let nodeMesh = createBox(node);
               nodeMesh.type = "application";
               nodeMesh.name = "node";
-        
+
               // get parent position and store new position
-              node.set('positionZ', node.get('parent').get('positionZ')+ diffNodeDepth/2);
+              node.set('positionZ', node.get('parent').get('positionZ') + diffNodeDepth / 2);
 
               nodeMesh.position.set(centerX, centerYOpened, node.get('positionZ') + 0.002);
 
               landscapeMeshes.push(nodeMesh);
               node.set('threeJSModel', nodeMesh);
-              
+
               // labeler creates box color
               let textColor = self.get('configuration.landscapeColors.textnode');
 
@@ -792,7 +816,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
               self.get('labeler').saveTextForLabeling(node.getDisplayName(),
                 nodeMesh, textColor, boxColor);
-            
+
               const applications = node.get('applications');
 
               // Draw applications
@@ -854,7 +878,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
                   let emberModelName = application.constructor.modelName;
 
-                  let boxColor = self.get('configuration.landscapeColors.' + emberModelName);  
+                  let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
 
                   self.get('labeler').saveTextForLabeling(null, applicationMesh,
                     textColor, boxColor);
@@ -864,12 +888,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
               });
             }
             // nodegroup closed => dont draw nodes+applications, just add text label
-            else{ 
+            else {
               let textColor = self.get('configuration.landscapeColors.textapp');
 
               let emberModelName = nodegroup.constructor.modelName;
 
-              let boxColor = self.get('configuration.landscapeColors.' + emberModelName); 
+              let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
 
               textColor = self.get('configuration.landscapeColors.textnode');
               self.get('labeler').saveTextForLabeling(node.getDisplayName(), nodegroupMesh, textColor, boxColor);
@@ -935,40 +959,41 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           }
 
         }
-      
+
 
       });
 
-     // addCommunicationLineDrawing(tiles, communicationMeshes);
+      // addCommunicationLineDrawing(tiles, communicationMeshes);
     }
-    
+
 
     //The landscape(3D) will be deleted an rewritten
     removeAllChildren(this.get('vrCommunications'));
-	this.get('vrCommunications').updateMatrix();
+    this.get('vrCommunications').updateMatrix();
     communicationMeshes.forEach(function(mesh) {
       this.get('vrCommunications').add(mesh);
     }.bind(this));
-	this.get('vrCommunications').updateMatrix();
+    this.get('vrCommunications').updateMatrix();
 
     removeAllChildren(this.get('vrLandscape'));
-	this.get('vrLandscape').updateMatrix();
-    landscapeMeshes.forEach(function(mesh){
+    this.get('vrLandscape').updateMatrix();
+    landscapeMeshes.forEach(function(mesh) {
       this.get('vrLandscape').add(mesh);
     }.bind(this));
-	this.get('vrLandscape').updateMatrix();
+    this.get('vrLandscape').updateMatrix();
 
     // Scale floor bigger as landscape(3D)
     //scaleFloor(this.get('vrEnvironment'), this.get('floor'));
     // Center landscape(3D) on the floor 
-	this.get('vrEnvironment').updateMatrix();
-	scaleVREnvironment(this.get('vrEnvironment'), this.get('room'));
-	this.get('vrEnvironment').updateMatrix();
+    this.get('vrEnvironment').updateMatrix();
+    scaleVREnvironment(this.get('vrEnvironment'), this.get('room'));
+    this.get('vrEnvironment').updateMatrix();
     centerVREnvironment(this.get('vrEnvironment'), this.get('room'));
     this.get('vrEnvironment').updateMatrix();
+    this.actualizeRaycastObjects();
     this.get('webglrenderer').vr.submitFrame();
 
-    
+
     // Helper functions //
 
     /*
@@ -983,15 +1008,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         if (child.type !== 'Object3D') {
           child.geometry.dispose();
           // dispose array of material
-          if(child.material.length){
+          if (child.material.length) {
             for (let i = 0; i < child.material.length; i++) {
-               let tempMaterial = child.material[i];
-               tempMaterial.dispose();
-             }
-          }
-          else{
+              let tempMaterial = child.material[i];
+              tempMaterial.dispose();
+            }
+          } else {
             child.material.dispose();
-          } 
+          }
         }
 
         entity.remove(child);
@@ -1002,49 +1026,49 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      *  This function is used to calculate the depth for 
      *  entities depending on the amount of requests
      */
-    function assignDepth(requests){
-    
-      switch(true) {
-      case (requests <= 100):
-           return 0.2;
+    function assignDepth(requests) {
 
-      case (requests <= 200):
-           return 0.25;
+      switch (true) {
+        case (requests <= 100):
+          return 0.2;
 
-      case (requests <= 500):
-            return 0.3;
+        case (requests <= 200):
+          return 0.25;
 
-      case (requests <= 1000):
-           return 0.35;
-   
-      case (requests <= 2000):
-           return 0.4;
-   
-      case (requests <= 5000):
-           return 0.45;
+        case (requests <= 500):
+          return 0.3;
 
-      case (requests <= 10000):
-           return 0.5;
+        case (requests <= 1000):
+          return 0.35;
 
-      case (requests <= 20000):
-           return 0.55;
+        case (requests <= 2000):
+          return 0.4;
 
-      case (requests <= 50000):
-           return 0.6;
-    
-      case (requests <= 100000):
-           return 0.65;
-   
-      case (requests <= 200000):
-           return 0.7;
+        case (requests <= 5000):
+          return 0.45;
 
-      case (requests <= 500000):
-           return 0.75;
-   
-      case (requests <= 1000000):
-           return 0.8;
-                         
-      default:
+        case (requests <= 10000):
+          return 0.5;
+
+        case (requests <= 20000):
+          return 0.55;
+
+        case (requests <= 50000):
+          return 0.6;
+
+        case (requests <= 100000):
+          return 0.65;
+
+        case (requests <= 200000):
+          return 0.7;
+
+        case (requests <= 500000):
+          return 0.75;
+
+        case (requests <= 1000000):
+          return 0.8;
+
+        default:
           return 0.2;
 
       }
@@ -1054,33 +1078,31 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      *  This function is used to compute the amount of 
      *  all requests for each entity (id)
      */
-    function computeRequests(appCommunication){
-        let requests = {};
-        appCommunication.forEach((communication) => {
+    function computeRequests(appCommunication) {
+      let requests = {};
+      appCommunication.forEach((communication) => {
 
-          if(!requests[communication.get('target').get('id')]){
-            requests[communication.get('target').get('id')] = communication.get('requests');   
-          }
-          else{
-            requests[communication.get('target').get('id')] = requests[communication.get('target').get('id')] + communication.get('requests');
-          }
-          
-          let parent = communication.get('target').get('parent'); 
+        if (!requests[communication.get('target').get('id')]) {
+          requests[communication.get('target').get('id')] = communication.get('requests');
+        } else {
+          requests[communication.get('target').get('id')] = requests[communication.get('target').get('id')] + communication.get('requests');
+        }
 
-          // Check for parents and exclude root parent
-          while(parent && parseInt(parent.get('id')) !== 1){
+        let parent = communication.get('target').get('parent');
 
-            if(!requests[parent.get('id')]){
-              requests[parent.get('id')] = communication.get('requests');
-            }
-            else{
-              requests[parent.get('id')] = requests[parent.get('id')] + communication.get('requests');
-            }  
-            parent = parent.get('parent');
+        // Check for parents and exclude root parent
+        while (parent && parseInt(parent.get('id')) !== 1) {
+
+          if (!requests[parent.get('id')]) {
+            requests[parent.get('id')] = communication.get('requests');
+          } else {
+            requests[parent.get('id')] = requests[parent.get('id')] + communication.get('requests');
           }
+          parent = parent.get('parent');
+        }
 
       });
-        return requests;
+      return requests;
     }
 
     /* 
@@ -1105,15 +1127,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       // set new position of vrEnvironment
       vrEnvironment.position.x += centerFloor.x - centerLandscape.x;
       vrEnvironment.position.z += centerFloor.z - centerLandscape.z;
-      if(bboxLandscape.min.y < bboxFloor.min.y){
+      if (bboxLandscape.min.y < bboxFloor.min.y) {
         vrEnvironment.position.y += bboxFloor.max.y - bboxLandscape.min.y + 0.001;
       }
 
       //scale vrEnvironment
 
-	  
 
-      
+
     }
 
     /* 
@@ -1121,26 +1142,26 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      *  the landscape(3D) fits on it
      */
     function scaleVREnvironment(vrEnvironment, floor) {
-	
-	  // Compute bounding box of the floor
+
+      // Compute bounding box of the floor
       const bboxFloor = new THREE.Box3().setFromObject(floor);
       const bboxLandscape = new THREE.Box3().setFromObject(vrEnvironment);
-	  
-	  
-	  
-	  let floorSize = bboxFloor.getSize();
-	  let landscapeSize = bboxLandscape.getSize();
-	  
-	  if(landscapeSize.x > (floorSize.x - 1)){
-		  let scale = (floorSize.x - 1)/ landscapeSize.x;
-		  vrEnvironment.scale.x *= scale;
-	  }
-	  
-	  if(landscapeSize.z > (floorSize.z - 1)){
-		  let scale = (floorSize.z - 1)/ landscapeSize.z;
-		  vrEnvironment.scale.y *= scale;
-	  }
-	  
+
+
+
+      let floorSize = bboxFloor.getSize();
+      let landscapeSize = bboxLandscape.getSize();
+
+      if (landscapeSize.x > (floorSize.x - 1)) {
+        let scale = (floorSize.x - 1) / landscapeSize.x;
+        vrEnvironment.scale.x *= scale;
+      }
+
+      if (landscapeSize.z > (floorSize.z - 1)) {
+        let scale = (floorSize.z - 1) / landscapeSize.z;
+        vrEnvironment.scale.y *= scale;
+      }
+
     }
 
 
@@ -1163,7 +1184,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       const requestsList = {};
 
       tiles.forEach((tile) => {
-        
+
         requestsList[tile.requestsCache] = 0;
       });
 
@@ -1171,7 +1192,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       for (let i = 0; i < tiles.length; i++) {
         let tile = tiles[i];
-        tile.lineThickness = (0.07 * categories[tile.requestsCache] + 0.1) *0.07;
+        tile.lineThickness = (0.07 * categories[tile.requestsCache] + 0.1) * 0.07;
       }
 
       let canvas = self.get('canvas')
@@ -1297,20 +1318,20 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         resolution: resolution
       });
 
-     
+
       const geometry = new THREE.Geometry();
-      let firstVector = new THREE.Vector3(tile.startPoint.x - centerPoint.x, 
+      let firstVector = new THREE.Vector3(tile.startPoint.x - centerPoint.x,
         tile.startPoint.y - centerPoint.y, tile.positionZ);
       let secondVector = new THREE.Vector3(tile.endPoint.x - centerPoint.x,
-          tile.endPoint.y - centerPoint.y, tile.positionZ);
+        tile.endPoint.y - centerPoint.y, tile.positionZ);
 
 
       let helpVector = new THREE.Vector3();
       helpVector.subVectors(secondVector, firstVector);
-      if(helpVector.y > 0){
-        helpVector.cross(new THREE.Vector3(0,0,1));
-      }else{
-        helpVector.cross(new THREE.Vector3(0,0,-1));
+      if (helpVector.y > 0) {
+        helpVector.cross(new THREE.Vector3(0, 0, 1));
+      } else {
+        helpVector.cross(new THREE.Vector3(0, 0, -1));
       }
       helpVector.normalize();
       helpVector.multiplyScalar(tile.lineThickness * 0.4);
@@ -1321,7 +1342,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       geometry.vertices.unshift(new THREE.Vector3(firstVector.x - helpVector.x, firstVector.y, firstVector.z));
 
-	  geometry.vertices.push(new THREE.Vector3(secondVector.x + helpVector.x, secondVector.y, secondVector.z));
+      geometry.vertices.push(new THREE.Vector3(secondVector.x + helpVector.x, secondVector.y, secondVector.z));
 
       const line = new Meshline.MeshLine();
       line.setGeometry(geometry);
@@ -1363,7 +1384,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       const material = new THREE.MeshBasicMaterial({
         color
       });
-	  
+
       const box = new THREE.Mesh(new THREE.BoxGeometry(model.get('width'),
         model.get('height'), model.get('depth')), material);
 
@@ -1373,7 +1394,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }
 
     this.get('labeler').drawTextLabels(self.get('font'),
-    self.get('configuration'));
+      self.get('configuration'));
 
   },
   //////////// END populateScene
@@ -1396,11 +1417,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const controller2 = this.get('controller2');
     const parentObjects = this.get('application3D');
     const vrEnvironment = this.get('vrEnvironment');
-	const userHeight = 1.9;
-		
-	const intersectionObjects = new THREE.Object3D();
-	
-	
+    const userHeight = 1.9;
+
+    const intersectionObjects = new THREE.Object3D();
+
+
     // init interaction objects
     this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,
       raycaster, this.get('vrLandscape').children, controller1, controller2, parentObjects, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('textBox'), userHeight, this.get('labeler'));
@@ -1440,10 +1461,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       // Add 3D Application to scene if no exists
       if (!self.get('app3DPresent')) {
         self.set('landscapeRepo.latestApplication', emberModel);
-        self.add3DApplicationToLandscape(emberModel, intersectionPoint, new THREE.Vector3(0,0,0));
+        self.add3DApplicationToLandscape(emberModel, intersectionPoint, new THREE.Vector3(0, 0, 0));
         let bboxApp3D = new THREE.Box3().setFromObject(self.get('application3D'));
         let app3DSize = bboxApp3D.getSize();
-        app3DSize.multiplyScalar (0.5);
+        app3DSize.multiplyScalar(0.5);
         let newPosition = new THREE.Vector3();
         // Center x and z
         newPosition.x = intersectionPoint.x - app3DSize.x;
@@ -1454,7 +1475,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         self.set('app3DPresent', true);
       }
       // Otherwise delete 3D Application and allow creation again
-      else{
+      else {
         self.removeApp3D();
         self.set('app3DPresent', false);
       }
@@ -1469,7 +1490,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       // Remove 3D Application if presend
       if (self.get('app3DPresent')) {
         self.removeApp3D();
-        self.set('app3DPresent',false);
+        self.set('app3DPresent', false);
       }
 
     });
@@ -1498,6 +1519,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           entity.remove(child);
         }
       }
+
+      this.actualizeRaycastObjects();
     }
     // remove foundation for re-rendering
     const emberApplication = this.get('application3D.userData.model');
@@ -1588,7 +1611,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       // apply last position and rotation
       self.get('application3D').position.set(position.x, position.y, position.z);
       self.get('application3D').rotation.set(rotation.x, rotation.y, rotation.z);
-      
+
       // Store application mesh for redraw
       self.set('app3DMesh', self.get('application3D'));
 
@@ -1596,6 +1619,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.get('interaction').setupInteractionApp3D(self.get('application3D'));
 
     }
+
+    this.actualizeRaycastObjects();
 
     /*
      *  This function is used to create the pipes

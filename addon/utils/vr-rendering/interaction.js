@@ -696,7 +696,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('hoverHandlerApp3D').hideTooltip();
 
     var delta = evt.wheelDelta;
-	console.log(this.get('vrEnvironment').position.y);
 	
 
     // zoom in

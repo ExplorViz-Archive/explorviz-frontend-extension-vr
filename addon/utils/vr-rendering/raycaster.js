@@ -32,7 +32,7 @@ export default Ember.Object.extend({
 		return intersections[0];
     }else{
 		return;
-	}
+	 }
   }
   
 });
