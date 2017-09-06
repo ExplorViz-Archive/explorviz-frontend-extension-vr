@@ -116,21 +116,24 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   actualizeRaycastObjects() {
     const self = this;
     let result = (this.get('vrLandscape')) ? this.get('vrLandscape').children : [];
+    const allowedObjects = ['node', 'system', 'nodegroup', 'application', 'communication', 'label', 'floor','component', 'clazz', 'communication'];
+
     result = (this.get('application3D')) ? result.concat(this.get('application3D').children) : result;
-    filterResult(result);
-    this.get('interaction').raycastObjects = result;
+    result = filterResult(result);
+    this.set('interaction.raycastObjectsLandscape',  result);
 
 
     function filterResult(result) {
 
-      let allowedObjects = ['node', 'system', 'nodegroup', 'application', 'communication', 'label', 'floor','component', 'clazz', 'communication'];
-
-      result = result.filter(function(obj) {
+      let help = result.filter(function(obj) {
         if (obj.userData.model) {
           const modelName = obj.userData.model.constructor.modelName;
           return allowedObjects.includes(modelName);
+        }else{
+          false;
         }
       });
+      return help;
     }
   },
 
@@ -1309,11 +1312,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     function createLine(tile, tiles, meshes, canvas) {
       const resolution =
         new THREE.Vector2(canvas.width, canvas.height);
-
-      const material = new THREE.LineBasicMaterial({
-        color: tile.pipeColor
-      });
-
 
       const geometry = new THREE.Geometry();
       let firstVector = new THREE.Vector3(tile.startPoint.x - centerPoint.x,
