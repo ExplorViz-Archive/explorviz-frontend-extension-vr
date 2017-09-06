@@ -148,6 +148,9 @@ export default Ember.Object.extend({
       canvasMaterial , // Top
       oldMaterial  // Buttom
     ];
+    texture.dispose();
+
+    this.disposeMaterial(entity.material);
 
     entity.material = materials;
 
@@ -196,7 +199,7 @@ export default Ember.Object.extend({
         ctx.font = '20px arial';
         ctx.fillStyle = textObj.color;
         ctx.textAlign = "center";
-        ctx.fillText(textObj.text, canvas.width/2,canvas.height/16,canvas.width*0.95);
+        ctx.fillText(textObj.text, canvas.width/2,20,canvas.width*0.95);
       }
       else{
         // Draw title for closed systems
@@ -224,13 +227,29 @@ export default Ember.Object.extend({
         oldMaterial, // Back   
         oldMaterial, // Front
         canvasMaterial, // Top
-        canvasMaterial  // Buttom
+        oldMaterial // Buttom
       ];
 
+      texture.dispose();
+
+      this.disposeMaterial(textObj.parent.material);
+    
       textObj.parent.material = materials;
 
     });
   },
+
+  disposeMaterial(material){
+    if(material.length){
+      for (let i = 0; i < material.length; i++) {
+        material[i].dispose();
+      }
+    }
+    else{
+      material.dispose();
+    } 
+  },
+
   drawNodeGroupTextLabels() {
 
     this.get('nodegroupTextCache').forEach((textObj) => {
@@ -299,7 +318,12 @@ export default Ember.Object.extend({
         oldMaterial  // Buttom
       ];
 
+      texture.dispose();
+
+      this.disposeMaterial(textObj.parent.material);
+      
       textObj.parent.material = materials;
+
     });
   },
 
@@ -370,6 +394,10 @@ export default Ember.Object.extend({
         oldMaterial  // Buttom
       ];
 
+      texture.dispose();
+
+      this.disposeMaterial(textObj.parent.material);
+      
       textObj.parent.material = materials;
     });
   },
@@ -441,7 +469,12 @@ export default Ember.Object.extend({
         oldMaterial  // Buttom
       ];
 
+      texture.dispose();
+
+      this.disposeMaterial(textObj.parent.material);
+      
       textObj.parent.material = materials;
+
     });
 
   },
