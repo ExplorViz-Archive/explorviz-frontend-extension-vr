@@ -8,7 +8,6 @@ import Labeler from '../utils/vr-rendering/labeler';
 import LabelerApp from 'explorviz-ui-frontend/utils/application-rendering/labeler';
 import CalcCenterAndZoom from 'explorviz-ui-frontend/utils/landscape-rendering/center-and-zoom-calculator';
 import ImageLoader from 'explorviz-ui-frontend/utils/three-image-loader';
-import Meshline from "npm:three.meshline";
 import applyCityLayout from 'explorviz-ui-frontend/utils/application-rendering/city-layouter';
 import {
   createFoundation,
@@ -1311,11 +1310,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       const resolution =
         new THREE.Vector2(canvas.width, canvas.height);
 
-      const material = new Meshline.MeshLineMaterial({
-        color: tile.pipeColor,
-        lineWidth: tile.lineThickness,
-        sizeAttenuation: 1,
-        resolution: resolution
+      const material = new THREE.LineBasicMaterial({
+        color: tile.pipeColor
       });
 
 
@@ -1344,10 +1340,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       geometry.vertices.push(new THREE.Vector3(secondVector.x + helpVector.x, secondVector.y, secondVector.z));
 
-      const line = new Meshline.MeshLine();
-      line.setGeometry(geometry);
+      const material = new THREE.LineBasicMaterial({
+        color: tile.pipeColor
+      });
+      const lineMesh = new THREE.Line(geometry,material);
 
-      var lineMesh = new THREE.Mesh(line.geometry, material);
       lineMesh.name = "communication";
       meshes.push(lineMesh);
 
