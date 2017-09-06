@@ -342,6 +342,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     });
     event.ctrlKey=true;
     event.key="b";
+    event.controller = controller.id;
+    event.controllerFlag = true;
     canvas.dispatchEvent(event);
   },
 
@@ -360,6 +362,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     });
     event.ctrlKey=true;
     event.key="b";
+    event.controller = controller.id;
+    event.controllerFlag = false;
     canvas.dispatchEvent(event);
 
   },
@@ -765,9 +769,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     var delta = evt.wheelDelta;
 	
-
+    console.log(evt.controllerID);
     // zoom in
-    if (delta < 0) {
+    if (evt.controllerID == this.get('controller1').id) {
 		let posZ = this.get('vrEnvironment').position.y - 0.1;
 		if(posZ > 0){
 			this.get('vrEnvironment').translateZ(-0.1);
