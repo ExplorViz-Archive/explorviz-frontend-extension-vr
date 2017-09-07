@@ -242,8 +242,16 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('line').name = 'controllerLine';
     this.get('line').scale.z = 5;
 
+    let color1 = new THREE.Color('rgb(255,0,0)');
+    let color2 = new THREE.Color('rgb(0,0,255)');
+
+
+    this.get('line').material.color = color1;
     this.get('controller1').add(this.get('line').clone());
+    this.get('line').material.color = color2;
     this.get('controller2').add(this.get('line').clone());
+console.log(this.get('controller1'));
+console.log(this.get('controller2'));
 
     this.get('scene').add(this.get('vrEnvironment'));
 
