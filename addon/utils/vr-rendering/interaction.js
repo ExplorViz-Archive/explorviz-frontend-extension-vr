@@ -1122,10 +1122,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   },
 
   onBCIAction(evt){
+    let mentalCommands = {2 : mcPUSH, 4: mcPULL};
 
     const self = this;
 
-    mcPUSH(evt);
+    mentalCommands[evt.mentalCommand](evt);
 
     function mcPUSH(evt){
           // Hide (old) tooltip
@@ -1161,20 +1162,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   
     // zoom in
     if (evt.controllerID == self.get('controller1').id) {
-      let posZ = self.get('vrEnvironment').position.y - 0.1;
-      if(posZ > 0){
-       self.get('vrEnvironment').translateZ(-0.1);
-       self.get('vrEnvironment').updateMatrix();
-        }
+      self.get('vrEnvironment').rotateZ(0.1);
       }
     // zoom out
     else {
-      let posZ = self.get('vrEnvironment').position.y + 0.1;
-      if(posZ < self.get('userHeight')/2){
-       self.get('vrEnvironment').translateZ(0.1);
-       self.get('vrEnvironment').updateMatrix();
-       }
+      self.get('vrEnvironment').rotateZ(-0.1);
       }
+      self.get('vrEnvironment').updateMatrix();
     }
   }
 });
