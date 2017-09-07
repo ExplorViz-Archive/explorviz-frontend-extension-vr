@@ -238,20 +238,23 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('geometry').vertices.push(new THREE.Vector3(0, 0, 0));
     this.get('geometry').vertices.push(new THREE.Vector3(0, 0, -1));
 
-    this.set('line', new THREE.Line(this.get('geometry')));
-    this.get('line').name = 'controllerLine';
-    this.get('line').scale.z = 5;
+    let line1 = new THREE.Line(this.get('geometry'));
+    line1.name = 'controllerLine';
+    line1.scale.z = 5;
+    line1.material.color = new THREE.Color('rgb(0, 0, 0)');
+    line1.material.opacity = 0.25;
 
-    let color1 = new THREE.Color('rgb(255,0,0)');
-    let color2 = new THREE.Color('rgb(0,0,255)');
+    let line2 = new THREE.Line(this.get('geometry'));
+    line2.name = 'controllerLine';
+    line2.scale.z = 5;
+    line2.material.color = new THREE.Color('rgb(255,255,0)');
+    line2.material.opacity = 0.25;
+    console.log(line2);
 
 
-    this.get('line').material.color = color1;
-    this.get('controller1').add(this.get('line').clone());
-    this.get('line').material.color = color2;
-    this.get('controller2').add(this.get('line').clone());
-console.log(this.get('controller1'));
-console.log(this.get('controller2'));
+    this.get('controller1').add(line1);
+    this.get('controller2').add(line2);
+
 
     this.get('scene').add(this.get('vrEnvironment'));
 
