@@ -92,10 +92,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     self.get('controller1').addEventListener('menuup', registerControllerMenuUpController1);
     self.get('controller2').addEventListener('menuup', registerControllerMenuUpController2);
 
-
-   
-
-
     function registerControllerTriggerDown(event){
       self.onControllerTriggerDown(event);
     } 
@@ -144,6 +140,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     function registerMouseEnter(evt) {
       self.onMouseEnter(evt);
+    }
+
+
+    canvas.addEventListener('bciaction', registerBCIAction);
+        function registerBCIAction(event){
+        self.onBCIAction(event);
     }
 
     // zoom handler    
@@ -769,22 +771,21 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     var delta = evt.wheelDelta;
 	
-    console.log(evt.controllerID);
     // zoom in
     if (evt.controllerID == this.get('controller1').id) {
-		let posZ = this.get('vrEnvironment').position.y - 0.1;
-		if(posZ > 0){
-			this.get('vrEnvironment').translateZ(-0.1);
-			this.get('vrEnvironment').updateMatrix();
-		}
+		  let posZ = this.get('vrEnvironment').position.y - 0.1;
+		  if(posZ > 0){
+			 this.get('vrEnvironment').translateZ(-0.1);
+			 this.get('vrEnvironment').updateMatrix();
+		  }
     }
     // zoom out
     else {
-		let posZ = this.get('vrEnvironment').position.y + 0.1;
-		if(posZ < this.get('userHeight')/2){
-			this.get('vrEnvironment').translateZ(0.1);
-			this.get('vrEnvironment').updateMatrix();
-		}
+		  let posZ = this.get('vrEnvironment').position.y + 0.1;
+		  if(posZ < this.get('userHeight')/2){
+			 this.get('vrEnvironment').translateZ(0.1);
+			 this.get('vrEnvironment').updateMatrix();
+		  }
     }
 	
   },
@@ -1118,5 +1119,62 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     }
 
+  },
+
+  onBCIAction(evt){
+
+    const self = this;
+
+    mcPUSH(evt);
+
+    function mcPUSH(evt){
+          // Hide (old) tooltip
+      self.get('hoverHandlerLandscape').hideTooltip();
+      self.get('hoverHandlerApp3D').hideTooltip();
+
+      var delta = evt.wheelDelta;
+  
+      // zoom in
+      if (evt.controllerID == self.get('controller1').id) {
+        let posZ = self.get('vrEnvironment').position.y - 0.1;
+        if(posZ > 0){
+          self.get('vrEnvironment').translateZ(-0.1);
+          self.get('vrEnvironment').updateMatrix();
+        }
+      }
+    // zoom out
+      else {
+        let posZ = self.get('vrEnvironment').position.y + 0.1;
+        if(posZ < self.get('userHeight')/2){
+          self.get('vrEnvironment').translateZ(0.1);
+          self.get('vrEnvironment').updateMatrix();
+        }
+      }
+    }
+
+    function mcPULL(){
+                // Hide (old) tooltip
+    self.get('hoverHandlerLandscape').hideTooltip();
+    self.get('hoverHandlerApp3D').hideTooltip();
+
+    var delta = evt.wheelDelta;
+  
+    // zoom in
+    if (evt.controllerID == self.get('controller1').id) {
+      let posZ = self.get('vrEnvironment').position.y - 0.1;
+      if(posZ > 0){
+       self.get('vrEnvironment').translateZ(-0.1);
+       self.get('vrEnvironment').updateMatrix();
+        }
+      }
+    // zoom out
+    else {
+      let posZ = self.get('vrEnvironment').position.y + 0.1;
+      if(posZ < self.get('userHeight')/2){
+       self.get('vrEnvironment').translateZ(0.1);
+       self.get('vrEnvironment').updateMatrix();
+       }
+      }
+    }
   }
 });
