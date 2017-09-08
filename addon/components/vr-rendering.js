@@ -241,13 +241,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     let line1 = new THREE.Line(this.get('geometry'));
     line1.name = 'controllerLine';
     line1.scale.z = 5;
-    line1.material.color = new THREE.Color('rgb(0, 0, 0)');
+    line1.material.color = new THREE.Color('rgb(0,0,0)');
     line1.material.opacity = 0.25;
 
     let line2 = new THREE.Line(this.get('geometry'));
     line2.name = 'controllerLine';
     line2.scale.z = 5;
-    line2.material.color = new THREE.Color('rgb(255,255,0)');
+    line2.material.color = new THREE.Color('rgb(0,204,51)');
     line2.material.opacity = 0.25;
     console.log(line2);
 
@@ -377,7 +377,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // create floor
     var floorTexture = new THREE.TextureLoader().load('images/materials/floor.jpg');
-    var floorGeometry = new THREE.BoxGeometry(5, 0, 3);
+    var floorGeometry = new THREE.BoxGeometry(4, 0, 3);
     var floorMaterial = new THREE.MeshBasicMaterial({
       map: floorTexture
     });
@@ -1170,8 +1170,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         vrEnvironment.scale.x *= scale;
       }
 
-      if (landscapeSize.z > (floorSize.z - 1)) {
-        let scale = (floorSize.z - 1) / landscapeSize.z;
+      if (landscapeSize.z > (floorSize.z - 1.5)) {
+        let scale = (floorSize.z - 1.5) / landscapeSize.z;
         vrEnvironment.scale.y *= scale;
       }
 
@@ -1430,7 +1430,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // init interaction objects
     this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,
-      raycaster, this.get('vrLandscape').children, controller1, controller2, parentObjects, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('textBox'), userHeight, this.get('labeler'));
+      raycaster, this.get('vrLandscape').children, controller1, controller2, parentObjects, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('textBox'), userHeight, this.get('labeler'), this.get('room'));
 
     // set listeners
     this.get('interaction').on('redrawScene', function() {

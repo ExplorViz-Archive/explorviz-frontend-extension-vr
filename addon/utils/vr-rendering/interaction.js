@@ -50,7 +50,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('application3D', application3D);
   },
 
-  setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, controller2, parentObject, vrEnvironment, colorList, colorListApp, textBox, userHeight, labeler) {
+  setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, controller2, parentObject, vrEnvironment, colorList, colorListApp, textBox, userHeight, labeler, floor) {
     this.set('scene', scene);
     this.set('canvas', canvas);
     this.set('camera', camera);
@@ -66,6 +66,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('textBox', textBox);
 	  this.set('userHeight', userHeight);
     this.set('labeler', labeler);
+    this.set('floor', floor);
 
     const self = this;
 
@@ -1141,6 +1142,19 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         if(posZ > 0){
           self.get('vrEnvironment').translateZ(-0.1);
           self.get('vrEnvironment').updateMatrix();
+
+          const bboxFloor = new THREE.Box3().setFromObject(self.get('floor'));
+
+          // Compute bounding box of the vrEnvironment
+          const bboxLandscape = new THREE.Box3().setFromObject(self.get('vrEnvironment'));
+
+           // set new position of vrEnvironment
+          if (bboxLandscape.min.y < bboxFloor.min.y) {
+            self.get('vrEnvironment').position.y += bboxFloor.max.y - bboxLandscape.min.y + 0.001;
+            self.get('vrEnvironment').updateMatrix();
+          }
+
+          //reposition if landscape is smaller than floor
         }
       }
     // zoom out
@@ -1153,6 +1167,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       }
     }
 
+    //function if the second MentalCommand Pull with id 2² is called
     function mcPULL(){
                 // Hide (old) tooltip
     self.get('hoverHandlerLandscape').hideTooltip();
