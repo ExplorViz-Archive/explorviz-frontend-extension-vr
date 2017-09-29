@@ -1399,8 +1399,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     }
 
-    this.get('labeler').drawTextLabels(self.get('font'),
-      self.get('configuration'));
+    this.get('labeler').drawTextLabels();
 
   },
   //////////// END populateScene
@@ -1421,7 +1420,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const raycaster = this.get('raycaster');
     const controller1 = this.get('controller1');
     const controller2 = this.get('controller2');
-    const parentObjects = this.get('application3D');
     const vrEnvironment = this.get('vrEnvironment');
     const userHeight = 1.9;
 
@@ -1430,7 +1428,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // init interaction objects
     this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,
-      raycaster, this.get('vrLandscape').children, controller1, controller2, parentObjects, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('textBox'), userHeight, this.get('labeler'), this.get('room'));
+      raycaster, this.get('vrLandscape').children, controller1, controller2, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('textBox'), userHeight, this.get('labeler'), this.get('room'));
 
     // set listeners
     this.get('interaction').on('redrawScene', function() {

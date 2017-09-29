@@ -1,15 +1,15 @@
 import Ember from 'ember';
 import THREE from "npm:three";
 
+/*
+ * This util is used to calculate the objects hit by the controller 
+ * (raycaster).
+ */
 export default Ember.Object.extend({
 
   raycaster: new THREE.Raycaster(),
 
-  landscapeObjects: ['node', 'system', 'nodegroup', 'application', 'communication', 'label', 'floor'],
-  applicationObjects: ['component', 'clazz', 'communication'],
-  objectCatalog: 'landscapeObjects',
-  objectCatalogApp: 'applicationObjects',
-
+  // Calculate intersected object
   raycasting(origin, direction, camera, possibleObjects) {
 
     const self = this;
@@ -27,12 +27,13 @@ export default Ember.Object.extend({
     const intersections = raycaster.intersectObjects(possibleObjects,
       false);
 	  
-
+    // Return content
     if (intersections.length > 0) {
-		return intersections[0];
-    }else{
-		return;
-	 }
+		  return intersections[0];
+    }
+    else{
+		  return;
+	  }
   }
   
 });

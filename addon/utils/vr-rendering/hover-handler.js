@@ -1,5 +1,11 @@
 import Ember from 'ember';
 
+/*
+ *  This util is used to define the important information  
+ *  about a given entity of the landscape or 3D-application
+ *  and return them as an array.
+ *
+ */
 export default Ember.Object.extend(Ember.Evented, {
 
   alreadyDestroyed: true,
@@ -7,10 +13,9 @@ export default Ember.Object.extend(Ember.Evented, {
   enableTooltips: true,
 
   /*
-   *  The following functions are used to collect
-   *  informations about a given entity
+   *  The following function is used to detect the
+   *  type of entity and handle it
    */
-
   buildContent(emberModel) {
     let content = {title: '', innerContent: ""};
 
@@ -38,8 +43,6 @@ export default Ember.Object.extend(Ember.Evented, {
     }     
 
     return content;
-
-
 
     // Helper functions landscape
     
@@ -212,7 +215,7 @@ export default Ember.Object.extend(Ember.Evented, {
         });
 
         return result;   
-      } // END inner helper functions
+      } // END inner helper functions landscape
 
       return content;
     }
@@ -240,30 +243,11 @@ export default Ember.Object.extend(Ember.Evented, {
       return content;
 
       function getCalledMethods(clazz) {
-        console.log(clazz);
-        //let methods = [];
-
-        //console.log(clazz.get('parent.belongingApplication'));
-
-        /*const communications = clazz.get('parent').get('belongingApplication').get('communications');
-
-        communications.forEach((commu) => {
-          if (commu.get('target') === clazz && commu.get('target') !== commu.get('source')) {
-            console.log("asd");
-            methods.push(commu.get('methodName'));
-          }
-        });
-
-        return methods.length;*/
-
         return 0;
-
       }
 
-
-    } // END helper function application 3D
+    } // END helper functions application 3D
 
   } // END build Content
-
 
 });

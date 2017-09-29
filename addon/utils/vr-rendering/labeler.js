@@ -1,9 +1,12 @@
 import Ember from 'ember';
 import THREE from "npm:three";
 
+/*
+ * This util is used to draw the labels of the
+ * landscape and application3D
+ *
+ */ 
 export default Ember.Object.extend({
-
-  textLabels: {},
 
   systemTextCache: [],
   nodegroupTextCache: [],
@@ -11,18 +14,19 @@ export default Ember.Object.extend({
   appTextCache: [],
   canvasList: {},
   textures: {},
-  webglrenderer: null,
 
-  font: null,
-
-
+  /*
+   * This method stores the text and all additional information
+   * into an array for each type of entity
+   *
+   */
   saveTextForLabeling(textToShow, parent, color, boxColor) {
 
     const emberModelName = parent.userData.model.constructor.modelName;
     const text = textToShow ? textToShow : parent.userData.model.get('name');
 
     let textCache = 'systemTextCache';
-
+    // Identify entity type 
     if(emberModelName === "node"){
       textCache = 'nodeTextCache';
     }
@@ -37,11 +41,10 @@ export default Ember.Object.extend({
 
   },
 
-
-  drawTextLabels(font, configuration) {
-
-    this.set('font', font);
-    this.set('configuration', configuration);
+  /*
+   * This method is used to draw the labels 
+   */
+  drawTextLabels() {
 
     this.drawSystemTextLabels();
     this.drawNodeGroupTextLabels();
@@ -57,7 +60,9 @@ export default Ember.Object.extend({
   },
 
   /*
-  * This method is used to mark given entities
+  * This method is used to redraw given entities.
+  * Therefore the mapped material gets apated to the passed color.  
+  * This method is called for changig the box color.
   *
   */
   redrawLabel(entity, textColor, name, color){
@@ -88,11 +93,10 @@ export default Ember.Object.extend({
     let oldMaterial = new THREE.MeshBasicMaterial({color});
 
     let canvas = this.get('canvasList')[entity.id];
-    
     var ctx = canvas.getContext('2d');
 
     var x, y, max;
-
+    // Define the size and position of the label depending on the entity type
     if(entity.type === 'system'){
       if(entity.userData.model.get('opened')){
         ctx.font = '15px arial';
@@ -124,7 +128,7 @@ export default Ember.Object.extend({
 
     }
 
-    // Draw old box color
+    // Draw new box color
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = textColor;
@@ -132,11 +136,10 @@ export default Ember.Object.extend({
     ctx.textAlign = "center";
     ctx.fillText(name, x,y,max);
     
-    // create texture out of canvas
-
+    // Look for existing texture
     if(!this.get('textures')[entity.id]){
+      // create new texture out of canvas 
       this.get('textures')[entity.id] = new THREE.CanvasTexture(canvas);
-
     }
 
     let texture = this.get('textures')[entity.id];
@@ -156,17 +159,22 @@ export default Ember.Object.extend({
       oldMaterial  // Buttom
     ];
       
+    // Delete old material and texture
     canvasMaterial.map.dispose() 
     canvasMaterial.dispose();
     oldMaterial.dispose();
     texture.dispose();
-
     this.disposeMaterial(entity.material);
 
+    // Set new material
     entity.material = materials;
 
   },
 
+  /*
+   * This method is used to label the box of a system and is
+   * directly called after creating the box. 
+   */
   drawSystemTextLabels() {
 
     this.get('systemTextCache').forEach((textObj) => {
@@ -184,7 +192,6 @@ export default Ember.Object.extend({
       
       let size = bbox.getSize();
       
-
       // calculate aspect ratio and next power of 2 
       let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(size.x*40)/Math.log(2)));
       let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(size.y*40)/Math.log(2)));
@@ -246,13 +253,13 @@ export default Ember.Object.extend({
         oldMaterial // Buttom
       ];
 
+      // Delete old material and texture
       texture.dispose();
-
       canvasMaterial.dispose();
       oldMaterial.dispose();
-
       this.disposeMaterial(textObj.parent.material);
     
+      // Set new material
       textObj.parent.material = materials;
 
     });
@@ -269,6 +276,10 @@ export default Ember.Object.extend({
     } 
   },
 
+  /*
+   * This method is used to label the box of a nodegroup and is
+   * directly called after creating the box. 
+   */
   drawNodeGroupTextLabels() {
 
     this.get('nodegroupTextCache').forEach((textObj) => {
@@ -342,18 +353,22 @@ export default Ember.Object.extend({
         oldMaterial  // Buttom
       ];
 
+      // Delete old material and texture
       texture.dispose();
-
       canvasMaterial.dispose();
       oldMaterial.dispose();
-
       this.disposeMaterial(textObj.parent.material);
       
+      // Set new material
       textObj.parent.material = materials;
 
     });
   },
 
+  /*
+   * This method is used to label the box of a node and is
+   * directly called after creating the box. 
+   */
   drawNodeTextLabels() {
 
     this.get('nodeTextCache').forEach((textObj) => {
@@ -426,19 +441,21 @@ export default Ember.Object.extend({
         oldMaterial  // Buttom
       ];
 
+      // Delete old material and texture
       texture.dispose();
-
       this.disposeMaterial(textObj.parent.material);
-
       canvasMaterial.dispose();
       oldMaterial.dispose();
       
+      // set new material
       textObj.parent.material = materials;
     });
   },
 
-
-
+  /*
+   * This method is used to label the box of an application and is
+   * directly called after creating the box. 
+   */
   drawAppTextLabels() {
     this.get('appTextCache').forEach((textObj) => {
 
@@ -509,13 +526,13 @@ export default Ember.Object.extend({
         oldMaterial  // Buttom
       ];
 
+      // Delete old material and texture
       texture.dispose();
-
       canvasMaterial.dispose();
       oldMaterial.dispose();
-
       this.disposeMaterial(textObj.parent.material);
       
+      // set new material
       textObj.parent.material = materials;
 
     });
