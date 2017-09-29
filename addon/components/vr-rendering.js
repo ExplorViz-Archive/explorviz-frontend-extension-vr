@@ -17,18 +17,14 @@ import {
 import layout from "../templates/components/vr-rendering"
 
 /**
- * This component contains the core mechanics of the different (three.js-based) 
- * renderer. All functions below are called in a determined order, hence you only 
- * need to override them in your custom renderer.
+ * This component unites landscape(adapted to 3D)-, application-rendering
+ * and rendering-core from which many function are taken over.
+ * This component contains listeners waiting for events from the controller. 
+ * For this reason some services are injected (urlBuilder, viewImporter, reloadHandler, ..)
+ * The corresponding functions are not implemented yet (in VR) but could be 
+ * good templates fo future work.  
  *
- * See {{#crossLink "Landscape-Rendering"}}{{/crossLink}} or 
- * {{#crossLink "Application-Rendering"}}{{/crossLink}} for example usage.
- *
- * Call order:
- *
- * 1. 
- *
- * @class Rendering-Core
+ * @class VR-Rendering
  * @extends Ember.Component
  */
 export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
@@ -41,10 +37,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   // Declare url-builder service 
   urlBuilder: Ember.inject.service("url-builder"),
-
   // Declare view-importer service 
   viewImporter: Ember.inject.service("view-importer"),
-
   reloadHandler: Ember.inject.service("reload-handler"),
   landscapeRepo: Ember.inject.service("repos/landscape-repository"),
   renderingService: Ember.inject.service(),
@@ -54,29 +48,21 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   scene: null,
   webglrenderer: null,
   camera: null,
-
   canvas: null,
-
   font: null,
   animationFrameId: null,
-
   initDone: false,
 
   configuration: Ember.inject.service("configuration"),
-
   configurationApplication: Ember.inject.service("configuration"),
-
   hammerManager: null,
 
   raycaster: null,
   interaction: null,
   labeler: null,
-
   labelerApp: null,
-
   imageLoader: null,
   centerAndZoomCalculator: null,
-
   initialRendering: true,
 
   // VR
@@ -85,15 +71,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   vrCommunications: null,
   controller1: null,
   controller2: null,
-
   geometry: null,
-  //loader: null,
   depth: 0.2,
-
-  cameraDolly: null,
   vrAvailable: false,
   room: null,
-
   initialPositions: {},
 
   // Stores mesh for 3D application
@@ -112,7 +93,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   },
 
   // An Observer calculating the new raycastObjects
-
   actualizeRaycastObjects() {
     const self = this;
     let result = (this.get('vrLandscape')) ? this.get('vrLandscape').children : [];
@@ -187,17 +167,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('vrEnvironment').rotateX(-1.5707963);
     this.get('vrEnvironment').updateMatrix();
 
-
     // remove stored applications
     this.set('landscapeRepo.latestApplication', null);
-
 
     // get size if outer ember div
     const height = this.$()[0].clientHeight;
     const width = this.$()[0].clientWidth;
 
     const canvas = this.$('#threeCanvas')[0];
-
     this.set('canvas', canvas);
 
     this.set('scene', new THREE.Scene());
@@ -205,8 +182,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     this.set('camera', new THREE.PerspectiveCamera(70, width / height, 0.1, 10));
 
-
-    // first renderer
+    // Create and configure renderer
     this.set('webglrenderer', new THREE.WebGLRenderer({
       antialias: true,
       canvas: canvas
@@ -219,31 +195,31 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('webglrenderer').gammaInput = true;
     this.get('webglrenderer').gammaOutput = true
 
-
-    // Controller
+    // Create first controller
     this.set('controller1', new ViveController(0));
     this.get('controller1').standingMatrix = this.get('webglrenderer').vr.getStandingMatrix();
     this.get('controller1').name = "controller";
     this.get('scene').add(this.get('controller1'));
 
+    // Create first controller
     this.set('controller2', new ViveController(1));
     this.get('controller2').standingMatrix = this.get('webglrenderer').vr.getStandingMatrix();
     this.get('controller2').name = "controller";
     this.get('scene').add(this.get('controller2'));
 
-
     // Ray for Controller
     this.set('geometry', new THREE.Geometry());
-
     this.get('geometry').vertices.push(new THREE.Vector3(0, 0, 0));
     this.get('geometry').vertices.push(new THREE.Vector3(0, 0, -1));
 
+    // Create black ray for left controller
     let line1 = new THREE.Line(this.get('geometry'));
     line1.name = 'controllerLine';
     line1.scale.z = 5;
     line1.material.color = new THREE.Color('rgb(0,0,0)');
     line1.material.opacity = 0.25;
 
+    // Create green ray for left controller
     let line2 = new THREE.Line(this.get('geometry'));
     line2.name = 'controllerLine';
     line2.scale.z = 5;
@@ -251,30 +227,22 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     line2.material.opacity = 0.25;
     console.log(line2);
 
-
+    // Add rays to controllers
     this.get('controller1').add(line1);
     this.get('controller2').add(line2);
-
-
     this.get('scene').add(this.get('vrEnvironment'));
-
 
     // create text box 
     var color = new THREE.Color("rgb(253,245,230)");
-
     let material = new THREE.MeshBasicMaterial({
       color
     });
-
     this.set('textBox', new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0), material));
-
     this.get('textBox').name = 'textBox';
 
     // rotate text box
     this.get('textBox').geometry.rotateX(1.5707963267949);
     this.get('textBox').geometry.rotateY(1.5707963267949 * 2);
-
-
 
     // VR Rendering loop //
     function animate() {
@@ -283,9 +251,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     function render() {
 
-      self.get('threexStats').update(self.get('webglrenderer'));
-      self.get('stats').begin();
-
+      // Update Controller
       self.get('controller1').update();
       self.get('controller2').update();
 
@@ -299,11 +265,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           self.get('interaction').checkIntersection(self.get('controller2'));
         }
       }
-
-
       self.get('webglrenderer').render(self.get('scene'), self.get('camera'));
-      self.get('stats').end();
-
     }
     animate();
 
@@ -354,6 +316,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     this.initInteraction();
 
+    // Add lights
     const dirLight = new THREE.DirectionalLight();
     dirLight.position.set(30, 10, 20);
     this.get('scene').add(dirLight);
@@ -383,9 +346,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     });
     var floorMesh = new THREE.Mesh(floorGeometry, floorMaterial); ///// End floor
     floorMesh.name = 'floor';
-
     this.get('room').add(floorMesh);
-
     self.get('scene').add(this.get('room'));
 
     // VR-Button
@@ -421,11 +382,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           self.populateScene();
         });
     });
-
   },
 
   /*
-   *  This method is to listen for events triggered in the controller
+   * This method is used to listen for events triggered Controller.
+   * The corresponding funcinoalities are not yet implemented in VR.
+   * But they can used as templates in the future.
    */
   initListener() {
 
@@ -466,10 +428,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     });
   },
 
-
-
   /**
-   * This function is called when the willDestroyElement event is fired. 
+   * This function is called when the willDestroyElement event is fired
+   * (for example while switching tabs). 
    * Its used to turn off listeners and reset intial values
    * @method cleanup
    */
@@ -477,16 +438,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     const self = this;
 
-    // cancelAnimationFrame(this.get('animationFrameId'));
     this.get('webglrenderer').dispose();
-
     this.set('scene', null);
     this.set('webglrenderer', null);
     this.set('camera', null);
     this.get('urlBuilder').off('requestURL');
-
     this.removePerformanceMeasurement();
-
     //this.$(window).off('resize.visualization');
     this.get('viewImporter').off('transmitView');
     this.get('renderingService').off('reSetupScene');
@@ -533,7 +490,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }
 
     if (this.get('landscapeRepo.latestApplication')) {
-      // remove foundation for re-rendering
+      // remove foundation of application3D
       const emberApplication = this.get('application3D.userData.model');
       removeFoundation(emberApplication, this.get('store'));
       this.set('landscapeRepo.latestApplication', null);
@@ -554,8 +511,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   /**
    * This function is used to build and update the landscape(3D). 
-   * First the meshes are created and then the old meshes
-   * are deleted.
+   * The meshes are created first and the old ones
+   * are deleted afterwards.
+   * The function is called once in initRendering and every time 
+   * the util interaction triggers the event "redrawScene".
    *
    * @method populateScene
    */
@@ -572,11 +531,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }
 
     /* - Close all systems
-       - set new depth value for systems, nodegroups, nodes and applications 
-       - save z-posiitons to restore initial state
-    */
+     *  - set new depth value for systems, nodegroups, nodes and applications 
+     *  - save z-posiitons to restore initial state
+     */
     if (emberLandscape) {
-
       if (this.get('initialRendering')) {
         emberLandscape.get('systems').forEach(function(system) {
           system.setOpened(false);
@@ -605,6 +563,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       }
     }
 
+    // Layout landscape
     applyKlayLayout(emberLandscape);
 
     this.set('vrEnvironment.userData.model', emberLandscape);
@@ -625,21 +584,23 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           this.get('webglrenderer'));
       }
 
-      // compute the amount of requests for every id
+      // Compute the amount of requests for every id
       let allRequests = computeRequests(emberLandscape.get('applicationCommunication'));
 
       var centerPoint = this.get('centerAndZoomCalculator.centerPoint');
 
+      // Create landscape
       systems.forEach(function(system) {
 
         isRequestObject = false;
 
         var extensionX, extensionY, centerX, centerYClosed, centerYOpened;
 
+        // Create earth
         if (!isRequestObject && system.get('name') === "Requests") {
           isRequestObject = true;
 
-          // add earth
+          // Add earth
           extensionX = system.get('width') * scaleFactor.width;
           extensionY = system.get('height') * scaleFactor.height;
 
@@ -660,13 +621,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
           requests.position.set(centerX, centerYClosed, system.get('positionZ'));
 
-          // scale requests
+          // Scale requests
           requests.scale.x = requests.scale.x / self.get('vrEnvironment').scale.x;
 
           landscapeMeshes.push(requests);
         }
 
-
+        // Create systems
         if (!isRequestObject) {
 
           extensionX = system.get('width') * scaleFactor.width;
@@ -676,46 +637,45 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           centerYClosed = system.get('positionY') - extensionY - centerPoint.y;
           centerYOpened = system.get('positionY') - extensionY - centerPoint.y;
 
-          // save old depth
+          // Save old depth
           var oldSystemDepth = system.get('depth');
 
-          // calculate system depth (height) depending on the amount of traget requests
+          // Calculate system depth (height) depending on the amount of traget requests
           if (allRequests[system.get('id')]) {
             system.set('depth', assignDepth(allRequests[system.get('id')]));
           }
 
           // Draw box for closed and plane for opened systems
           var systemMesh;
-          if (system.get('opened')) {
+          if(system.get('opened')) {
             systemMesh = createPlane(system);
             systemMesh.name = 'systemOpened';
             // Transform z-position of closed system to opened system 
-            systemMesh.position.set(centerX, centerYOpened, system.get('positionZ') - system.get('depth') / 2);
-          } else {
-            // new depth only influences closed boxes
+            systemMesh.position.set(centerX, centerYOpened, 
+              system.get('positionZ') - system.get('depth') / 2);
+          } 
+          else {
+            // New depth only influences closed boxes
             var diffSystemDepth = system.get('depth') - oldSystemDepth;
             systemMesh = createBox(system);
             systemMesh.name = 'systemClosed';
-            // store new position
+            // Store new position
             system.set('positionZ', system.get('positionZ') + diffSystemDepth / 2);
 
-            // set new position for box
+            // Set new position for box
             systemMesh.position.set(centerX, centerYClosed, system.get('positionZ'));
           }
 
+          // Add mesh
           systemMesh.type = 'system';
-
           landscapeMeshes.push(systemMesh);
           system.set('threeJSModel', systemMesh);
 
           // Create text labels for systems
           const textColor =
             self.get('configuration.landscapeColors.textsystem');
-
           let emberModelName = system.constructor.modelName;
-
           let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
-
           self.get('labeler').saveTextForLabeling(null, systemMesh, textColor, boxColor);
 
         }
@@ -744,39 +704,40 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
               centerYOpened = nodegroup.get('positionY') - extensionY - centerPoint.y;
               centerYClosed = nodegroup.get('positionY') - extensionY - centerPoint.y;
 
-              // save old depth
+              // Save old depth
               let oldNodegroupDepth = nodegroup.get('depth');
 
-              /* calculate depth (height) for nodegroups relative to the 
+              /* Calculate depth (height) for nodegroups relative to the 
               amount of traget requests */
               if (allRequests[nodegroup.get('id')]) {
                 nodegroup.set('depth', assignDepth(allRequests[nodegroup.get('id')]));
               }
 
-              // calculate difference of depths
+              // Calculate difference of depths
               let diffNodegroupDepth = nodegroup.get('depth') - oldNodegroupDepth;
 
-              // create box for opened nodegroup
+              // Create box for opened nodegroup
               if (nodegroup.get('opened')) {
                 nodegroupMesh = createPlane(nodegroup);
                 nodegroupMesh.name = 'nodegroupOpened';
                 // Transform z-position of closed system to opened system 
-                nodegroupMesh.position.set(centerX, centerYOpened, nodegroup.get('positionZ') - nodegroup.get('depth') / 2 + 0.001);
+                nodegroupMesh.position.set(centerX, centerYOpened, 
+                  nodegroup.get('positionZ') - nodegroup.get('depth') / 2 + 0.001);
               }
-              // create box for closed nodegroup
+              // Create box for closed nodegroup
               else {
                 nodegroupMesh = createBox(nodegroup);
                 nodegroupMesh.name = 'nodegroupOpened';
-                // store new position
+                // Store new position
                 nodegroup.set('positionZ', nodegroup.get('positionZ') + diffNodegroupDepth / 2);
 
-                // set new position with offset for new depth
+                // Set new position with offset for new depth
                 nodegroupMesh.position.set(centerX, centerYOpened, nodegroup.get('positionZ') + 0.001);
               }
 
               nodegroupMesh.type = 'nodegroup';
 
-              // add mesh
+              // Add mesh
               landscapeMeshes.push(nodegroupMesh);
               nodegroup.set('threeJSModel', nodegroupMesh);
             }
@@ -790,15 +751,15 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
                 return;
               }
 
-              // save old depth
+              // Save old depth
               let oldNodeDepth = nodegroup.get('depth');
 
-              // set nodegroup depth relative to the amount of traget requests
+              // Set nodegroup depth relative to the amount of traget requests
               if (allRequests[node.get('id')]) {
                 node.set('depth', assignDepth(allRequests[node.get('id')]));
               }
 
-              // calculate difference of depths
+              // Calculate difference of depths
               let diffNodeDepth = node.get('depth') - oldNodeDepth;
 
               extensionX = node.get('width') * scaleFactor.width;
@@ -812,7 +773,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
               nodeMesh.type = "application";
               nodeMesh.name = "node";
 
-              // get parent position and store new position
+              // Get parent position and store new position
               node.set('positionZ', node.get('parent').get('positionZ') + diffNodeDepth / 2);
 
               nodeMesh.position.set(centerX, centerYOpened, node.get('positionZ') + 0.002);
@@ -820,13 +781,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
               landscapeMeshes.push(nodeMesh);
               node.set('threeJSModel', nodeMesh);
 
-              // labeler creates box color
+              // Create text labels 
               let textColor = self.get('configuration.landscapeColors.textnode');
-
               let emberModelName = node.constructor.modelName;
-
               let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
-
               self.get('labeler').saveTextForLabeling(node.getDisplayName(),
                 nodeMesh, textColor, boxColor);
 
@@ -856,8 +814,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
                   landscapeMeshes.push(applicationMesh);
                   application.set('threeJSModel', applicationMesh);
 
-                  // create logos 
-
+                  // Create logos 
                   applicationMesh.geometry.computeBoundingBox();
 
                   const logoSize = {
@@ -884,32 +841,27 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
                     logoPos.z + 0.001, logoSize.width, logoSize.height,
                     texturePartialPath, applicationMesh, "label");
 
-                  // create text labels
-
+                  // Create text labels 
                   let textColor =
                     self.get('configuration.landscapeColors.textapp');
-
+                  
                   let emberModelName = application.constructor.modelName;
-
                   let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
-
+                  
                   self.get('labeler').saveTextForLabeling(null, applicationMesh,
                     textColor, boxColor);
-
-
                 }
               });
             }
-            // nodegroup closed => dont draw nodes+applications, just add text label
+            // Closed nodegroup => dont draw nodes+applications, just add text label
             else {
               let textColor = self.get('configuration.landscapeColors.textapp');
-
               let emberModelName = nodegroup.constructor.modelName;
-
               let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
 
               textColor = self.get('configuration.landscapeColors.textnode');
-              self.get('labeler').saveTextForLabeling(node.getDisplayName(), nodegroupMesh, textColor, boxColor);
+              self.get('labeler').saveTextForLabeling(node.getDisplayName(), 
+                nodegroupMesh, textColor, boxColor);
             }
           });
         });
@@ -924,12 +876,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     let tile;
 
+    // Draw communication lines
     if (appCommunication) {
 
       let color = self.get('configuration.landscapeColors.communication');
 
       appCommunication.forEach((communication) => {
 
+        // Calculate communication points
         const points = communication.get('points');
 
         if (points.length > 0) {
@@ -975,32 +929,39 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
 
       });
-
+      // Draw lines
       //addCommunicationLineDrawing(tiles, communicationMeshes);
     }
 
 
-    //The landscape(3D) will be deleted an rewritten
+    /*
+     * The landscape(3D) will be deleted an rewritten
+     * It consists of vrCommunications and vrLandscape */
+    // Delete and redraw communication lines
     removeAllChildren(this.get('vrCommunications'));
     this.get('vrCommunications').updateMatrix();
+    
     communicationMeshes.forEach(function(mesh) {
       this.get('vrCommunications').add(mesh);
     }.bind(this));
     this.get('vrCommunications').updateMatrix();
 
+    // Delete and redraw landscape(boxes) lines
     removeAllChildren(this.get('vrLandscape'));
     this.get('vrLandscape').updateMatrix();
+
     landscapeMeshes.forEach(function(mesh) {
       this.get('vrLandscape').add(mesh);
     }.bind(this));
     this.get('vrLandscape').updateMatrix();
 
-    // Scale floor bigger as landscape(3D)
-    //scaleFloor(this.get('vrEnvironment'), this.get('floor'));
-    // Center landscape(3D) on the floor 
+
+    // Scale landscape(3D)
     this.get('vrEnvironment').updateMatrix();
     scaleVREnvironment(this.get('vrEnvironment'), this.get('room'));
     this.get('vrEnvironment').updateMatrix();
+    
+    // Center landscape(3D) on the floor 
     centerVREnvironment(this.get('vrEnvironment'), this.get('room'));
     this.get('vrEnvironment').updateMatrix();
     this.actualizeRaycastObjects();
@@ -1098,7 +1059,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         if (!requests[communication.get('target').get('id')]) {
           requests[communication.get('target').get('id')] = communication.get('requests');
         } else {
-          requests[communication.get('target').get('id')] = requests[communication.get('target').get('id')] + communication.get('requests');
+          requests[communication.get('target').get('id')] = 
+            requests[communication.get('target').get('id')] + communication.get('requests');
         }
 
         let parent = communication.get('target').get('parent');
@@ -1109,7 +1071,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           if (!requests[parent.get('id')]) {
             requests[parent.get('id')] = communication.get('requests');
           } else {
-            requests[parent.get('id')] = requests[parent.get('id')] + communication.get('requests');
+            requests[parent.get('id')] = 
+              requests[parent.get('id')] + communication.get('requests');
           }
           parent = parent.get('parent');
         }
@@ -1143,24 +1106,17 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       if (bboxLandscape.min.y < bboxFloor.min.y) {
         vrEnvironment.position.y += bboxFloor.max.y - bboxLandscape.min.y + 0.001;
       }
-
-      //scale vrEnvironment
-
-
-
     }
 
     /* 
-     *  This function is used to resize the foor so 
-     *  the landscape(3D) fits on it
+     *  This function is used to resize
+     *  the landscape(3D) so it fits on the floor
      */
     function scaleVREnvironment(vrEnvironment, floor) {
 
-      // Compute bounding box of the floor
+      // Compute bounding box of the floor and landscape
       const bboxFloor = new THREE.Box3().setFromObject(floor);
       const bboxLandscape = new THREE.Box3().setFromObject(vrEnvironment);
-
-
 
       let floorSize = bboxFloor.getSize();
       let landscapeSize = bboxLandscape.getSize();
@@ -1174,7 +1130,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         let scale = (floorSize.z - 1.5) / landscapeSize.z;
         vrEnvironment.scale.y *= scale;
       }
-
     }
 
 
@@ -1319,7 +1274,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       return (x && y);
     }
 
-
+    /*
+     * This function is used to create the lines for th communication
+     */
     function createLine(tile, tiles, meshes, canvas) {
       const resolution =
         new THREE.Vector2(canvas.width, canvas.height);
@@ -1329,7 +1286,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         tile.startPoint.y - centerPoint.y, tile.positionZ);
       let secondVector = new THREE.Vector3(tile.endPoint.x - centerPoint.x,
         tile.endPoint.y - centerPoint.y, tile.positionZ);
-
 
       let helpVector = new THREE.Vector3();
       helpVector.subVectors(secondVector, firstVector);
@@ -1357,10 +1313,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       lineMesh.name = "communication";
       meshes.push(lineMesh);
 
-
     } // END createLine
 
-    // Create box (plane) for opened components
+    /*
+     * This function is used to create the 
+     * 3D-plane (for example closed components)
+     */
     function createPlane(model) {
 
       const emberModelName = model.constructor.modelName;
@@ -1379,8 +1337,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     }
 
-
-    // create box for closed landscape(3D)-components
+    /*
+     * This function is used to create the 
+     * 3D-boxes (for example opened components)
+     */
     function createBox(model) {
 
       const emberModelName = model.constructor.modelName;
@@ -1396,9 +1356,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       box.userData['model'] = model;
       return box;
-
     }
-
+    // Add text to the boxes
     this.get('labeler').drawTextLabels();
 
   },
@@ -1425,10 +1384,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     const intersectionObjects = new THREE.Object3D();
 
-
-    // init interaction objects
+    // Init interaction objects
     this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,
-      raycaster, this.get('vrLandscape').children, controller1, controller2, vrEnvironment, this.get('configuration.landscapeColors'), this.get('configurationApplication.applicationColors'), this.get('textBox'), userHeight, this.get('labeler'), this.get('room'));
+      raycaster, this.get('vrLandscape').children, controller1, controller2, 
+      vrEnvironment, this.get('configuration.landscapeColors'), 
+      this.get('configurationApplication.applicationColors'), this.get('textBox'), 
+      userHeight, this.get('labeler'), this.get('room'));
 
     // set listeners
     this.get('interaction').on('redrawScene', function() {
@@ -1437,20 +1398,20 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     /*
      * This interaction listener is used to redraw the application3D 
-     * ("opened" value of package or clazz changed) 
+     * ("opened" value of package changed) 
      */
     this.get('interaction').on('redrawApp', function() {
 
-      // store app3D Data
+      // Store app3D Data
       var appPosition = self.get('app3DMesh').position;
       var appRotation = self.get('app3DMesh').rotation;
       let app3DModel = self.get('application3D.userData.model');
 
-      // empty application 3D (remove app3D)
+      // Empty application 3D (remove app3D)
       self.removeApp3D();
       self.set('landscapeRepo.latestApplication', null);
 
-      // add application3D to scene
+      // Add application3D to scene
       self.add3DApplicationToLandscape(app3DModel, appPosition, appRotation);
 
     }); ///// End redraw application3D 
@@ -1465,7 +1426,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       // Add 3D Application to scene if no exists
       if (!self.get('app3DPresent')) {
         self.set('landscapeRepo.latestApplication', emberModel);
-        self.add3DApplicationToLandscape(emberModel, intersectionPoint, new THREE.Vector3(0, 0, 0));
+        self.add3DApplicationToLandscape(emberModel, 
+          intersectionPoint, new THREE.Vector3(0, 0, 0));
+
         let bboxApp3D = new THREE.Box3().setFromObject(self.get('application3D'));
         let app3DSize = bboxApp3D.getSize();
         app3DSize.multiplyScalar(0.5);
@@ -1473,7 +1436,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         // Center x and z
         newPosition.x = intersectionPoint.x - app3DSize.x;
         newPosition.z = intersectionPoint.z - app3DSize.z;
-        // uncenter y for better overview
+        // Uncenter y for better overview
         newPosition.y = intersectionPoint.y + app3DSize.y;
         self.get('application3D').position.set(newPosition.x, newPosition.y, newPosition.z);
         self.set('app3DPresent', true);
@@ -1496,13 +1459,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         self.removeApp3D();
         self.set('app3DPresent', false);
       }
-
     });
   }, // END initInteraction
 
 
   /*
-    This function is used to remove a 3D application from the scene
+    This function is used to remove an application3D from the scene
   */
   removeApp3D() {
 
@@ -1532,17 +1494,19 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('applicationID', null);
     this.set('application3D', null);
 
+    // Update possible objects for intersection with controller
     this.set('interaction.raycastObjects', this.get('scene.children'));
   },
 
   /*
-    This function is used to add the 3D depiction of the application to the landscape(3D)
-  */
+   * This function is used to add application3D
+   * to the landscape(3D)
+   */
   add3DApplicationToLandscape(application, position, rotation) {
     const self = this;
 
     if (application.get('components').get('length') !== 0) {
-
+      // Create foundation for application3D
       const foundation = createFoundation(application, self.get('store'));
 
       // Draw application in 3D application-view
@@ -1555,7 +1519,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.set('application3D.userData.model', application);
 
       const accuCommunications = application.get('communicationsAccumulated');
-
+      // Draw communication
       accuCommunications.forEach((commu) => {
         if (commu.source !== commu.target) {
           if (commu.startPoint && commu.endPoint) {
@@ -1611,16 +1575,15 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.get('application3D').scale.y = 0.01;
       self.get('application3D').scale.z = 0.01;
 
-      // apply last position and rotation
+      // Apply last position and rotation
       self.get('application3D').position.set(position.x, position.y, position.z);
       self.get('application3D').rotation.set(rotation.x, rotation.y, rotation.z);
 
       // Store application mesh for redraw
       self.set('app3DMesh', self.get('application3D'));
 
-      // setup interaction for app3D
+      // Setup interaction for app3D
       self.get('interaction').setupInteractionApp3D(self.get('application3D'));
-
     }
 
     this.actualizeRaycastObjects();
@@ -1695,7 +1658,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     } // END addComponentToScene
 
     /*
-     *  This function is used to create the meshes for application3D
+     *  This function is used to create the meshes for th application3D
      */
     function createBoxApp(component, color, isClass) {
 
