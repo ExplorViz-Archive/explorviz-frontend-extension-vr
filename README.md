@@ -4,9 +4,8 @@ This README outlines the details of collaborating on this Ember addon.
 
 ## Installation
 
-* `git clone <repository-url>` this repository
-* `cd explorviz-frontend-plugin-vr`
-* `npm install`
+* `cd explorviz-ui-frontend`
+* `ember install <repository-url>`
 
 ## Running
 
