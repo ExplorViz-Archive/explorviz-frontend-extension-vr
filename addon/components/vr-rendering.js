@@ -225,7 +225,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     line2.scale.z = 5;
     line2.material.color = new THREE.Color('rgb(0,204,51)');
     line2.material.opacity = 0.25;
-    console.log(line2);
 
     // Add rays to controllers
     this.get('controller1').add(line1);
@@ -245,12 +244,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('textBox').geometry.rotateY(1.5707963267949 * 2);
 
     // VR Rendering loop //
-    function animate() {
-      self.get('webglrenderer').animate(render);
-    }
+    function animate() {	
+	  self.get('webglrenderer').animate(render);
+	}
 
     function render() {
-
       // Update Controller
       self.get('controller1').update();
       self.get('controller2').update();
@@ -438,7 +436,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     const self = this;
 
+    // Stop rendering
+    self.get('webglrenderer').animate(null);
     this.get('webglrenderer').dispose();
+    
     this.set('scene', null);
     this.set('webglrenderer', null);
     this.set('camera', null);
