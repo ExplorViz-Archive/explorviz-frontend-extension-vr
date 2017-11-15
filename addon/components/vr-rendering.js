@@ -961,7 +961,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('vrEnvironment').updateMatrix();
     
     // Center landscape(3D) on the floor 
-    //centerVREnvironment(this.get('vrEnvironment'), this.get('room'));
+    centerVREnvironment(this.get('vrEnvironment'), this.get('room'));
     this.get('vrEnvironment').updateMatrix();
     this.actualizeRaycastObjects();
     this.get('webglrenderer').vr.submitFrame();

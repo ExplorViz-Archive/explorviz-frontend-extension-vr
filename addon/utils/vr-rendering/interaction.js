@@ -16,6 +16,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   canvas: null,
   canvas2: null,
   camera: null,
+  room: null,
+  initRoom: true,
 
   renderer: null,
   raycaster: null,
@@ -127,6 +129,25 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     function registerMouseEnter(evt) {
       self.onMouseEnter(evt);
     }
+
+    // Add key listener
+    window.onkeydown = function(event){
+      if(self.get('initRoom')){
+        self.set('room', self.get('scene').getObjectByName("room"));
+        self.set('initRoom', false);
+      }
+      
+      if(event.code === 'ArrowDown'){
+        self.get('vrEnvironment').position.y -=  0.05;
+        self.get('room').position.y -= 0.05;
+        self.get('vrEnvironment').updateMatrix();
+      }
+      else if(event.code === 'ArrowUp'){
+        self.get('vrEnvironment').position.y += 0.05;
+        self.get('room').position.y += 0.05;
+        self.get('vrEnvironment').updateMatrix();
+      }
+    };
 
     // Zoom handler    
     canvas.addEventListener('mousewheel', registerMouseWheel, false);
@@ -938,7 +959,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       this.get('vrEnvironment').position.x = this.get('vrEnvironment').position.x + distanceXInPercent;
       this.get('vrEnvironment').position.y = this.get('vrEnvironment').position.y - distanceYInPercent;
-      this.trigger('redrawScene'); 
+      this.get('vrEnvironment').updateMatrix();
     }
   },
 
