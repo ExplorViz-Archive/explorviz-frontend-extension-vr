@@ -235,14 +235,14 @@ export default Ember.Object.extend(Ember.Evented, {
 
       content.title = clazz.get('name');
 
-      const calledMethods = getCalledMethods(clazz);
+      const calledMethods = getCalledMethods();
 
       content.innerContent.entry1.value1 = clazz.get('instanceCount');
       content.innerContent.entry2.value2 = calledMethods; 
 
       return content;
 
-      function getCalledMethods(clazz) {
+      function getCalledMethods() {
         return 0;
       }
 

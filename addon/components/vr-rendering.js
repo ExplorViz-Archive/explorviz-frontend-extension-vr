@@ -14,7 +14,7 @@ import {
   removeFoundation
 } from 'explorviz-ui-frontend/utils/application-rendering/foundation-builder';
 
-import layout from "../templates/components/vr-rendering"
+import layout from "../templates/components/vr-rendering";
 
 /**
  * This component unites landscape(adapted to 3D)-, application-rendering
@@ -94,7 +94,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   // An Observer calculating the new raycastObjects
   actualizeRaycastObjects() {
-    const self = this;
+
     let result = (this.get('vrLandscape')) ? this.get('vrLandscape').children : [];
     const allowedObjects = ['node', 'system', 'nodegroup', 'application', 'communication', 'label', 'floor','component', 'clazz', 'communication'];
 
@@ -110,7 +110,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           const modelName = obj.userData.model.constructor.modelName;
           return allowedObjects.includes(modelName);
         }else{
-          false;
+         return false;
         }
       });
       return help;
@@ -134,8 +134,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   initRendering() {
 
     const self = this;
-
-    let userHeight = 1.9;
 
     // Check if WebVR is supported
     WEBVR.checkAvailability().catch(function(reject) {
@@ -193,7 +191,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('webglrenderer').vr.standing = true;
     this.get('webglrenderer').shadowMap.enabled = true;
     this.get('webglrenderer').gammaInput = true;
-    this.get('webglrenderer').gammaOutput = true
+    this.get('webglrenderer').gammaOutput = true;
 
     // Create first controller
     this.set('controller1', new ViveController(0));
@@ -244,9 +242,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('textBox').geometry.rotateY(1.5707963267949 * 2);
 
     // VR Rendering loop //
-    function animate() {	
-	  self.get('webglrenderer').animate(render);
-	}
+    function animate() {  
+    self.get('webglrenderer').animate(render);
+  }
 
     function render() {
       // Update Controller
@@ -963,7 +961,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('vrEnvironment').updateMatrix();
     
     // Center landscape(3D) on the floor 
-    centerVREnvironment(this.get('vrEnvironment'), this.get('room'));
+    //centerVREnvironment(this.get('vrEnvironment'), this.get('room'));
     this.get('vrEnvironment').updateMatrix();
     this.actualizeRaycastObjects();
     this.get('webglrenderer').vr.submitFrame();
@@ -1140,10 +1138,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         checkEqualityOfPoints(this.startPoint, tile.startPoint);
     }
 
-    function isNextTile(newTile) {
-      return checkEqualityOfPoints(newTile.startPoint, this.endPoint);
-    }
-
     /*
      *  This function is used to add the communications lines
      *  to the landscape(3D)
@@ -1164,12 +1158,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         tile.lineThickness = (0.07 * categories[tile.requestsCache] + 0.1) * 0.07;
       }
 
-      let canvas = self.get('canvas')
       for (let i = 0; i < tiles.length; i++) {
         let tile = tiles[i];
-        createLine(tile, tiles, meshes, canvas);
+        createLine(tile, tiles, meshes);
       }
-
 
       function getCategories(list, linear) {
 
@@ -1278,9 +1270,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     /*
      * This function is used to create the lines for th communication
      */
-    function createLine(tile, tiles, meshes, canvas) {
-      const resolution =
-        new THREE.Vector2(canvas.width, canvas.height);
+    function createLine(tile, tiles, meshes) {
 
       const geometry = new THREE.Geometry();
       let firstVector = new THREE.Vector3(tile.startPoint.x - centerPoint.x,
@@ -1374,7 +1364,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     const scene = this.get('scene');
     const canvas = this.get('canvas');
-    const raycastObjects = this.get('scene').children;
     const camera = this.get('camera');
     const webglrenderer = this.get('webglrenderer');
     const raycaster = this.get('raycaster');
@@ -1382,8 +1371,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const controller2 = this.get('controller2');
     const vrEnvironment = this.get('vrEnvironment');
     const userHeight = 1.9;
-
-    const intersectionObjects = new THREE.Object3D();
 
     // Init interaction objects
     this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,

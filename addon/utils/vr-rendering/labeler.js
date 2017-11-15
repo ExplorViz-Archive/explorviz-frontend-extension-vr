@@ -160,7 +160,7 @@ export default Ember.Object.extend({
     ];
       
     // Delete old material and texture
-    canvasMaterial.map.dispose() 
+    canvasMaterial.map.dispose();
     canvasMaterial.dispose();
     oldMaterial.dispose();
     texture.dispose();

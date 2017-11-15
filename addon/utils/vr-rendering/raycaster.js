@@ -12,7 +12,6 @@ export default Ember.Object.extend({
   // Calculate intersected object
   raycasting(origin, direction, camera, possibleObjects) {
 
-    const self = this;
     const raycaster = this.get('raycaster');
 
     if (camera) {

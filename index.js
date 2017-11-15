@@ -4,7 +4,11 @@ var Funnel = require('broccoli-funnel');
 
 module.exports = {
   name: 'explorviz-frontend-plugin-vr',
-  
+
+    isDevelopingAddon() {
+        return true;
+    },
+    
     treeForPublic: function(tree) {
     var assetsTree = new Funnel('public');
     return mergeTrees([tree, assetsTree], {
