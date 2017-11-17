@@ -1120,15 +1120,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       let floorSize = bboxFloor.getSize();
       let landscapeSize = bboxLandscape.getSize();
 
-      if (landscapeSize.x > (floorSize.x - 1)) {
-        let scale = (floorSize.x - 1) / landscapeSize.x;
-        vrEnvironment.scale.x *= scale;
-      }
+      // Scale x
+      let scaleX = (floorSize.x - 1) / landscapeSize.x;
+      vrEnvironment.scale.x *= scaleX;
 
-      if (landscapeSize.z > (floorSize.z - 1.5)) {
-        let scale = (floorSize.z - 1.5) / landscapeSize.z;
-        vrEnvironment.scale.y *= scale;
-      }
+      // Scale z
+      let scaleZ = (floorSize.z - 1.5) / landscapeSize.z;
+      vrEnvironment.scale.y *= scaleZ;
     }
 
 
