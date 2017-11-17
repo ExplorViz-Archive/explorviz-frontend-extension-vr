@@ -130,13 +130,14 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       self.onMouseEnter(evt);
     }
 
-    // Add key listener
+    // Add key listener for room positioning
     window.onkeydown = function(event){
+      // Get room
       if(self.get('initRoom')){
         self.set('room', self.get('scene').getObjectByName("room"));
         self.set('initRoom', false);
       }
-      
+      // Handle keys
       if(event.code === 'ArrowDown'){
         self.get('vrEnvironment').position.y -=  0.05;
         self.get('room').position.y -= 0.05;
@@ -145,6 +146,16 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       else if(event.code === 'ArrowUp'){
         self.get('vrEnvironment').position.y += 0.05;
         self.get('room').position.y += 0.05;
+        self.get('vrEnvironment').updateMatrix();
+      }
+      else if(event.code === 'ArrowLeft'){
+        self.get('vrEnvironment').position.x -=  0.05;
+        self.get('room').position.x -= 0.05;
+        self.get('vrEnvironment').updateMatrix();
+      }
+      else if(event.code === 'ArrowRight'){
+        self.get('vrEnvironment').position.x +=  0.05;
+        self.get('room').position.x += 0.05;
         self.get('vrEnvironment').updateMatrix();
       }
     };
