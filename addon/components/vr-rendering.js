@@ -16,6 +16,11 @@ import {
 
 import layout from "../templates/components/vr-rendering";
 
+// Declare globals
+/*global WEBVR*/
+/*global ViveController*/
+/*global createOBJLoader*/
+
 /**
  * This component unites landscape(adapted to 3D)-, application-rendering
  * and rendering-core from which many function are taken over.
