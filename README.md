@@ -1,25 +1,24 @@
-# explorviz-frontend-plugin-vr
+# ExplorViz-Frontend-Extension-VR
 
-This README outlines the details of collaborating on this Ember addon.
+This addon adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mode to ExplorViz.
+
+## Requirements
+- [HTC Vive](https://www.vive.com) or [Oculus Rift CV1](https://www.oculus.com/rift/) with controllers and their respective firmware
+- A powerful computer that can handle VR
+- Latest version of [Mozilla Firefox](https://www.mozilla.org/)
+- [ExplorViz Backend](https://github.com/ExplorViz/explorviz-backend)
+- [ExplorViz Frontend](https://github.com/ExplorViz/explorviz-ui-frontend)
 
 ## Installation
 
-* `cd explorviz-ui-frontend`
-* `ember install <repository-url>`
+1. Setup and install your head-mounted display (HMD)
 
-## Running
+2. Follow the installation guide of [ExplorViz frontend](https://github.com/ExplorViz/explorviz-ui-frontend#development)
 
-* `ember serve`
-* Visit your app at [http://localhost:4200](http://localhost:4200).
+3. Change to the frontends directory in your CLI, e.g. `cd explorviz-ui-frontend`
 
-## Running Tests
+4. Install this extension via `ember install https://github.com/ExplorViz/explorviz-frontend-plugin-vr.git`
 
-* `npm test` (Runs `ember try:each` to test your addon against multiple Ember versions)
-* `ember test`
-* `ember test --server`
+## Running & Building
 
-## Building
-
-* `ember build`
-
-For more information on using ember-cli, visit [https://ember-cli.com/](https://ember-cli.com/).
+Follow the respective procedure in [ExplorViz frontend](https://github.com/ExplorViz/explorviz-ui-frontend#running--development)
