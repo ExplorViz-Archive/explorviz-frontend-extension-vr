@@ -561,15 +561,20 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           if(emberModel.get('components').get('length') === 0) {
             // no data => show message
 
-            const message = "Sorry, no details for <b>" + emberModel.get('name') + 
-              "</b> are available.";
+            // No application3D => message
+            if(!this.get('application3D')){
+              const message = "Sorry, no details for <b>" + emberModel.get('name') + 
+                "</b> are available.";
 
-            this.showAlertifyMessage(message);
-
-            // Delete existing app3D if not binded to controller
-            if(!this.get('app3DBinded')){
-              // trigger event in component vr-rendering
-              this.trigger('removeApplication');
+              this.showAlertifyMessage(message);
+            }
+            // application3D exists => remove it
+            else{
+              // Delete existing app3D if not binded to controller
+              if(!this.get('app3DBinded')){
+                // trigger event in component vr-rendering
+                this.trigger('removeApplication');
+              }
             }
           } 
           // Handle data for app3D available
@@ -805,13 +810,19 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         if(emberModel.get('components').get('length') === 0) {
           // no data => show message
 
-          const message = "Sorry, no details for <b>" + emberModel.get('name') + 
-            "</b> are available.";
+          // No application3D => message
+          if(!this.get('application3D')){
+            const message = "Sorry, no details for <b>" + emberModel.get('name') + 
+              "</b> are available.";
 
-          this.showAlertifyMessage(message);
+            this.showAlertifyMessage(message);
+          }
+          // application3D exists => remove it
+          else{
+            // trigger event in component vr-rendering
+            this.trigger('removeApplication');
+          }
 
-          // trigger event in component vr-rendering
-          this.trigger('removeApplication');
         } 
         // Handle data for app3D available
         else {

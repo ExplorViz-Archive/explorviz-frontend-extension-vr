@@ -1400,7 +1400,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       // Empty application 3D (remove app3D)
       self.removeApp3D();
-      self.set('landscapeRepo.latestApplication', null);
 
       // Add application3D to scene
       self.add3DApplicationToLandscape(app3DModel, appPosition, appRotation);
@@ -1468,7 +1467,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         let child = entity.children[i];
 
         removeApp3D(child);
-        if (child.name === 'app3D' || child.name === 'labelApp3D') {
+        if (child.name === 'app3D' || child.name === 'app3DFoundation') {
           if (child.type !== 'Object3D') {
             child.geometry.dispose();
             child.material.dispose();
@@ -1484,6 +1483,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     this.set('applicationID', null);
     this.set('application3D', null);
+    // Update application3D in interaction
+    this.get('interaction').setupInteractionApp3D(null);
+    this.set('landscapeRepo.latestApplication', null);
 
     // Update possible objects for intersection with controller
     this.set('interaction.raycastObjects', this.get('scene.children'));
