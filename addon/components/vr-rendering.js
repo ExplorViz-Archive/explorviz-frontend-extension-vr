@@ -55,7 +55,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   camera: null,
   canvas: null,
   font: null,
-  animationFrameId: null,
   initDone: false,
 
   configuration: Ember.inject.service("configuration"),
@@ -248,8 +247,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // VR Rendering loop //
     function animate() {  
-    self.get('webglrenderer').animate(render);
-  }
+      self.get('webglrenderer').animate(render);
+    }
 
     function render() {
       // Update Controller

@@ -158,6 +158,16 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.get('room').position.x += 0.05;
         self.get('vrEnvironment').updateMatrix();
       }
+      else if(event.code === 'Slash'){
+        self.get('vrEnvironment').position.z -=  0.05;
+        self.get('room').position.z -= 0.05;
+        self.get('vrEnvironment').updateMatrix();
+      }
+      else if(event.code === 'BracketRight'){
+        self.get('vrEnvironment').position.z +=  0.05;
+        self.get('room').position.z += 0.05;
+        self.get('vrEnvironment').updateMatrix();
+      }
     };
 
     // Zoom handler    
