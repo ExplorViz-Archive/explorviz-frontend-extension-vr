@@ -1117,6 +1117,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      */
     function scaleVREnvironment(vrEnvironment, floor) {
 
+      // Save rotation
+      let tempRotation = new THREE.Vector3();
+      tempRotation.set(vrEnvironment.rotation.x,vrEnvironment.rotation.y,vrEnvironment.rotation.z);
+
+      // Reset rotation to default value for scaling 
+      vrEnvironment.rotation.set(-1.5707963000000003,0,0);
+      vrEnvironment.updateMatrix();
+
       // Compute bounding box of the floor and landscape
       const bboxFloor = new THREE.Box3().setFromObject(floor);
       const bboxLandscape = new THREE.Box3().setFromObject(vrEnvironment);
@@ -1131,6 +1139,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       // Scale z
       let scaleZ = (floorSize.z - 1.5) / landscapeSize.z;
       vrEnvironment.scale.y *= scaleZ;
+
+      // Restore rotation
+      vrEnvironment.rotation.set(tempRotation.x, tempRotation.y, tempRotation.z);
+      vrEnvironment.updateMatrix();
     }
 
 
