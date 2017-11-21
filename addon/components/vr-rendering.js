@@ -1106,6 +1106,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       let floorSize = bboxFloor.getSize();
       let landscapeSize = bboxLandscape.getSize();
 
+      let requests = vrEnvironment.getObjectByName("earth");
+
       // Scale x
       let scaleX = (floorSize.x - 1) / landscapeSize.x;
       vrEnvironment.scale.x *= scaleX;
@@ -1113,6 +1115,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       // Scale z
       let scaleZ = (floorSize.z - 1.5) / landscapeSize.z;
       vrEnvironment.scale.y *= scaleZ;
+
+      // Undo scaling requests
+      requests.scale.x /= scaleX; 
+      requests.scale.y /= vrEnvironment.scale.y; 
 
       // Restore rotation
       vrEnvironment.rotation.set(tempRotation.x, tempRotation.y, tempRotation.z);
@@ -1451,7 +1457,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         newPosition.x = intersectionPoint.x - app3DSize.x;
         newPosition.z = intersectionPoint.z - app3DSize.z;
         // Uncenter y for better overview
-        newPosition.y = intersectionPoint.y + app3DSize.y;
+        newPosition.y = intersectionPoint.y + app3DSize.y*2;
         self.get('application3D').position.set(newPosition.x, newPosition.y, newPosition.z);
         self.set('app3DPresent', true);
       }
