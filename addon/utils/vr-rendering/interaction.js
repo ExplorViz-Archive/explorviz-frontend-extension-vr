@@ -138,35 +138,83 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.set('initRoom', false);
       }
       // Handle keys
-      if(event.code === 'ArrowDown'){
+      if(event.key === 'ArrowDown'){
         self.get('vrEnvironment').position.y -=  0.05;
         self.get('room').position.y -= 0.05;
         self.get('vrEnvironment').updateMatrix();
+
+        if(!self.get('app3DBinded')) {
+          self.get('application3D').position.y -=  0.05;
+          self.get('application3D').updateMatrix();
+        }
       }
-      else if(event.code === 'ArrowUp'){
+      else if(event.key === 'ArrowUp'){
         self.get('vrEnvironment').position.y += 0.05;
         self.get('room').position.y += 0.05;
         self.get('vrEnvironment').updateMatrix();
+
+        if(!self.get('app3DBinded')) {
+          self.get('application3D').position.y +=  0.05;
+          self.get('application3D').updateMatrix();
+        }
       }
-      else if(event.code === 'ArrowLeft'){
+      else if(event.key === 'ArrowLeft'){
         self.get('vrEnvironment').position.x -=  0.05;
         self.get('room').position.x -= 0.05;
         self.get('vrEnvironment').updateMatrix();
+
+        if(!self.get('app3DBinded')) {
+          self.get('application3D').position.x -=  0.05;
+          self.get('application3D').updateMatrix();
+        }
       }
-      else if(event.code === 'ArrowRight'){
+      else if(event.key === 'ArrowRight'){
         self.get('vrEnvironment').position.x +=  0.05;
         self.get('room').position.x += 0.05;
         self.get('vrEnvironment').updateMatrix();
+
+        if(!self.get('app3DBinded')) {
+          self.get('application3D').position.x +=  0.05;
+          self.get('application3D').updateMatrix();
+        }
       }
-      else if(event.code === 'Slash'){
+      else if(event.key === '+'){
         self.get('vrEnvironment').position.z -=  0.05;
         self.get('room').position.z -= 0.05;
         self.get('vrEnvironment').updateMatrix();
+
+        if(!self.get('app3DBinded')) {
+          self.get('application3D').position.z -=  0.05;
+          self.get('application3D').updateMatrix();
+        }
       }
-      else if(event.code === 'BracketRight'){
+      else if(event.key === '-'){
         self.get('vrEnvironment').position.z +=  0.05;
         self.get('room').position.z += 0.05;
         self.get('vrEnvironment').updateMatrix();
+
+        if(!self.get('app3DBinded')) {
+          self.get('application3D').position.z +=  0.05;
+          self.get('application3D').updateMatrix();
+        }
+      }
+      else if(event.key === 'q'){
+        self.get('vrEnvironment').rotation.x +=  0.05;
+        self.get('vrEnvironment').updateMatrix();
+
+        if(!self.get('app3DBinded')) {
+          self.get('application3D').rotation.x +=  0.05;
+          self.get('application3D').updateMatrix();
+        }
+      }
+      else if(event.key === 'w'){
+        self.get('vrEnvironment').rotation.x -=  0.05;
+        self.get('vrEnvironment').updateMatrix();
+
+        if(!self.get('app3DBinded')) {
+          self.get('application3D').rotation.x -=  0.05;
+          self.get('application3D').updateMatrix();
+        }
       }
     };
 
@@ -573,10 +621,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
             // No application3D => message
             if(!this.get('application3D')){
-              const message = "Sorry, no details for <b>" + emberModel.get('name') + 
-                "</b> are available.";
+              //const message = "Sorry, no details for <b>" + emberModel.get('name') + 
+              //  "</b> are available.";
 
-              this.showAlertifyMessage(message);
+              //this.showAlertifyMessage(message);
             }
             // application3D exists => remove it
             else{

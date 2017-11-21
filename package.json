@@ -1,7 +1,7 @@
 {
   "name": "explorviz-frontend-plugin-vr",
-  "version": "0.0.0",
-  "description": "The default blueprint for ember-cli addons.",
+  "version": "0.0.1",
+  "description": "VR mode for ExplorViz",
   "keywords": [
     "ember-addon"
   ],
@@ -11,7 +11,10 @@
     "doc": "doc",
     "test": "tests"
   },
-  "repository": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ExplorViz/explorviz-frontend-plugin-vr.git"
+  },
   "scripts": {
     "build": "ember build",
     "start": "ember server",
