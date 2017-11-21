@@ -459,7 +459,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('labeler.textCache', []);
 
     this.get('interaction').off('redrawScene');
-    this.get('interaction').off('redrawVREnvironment');
+    this.get('interaction').off('centerVREnvironment');
     this.get('interaction').off('redrawApp');
     this.get('interaction').off('showApplication');
     this.get('interaction').off('removeApplication');
@@ -965,7 +965,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('vrEnvironment').updateMatrix();
     
     // Center landscape(3D) on the floor 
-    centerVREnvironment(this.get('vrEnvironment'), this.get('room'));
+    this.centerVREnvironment(this.get('vrEnvironment'), this.get('room'));
     this.get('vrEnvironment').updateMatrix();
     this.actualizeRaycastObjects();
     this.get('webglrenderer').vr.submitFrame();
@@ -1084,32 +1084,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       return requests;
     }
 
-    /* 
-     *  This function is used to center the landscape(3D) on the floor.
-     *  The object3D which contains the landscape(3D) and communication
-     *  is centered relative to the floor.
-     */
-    function centerVREnvironment(vrEnvironment, floor) {
-
-      // Compute bounding box of the floor
-      const bboxFloor = new THREE.Box3().setFromObject(floor);
-
-      // Calculate center of the floor 
-      const centerFloor = bboxFloor.getCenter();
-
-      // Compute bounding box of the vrEnvironment
-      const bboxLandscape = new THREE.Box3().setFromObject(vrEnvironment);
-
-      // Calculate center of the landscape(3D) (vrEnvironment) 
-      const centerLandscape = bboxLandscape.getCenter();
-
-      // set new position of vrEnvironment
-      vrEnvironment.position.x += centerFloor.x - centerLandscape.x;
-      vrEnvironment.position.z += centerFloor.z - centerLandscape.z;
-      if (bboxLandscape.min.y < bboxFloor.min.y) {
-        vrEnvironment.position.y += bboxFloor.max.y - bboxLandscape.min.y + 0.001;
-      }
-    }
 
     /* 
      *  This function is used to resize
@@ -1368,6 +1342,41 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   },
   //////////// END populateScene
 
+
+  /* 
+   *  This function is used to center the landscape(3D) on the floor.
+   *  The object3D which contains the landscape(3D) and communication
+   *  is centered relative to the floor.
+   */
+   centerVREnvironment(vrEnvironment, floor) {
+
+    // Compute bounding box of the floor
+    const bboxFloor = new THREE.Box3().setFromObject(floor);
+
+    // Calculate center of the floor 
+    const centerFloor = bboxFloor.getCenter();
+
+    // Compute bounding box of the vrEnvironment
+    const bboxLandscape = new THREE.Box3().setFromObject(vrEnvironment);
+
+    // Calculate center of the landscape(3D) (vrEnvironment) 
+    const centerLandscape = bboxLandscape.getCenter();
+
+    // set new position of vrEnvironment
+    vrEnvironment.position.x += centerFloor.x - centerLandscape.x;
+    vrEnvironment.position.z += centerFloor.z - centerLandscape.z;
+
+    // Check distance between floor and landscape
+    if(bboxLandscape.min.y > bboxFloor.max.y){
+      vrEnvironment.position.y += bboxFloor.max.y - bboxLandscape.min.y + 0.001;
+    }
+    
+    // Check if landscape is underneath the floor
+    if (bboxLandscape.min.y < bboxFloor.min.y) {
+      vrEnvironment.position.y += bboxFloor.max.y - bboxLandscape.min.y + 0.001;
+    }
+  },
+
   /*
    *  This method is used to setup the landscape(3D) interaction 
    *  and listen for events triggered in interaction
@@ -1396,6 +1405,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // set listeners
     this.get('interaction').on('redrawScene', function() {
       self.populateScene();
+    });
+
+    this.get('interaction').on('centerVREnvironment', function() {
+      self.centerVREnvironment(self.get('vrEnvironment'), self.get('room'));
     });
 
     /*
@@ -1462,6 +1475,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       }
     });
   }, // END initInteraction
+
+
+
 
 
   /*

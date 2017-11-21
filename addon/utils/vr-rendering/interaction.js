@@ -201,6 +201,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       else if(event.key === 'q'){
         self.get('vrEnvironment').rotation.x +=  0.05;
         self.get('vrEnvironment').updateMatrix();
+        self.trigger('centerVREnvironment');
 
         if(!self.get('app3DBinded') && self.get('application3D')) {
           self.get('application3D').rotation.x +=  0.05;
@@ -210,6 +211,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       else if(event.key === 'w'){
         self.get('vrEnvironment').rotation.x -=  0.05;
         self.get('vrEnvironment').updateMatrix();
+        self.trigger('centerVREnvironment');
 
         if(!self.get('app3DBinded') && self.get('application3D')) {
           self.get('application3D').rotation.x -=  0.05;
