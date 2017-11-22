@@ -104,8 +104,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     result = (this.get('application3D')) ? result.concat(this.get('application3D').children) : result;
     result = filterResult(result);
+
     this.set('interaction.raycastObjectsLandscape',  result);
 
+    console.log("results", result);
 
     function filterResult(result) {
 
@@ -113,7 +115,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         if (obj.userData.model) {
           const modelName = obj.userData.model.constructor.modelName;
           return allowedObjects.includes(modelName);
-        }else{
+        }
+        else if(obj.userData.name){
+        	if(obj.userData.name === 'deleteButton'){
+        		return true;
+        	}
+        }
+        else{
          return false;
         }
       });
@@ -1478,12 +1486,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         self.get('application3D').position.set(newPosition.x, newPosition.y, newPosition.z);
         self.set('app3DPresent', true);
       }
-      // Otherwise delete 3D Application and allow creation again
-      else {
-        self.removeApp3D();
-        self.set('app3DPresent', false);
-      }
-
     });
     /*
      * This interaction listener is used to delete an existing application3D 
@@ -1517,7 +1519,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         let child = entity.children[i];
 
         removeApp3D(child);
-        if (child.name === 'app3D' || child.name === 'app3DFoundation') {
+        if (child.name === 'app3D' || child.name === 'app3DFoundation' || child.name === 'deleteButton') {
           if (child.type !== 'Object3D') {
             child.geometry.dispose();
             child.material.dispose();
@@ -1611,7 +1613,25 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       addComponentToScene(foundation, 0xCECECE);
 
-      self.get('scene').add(self.get('application3D'));
+      // Create delete button
+      let bboxApp3D = new THREE.Box3().setFromObject(self.get('application3D'));
+      let appCenter = bboxApp3D.getCenter();
+
+      var geometry = new THREE.SphereGeometry(6, 32, 32);
+      var texture = new THREE.TextureLoader().load('images/x_white_transp.png');
+      var material = new THREE.MeshPhongMaterial({
+        map: texture
+      });
+      // Update texture      
+   	  texture.needsUpdate = true; 
+      var deleteButton = new THREE.Mesh(geometry, material);
+
+      deleteButton.updateMatrix();
+
+      deleteButton.userData.name = 'deleteButton';
+
+      deleteButton.name = "deleteButton";
+      deleteButton.position.set(appCenter.x,bboxApp3D.max.y*3,appCenter.z);
 
       // Scale application
       self.get('application3D').scale.x = 0.01;
@@ -1621,6 +1641,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       // Apply last position and rotation
       self.get('application3D').position.set(position.x, position.y, position.z);
       self.get('application3D').rotation.set(rotation.x, rotation.y, rotation.z);
+      self.get('application3D').add(deleteButton);
+      self.get('scene').add(self.get('application3D'));
 
       // Store application mesh for redraw
       self.set('app3DMesh', self.get('application3D'));

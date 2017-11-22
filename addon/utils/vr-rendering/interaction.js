@@ -35,6 +35,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   application3D: null,
   app3DBinded: false,
   app3DBindedByController: {},
+  deleteButtonHighlighted: null,
+  material1: null,
+  material2: null,
 
   previousToolTipObjects: {},
   textBox: null,
@@ -129,6 +132,19 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     function registerMouseEnter(evt) {
       self.onMouseEnter(evt);
     }
+
+    // Load textures
+    let texture1 = new THREE.TextureLoader().load('images/x_white.png');
+    let material1 = new THREE.MeshPhongMaterial({
+      map: texture1
+    });
+    this.set('material1', material1);
+
+    let texture2 = new THREE.TextureLoader().load('images/x_white_transp.png');
+    let material2 = new THREE.MeshPhongMaterial({
+      map: texture2
+    });
+    this.set('material2', material2);
 
     // Add key listener for room positioning
     window.onkeydown = function(event){
@@ -287,6 +303,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     /* Look for highlighted entity 'landscape' and unhighlight 
      * it if the same controller id highlighted it
      */
+
     if(this.get('highlightedEntities')[id] && this.get('highlightedEntities')[id].type && this.get('colorList')[this.get('highlightedEntities')[id].type]){  
 
       let entity = this.get('highlightedEntities')[id];
@@ -322,7 +339,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Case for intersection object present
       if(intersectedViewObj){
-        
+    
         // Verify controllers
         let id2;
         if(id === this.get('controller1').id){
@@ -334,6 +351,16 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         // Scale ray distance to distance of intersection
         controller.getObjectByName('controllerLine').scale.z = intersectedViewObj.distance;
+
+        // Handle delete button exception
+        if (intersectedViewObj.object.name === 'deleteButton'){
+          if(!this.get('deleteButtonHighlighted')){
+            console.log("not ghilighte");
+            intersectedViewObj.object.material = this.get('material1');
+            this.set('deleteButtonHighlighted', id);
+          }
+          return;
+        }
     
         const emberModel = intersectedViewObj.object.userData.model;
         const emberModelName = emberModel.constructor.modelName;
@@ -404,6 +431,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         this.get('highlightedEntities')[id] = null;
         // Delete highlighted object entry for app3D
         this.get('highlightedEntitiesApp')[id] = null;
+
+        if(this.get('application3D') && this.get('deleteButtonHighlighted') && this.get('deleteButtonHighlighted') === id){
+          console.log("reset color");
+          this.get('application3D').getObjectByName('deleteButton').material = this.get('material2');
+          this.set('deleteButtonHighlighted', false);
+        }
         // Resize ray 
         controller.getObjectByName('controllerLine').scale.z = 5;
       }
@@ -442,6 +475,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     // Check if an object is hit
     if(intersectedViewObj){
+
+      // Handle delete button exception
+      if (intersectedViewObj.object.name === 'deleteButton'){
+        return;
+      }
+
       // Verify controllers
       let id2;
       if(id === this.get('controller1').id){
@@ -611,6 +650,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Check if an object is hit
       if(intersectedViewObj) {
 
+        // Delete application
+        if (intersectedViewObj.object.name === 'deleteButton'){
+          this.trigger('removeApplication');
+          return;
+        }
+
         const emberModel = intersectedViewObj.object.userData.model;
         const emberModelName = emberModel.constructor.modelName;
         
@@ -627,14 +672,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
               //  "</b> are available.";
 
               //this.showAlertifyMessage(message);
-            }
-            // application3D exists => remove it
-            else{
-              // Delete existing app3D if not binded to controller
-              if(!this.get('app3DBinded')){
-                // trigger event in component vr-rendering
-                this.trigger('removeApplication');
-              }
             }
           } 
           // Handle data for app3D available
@@ -689,6 +726,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     // Check if an object is hit
     if(intersectedViewObj) {
+
+      // Handle delete button exception
+      if (intersectedViewObj.object.name === 'deleteButton'){
+        return;
+      }
     
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
@@ -856,6 +898,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     // Check if an object is hit
     if(intersectedViewObj) {
 
+      // Delete application
+      if (intersectedViewObj.object.name === 'deleteButton'){
+        this.trigger('removeApplication');
+        return;
+      }
+
       // hide tooltip
       this.get('hoverHandlerLandscape').hideTooltip();
       this.get('hoverHandlerApp3D').hideTooltip();
@@ -965,12 +1013,18 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     // Case for intersection object present
     if(intersectedViewObj) {
 
+      if (intersectedViewObj.object.name === 'deleteButton'){
+        return;
+      }
+
       // hide tooltip
       this.get('hoverHandlerLandscape').hideTooltip();
       this.get('hoverHandlerApp3D').hideTooltip();
 
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
+
+      console.log("emberModelName", emberModelName);
         
       // Handle hit system, nodegroup or application and change color to red  
       if(emberModelName === "nodegroup" || emberModelName === "system" || emberModelName === "application"){
@@ -1069,7 +1123,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     if(intersectedViewObj) {
       // exclude requests
-      if (intersectedViewObj.object.name === 'earth'){
+      if (intersectedViewObj.object.name === 'earth' || intersectedViewObj.object.name === 'deleteButton'){
         return;
       }
       const emberModel = intersectedViewObj.object.userData.model;
