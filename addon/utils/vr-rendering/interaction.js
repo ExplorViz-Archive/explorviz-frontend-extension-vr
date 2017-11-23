@@ -424,6 +424,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           // Delete highlighted object entry for app3D
           this.get('highlightedEntitiesApp')[id] = null;
         }
+        // Unhighlight delete button if app3D or landscape is highlighted
+        if(this.get('application3D') && (this.get('highlightedEntitiesApp')[id] || this.get('highlightedEntities')[id])){
+          this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
+          this.set('deleteButtonHighlighted', null);
+        }
       }
       // Reset highlighted enities if nothing was hit 
       else{
@@ -1066,6 +1071,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // save highlighted object
         this.get('highlightedEntitiesApp')[id] = intersectedViewObj.object; 
       }
+      // Unhighlight delete button if app3D or landscape is highlighted
+      if(this.get('application3D') && (this.get('highlightedEntitiesApp')[id] || this.get('highlightedEntities')[id])){
+        this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
+        this.set('deleteButtonHighlighted', null);
+      }
     }
     // Reset highlighted enities if nothing was hit 
     else{
@@ -1125,7 +1135,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.get('camera'), this.get('raycastObjectsLandscape'));
 
     if(intersectedViewObj) {
-      // exclude requests
+      // exclude requests and delete button
       if (intersectedViewObj.object.name === 'earth' || intersectedViewObj.object.name === 'deleteButton'){
         return;
       }
