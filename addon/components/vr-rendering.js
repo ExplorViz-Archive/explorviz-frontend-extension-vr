@@ -81,6 +81,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   room: null,
   initialPositions: {},
   deleteButton: null,
+  requestMaterial: null,
 
   // Stores mesh for 3D application
   app3DMesh: null,
@@ -251,6 +252,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // rotate text box
     this.get('textBox').geometry.rotateX(1.5707963267949);
     this.get('textBox').geometry.rotateY(1.5707963267949 * 2);
+
+    // Load image for requests
+    var requestTexture = new THREE.TextureLoader().load('images/logos/requests.png');
+    var requestMaterial = new THREE.MeshPhongMaterial({
+      map: requestTexture
+    });
+    this.set('requestMaterial',requestMaterial);
 
     // Create delete Button for application
     var geometryDel = new THREE.SphereGeometry(6, 32, 32);
@@ -636,16 +644,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           centerYOpened = system.get('positionY') - extensionY - centerPoint.y;
 
           // Create mesh for earth
-          var requesteometry = new THREE.SphereGeometry(0.1, 32, 32);
-
-          var texture = new THREE.TextureLoader().load('images/logos/requests.png');
-          var material = new THREE.MeshPhongMaterial({
-            map: texture
-          });
-
-          var requests = new THREE.Mesh(requesteometry, material);
+          var requestGeometry = new THREE.SphereGeometry(0.1, 32, 32);
+          var requests = new THREE.Mesh(requestGeometry, self.get('requestMaterial'));
           requests.name = "earth";
-
           requests.position.set(centerX, centerYClosed, system.get('positionZ'));
 
           // Scale requests
