@@ -107,8 +107,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     this.set('interaction.raycastObjectsLandscape',  result);
 
-    console.log("results", result);
-
     function filterResult(result) {
 
       let help = result.filter(function(obj) {

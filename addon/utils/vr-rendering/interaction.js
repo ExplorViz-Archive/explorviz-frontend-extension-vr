@@ -36,8 +36,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   app3DBinded: false,
   app3DBindedByController: {},
   deleteButtonHighlighted: null,
-  material1: null,
-  material2: null,
+
+  materialHighlighted: null,
+  materialUnhighlighted: null,
 
   previousToolTipObjects: {},
   textBox: null,
@@ -133,18 +134,18 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       self.onMouseEnter(evt);
     }
 
-    // Load textures
-    let texture1 = new THREE.TextureLoader().load('images/x_white.png');
-    let material1 = new THREE.MeshPhongMaterial({
-      map: texture1
+    // Load textures for delete button
+    let textureHighlighted = new THREE.TextureLoader().load('images/x_white.png');
+    let materialHighlighted = new THREE.MeshPhongMaterial({
+      map: textureHighlighted
     });
-    this.set('material1', material1);
+    this.set('materialHighlighted', materialHighlighted);
 
-    let texture2 = new THREE.TextureLoader().load('images/x_white_transp.png');
-    let material2 = new THREE.MeshPhongMaterial({
-      map: texture2
+    let textureUnhighlighted = new THREE.TextureLoader().load('images/x_white_transp.png');
+    let materialUnhighlighted = new THREE.MeshPhongMaterial({
+      map: textureUnhighlighted
     });
-    this.set('material2', material2);
+    this.set('materialUnhighlighted', materialUnhighlighted);
 
     // Add key listener for room positioning
     window.onkeydown = function(event){
@@ -303,7 +304,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     /* Look for highlighted entity 'landscape' and unhighlight 
      * it if the same controller id highlighted it
      */
-
     if(this.get('highlightedEntities')[id] && this.get('highlightedEntities')[id].type && this.get('colorList')[this.get('highlightedEntities')[id].type]){  
 
       let entity = this.get('highlightedEntities')[id];
@@ -352,11 +352,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Scale ray distance to distance of intersection
         controller.getObjectByName('controllerLine').scale.z = intersectedViewObj.distance;
 
-        // Handle delete button exception
+        // Handle delete button
         if (intersectedViewObj.object.name === 'deleteButton'){
+          // Highlight if not highlighted
           if(!this.get('deleteButtonHighlighted')){
-            console.log("not ghilighte");
-            intersectedViewObj.object.material = this.get('material1');
+            intersectedViewObj.object.material = this.get('materialHighlighted');
             this.set('deleteButtonHighlighted', id);
           }
           return;
@@ -432,10 +432,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Delete highlighted object entry for app3D
         this.get('highlightedEntitiesApp')[id] = null;
 
+        // Unhighlight delete button if highlighted
         if(this.get('application3D') && this.get('deleteButtonHighlighted') && this.get('deleteButtonHighlighted') === id){
-          console.log("reset color");
-          this.get('application3D').getObjectByName('deleteButton').material = this.get('material2');
-          this.set('deleteButtonHighlighted', false);
+          this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
+          this.set('deleteButtonHighlighted', null);
         }
         // Resize ray 
         controller.getObjectByName('controllerLine').scale.z = 5;
@@ -919,18 +919,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           // no data => show message
 
           // No application3D => message
-          if(!this.get('application3D')){
-            const message = "Sorry, no details for <b>" + emberModel.get('name') + 
-              "</b> are available.";
 
-            this.showAlertifyMessage(message);
-          }
-          // application3D exists => remove it
-          else{
-            // trigger event in component vr-rendering
-            this.trigger('removeApplication');
-          }
+          const message = "Sorry, no details for <b>" + emberModel.get('name') + 
+            "</b> are available.";
 
+          this.showAlertifyMessage(message); 
         } 
         // Handle data for app3D available
         else {
@@ -1013,7 +1006,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     // Case for intersection object present
     if(intersectedViewObj) {
 
+      // Handle delete button
       if (intersectedViewObj.object.name === 'deleteButton'){
+        // Highlight if not highlighted
+        if(!this.get('deleteButtonHighlighted')){
+          intersectedViewObj.object.material = this.get('materialHighlighted');
+          this.set('deleteButtonHighlighted', id);
+        }
         return;
       }
 
@@ -1023,8 +1022,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
-
-      console.log("emberModelName", emberModelName);
         
       // Handle hit system, nodegroup or application and change color to red  
       if(emberModelName === "nodegroup" || emberModelName === "system" || emberModelName === "application"){
@@ -1076,6 +1073,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.get('highlightedEntities')[id] = null;
       // Delete highlighted object entry for app3D
       this.get('highlightedEntitiesApp')[id] = null;
+
+      // Unhighlight delete button if highlighted
+      if(this.get('application3D') && this.get('deleteButtonHighlighted')){
+        this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
+        this.set('deleteButtonHighlighted', null);
+      }
     }
   },
 
