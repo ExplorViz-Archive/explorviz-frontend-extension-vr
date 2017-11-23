@@ -1517,7 +1517,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         let child = entity.children[i];
 
         removeApp3D(child);
-        if (child.name === 'app3D' || child.name === 'app3DFoundation' || child.name === 'deleteButton') {
+        if (child.name === 'app3D' || child.name === 'app3DFoundation' || child.name === 'deleteButton' || child.userData.type ==='label') {
           if (child.type !== 'Object3D') {
             child.geometry.dispose();
             child.material.dispose();
@@ -1526,6 +1526,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         }
       }
     }
+
     this.actualizeRaycastObjects();
     // remove foundation for re-rendering
     const emberApplication = this.get('application3D.userData.model');
