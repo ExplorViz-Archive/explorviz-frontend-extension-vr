@@ -657,6 +657,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         // Delete application
         if (intersectedViewObj.object.name === 'deleteButton'){
+          // Reset highlighting of delete button
+          this.set('deleteButtonHighlighted', null);
           this.trigger('removeApplication');
           return;
         }
@@ -905,6 +907,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Delete application
       if (intersectedViewObj.object.name === 'deleteButton'){
+        // Reset highlighting of delete button
+        this.set('deleteButtonHighlighted', null);
         this.trigger('removeApplication');
         return;
       }
