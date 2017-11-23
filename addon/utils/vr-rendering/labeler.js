@@ -68,12 +68,12 @@ export default Ember.Object.extend({
   redrawLabel(entity, textColor, name, color){
 
     // Create one canvas for each entity if not already exists
-    if(!this.get('canvasList')[entity.id]){
+    if(!this.get('canvasList')[name]){
       let canvas = document.createElement('canvas');
       canvas.width = 64;
       canvas.height = 32;
 
-      this.get('canvasList')[entity.id] = canvas;
+      this.get('canvasList')[name] = canvas;
 
       entity.geometry.computeBoundingBox();
       let bbox = entity.geometry.boundingBox;
@@ -85,14 +85,14 @@ export default Ember.Object.extend({
       let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(size.y*40)/Math.log(2)));
 
       // Adapt canvas to size of box
-      this.get('canvasList')[entity.id].width = nextPowerOf2X;
-      this.get('canvasList')[entity.id].height = nextPowerOf2Y;
+      this.get('canvasList')[name].width = nextPowerOf2X;
+      this.get('canvasList')[name].height = nextPowerOf2Y;
     }
 
 
     let oldMaterial = new THREE.MeshBasicMaterial({color});
 
-    let canvas = this.get('canvasList')[entity.id];
+    let canvas = this.get('canvasList')[name];
     var ctx = canvas.getContext('2d');
 
     var x, y, max;
@@ -137,12 +137,12 @@ export default Ember.Object.extend({
     ctx.fillText(name, x,y,max);
     
     // Look for existing texture
-    if(!this.get('textures')[entity.id]){
+    if(!this.get('textures')[name]){
       // create new texture out of canvas 
-      this.get('textures')[entity.id] = new THREE.CanvasTexture(canvas);
+      this.get('textures')[name] = new THREE.CanvasTexture(canvas);
     }
 
-    let texture = this.get('textures')[entity.id];
+    let texture = this.get('textures')[name];
 
     // map texture
     let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
@@ -180,11 +180,11 @@ export default Ember.Object.extend({
     this.get('systemTextCache').forEach((textObj) => {
 
       // Create one canvas for each entity
-      if(!this.get('canvasList')[textObj.parent.id]){
+      if(!this.get('canvasList')[textObj.text]){
         let canvas = document.createElement('canvas');
         canvas.width = 64;
         canvas.height = 32;
-        this.get('canvasList')[textObj.parent.id] = canvas;
+        this.get('canvasList')[textObj.text] = canvas;
       }
 
       textObj.parent.geometry.computeBoundingBox();
@@ -197,13 +197,13 @@ export default Ember.Object.extend({
       let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(size.y*40)/Math.log(2)));
 
       // Adapt canvas to size of box
-      this.get('canvasList')[textObj.parent.id].width = nextPowerOf2X;
-      this.get('canvasList')[textObj.parent.id].height = nextPowerOf2Y;
+      this.get('canvasList')[textObj.text].width = nextPowerOf2X;
+      this.get('canvasList')[textObj.text].height = nextPowerOf2Y;
       
       // get entity color and material
       let color = textObj.boxColor;
 
-      let canvas = this.get('canvasList')[textObj.parent.id];
+      let canvas = this.get('canvasList')[textObj.text];
     
       var ctx = canvas.getContext('2d');
 
@@ -228,12 +228,17 @@ export default Ember.Object.extend({
       }
 
       // create texture out of canvas
-      if(!this.get('textures')[textObj.parent.id]){
-        this.get('textures')[textObj.parent.id] = new THREE.CanvasTexture(canvas);
+      //for (let i = 0; i < this.get('textures').length; i++) {
+        //if(this.get('textures')[i] === )
+        //tile.lineThickness = (0.07 * categories[tile.requestsCache] + 0.1) * 0.07;
+      //}
+
+      if(!this.get('textures')[textObj.text]){
+        this.get('textures')[textObj.text] = new THREE.CanvasTexture(canvas);
 
       }
 
-      let texture = this.get('textures')[textObj.parent.id];
+      let texture = this.get('textures')[textObj.text];
       // map texture
       let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
 
@@ -285,11 +290,11 @@ export default Ember.Object.extend({
     this.get('nodegroupTextCache').forEach((textObj) => {
 
       // Create one canvas for each entity
-      if(!this.get('canvasList')[textObj.parent.id]){
+      if(!this.get('canvasList')[textObj.text]){
         let canvas = document.createElement('canvas');
         canvas.width = 64;
         canvas.height = 32;
-        this.get('canvasList')[textObj.parent.id] = canvas;
+        this.get('canvasList')[textObj.text] = canvas;
       }
 
       textObj.parent.geometry.computeBoundingBox();
@@ -302,13 +307,13 @@ export default Ember.Object.extend({
       let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(size.y*40)/Math.log(2)));
 
       // Adapt canvas to size of box
-      this.get('canvasList')[textObj.parent.id].width = nextPowerOf2X;
-      this.get('canvasList')[textObj.parent.id].height = nextPowerOf2Y;
+      this.get('canvasList')[textObj.text].width = nextPowerOf2X;
+      this.get('canvasList')[textObj.text].height = nextPowerOf2Y;
 
       // get entity color and material
       let color = textObj.boxColor;
 
-      let canvas = this.get('canvasList')[textObj.parent.id];
+      let canvas = this.get('canvasList')[textObj.text];
     
       var ctx = canvas.getContext('2d');
 
@@ -326,12 +331,12 @@ export default Ember.Object.extend({
       }
 
       // create texture out of canvas
-      if(!this.get('textures')[textObj.parent.id]){
-        this.get('textures')[textObj.parent.id] = new THREE.CanvasTexture(canvas);
+      if(!this.get('textures')[textObj.text]){
+        this.get('textures')[textObj.text] = new THREE.CanvasTexture(canvas);
 
       }
 
-      let texture = this.get('textures')[textObj.parent.id];
+      let texture = this.get('textures')[textObj.text];
       // map texture
       let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
 
@@ -374,11 +379,11 @@ export default Ember.Object.extend({
     this.get('nodeTextCache').forEach((textObj) => {
 
       // Create one canvas for each entity
-      if(!this.get('canvasList')[textObj.parent.id]){
+      if(!this.get('canvasList')[textObj.text]){
         let canvas = document.createElement('canvas');
         canvas.width = 64;
         canvas.height = 32;
-        this.get('canvasList')[textObj.parent.id] = canvas;
+        this.get('canvasList')[textObj.text] = canvas;
       }
 
       textObj.parent.geometry.computeBoundingBox();
@@ -391,13 +396,13 @@ export default Ember.Object.extend({
       let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(size.y*80)/Math.log(2)));
 
        // Adapt canvas to size of box
-      this.get('canvasList')[textObj.parent.id].width = nextPowerOf2X;
-      this.get('canvasList')[textObj.parent.id].height = nextPowerOf2Y;
+      this.get('canvasList')[textObj.text].width = nextPowerOf2X;
+      this.get('canvasList')[textObj.text].height = nextPowerOf2Y;
       
       // get entity color
       let color = textObj.boxColor;
       
-      let canvas = this.get('canvasList')[textObj.parent.id];
+      let canvas = this.get('canvasList')[textObj.text];
     
       var ctx = canvas.getContext('2d');
 
@@ -414,12 +419,11 @@ export default Ember.Object.extend({
       
 
       // create texture out of canvas
-      if(!this.get('textures')[textObj.parent.id]){
-        this.get('textures')[textObj.parent.id] = new THREE.CanvasTexture(canvas);
-
+      if(!this.get('textures')[textObj.text]){
+        this.get('textures')[textObj.text] = new THREE.CanvasTexture(canvas);
       }
 
-      let texture = this.get('textures')[textObj.parent.id];
+      let texture = this.get('textures')[textObj.text];
       // map texture
       let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
 
@@ -460,11 +464,11 @@ export default Ember.Object.extend({
     this.get('appTextCache').forEach((textObj) => {
 
       // Create one canvas for each entity
-      if(!this.get('canvasList')[textObj.parent.id]){
+      if(!this.get('canvasList')[textObj.text]){
         let canvas = document.createElement('canvas');
         canvas.width = 64;
         canvas.height = 32;
-        this.get('canvasList')[textObj.parent.id] = canvas;
+        this.get('canvasList')[textObj.text] = canvas;
       }
       textObj.parent.geometry.computeBoundingBox();
       let bbox = textObj.parent.geometry.boundingBox;
@@ -476,13 +480,13 @@ export default Ember.Object.extend({
       let nextPowerOf2Y = Math.pow(2, Math.ceil(Math.log(size.y*90)/Math.log(2)));
 
        // Adapt canvas to size of box
-      this.get('canvasList')[textObj.parent.id].width = nextPowerOf2X;
-      this.get('canvasList')[textObj.parent.id].height = nextPowerOf2Y;
+      this.get('canvasList')[textObj.text].width = nextPowerOf2X;
+      this.get('canvasList')[textObj.text].height = nextPowerOf2Y;
       
       // get entity color and material
       let color = textObj.boxColor;
 
-      let canvas = this.get('canvasList')[textObj.parent.id];
+      let canvas = this.get('canvasList')[textObj.text];
     
       var ctx = canvas.getContext('2d');
 
@@ -499,12 +503,12 @@ export default Ember.Object.extend({
       
 
       // create texture out of canvas
-      if(!this.get('textures')[textObj.parent.id]){
-        this.get('textures')[textObj.parent.id] = new THREE.CanvasTexture(canvas);
+      if(!this.get('textures')[textObj.text]){
+        this.get('textures')[textObj.text] = new THREE.CanvasTexture(canvas);
 
       }
 
-      let texture = this.get('textures')[textObj.parent.id];
+      let texture = this.get('textures')[textObj.text];
       // map texture
       let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
 
