@@ -424,8 +424,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           // Delete highlighted object entry for app3D
           this.get('highlightedEntitiesApp')[id] = null;
         }
-        // Unhighlight delete button if app3D or landscape is highlighted
-        if(this.get('application3D') && (this.get('highlightedEntitiesApp')[id] || this.get('highlightedEntities')[id])){
+        // Unhighlight delete button if app3D or landscape is 
+        // highlighted AND delete button was highlighted by this controller
+        if(this.get('application3D') && (this.get('highlightedEntitiesApp')[id] || this.get('highlightedEntities')[id]) && this.get('deleteButtonHighlighted') === id){
           this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
           this.set('deleteButtonHighlighted', null);
         }
@@ -437,8 +438,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Delete highlighted object entry for app3D
         this.get('highlightedEntitiesApp')[id] = null;
 
-        // Unhighlight delete button if highlighted
-        if(this.get('application3D') && this.get('deleteButtonHighlighted') && this.get('deleteButtonHighlighted') === id){
+        // Unhighlight delete button if highlighted AND delete button was highlighted by this controller
+        if(this.get('application3D') && this.get('deleteButtonHighlighted') === id){
           this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
           this.set('deleteButtonHighlighted', null);
         }
