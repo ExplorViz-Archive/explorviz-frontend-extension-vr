@@ -134,18 +134,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       self.onMouseEnter(evt);
     }
 
-    // Load textures for delete button
+    // Load texture for delete button highlighted
     let textureHighlighted = new THREE.TextureLoader().load('images/x_white.png');
     let materialHighlighted = new THREE.MeshPhongMaterial({
       map: textureHighlighted
     });
     this.set('materialHighlighted', materialHighlighted);
-
-    let textureUnhighlighted = new THREE.TextureLoader().load('images/x_white_transp.png');
-    let materialUnhighlighted = new THREE.MeshPhongMaterial({
-      map: textureUnhighlighted
-    });
-    this.set('materialUnhighlighted', materialUnhighlighted);
 
     // Add key listener for room positioning
     window.onkeydown = function(event){
@@ -356,6 +350,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         if (intersectedViewObj.object.name === 'deleteButton'){
           // Highlight if not highlighted
           if(!this.get('deleteButtonHighlighted')){
+            // Save unhighlighted material
+            this.set('materialUnhighlighted', intersectedViewObj.object.material);
+            // Set new material
             intersectedViewObj.object.material = this.get('materialHighlighted');
             this.set('deleteButtonHighlighted', id);
           }
@@ -660,6 +657,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         if (intersectedViewObj.object.name === 'deleteButton'){
           // Reset highlighting of delete button
           this.set('deleteButtonHighlighted', null);
+          intersectedViewObj.object.material = this.get('materialUnhighlighted');
           this.trigger('removeApplication');
           return;
         }
@@ -910,6 +908,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       if (intersectedViewObj.object.name === 'deleteButton'){
         // Reset highlighting of delete button
         this.set('deleteButtonHighlighted', null);
+        intersectedViewObj.object.material = this.get('materialUnhighlighted');
         this.trigger('removeApplication');
         return;
       }
@@ -1020,6 +1019,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       if (intersectedViewObj.object.name === 'deleteButton'){
         // Highlight if not highlighted
         if(!this.get('deleteButtonHighlighted')){
+          // Save unhighlighted material
+          this.set('materialUnhighlighted', intersectedViewObj.object.material);
+          // Set new material
           intersectedViewObj.object.material = this.get('materialHighlighted');
           this.set('deleteButtonHighlighted', id);
         }

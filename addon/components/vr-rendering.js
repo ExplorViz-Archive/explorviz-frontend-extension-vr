@@ -80,6 +80,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   vrAvailable: false,
   room: null,
   initialPositions: {},
+  deleteButton: null,
 
   // Stores mesh for 3D application
   app3DMesh: null,
@@ -250,6 +251,20 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // rotate text box
     this.get('textBox').geometry.rotateX(1.5707963267949);
     this.get('textBox').geometry.rotateY(1.5707963267949 * 2);
+
+    // Create delete Button for application
+    var geometryDel = new THREE.SphereGeometry(6, 32, 32);
+    var textureDel = new THREE.TextureLoader().load('images/x_white_transp.png');
+    var materialDel = new THREE.MeshPhongMaterial({
+      map: textureDel
+    });
+    // Update texture      
+    textureDel.needsUpdate = true; 
+    this.set('deleteButton', new THREE.Mesh(geometryDel, materialDel));
+    this.get('deleteButton').updateMatrix();
+    this.get('deleteButton').userData.name = 'deleteButton';
+    this.get('deleteButton').name = "deleteButton";
+
 
     // VR Rendering loop //
     function animate() {  
@@ -1616,21 +1631,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       let bboxApp3D = new THREE.Box3().setFromObject(self.get('application3D'));
       let appCenter = bboxApp3D.getCenter();
 
-      var geometry = new THREE.SphereGeometry(6, 32, 32);
-      var texture = new THREE.TextureLoader().load('images/x_white_transp.png');
-      var material = new THREE.MeshPhongMaterial({
-        map: texture
-      });
-      // Update texture      
-   	  texture.needsUpdate = true; 
-      var deleteButton = new THREE.Mesh(geometry, material);
 
-      deleteButton.updateMatrix();
-
-      deleteButton.userData.name = 'deleteButton';
-
-      deleteButton.name = "deleteButton";
-      deleteButton.position.set(appCenter.x,bboxApp3D.max.y*3,appCenter.z);
+      self.get('deleteButton').position.set(appCenter.x,bboxApp3D.max.y*3,appCenter.z);
 
       // Scale application
       self.get('application3D').scale.x = 0.01;
@@ -1640,7 +1642,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       // Apply last position and rotation
       self.get('application3D').position.set(position.x, position.y, position.z);
       self.get('application3D').rotation.set(rotation.x, rotation.y, rotation.z);
-      self.get('application3D').add(deleteButton);
+      self.get('application3D').add(self.get('deleteButton'));
       self.get('scene').add(self.get('application3D'));
 
       // Store application mesh for redraw
