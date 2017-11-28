@@ -657,8 +657,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         if (intersectedViewObj.object.name === 'deleteButton'){
           // Reset highlighting of delete button
           this.set('deleteButtonHighlighted', null);
-          intersectedViewObj.object.material = this.get('materialUnhighlighted');
+
+          // Check if delete button was highlighted => restore unhighlighted material
+          if(this.get('materialUnhighlighted')){
+            intersectedViewObj.object.material = this.get('materialUnhighlighted');
+          }
           this.trigger('removeApplication');
+
           return;
         }
 
