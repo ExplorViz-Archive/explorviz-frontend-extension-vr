@@ -868,7 +868,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
                   self.get('imageLoader').createPicture(logoPos.x, logoPos.y,
                     logoPos.z + 0.001, logoSize.width, logoSize.height,
-                    texturePartialPath, applicationMesh, "label");
+                    texturePartialPath, applicationMesh, "logo");
 
                   // Create text labels 
                   let textColor =
