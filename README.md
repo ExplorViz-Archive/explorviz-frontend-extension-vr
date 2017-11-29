@@ -22,3 +22,14 @@ This addon adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mode t
 ## Running & Building
 
 Follow the respective procedure in [ExplorViz frontend](https://github.com/ExplorViz/explorviz-ui-frontend#running--development)
+
+## Usage
+
+- Upwards Arrow: Move the environment upwards 
+- Downwards Arrow: Move the environment downwards 
+- Leftwards Arrow: Move the environment leftwards
+- Rightwards Arrow: Move the environment rightwards
+- '+': Zoom in
+- '-': Zoom out
+- 'q': Rotate the environment forwards
+- 'w': Rotate the environment backwards
