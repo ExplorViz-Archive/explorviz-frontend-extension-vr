@@ -1630,10 +1630,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       // Create delete button
       let bboxApp3D = new THREE.Box3().setFromObject(self.get('application3D'));
-      let appCenter = bboxApp3D.getCenter();
 
 
-      self.get('deleteButton').position.set(appCenter.x,bboxApp3D.max.y*3,appCenter.z);
+      self.get('deleteButton').position.set(self.get('application3D').position.x,bboxApp3D.max.y*3.5,self.get('application3D').position.z);
 
       // Scale application
       self.get('application3D').scale.x = 0.01;
