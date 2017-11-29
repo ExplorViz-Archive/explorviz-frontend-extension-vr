@@ -269,6 +269,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // Update texture      
     textureDel.needsUpdate = true; 
     this.set('deleteButton', new THREE.Mesh(geometryDel, materialDel));
+    this.get('deleteButton').geometry.rotateY(-0.3);
     this.get('deleteButton').updateMatrix();
     this.get('deleteButton').userData.name = 'deleteButton';
     this.get('deleteButton').name = "deleteButton";
