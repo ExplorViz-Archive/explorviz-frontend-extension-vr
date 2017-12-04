@@ -39,6 +39,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   materialHighlighted: null,
   materialUnhighlighted: null,
+  textureHighlighted: null,
 
   previousToolTipObjects: {},
   textBox: null,
@@ -135,11 +136,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     }
 
     // Load texture for delete button highlighted
-    let textureHighlighted = new THREE.TextureLoader().load('images/x_white.png');
-    let materialHighlighted = new THREE.MeshPhongMaterial({
-      map: textureHighlighted
-    });
-    this.set('materialHighlighted', materialHighlighted);
+    this.set('textureHighlighted', new THREE.TextureLoader().load('images/x_white.png'));
 
     // Add key listener for room positioning
     window.onkeydown = function(event){
@@ -353,6 +350,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             // Save unhighlighted material
             this.set('materialUnhighlighted', intersectedViewObj.object.material);
             // Set new material
+
+            let materialHighlighted = new THREE.MeshPhongMaterial({
+              map: this.get('textureHighlighted')
+            });
+            this.set('materialHighlighted', materialHighlighted);
+
             intersectedViewObj.object.material = this.get('materialHighlighted');
             this.set('deleteButtonHighlighted', id);
           }
@@ -662,6 +665,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           if(this.get('materialUnhighlighted')){
             intersectedViewObj.object.material = this.get('materialUnhighlighted');
           }
+          // Dispose highlighted material
+          if(this.get('materialHighlighted')){
+            this.get('materialHighlighted').map.dispose();
+            this.get('materialHighlighted').dispose();
+          }
+
           this.trigger('removeApplication');
 
           return;
@@ -918,6 +927,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         if(this.get('materialUnhighlighted')){
           intersectedViewObj.object.material = this.get('materialUnhighlighted');
         }
+        // Dispose highlighted material
+        if(this.get('materialHighlighted')){
+          this.get('materialHighlighted').map.dispose();
+          this.get('materialHighlighted').dispose();
+        }
         this.trigger('removeApplication');
 
         return;
@@ -1031,7 +1045,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         if(!this.get('deleteButtonHighlighted')){
           // Save unhighlighted material
           this.set('materialUnhighlighted', intersectedViewObj.object.material);
+
           // Set new material
+          let materialHighlighted = new THREE.MeshPhongMaterial({
+            map: this.get('textureHighlighted')
+          });
+          this.set('materialHighlighted', materialHighlighted);
+
           intersectedViewObj.object.material = this.get('materialHighlighted');
           this.set('deleteButtonHighlighted', id);
         }

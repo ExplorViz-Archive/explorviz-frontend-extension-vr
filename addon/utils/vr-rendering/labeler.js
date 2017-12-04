@@ -136,13 +136,9 @@ export default Ember.Object.extend({
     ctx.textAlign = "center";
     ctx.fillText(name, x,y,max);
     
-    // Look for existing texture
-    if(!this.get('textures')[name]){
-      // create new texture out of canvas 
-      this.get('textures')[name] = new THREE.CanvasTexture(canvas);
-    }
-
-    let texture = this.get('textures')[name];
+    
+    // create texture 
+    let texture = new THREE.CanvasTexture(canvas);
 
     // map texture
     let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
@@ -159,16 +155,35 @@ export default Ember.Object.extend({
       oldMaterial  // Buttom
     ];
       
-    // Delete old material and texture
-    canvasMaterial.map.dispose();
-    canvasMaterial.dispose();
-    oldMaterial.dispose();
-    texture.dispose();
-    this.disposeMaterial(entity.material);
+    
+    //Delete old Material
+    this.deleteMaterial(entity);
 
     // Set new material
     entity.material = materials;
 
+  },
+
+  deleteMaterial(entity){
+
+        entity.geometry.dispose();
+        // dispose array of material
+        if (entity.material.length) {
+          for (let i = 0; i < entity.material.length; i++) {
+            let tempMaterial = entity.material[i];
+            if(tempMaterial.map){
+              tempMaterial.map.dispose();
+            }
+            tempMaterial.dispose();
+          }
+        }
+        // dispose material 
+        else {
+          if(entity.material.map){
+            entity.material.map.dispose();
+          }
+          entity.material.dispose();
+        }
   },
 
   /*
@@ -228,17 +243,7 @@ export default Ember.Object.extend({
       }
 
       // create texture out of canvas
-      //for (let i = 0; i < this.get('textures').length; i++) {
-        //if(this.get('textures')[i] === )
-        //tile.lineThickness = (0.07 * categories[tile.requestsCache] + 0.1) * 0.07;
-      //}
-
-      if(!this.get('textures')[textObj.text]){
-        this.get('textures')[textObj.text] = new THREE.CanvasTexture(canvas);
-
-      }
-
-      let texture = this.get('textures')[textObj.text];
+      let texture = new THREE.CanvasTexture(canvas);
       // map texture
       let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
 
@@ -259,27 +264,14 @@ export default Ember.Object.extend({
       ];
 
       // Delete old material and texture
-      texture.dispose();
-      canvasMaterial.dispose();
-      oldMaterial.dispose();
-      this.disposeMaterial(textObj.parent.material);
-    
+      this.deleteMaterial(textObj.parent);
+
       // Set new material
       textObj.parent.material = materials;
 
     });
   },
 
-  disposeMaterial(material){
-    if(material.length){
-      for (let i = 0; i < material.length; i++) {
-        material[i].dispose();
-      }
-    }
-    else{
-      material.dispose();
-    } 
-  },
 
   /*
    * This method is used to label the box of a nodegroup and is
@@ -331,12 +323,7 @@ export default Ember.Object.extend({
       }
 
       // create texture out of canvas
-      if(!this.get('textures')[textObj.text]){
-        this.get('textures')[textObj.text] = new THREE.CanvasTexture(canvas);
-
-      }
-
-      let texture = this.get('textures')[textObj.text];
+      let texture = new THREE.CanvasTexture(canvas);
       // map texture
       let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
 
@@ -359,10 +346,7 @@ export default Ember.Object.extend({
       ];
 
       // Delete old material and texture
-      texture.dispose();
-      canvasMaterial.dispose();
-      oldMaterial.dispose();
-      this.disposeMaterial(textObj.parent.material);
+      this.deleteMaterial(textObj.parent);
       
       // Set new material
       textObj.parent.material = materials;
@@ -419,11 +403,7 @@ export default Ember.Object.extend({
       
 
       // create texture out of canvas
-      if(!this.get('textures')[textObj.text]){
-        this.get('textures')[textObj.text] = new THREE.CanvasTexture(canvas);
-      }
-
-      let texture = this.get('textures')[textObj.text];
+      let texture = new THREE.CanvasTexture(canvas);
       // map texture
       let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
 
@@ -446,10 +426,7 @@ export default Ember.Object.extend({
       ];
 
       // Delete old material and texture
-      texture.dispose();
-      this.disposeMaterial(textObj.parent.material);
-      canvasMaterial.dispose();
-      oldMaterial.dispose();
+      this.deleteMaterial(textObj.parent);
       
       // set new material
       textObj.parent.material = materials;
@@ -503,12 +480,7 @@ export default Ember.Object.extend({
       
 
       // create texture out of canvas
-      if(!this.get('textures')[textObj.text]){
-        this.get('textures')[textObj.text] = new THREE.CanvasTexture(canvas);
-
-      }
-
-      let texture = this.get('textures')[textObj.text];
+      let texture = new THREE.CanvasTexture(canvas);
       // map texture
       let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
 
@@ -531,10 +503,7 @@ export default Ember.Object.extend({
       ];
 
       // Delete old material and texture
-      texture.dispose();
-      canvasMaterial.dispose();
-      oldMaterial.dispose();
-      this.disposeMaterial(textObj.parent.material);
+      this.deleteMaterial(textObj.parent);
       
       // set new material
       textObj.parent.material = materials;
