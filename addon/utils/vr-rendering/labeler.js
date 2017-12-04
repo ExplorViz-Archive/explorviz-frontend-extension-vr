@@ -99,16 +99,15 @@ export default Ember.Object.extend({
     // Define the size and position of the label depending on the entity type
     if(entity.type === 'system'){
       if(entity.userData.model.get('opened')){
-        ctx.font = '15px arial';
-        y = canvas.height/16;
-       
+        ctx.font = '20px arial';
+        y = 20;
       }
       else{
         ctx.font = '32px arial';
         y = canvas.height/2;
       }
       x = canvas.width/2;
-      max = canvas.width*0.95;
+      max = canvas.width*0.9;
     
     }
     else if(entity.type === 'nodegroup'){
@@ -225,20 +224,18 @@ export default Ember.Object.extend({
       // Draw old box color
       ctx.fillStyle = color;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = textObj.color;
+      ctx.textAlign = "center";
 
       // Handle opened and closed systems
       if(textObj.parent.userData.model.get('opened')){
         // Draw title for opened systems
         ctx.font = '20px arial';
-        ctx.fillStyle = textObj.color;
-        ctx.textAlign = "center";
         ctx.fillText(textObj.text, canvas.width/2,20,canvas.width*0.95);
       }
       else{
         // Draw title for closed systems
         ctx.font = '32px arial';
-        ctx.fillStyle = textObj.color;
-        ctx.textAlign = "center";
         ctx.fillText(textObj.text, canvas.width/2,canvas.height/2,canvas.width*0.95);
       }
 
