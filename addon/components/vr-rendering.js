@@ -745,7 +745,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
               // Create box for closed nodegroup
               else {
                 nodegroupMesh = createBox(nodegroup);
-                nodegroupMesh.name = 'nodegroupOpened';
+                nodegroupMesh.name = 'nodegroupClosed';
                 // Store new position
                 nodegroup.set('positionZ', nodegroup.get('positionZ') + diffNodegroupDepth / 2);
 
