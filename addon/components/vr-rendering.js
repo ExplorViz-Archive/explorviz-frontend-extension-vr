@@ -484,6 +484,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('interaction').off('centerVREnvironment');
     this.get('interaction').off('redrawApp');
     this.get('interaction').off('showApplication');
+    this.get('interaction').off('redrawAppCommunication');
     this.get('interaction').off('removeApplication');
 
     this.get('interaction').removeHandlers();
@@ -1453,6 +1454,16 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.centerVREnvironment(self.get('vrEnvironment'), self.get('room'));
     });
 
+    this.get('interaction').on('redrawAppCommunication', function() {
+      // Delete communication lines of application3D
+      self.removeAppCommunication();
+     
+      var appPosition = self.get('app3DMesh').position;
+      let app3DModel = self.get('application3D.userData.model');
+      // Draw communication lines of application3D
+      self.addCommunicationToApp(app3DModel, appPosition);
+    });
+
     /*
      * This interaction listener is used to redraw the application3D 
      * ("opened" value of package changed) 
@@ -1514,8 +1525,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
 
 
-
-
   /*
     This function is used to remove an application3D from the scene
   */
@@ -1530,7 +1539,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         let child = entity.children[i];
 
         removeApp3D(child);
-        if (child.name === 'app3D' || child.name === 'app3DFoundation' || child.name === 'deleteButton' || child.userData.type ==='label') {
+        if (child.name === 'app3D' || child.name === 'app3DFoundation' || child.name === 'deleteButton' || child.userData.type ==='label' || child.name === 'app3DCommunication') {
           if (child.type !== 'Object3D') {
             child.geometry.dispose();
             if(child.material.map){
@@ -1551,11 +1560,118 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('applicationID', null);
     this.set('application3D', null);
     // Update application3D in interaction
-    this.get('interaction').setupInteractionApp3D(null);
+    this.get('interaction').setupInteractionApp3D(null, null);
     this.set('landscapeRepo.latestApplication', null);
 
     // Update possible objects for intersection with controller
     this.set('interaction.raycastObjects', this.get('scene.children'));
+  },
+
+  /*
+    This function is used to remove an application3D from the scene
+  */
+  removeAppCommunication() {
+
+    const scene = this.get('scene');
+
+    removeAppCommunication(scene);
+
+    function removeAppCommunication(entity) {
+      for (let i = entity.children.length - 1; i >= 0; i--) {
+        let child = entity.children[i];
+
+        removeAppCommunication(child);
+        if (child.name === 'app3DCommunication') {
+          if (child.type !== 'Object3D') {
+            child.geometry.dispose();
+            if(child.material.map){
+              child.material.map.dispose();
+            }
+            child.material.dispose();
+          }
+          entity.remove(child);
+        }
+      }
+    }
+
+    this.actualizeRaycastObjects();
+
+    // Update possible objects for intersection with controller
+    this.set('interaction.raycastObjects', this.get('scene.children'));
+  },
+
+  /*
+   *  This method is used to add commuication lines to application3D
+   */
+  addCommunicationToApp(application, position){
+
+    const self = this;
+
+    const accuCommunications = application.get('communicationsAccumulated');
+    
+    // Draw communication
+    accuCommunications.forEach((commu) => {
+      if (commu.source !== commu.target) {
+        if (commu.startPoint && commu.endPoint) {
+
+          const start = new THREE.Vector3();
+          start.subVectors(commu.startPoint, position);
+          start.multiplyScalar(0.5);
+
+          const end = new THREE.Vector3();
+          end.subVectors(commu.endPoint, position);
+          end.multiplyScalar(0.5);
+
+          if (start.y >= end.y) {
+            end.y = start.y;
+          } else {
+            start.y = end.y;
+          }
+
+          let transparent = false;
+          let opacityValue = 1.0;
+
+          if (commu.state === "TRANSPARENT") {
+            transparent = true;
+            opacityValue = 0.4;
+          }
+
+          const material = new THREE.MeshBasicMaterial({
+            color: new THREE.Color(0xf49100),
+            opacity: opacityValue,
+            transparent: transparent
+          });
+
+          const thickness = commu.pipeSize * 0.3;
+
+          const pipe = cylinderMesh(start, end, material, thickness);
+
+          pipe.userData.model = commu;
+          pipe.name = 'app3DCommunication';
+
+
+          self.get('application3D').add(pipe);
+
+        }
+      }
+    });
+    /*
+     *  This function is used to create the pipes
+     */
+    function cylinderMesh(pointX, pointY, material, thickness) {
+      const direction = new THREE.Vector3().subVectors(pointY, pointX);
+      const orientation = new THREE.Matrix4();
+      orientation.lookAt(pointX, pointY, new THREE.Object3D().up);
+      orientation.multiply(new THREE.Matrix4().set(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1));
+      const edgeGeometry = new THREE.CylinderGeometry(thickness, thickness, direction.length(), 20, 1);
+      const pipe = new THREE.Mesh(edgeGeometry, material);
+      pipe.applyMatrix(orientation);
+
+      pipe.position.x = (pointY.x + pointX.x) / 2.0;
+      pipe.position.y = (pointY.y + pointX.y) / 2.0;
+      pipe.position.z = (pointY.z + pointX.z) / 2.0;
+      return pipe;
+    }
   },
 
   /*
@@ -1578,53 +1694,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.get('application3D').name = 'app3D';
       self.set('application3D.userData.model', application);
 
-      const accuCommunications = application.get('communicationsAccumulated');
-      // Draw communication
-      accuCommunications.forEach((commu) => {
-        if (commu.source !== commu.target) {
-          if (commu.startPoint && commu.endPoint) {
-
-            const start = new THREE.Vector3();
-            start.subVectors(commu.startPoint, position);
-            start.multiplyScalar(0.5);
-
-            const end = new THREE.Vector3();
-            end.subVectors(commu.endPoint, position);
-            end.multiplyScalar(0.5);
-
-            if (start.y >= end.y) {
-              end.y = start.y;
-            } else {
-              start.y = end.y;
-            }
-
-            let transparent = false;
-            let opacityValue = 1.0;
-
-            if (commu.state === "TRANSPARENT") {
-              transparent = true;
-              opacityValue = 0.4;
-            }
-
-            const material = new THREE.MeshBasicMaterial({
-              color: new THREE.Color(0xf49100),
-              opacity: opacityValue,
-              transparent: transparent
-            });
-
-            const thickness = commu.pipeSize * 0.3;
-
-            const pipe = cylinderMesh(start, end, material, thickness);
-
-            pipe.userData.model = commu;
-            pipe.name = 'app3D';
-
-
-            self.get('application3D').add(pipe);
-
-          }
-        }
-      });
+      this.addCommunicationToApp(application, position);
 
       addComponentToScene(foundation, 0xCECECE);
 
@@ -1660,28 +1730,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.set('app3DMesh', self.get('application3D'));
 
       // Setup interaction for app3D
-      self.get('interaction').setupInteractionApp3D(self.get('application3D'));
+      self.get('interaction').setupInteractionApp3D(self.get('application3D'), application);
     }
 
     this.actualizeRaycastObjects();
 
-    /*
-     *  This function is used to create the pipes
-     */
-    function cylinderMesh(pointX, pointY, material, thickness) {
-      const direction = new THREE.Vector3().subVectors(pointY, pointX);
-      const orientation = new THREE.Matrix4();
-      orientation.lookAt(pointX, pointY, new THREE.Object3D().up);
-      orientation.multiply(new THREE.Matrix4().set(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1));
-      const edgeGeometry = new THREE.CylinderGeometry(thickness, thickness, direction.length(), 20, 1);
-      const pipe = new THREE.Mesh(edgeGeometry, material);
-      pipe.applyMatrix(orientation);
 
-      pipe.position.x = (pointY.x + pointX.x) / 2.0;
-      pipe.position.y = (pointY.y + pointX.y) / 2.0;
-      pipe.position.z = (pointY.z + pointX.z) / 2.0;
-      return pipe;
-    }
 
     /*
       This function is used to create all boxes for application3D

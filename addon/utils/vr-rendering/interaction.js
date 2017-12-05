@@ -32,6 +32,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   colorList: null,
   colorListApp: null,
 
+  latestApplication: null,
+  appCommunicationHighlighted: false,
   application3D: null,
   app3DBinded: false,
   app3DBindedByController: {},
@@ -57,8 +59,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * This method is called after an application3D  
    * in component vr-rendering is created
    */
-  setupInteractionApp3D(application3D) {
+  setupInteractionApp3D(application3D, app) {
     this.set('application3D', application3D);
+    this.set('latestApplication', app);
   },
 
   // Import information from component vr-rendering to manipulate objects global
@@ -976,7 +979,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       else if(emberModelName === "component"){
         emberModel.setOpenedStatus(!emberModel.get('opened'));
         // trigger event in component vr-rendering
-        this.trigger('redrawApp', emberModel);
+        this.trigger('redrawApp');
       }
     }
   },
@@ -1104,6 +1107,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         else{
           intersectedViewObj.object.material.color = color;
         }
+        // Just highlight communication lines if component closed or clazz
+        if(!emberModel.get('opened') || emberModelName === "clazz"){
+          this.set('appCommunicationHighlighted', true);
+          this.highlightAppCommunication(emberModel);
+          this.trigger('redrawAppCommunication');
+        }
+
         // save highlighted object
         this.get('highlightedEntitiesApp')[id] = intersectedViewObj.object; 
       }
@@ -1119,6 +1129,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.get('highlightedEntities')[id] = null;
       // Delete highlighted object entry for app3D
       this.get('highlightedEntitiesApp')[id] = null;
+
+      // Reset communication highlighting
+      if(this.get('appCommunicationHighlighted')){
+        this.highlightAppCommunication(null);
+        this.trigger('redrawAppCommunication');
+      }
 
       // Unhighlight delete button if highlighted
       if(this.get('application3D') && this.get('deleteButtonHighlighted')){
@@ -1187,5 +1203,34 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     }
 
+  },
+
+  /*
+   *  This method is used to highlight the communication lines of
+   *  the intersected object. Highlight all communication lines
+   *  if "undefined" or "null" is passed
+   */
+  highlightAppCommunication(entity) {
+
+    const communicationsAccumulated = 
+      this.get('latestApplication').get('communicationsAccumulated');
+
+    communicationsAccumulated.forEach((commu) => {
+
+      if(entity === null || entity === undefined){
+        commu.state = "SHOW_DIRECTION_IN_AND_OUT";
+      }
+      else {
+        if ((commu.source != null && commu.source.get('fullQualifiedName') === entity.get('fullQualifiedName')) ||
+          (commu.target != null && commu.target.get('fullQualifiedName') === entity.get('fullQualifiedName'))) {
+
+          commu.state = "SHOW_DIRECTION_IN_AND_OUT";
+        } 
+        else {
+          commu.state = "TRANSPARENT";
+        }
+      }
+        
+    });
   }
 });
