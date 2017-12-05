@@ -1057,6 +1057,15 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
           intersectedViewObj.object.material = this.get('materialHighlighted');
           this.set('deleteButtonHighlighted', id);
+
+          // Reset communication highlighting
+          if(this.get('appCommunicationHighlighted')){
+            this.highlightAppCommunication(null);
+            this.trigger('redrawAppCommunication');
+            this.set('appCommunicationHighlighted', false);
+          }
+
+
         }
         return;
       }
@@ -1113,7 +1122,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           this.highlightAppCommunication(emberModel);
           this.trigger('redrawAppCommunication');
         }
-
+        // Reset communication highlighting
+        else if(this.get('appCommunicationHighlighted')){
+          this.highlightAppCommunication(null);
+          this.trigger('redrawAppCommunication');
+          this.set('appCommunicationHighlighted', false);
+        }
+        
         // save highlighted object
         this.get('highlightedEntitiesApp')[id] = intersectedViewObj.object; 
       }
@@ -1134,6 +1149,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       if(this.get('appCommunicationHighlighted')){
         this.highlightAppCommunication(null);
         this.trigger('redrawAppCommunication');
+        this.set('appCommunicationHighlighted', false);
       }
 
       // Unhighlight delete button if highlighted
