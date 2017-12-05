@@ -1104,12 +1104,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         else{
           intersectedViewObj.object.material.color = color;
         }
-
         // save highlighted object
         this.get('highlightedEntitiesApp')[id] = intersectedViewObj.object; 
       }
       // Unhighlight delete button if app3D or landscape is highlighted
-      if(this.get('application3D') && (this.get('highlightedEntitiesApp')[id] || this.get('highlightedEntities')[id])){
+      if(this.get('application3D') && this.get('deleteButtonHighlighted') && (this.get('highlightedEntitiesApp')[id] || this.get('highlightedEntities')[id])){
         this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
         this.set('deleteButtonHighlighted', null);
       }
