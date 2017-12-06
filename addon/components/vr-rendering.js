@@ -1458,10 +1458,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       // Delete communication lines of application3D
       self.removeAppCommunication();
      
-      var appPosition = self.get('app3DMesh').position;
       let app3DModel = self.get('application3D.userData.model');
       // Draw communication lines of application3D
-      self.addCommunicationToApp(app3DModel, appPosition);
+      self.addCommunicationToApp(app3DModel);
     });
 
     /*
@@ -1469,15 +1468,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      * ("opened" value of package changed) 
      */
     this.get('interaction').on('redrawApp', function() {
-
-      // Store app3D Data
+      // Store app3D Data because application3D is removed in the next step
       var appPosition = self.get('app3DMesh').position;
       var appRotation = self.get('app3DMesh').rotation;
       let app3DModel = self.get('application3D.userData.model');
-
       // Empty application 3D (remove app3D)
       self.removeApp3D();
-
       // Add application3D to scene
       self.add3DApplicationToLandscape(app3DModel, appPosition, appRotation);
 
@@ -1603,9 +1599,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   /*
    *  This method is used to add commuication lines to application3D
    */
-  addCommunicationToApp(application, position){
+  addCommunicationToApp(application){
 
     const self = this;
+
+  	let position = new THREE.Vector3(0, 0, 0);
 
     const accuCommunications = application.get('communicationsAccumulated');
     
@@ -1694,7 +1692,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.get('application3D').name = 'app3D';
       self.set('application3D.userData.model', application);
 
-      this.addCommunicationToApp(application, position);
+      this.addCommunicationToApp(application);
 
       addComponentToScene(foundation, 0xCECECE);
 

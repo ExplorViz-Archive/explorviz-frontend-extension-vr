@@ -92,8 +92,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('canvas2').height = 128;
 
     // Setup event listener in each controller for each button
-    self.get('controller1').addEventListener('triggerdown', registerControllerTriggerDown);
-    self.get('controller2').addEventListener('triggerdown', registerControllerTriggerDown);
+    self.get('controller1').addEventListener('triggerdown', registerLeftControllerTriggerDown);
+    self.get('controller2').addEventListener('triggerdown', registerRightControllerTriggerDown);
     self.get('controller1').addEventListener('thumbpaddown', registerControllerThumbpadDown);
     self.get('controller2').addEventListener('thumbpaddown', registerControllerThumbpadDown);
     self.get('controller1').addEventListener('thumbpadup', registerControllerThumbpadUp);
@@ -104,9 +104,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     /* The following functions handle the events by
      * calling the corresponding method
      */
-    function registerControllerTriggerDown(event){
-      self.onControllerTriggerDown(event);
+    function registerRightControllerTriggerDown(event){
+      self.onRightControllerTriggerDown(event);
     } 
+    function registerLeftControllerTriggerDown(event){
+      self.onLeftControllerTriggerDown(event);
+    }
 
     function registerControllerThumbpadDown(event){
       self.onControllerThumbpadDown(event);
@@ -627,13 +630,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   
   /*
-   * This method handles the controller event 'triggerdown'
+   * This method handles the right controller (event 'triggerdown')
    * and is used to open/close systems, nodegroups and 
    * components of 3D application. 
-   * Furthermore a app3D is created or deleted if a "2D" 
-   * application (blue plane) is hit
-  */
-  onControllerTriggerDown(event){
+   */
+  onRightControllerTriggerDown(event){
 
     const controller = event.target;
 
@@ -719,6 +720,120 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           emberModel.setOpenedStatus(!emberModel.get('opened'));
           // trigger event in component vr-rendering
           this.trigger('redrawApp');
+        }
+      }
+    }
+  },
+
+  /*
+   * This method handles the right controller (event 'triggerdown')
+   * and is used to open/close systems, nodegroups and 
+   * components of 3D application. 
+   */
+  onLeftControllerTriggerDown(event){
+
+    const controller = event.target;
+
+    /* Refuse trigger functionality if the controller which triggered
+     * the event already binds the app3D 
+     */
+    if(!this.get('app3DBindedByController')[controller.id]){
+      // Calculate controller direction and origin
+      var tempMatrix = new THREE.Matrix4();
+
+      tempMatrix.identity().extractRotation( controller.matrixWorld );
+      
+      const origin = new THREE.Vector3();
+      origin.setFromMatrixPosition(controller.matrixWorld);
+
+      const direction = new THREE.Vector3(0,0,-1);
+      direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
+
+      // Calculate hit object
+      const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
+        null, this.get('raycastObjectsLandscape'));
+
+      // Check if an object is hit
+      if(intersectedViewObj) {
+
+        // Delete application
+        if (intersectedViewObj.object.name === 'deleteButton'){
+          // Reset highlighting of delete button
+          this.set('deleteButtonHighlighted', null);
+
+          // Check if delete button was highlighted => restore unhighlighted material
+          if(this.get('materialUnhighlighted')){
+            intersectedViewObj.object.material = this.get('materialUnhighlighted');
+          }
+          // Dispose highlighted material
+          if(this.get('materialHighlighted')){
+            this.get('materialHighlighted').map.dispose();
+            this.get('materialHighlighted').dispose();
+          }
+
+          this.trigger('removeApplication');
+
+          return;
+        }
+
+        const emberModel = intersectedViewObj.object.userData.model;
+        const emberModelName = emberModel.constructor.modelName;
+        
+        // Handle application hit
+        if(emberModelName === "application"){
+
+          // Handle no data for app3D available
+          if(emberModel.get('components').get('length') === 0) {
+            // no data => show message
+
+            // No application3D => message
+            if(!this.get('application3D')){
+              //const message = "Sorry, no details for <b>" + emberModel.get('name') + 
+              //  "</b> are available.";
+
+              //this.showAlertifyMessage(message);
+            }
+          } 
+          // Handle data for app3D available
+          else {
+            // Show app3D if not binded to controller
+            this.closeAlertifyMessages();
+            if(!this.get('app3DBinded')){
+              // trigger event in component vr-rendering
+              this.trigger('showApplication', emberModel, intersectedViewObj.point);
+            }  
+          }
+        } 
+        
+        // Handle nodegroup or system hit
+        else if (emberModelName === "nodegroup" || emberModelName === "system"){
+          emberModel.setOpened(!emberModel.get('opened'));
+          // trigger event in component vr-rendering
+          this.trigger('redrawScene'); 
+        }
+
+        // Handle component of app3D hit
+        else if((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded')){
+          // Just highlight communication lines if component closed or clazz
+          if(!emberModel.get('opened') || emberModelName === "clazz"){
+            this.set('appCommunicationHighlighted', true);
+            this.highlightAppCommunication(emberModel);
+            this.trigger('redrawAppCommunication');
+          }
+          // Reset communication highlighting (opened component hit)
+          else if(this.get('appCommunicationHighlighted')){
+            this.highlightAppCommunication(null);
+            this.trigger('redrawAppCommunication');
+            this.set('appCommunicationHighlighted', false);
+          }
+        }
+      }
+      else{
+        // Reset communication highlighting (nothing hit)
+        if(this.get('appCommunicationHighlighted')){
+          this.highlightAppCommunication(null);
+          this.trigger('redrawAppCommunication');
+          this.set('appCommunicationHighlighted', false);
         }
       }
     }
@@ -1245,8 +1360,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         else {
           commu.state = "TRANSPARENT";
         }
-      }
-        
+      } 
     });
   }
 });
