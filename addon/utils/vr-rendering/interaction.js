@@ -675,6 +675,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             this.get('materialHighlighted').dispose();
           }
 
+          // Reset communication highlighting
+          this.set('appCommunicationHighlighted', false);
+          // Remove application
           this.trigger('removeApplication');
 
           return;
@@ -771,6 +774,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             this.get('materialHighlighted').dispose();
           }
 
+          // Reset communication highlighting
+          this.set('appCommunicationHighlighted', false);
+          // Remove application
           this.trigger('removeApplication');
 
           return;
@@ -1041,6 +1047,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           this.get('materialHighlighted').map.dispose();
           this.get('materialHighlighted').dispose();
         }
+        // Reset communication highlighting
+        this.set('appCommunicationHighlighted', false);
+        // Remove application
         this.trigger('removeApplication');
 
         return;
