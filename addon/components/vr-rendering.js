@@ -68,6 +68,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   imageLoader: null,
   centerAndZoomCalculator: null,
   initialRendering: true,
+  requestMaterial: null,
 
   // VR
   vrEnvironment: null,
@@ -81,17 +82,15 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   room: null,
   initialPositions: {},
   deleteButton: null,
-
-  requestMaterial: null,
-
-  // Stores mesh for 3D application
+  textBox: null,
+  // Storage for mesh data
   app3DMesh: null,
 
   // Application
   application3D: null,
   applicationID: null,
   app3DPresent: false,
-  textBox: null,
+
 
   didRender() {
     this._super(...arguments);
@@ -153,7 +152,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.get('interaction').showAlertifyMessage(reject);
     });
 
-    // dummy object for raycasting
+    // Dummy object for raycasting
     this.set('room', new THREE.Object3D());
     this.get('room').name = 'room';
 
@@ -174,14 +173,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('vrLandscape').matrixAutoUpdate = false;
     this.get('vrCommunications').matrixAutoUpdate = false;
 
-    // rotate landscape by 90 degrees (radiant)
+    // Rotate landscape by 90 degrees (radiant)
     this.get('vrEnvironment').rotateX(-1.5707963);
     this.get('vrEnvironment').updateMatrix();
 
-    // remove stored applications
+    // Remove stored applications
     this.set('landscapeRepo.latestApplication', null);
 
-    // get size if outer ember div
+    // Get size of outer ember div
     const height = this.$()[0].clientHeight;
     const width = this.$()[0].clientWidth;
 
@@ -206,13 +205,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('webglrenderer').gammaInput = true;
     this.get('webglrenderer').gammaOutput = true;
 
-    // Create first controller
+    // Create left controller
     this.set('controller1', new ViveController(0));
     this.get('controller1').standingMatrix = this.get('webglrenderer').vr.getStandingMatrix();
     this.get('controller1').name = "controller";
     this.get('scene').add(this.get('controller1'));
 
-    // Create first controller
+    // Create right controller
     this.set('controller2', new ViveController(1));
     this.get('controller2').standingMatrix = this.get('webglrenderer').vr.getStandingMatrix();
     this.get('controller2').name = "controller";
@@ -242,7 +241,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('controller2').add(line2);
     this.get('scene').add(this.get('vrEnvironment'));
 
-    // create text box 
+    // Create text box 
     var color = new THREE.Color("rgb(253,245,230)");
     let material = new THREE.MeshBasicMaterial({
       color
@@ -250,7 +249,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('textBox', new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0), material));
     this.get('textBox').name = 'textBox';
 
-    // rotate text box
+    // Rotate text box
     this.get('textBox').geometry.rotateX(1.5707963267949);
     this.get('textBox').geometry.rotateY(1.5707963267949 * 2);
 
@@ -352,7 +351,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const light = new THREE.AmbientLight(new THREE.Color(0.65, 0.65, 0.65), 0.8);
     this.scene.add(light);
 
-    // set default model
+    // Set default model
     this.set('imageLoader.logos', {});
     this.set('labeler.textLabels', {});
     this.set('labeler.systemTextCache', []);
@@ -360,7 +359,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('labeler.appTextCache', []);
     this.set('centerAndZoomCalculator.centerPoint', null);
 
-    // create floor
+    // Create floor
     var floorTexture = new THREE.TextureLoader().load('images/materials/floor.jpg');
     var floorGeometry = new THREE.BoxGeometry(4, 0, 3);
     var floorMaterial = new THREE.MeshBasicMaterial({
@@ -371,7 +370,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('room').add(floorMesh);
     self.get('scene').add(this.get('room'));
 
-    // VR-Button
+    // Add VR-Button
     WEBVR.getVRDisplay(function(display) {
       self.set('vrAvailable', true);
       self.get('webglrenderer').vr.setDevice(display);
@@ -381,7 +380,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // Stop data flow
     this.get('reloadHandler').stopExchange();
 
-    // Loader for VIVE-Controller texture
+    // Load VIVE-Controller texture
     let OBJLoader = createOBJLoader(THREE);
     let loader = new OBJLoader(THREE.DefaultLoadingManager);
     loader.setPath('vive-controller/');
@@ -396,7 +395,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.get('controller1').add(obj.clone());
       self.get('controller2').add(obj.clone());
 
-      // load font for labels and synchronously proceed with populating the scene
+      // Load font for labels and synchronously proceed with populating the scene
       new THREE.FontLoader()
         .load('three.js/fonts/roboto_mono_bold_typeface.json', function(font) {
           self.set('font', font);
@@ -428,11 +427,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('urlBuilder').on('requestURL', function() {
       const state = {};
 
-      // get timestamp
+      // Get timestamp
       state.timestamp = self.get('landscapeRepo.latestLandscape')
         .get('timestamp');
 
-      // get latestApp, may be null
+      // Get latestApp, may be null
       const latestMaybeApp = self.get('landscapeRepo.latestApplication');
       state.appID = latestMaybeApp ? latestMaybeApp.get('id') : null;
 
@@ -604,7 +603,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     let isRequestObject = false;
 
     if (systems) {
-      // calculate new center and update zoom
+      // Calculate new center and update zoom
       if (!this.get('centerAndZoomCalculator.centerPoint')) {
         this.get('centerAndZoomCalculator').calculateLandscapeCenterAndZZoom(emberLandscape,
           this.get('webglrenderer'));
@@ -943,10 +942,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
             tiles[id] = tile;
           }
-
         }
-
-
       });
       // Draw lines
       addCommunicationLineDrawing(tiles, communicationMeshes);
@@ -973,7 +969,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }.bind(this));
     this.get('vrLandscape').updateMatrix();
 
-
     // Scale landscape(3D)
     this.get('vrEnvironment').updateMatrix();
     scaleVREnvironment(this.get('vrEnvironment'), this.get('room'));
@@ -999,7 +994,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         removeAllChildren(child);
         if (child.type !== 'Object3D') {
           child.geometry.dispose();
-          // dispose array of material
+          // Dispose array of material
           if (child.material.length) {
             for (let i = 0; i < child.material.length; i++) {
               let tempMaterial = child.material[i];
@@ -1009,7 +1004,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
               tempMaterial.dispose();
             }
           }
-          // dispose material 
+          // Dispose material 
           else {
             if(child.material.map){
               child.material.map.dispose();
@@ -1189,7 +1184,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
         return list;
 
-        // inner helper functions
+        // Inner helper functions
 
         function useThreshholds(list) {
           let max = 1;
@@ -1405,7 +1400,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // Calculate center of the landscape(3D) (vrEnvironment) 
     const centerLandscape = bboxLandscape.getCenter();
 
-    // set new position of vrEnvironment
+    // Set new position of vrEnvironment
     vrEnvironment.position.x += centerFloor.x - centerLandscape.x;
     vrEnvironment.position.z += centerFloor.z - centerLandscape.z;
 
@@ -1445,7 +1440,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       this.get('configurationApplication.applicationColors'), this.get('textBox'), 
       userHeight, this.get('labeler'), this.get('room'));
 
-    // set listeners
+    // Set listeners
     this.get('interaction').on('redrawScene', function() {
       self.populateScene();
     });
@@ -1456,7 +1451,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     this.get('interaction').on('redrawAppCommunication', function() {
       // Delete communication lines of application3D
-      self.removeAppCommunication();
+      self.removeApp3DObjects(['app3DCommunication']);
      
       let app3DModel = self.get('application3D.userData.model');
       // Draw communication lines of application3D
@@ -1473,7 +1468,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       var appRotation = self.get('app3DMesh').rotation;
       let app3DModel = self.get('application3D.userData.model');
       // Empty application 3D (remove app3D)
-      self.removeApp3D();
+      self.removeApp3DObjects();
       // Add application3D to scene
       self.add3DApplicationToLandscape(app3DModel, appPosition, appRotation);
 
@@ -1513,29 +1508,36 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       // Remove 3D Application if presend
       if (self.get('app3DPresent')) {
-        self.removeApp3D();
+        self.removeApp3DObjects();
         self.set('app3DPresent', false);
       }
     });
   }, // END initInteraction
 
-
-
   /*
-    This function is used to remove an application3D from the scene
-  */
-  removeApp3D() {
+   *  This method is used to remove given objects of an application3D.
+   *  "null" or "undefined" passed => delete whole application 
+   */
+  removeApp3DObjects(objectsToRemove){
 
-    const scene = this.get('scene');
-
-    removeApp3D(scene);
+    removeApp3D(this.get('application3D'));
 
     function removeApp3D(entity) {
       for (let i = entity.children.length - 1; i >= 0; i--) {
         let child = entity.children[i];
-
+        let removeObject;
         removeApp3D(child);
-        if (child.name === 'app3D' || child.name === 'app3DFoundation' || child.name === 'deleteButton' || child.userData.type ==='label' || child.name === 'app3DCommunication') {
+
+        // Remove whole application3D
+        if (!objectsToRemove) {
+          removeObject = true; 
+        }
+        // Remove passed objects only
+        else{
+          removeObject = objectsToRemove.includes(child.name);
+        }
+        
+        if(removeObject){
           if (child.type !== 'Object3D') {
             child.geometry.dispose();
             if(child.material.map){
@@ -1547,55 +1549,26 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         }
       }
     }
+    if(!objectsToRemove){
+      // Remove foundation for re-rendering
+      const emberApplication = this.get('application3D.userData.model');
+      removeFoundation(emberApplication, this.get('store'));
 
-    this.actualizeRaycastObjects();
-    // remove foundation for re-rendering
-    const emberApplication = this.get('application3D.userData.model');
-    removeFoundation(emberApplication, this.get('store'));
-
-    this.set('applicationID', null);
-    this.set('application3D', null);
-    // Update application3D in interaction
-    this.get('interaction').setupInteractionApp3D(null, null);
-    this.set('landscapeRepo.latestApplication', null);
-
-    // Update possible objects for intersection with controller
-    this.set('interaction.raycastObjects', this.get('scene.children'));
-  },
-
-  /*
-    This function is used to remove an application3D from the scene
-  */
-  removeAppCommunication() {
-
-    const scene = this.get('scene');
-
-    removeAppCommunication(scene);
-
-    function removeAppCommunication(entity) {
-      for (let i = entity.children.length - 1; i >= 0; i--) {
-        let child = entity.children[i];
-
-        removeAppCommunication(child);
-        if (child.name === 'app3DCommunication') {
-          if (child.type !== 'Object3D') {
-            child.geometry.dispose();
-            if(child.material.map){
-              child.material.map.dispose();
-            }
-            child.material.dispose();
-          }
-          entity.remove(child);
-        }
-      }
+      this.set('applicationID', null);
+      this.set('application3D', null);
+      // Update application3D in interaction
+      this.get('interaction').setupInteractionApp3D(null, null);
+      this.set('landscapeRepo.latestApplication', null);
     }
-
+    // Update raycast objects (landscape)
     this.actualizeRaycastObjects();
 
-    // Update possible objects for intersection with controller
+    // Update possible objects for intersection with controller (application3D)
     this.set('interaction.raycastObjects', this.get('scene.children'));
+
   },
 
+  
   /*
    *  This method is used to add commuication lines to application3D
    */

@@ -546,7 +546,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Position under line
         offset = 52;
 
-        // new font size for entries
+        // New font size for entries
         ctx.font = '15px arial';
         // Each entry consist of two values: name and value
         for(var key1 in content.innerContent){
@@ -572,7 +572,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
        
         // create texture out of canvas
         let texture = new THREE.Texture(canvas2);
-        // map texture
+        // Map texture
         let material = new THREE.MeshBasicMaterial({map: texture});
 
         // Update texture      
@@ -610,20 +610,20 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     const controller = event.target;
 
     if(controller.userData.selected !== undefined && controller.userData.selected.name !=="textBox"){
-      // set bool for application3D not binded
+      // Set bool for application3D not binded
       this.set('app3DBinded',false);
       this.get('app3DBindedByController')[controller.id] = null;
 
-      // get stored application3D from controller
+      // Get stored application3D from controller
       var object = controller.userData.selected;
-      // transform object back into transformation relative to local space
+      // Transform object back into transformation relative to local space
       object.matrix.premultiply(controller.matrixWorld);
-      // split up transforamtion into position, quaternion and scale
+      // Split up transforamtion into position, quaternion and scale
       object.matrix.decompose( object.position, object.quaternion, object.scale);
 
-      // add application3D to scene
+      // Add application3D to scene
       this.get('scene').add(object);
-      // delete stored application3D 
+      // Delete stored application3D 
       controller.userData.selected = undefined;
     }
   },
@@ -712,7 +712,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Handle nodegroup or system hit
         else if (emberModelName === "nodegroup" || emberModelName === "system"){
           emberModel.setOpened(!emberModel.get('opened'));
-          // trigger event in component vr-rendering
+          // Trigger event in component vr-rendering
           this.trigger('redrawScene'); 
         }
         // Handle component of app3D hit
@@ -784,7 +784,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
           // Handle no data for app3D available
           if(emberModel.get('components').get('length') === 0) {
-            // no data => show message
+            // No data => show message
 
             // No application3D => message
             if(!this.get('application3D')){
@@ -808,7 +808,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Handle nodegroup or system hit
         else if (emberModelName === "nodegroup" || emberModelName === "system"){
           emberModel.setOpened(!emberModel.get('opened'));
-          // trigger event in component vr-rendering
+          // Trigger event in component vr-rendering
           this.trigger('redrawScene'); 
         }
 
@@ -880,16 +880,16 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         this.set('app3DBinded',true);
         this.get('app3DBindedByController')[controller.id] = "true";
 
-        // get inverse of controller transoformation      
+        // Get inverse of controller transoformation      
         tempMatrix.getInverse(controller.matrixWorld);
         var object = this.get('application3D');
-        // set transforamtion relative to controller transformation
+        // Set transforamtion relative to controller transformation
         object.matrix.premultiply( tempMatrix );
-        // split up matrix into position, quaternion and scale
+        // Split up matrix into position, quaternion and scale
         object.matrix.decompose( object.position, object.quaternion, object.scale);
-        // add object to controller
+        // Add object to controller
         controller.add(object);
-        // store object 
+        // Store object 
         controller.userData.selected = object; 
       }
     }
@@ -909,15 +909,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('camera').position.addVectors(this.get('camera').position,
       vector.setLength(delta * 1.5));
 
-
-    // zoom in
-    /*if (delta > 0) {
-      this.get('camera').position.z -= delta * 1.5;
-    }
-    // zoom out
-    else {
-      this.get('camera').position.z -= delta * 1.5;
-    }*/
   },
 
 
@@ -962,7 +953,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     const self = this;
 
-    // custom event for mousemovement end
+    // Custom event for mousemovement end
     (function (delay) {
         var timeout;
         self.get('canvas').addEventListener('mousemove', function (evt) {
@@ -1055,7 +1046,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         return;
       }
 
-      // hide tooltip
+      // Hide tooltip
       this.get('hoverHandlerLandscape').hideTooltip();
       this.get('hoverHandlerApp3D').hideTooltip();
 
@@ -1067,7 +1058,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         // Handle no data for app3D available
         if(emberModel.get('components').get('length') === 0) {
-          // no data => show message
+          // No data => show message
 
           // No application3D => message
 
@@ -1078,7 +1069,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         } 
         // Handle data for app3D available
         else {
-          // data available => open application-rendering
+          // Data available => open application-rendering
           this.closeAlertifyMessages();
           // trigger event in component vr-rendering
           this.trigger('showApplication', emberModel, intersectedViewObj.point);
@@ -1087,13 +1078,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Handle nodegroup or system hit
       else if (emberModelName === "nodegroup" || emberModelName === "system"){
         emberModel.setOpened(!emberModel.get('opened'));
-        // trigger event in component vr-rendering
+        // Trigger event in component vr-rendering
         this.trigger('redrawScene');
       }
       // Handle component of app3D hit
       else if(emberModelName === "component"){
         emberModel.setOpenedStatus(!emberModel.get('opened'));
-        // trigger event in component vr-rendering
+        // Trigger event in component vr-rendering
         this.trigger('redrawApp');
       }
     }
@@ -1216,7 +1207,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
               this.get('labeler').redrawLabel(intersectedViewObj.object, 
                 this.get('colorList')[index],name,"rgb(255, 0, 0)");
 
-              // save highlighted object
+              // Save highlighted object
               this.get('highlightedEntities')[id] = intersectedViewObj.object;
          }
       }
@@ -1244,7 +1235,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           this.set('appCommunicationHighlighted', false);
         }
         
-        // save highlighted object
+        // Save highlighted object
         this.get('highlightedEntitiesApp')[id] = intersectedViewObj.object; 
       }
       // Unhighlight delete button if app3D or landscape is highlighted
@@ -1282,7 +1273,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   handlePanning(delta, event) {
 
     if(event.button === 1){
-      // translate camera
+      // Translate camera
       var distanceXInPercent = (delta.x /
         parseFloat(this.get('renderer').domElement.clientWidth)) * 100.0;
 
@@ -1318,8 +1309,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.get('camera'), this.get('raycastObjectsLandscape'));
 
     if(intersectedViewObj) {
-      // exclude requests and delete button
-      if (intersectedViewObj.object.name === 'earth' || intersectedViewObj.object.name === 'deleteButton'){
+      // Exclude requests and delete button
+      if (intersectedViewObj.object.name === 'deleteButton'){
         return;
       }
       const emberModel = intersectedViewObj.object.userData.model;
