@@ -952,7 +952,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      * The landscape(3D) will be deleted an rewritten
      * It consists of vrCommunications and vrLandscape */
     // Delete and redraw communication lines
-    removeAllChildren(this.get('vrCommunications'));
+    this.removeChildren(this.get('vrCommunications'));
     this.get('vrCommunications').updateMatrix();
     
     communicationMeshes.forEach(function(mesh) {
@@ -961,7 +961,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('vrCommunications').updateMatrix();
 
     // Delete and redraw landscape(boxes) lines
-    removeAllChildren(this.get('vrLandscape'));
+    this.removeChildren(this.get('vrLandscape'));
     this.get('vrLandscape').updateMatrix();
 
     landscapeMeshes.forEach(function(mesh) {
@@ -983,38 +983,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // Helper functions //
 
-    /*
-     *  This function is used to remove all childs
-     *  of a given entity
-     */
-    function removeAllChildren(entity) {
-      for (let i = entity.children.length - 1; i >= 0; i--) {
-        let child = entity.children[i];
-
-        removeAllChildren(child);
-        if (child.type !== 'Object3D') {
-          child.geometry.dispose();
-          // Dispose array of material
-          if (child.material.length) {
-            for (let i = 0; i < child.material.length; i++) {
-              let tempMaterial = child.material[i];
-              if(tempMaterial.map){
-                tempMaterial.map.dispose();
-              }
-              tempMaterial.dispose();
-            }
-          }
-          // Dispose material 
-          else {
-            if(child.material.map){
-              child.material.map.dispose();
-            }
-            child.material.dispose();
-          }
-        }
-        entity.remove(child);
-      }
-    }
+    
 
     /*
      *  This function is used to calculate the depth for 
@@ -1380,7 +1349,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   },
   //////////// END populateScene
 
-
   /* 
    *  This function is used to center the landscape(3D) on the floor.
    *  The object3D which contains the landscape(3D) and communication
@@ -1451,7 +1419,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     this.get('interaction').on('redrawAppCommunication', function() {
       // Delete communication lines of application3D
-      self.removeApp3DObjects(['app3DCommunication']);
+      self.removeChildren(self.get('application3D'), ['app3DCommunication']);
      
       let app3DModel = self.get('application3D.userData.model');
       // Draw communication lines of application3D
@@ -1468,7 +1436,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       var appRotation = self.get('app3DMesh').rotation;
       let app3DModel = self.get('application3D.userData.model');
       // Empty application 3D (remove app3D)
-      self.removeApp3DObjects();
+      self.removeChildren(self.get('application3D'));
       // Add application3D to scene
       self.add3DApplicationToLandscape(app3DModel, appPosition, appRotation);
 
@@ -1508,57 +1476,80 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       // Remove 3D Application if presend
       if (self.get('app3DPresent')) {
-        self.removeApp3DObjects();
+        self.removeChildren(self.get('application3D'));
         self.set('app3DPresent', false);
       }
     });
   }, // END initInteraction
 
   /*
-   *  This method is used to remove given objects of an application3D.
-   *  "null" or "undefined" passed => delete whole application 
+   *  This method is used to remove the given children of an object3D.
+   *  "null" or "undefined" passed => delete all children 
    */
-  removeApp3DObjects(objectsToRemove){
+  removeChildren(entity, childrenToRemove){
 
-    removeApp3D(this.get('application3D'));
+    // Handle undefined entity
+    if(!entity){
+      return;
+    }
 
-    function removeApp3D(entity) {
+    removeChildren(entity);
+
+    function removeChildren(entity) {
       for (let i = entity.children.length - 1; i >= 0; i--) {
         let child = entity.children[i];
         let removeObject;
-        removeApp3D(child);
 
-        // Remove whole application3D
-        if (!objectsToRemove) {
+        // Handle possible children of child
+        removeChildren(child);
+
+        // Remove all children
+        if (!childrenToRemove) {
           removeObject = true; 
         }
-        // Remove passed objects only
+        // Remove passed children only
         else{
-          removeObject = objectsToRemove.includes(child.name);
+          removeObject = childrenToRemove.includes(child.name);
         }
         
         if(removeObject){
           if (child.type !== 'Object3D') {
             child.geometry.dispose();
-            if(child.material.map){
-              child.material.map.dispose();
+            // Dispose array of material
+            if (child.material.length) {
+              for (let i = 0; i < child.material.length; i++) {
+                let tempMaterial = child.material[i];
+                if(tempMaterial.map){
+                  tempMaterial.map.dispose();
+                }
+                tempMaterial.dispose();
+              }
             }
-            child.material.dispose();
+            // Dispose material 
+            else {
+              if(child.material.map){
+                child.material.map.dispose();
+              }
+              child.material.dispose();
+            }
           }
           entity.remove(child);
         }
       }
     }
-    if(!objectsToRemove){
-      // Remove foundation for re-rendering
-      const emberApplication = this.get('application3D.userData.model');
-      removeFoundation(emberApplication, this.get('store'));
+    if(!childrenToRemove){
+      // Handle removing whole application3D
+      if(entity.name === 'app3D'){
+        // Remove foundation for re-rendering
+        const emberApplication = this.get('application3D.userData.model');
+        removeFoundation(emberApplication, this.get('store'));
 
-      this.set('applicationID', null);
-      this.set('application3D', null);
-      // Update application3D in interaction
-      this.get('interaction').setupInteractionApp3D(null, null);
-      this.set('landscapeRepo.latestApplication', null);
+        this.set('applicationID', null);
+        this.set('application3D', null);
+        // Update application3D in interaction
+        this.get('interaction').setupInteractionApp3D(null, null);
+        this.set('landscapeRepo.latestApplication', null);
+      }
     }
     // Update raycast objects (landscape)
     this.actualizeRaycastObjects();
