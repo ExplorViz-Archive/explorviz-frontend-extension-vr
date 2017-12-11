@@ -1420,10 +1420,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('interaction').on('redrawAppCommunication', function() {
       // Delete communication lines of application3D
       self.removeChildren(self.get('application3D'), ['app3DCommunication']);
-     
+      self.get('application3D').updateMatrix();
+
       let app3DModel = self.get('application3D.userData.model');
       // Draw communication lines of application3D
       self.addCommunicationToApp(app3DModel);
+      self.get('application3D').updateMatrix();
+
     });
 
     /*
@@ -1437,8 +1440,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       let app3DModel = self.get('application3D.userData.model');
       // Empty application 3D (remove app3D)
       self.removeChildren(self.get('application3D'));
+
       // Add application3D to scene
       self.add3DApplicationToLandscape(app3DModel, appPosition, appRotation);
+      self.get('application3D').updateMatrix();
+
 
     }); ///// End redraw application3D 
 
@@ -1466,6 +1472,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         newPosition.y = intersectionPoint.y + app3DSize.y*2;
         self.get('application3D').position.set(newPosition.x, newPosition.y, newPosition.z);
         self.set('app3DPresent', true);
+        self.get('application3D').updateMatrix();
+
       }
     });
     /*
@@ -1653,6 +1661,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.set('applicationID', application.id);
 
       self.set('application3D', new THREE.Object3D());
+      self.get('application3D').matrixAutoUpdate = false;
       self.get('application3D').name = 'app3D';
       self.set('application3D.userData.model', application);
 
@@ -1686,7 +1695,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.get('application3D').position.set(position.x, position.y, position.z);
       self.get('application3D').rotation.set(rotation.x, rotation.y, rotation.z);
       self.get('application3D').add(self.get('deleteButton'));
+      self.get('application3D').updateMatrix();
       self.get('scene').add(self.get('application3D'));
+
 
       // Store application mesh for redraw
       self.set('app3DMesh', self.get('application3D'));
