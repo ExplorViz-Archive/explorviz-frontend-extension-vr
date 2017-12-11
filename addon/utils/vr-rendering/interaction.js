@@ -371,6 +371,22 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         const emberModel = intersectedViewObj.object.userData.model;
         const emberModelName = emberModel.constructor.modelName;
 
+        // Calculate darker color
+        let actualColor = null;
+        if(intersectedViewObj.object.material.length){
+          actualColor = intersectedViewObj.object.material[0].color;
+        }
+        else{
+          actualColor = intersectedViewObj.object.material.color;
+        }
+
+        let r = Math.floor(actualColor.r * 0.65 * 255);
+        let g = Math.floor(actualColor.g * 0.65 * 255);
+        let b = Math.floor(actualColor.b * 0.65 * 255);
+
+        let darkerColor = "rgb("+r+", "+g+", "+b+")";
+
+
         // Handle hit system, nodegroup or application and change color to red
         if(emberModelName === "nodegroup" || emberModelName === "system" || emberModelName === "application"){
                     
@@ -397,7 +413,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
                 
                 // Change entity color to red
                 this.get('labeler').redrawLabel(intersectedViewObj.object, 
-                  this.get('colorList')[index],name,"rgb(255, 0, 0)");
+                  this.get('colorList')[index],name, darkerColor);
 
                 /* Save highlighted object and bind it on controller id 
                    to quarantee that only this controller can unhighlight it */
@@ -407,7 +423,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         }
         // Handle hit component/clazz of app3D if its not binded to a Controller
         else if((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded')){
-          let color = new THREE.Color("rgb(255, 0, 0)");
+          let color = new THREE.Color(darkerColor);
           // Highlight if not aready highlighted by the second controller
           if(!this.get('highlightedEntitiesApp')[id2] || (this.get('highlightedEntitiesApp')[id2].id && this.get('highlightedEntitiesApp')[id2].id !== intersectedViewObj.object.id)){
           
