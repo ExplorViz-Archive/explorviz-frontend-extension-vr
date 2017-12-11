@@ -692,7 +692,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           }
 
           // Reset communication highlighting
-          this.set('appCommunicationHighlighted', false);
+          this.set('appCommunicationHighlighted', null);
           // Remove application
           this.trigger('removeApplication');
 
@@ -736,9 +736,22 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         }
         // Handle component of app3D hit
         else if((emberModelName === "component") && !this.get('app3DBinded')){
+
+          // Opened entity is the selected one 
+          if(this.get('appCommunicationHighlighted') && emberModel === this.get('appCommunicationHighlighted')){
+            redrawSlectedEntity = false;
+            this.set('appCommunicationHighlighted', null);
+          }
+
           emberModel.setOpenedStatus(!emberModel.get('opened'));
           // trigger event in component vr-rendering
-          this.trigger('redrawApp');
+          this.trigger('redrawApp')
+
+          // Restore selected entity if its not the opened one
+          if(this.get('appCommunicationHighlighted') && redrawSlectedEntity){
+            this.highlightAppCommunication(this.get('appCommunicationHighlighted'));
+            this.trigger('redrawAppCommunication');
+          }
         }
       }
     }
@@ -747,7 +760,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   /*
    * This method handles the right controller (event 'triggerdown')
    * and is used to open/close systems, nodegroups and 
-   * components of 3D application. 
+   * select components/clazzes of 3D application. 
    */
   onLeftControllerTriggerDown(event){
 
@@ -791,7 +804,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           }
 
           // Reset communication highlighting
-          this.set('appCommunicationHighlighted', false);
+          this.set('appCommunicationHighlighted', null);
           // Remove application
           this.trigger('removeApplication');
 
@@ -838,15 +851,29 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         else if((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded')){
           // Just highlight communication lines if component closed or clazz
           if(!emberModel.get('opened') || emberModelName === "clazz"){
-            this.set('appCommunicationHighlighted', true);
+            this.set('appCommunicationHighlighted', emberModel);
             this.highlightAppCommunication(emberModel);
             this.trigger('redrawAppCommunication');
           }
-          // Reset communication highlighting (opened component hit)
-          else if(this.get('appCommunicationHighlighted')){
-            this.highlightAppCommunication(null);
-            this.trigger('redrawAppCommunication');
-            this.set('appCommunicationHighlighted', false);
+          // Close component 
+          else {
+            let redrawSlectedEntity = true;
+
+            // Opened entity is the selected one 
+            if(this.get('appCommunicationHighlighted') && emberModel === this.get('appCommunicationHighlighted')){
+              redrawSlectedEntity = false;
+              this.set('appCommunicationHighlighted', null);
+            }
+
+            emberModel.setOpenedStatus(!emberModel.get('opened'));
+
+            this.trigger('redrawApp');
+
+            // Restore selected entity if its not the opened one
+            if(this.get('appCommunicationHighlighted') && redrawSlectedEntity){
+              this.highlightAppCommunication(this.get('appCommunicationHighlighted'));
+              this.trigger('redrawAppCommunication');
+            }
           }
         }
       }
@@ -855,7 +882,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         if(this.get('appCommunicationHighlighted')){
           this.highlightAppCommunication(null);
           this.trigger('redrawAppCommunication');
-          this.set('appCommunicationHighlighted', false);
+          this.set('appCommunicationHighlighted', null);
         }
       }
     }
@@ -1064,7 +1091,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           this.get('materialHighlighted').dispose();
         }
         // Reset communication highlighting
-        this.set('appCommunicationHighlighted', false);
+        this.set('appCommunicationHighlighted', null);
         // Remove application
         this.trigger('removeApplication');
 
@@ -1193,7 +1220,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           if(this.get('appCommunicationHighlighted')){
             this.highlightAppCommunication(null);
             this.trigger('redrawAppCommunication');
-            this.set('appCommunicationHighlighted', false);
+            this.set('appCommunicationHighlighted', null);
           }
         }
         return;
@@ -1264,7 +1291,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         }
         // Just highlight communication lines if component closed or clazz
         if(!emberModel.get('opened') || emberModelName === "clazz"){
-          this.set('appCommunicationHighlighted', true);
+          this.set('appCommunicationHighlighted', emberModel);
           this.highlightAppCommunication(emberModel);
           this.trigger('redrawAppCommunication');
         }
@@ -1272,7 +1299,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         else if(this.get('appCommunicationHighlighted')){
           this.highlightAppCommunication(null);
           this.trigger('redrawAppCommunication');
-          this.set('appCommunicationHighlighted', false);
+          this.set('appCommunicationHighlighted', null);
         }
         
         // Save highlighted object
@@ -1295,7 +1322,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       if(this.get('appCommunicationHighlighted')){
         this.highlightAppCommunication(null);
         this.trigger('redrawAppCommunication');
-        this.set('appCommunicationHighlighted', false);
+        this.set('appCommunicationHighlighted', null);
       }
 
       // Unhighlight delete button if highlighted
