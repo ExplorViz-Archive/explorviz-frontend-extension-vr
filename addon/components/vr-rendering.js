@@ -155,6 +155,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // Dummy object for raycasting
     this.set('room', new THREE.Object3D());
     this.get('room').name = 'room';
+    this.get('room').matrixAutoUpdate = false;
 
     this.set('vrLandscape', new THREE.Group());
     this.get('vrLandscape').name = 'landscape';
@@ -1681,7 +1682,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
  
       this.set('deleteButton', new THREE.Mesh(geometryDel, materialDel));
       this.get('deleteButton').geometry.rotateY(-0.3);
-      this.get('deleteButton').updateMatrix();
       this.get('deleteButton').userData.name = 'deleteButton';
       this.get('deleteButton').name = "deleteButton";
       self.get('deleteButton').position.set(self.get('application3D').position.x,bboxApp3D.max.y*3.5,self.get('application3D').position.z);

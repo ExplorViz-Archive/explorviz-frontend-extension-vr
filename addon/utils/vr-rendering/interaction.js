@@ -156,6 +156,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.get('vrEnvironment').position.y -=  0.05;
         self.get('room').position.y -= 0.05;
         self.get('vrEnvironment').updateMatrix();
+        self.get('room').updateMatrix();
 
         if(!self.get('app3DBinded') && self.get('application3D')) {
           self.get('application3D').position.y -=  0.05;
@@ -166,6 +167,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.get('vrEnvironment').position.y += 0.05;
         self.get('room').position.y += 0.05;
         self.get('vrEnvironment').updateMatrix();
+        self.get('room').updateMatrix();
 
         if(!self.get('app3DBinded') && self.get('application3D')) {
           self.get('application3D').position.y +=  0.05;
@@ -176,6 +178,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.get('vrEnvironment').position.x -=  0.05;
         self.get('room').position.x -= 0.05;
         self.get('vrEnvironment').updateMatrix();
+        self.get('room').updateMatrix();
 
         if(!self.get('app3DBinded') && self.get('application3D')) {
           self.get('application3D').position.x -=  0.05;
@@ -186,6 +189,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.get('vrEnvironment').position.x +=  0.05;
         self.get('room').position.x += 0.05;
         self.get('vrEnvironment').updateMatrix();
+        self.get('room').updateMatrix();
 
         if(!self.get('app3DBinded') && self.get('application3D')) {
           self.get('application3D').position.x +=  0.05;
@@ -196,6 +200,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.get('vrEnvironment').position.z -=  0.05;
         self.get('room').position.z -= 0.05;
         self.get('vrEnvironment').updateMatrix();
+        self.get('room').updateMatrix();
 
         if(!self.get('app3DBinded') && self.get('application3D')) {
           self.get('application3D').position.z -=  0.05;
@@ -206,6 +211,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.get('vrEnvironment').position.z +=  0.05;
         self.get('room').position.z += 0.05;
         self.get('vrEnvironment').updateMatrix();
+        self.get('room').updateMatrix();
 
         if(!self.get('app3DBinded') && self.get('application3D')) {
           self.get('application3D').position.z +=  0.05;
@@ -737,6 +743,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Handle component of app3D hit
         else if((emberModelName === "component") && !this.get('app3DBinded')){
 
+          let redrawSlectedEntity = true;
+           
           // Opened entity is the selected one 
           if(this.get('appCommunicationHighlighted') && emberModel === this.get('appCommunicationHighlighted')){
             redrawSlectedEntity = false;
@@ -745,7 +753,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
           emberModel.setOpenedStatus(!emberModel.get('opened'));
           // trigger event in component vr-rendering
-          this.trigger('redrawApp')
+          this.trigger('redrawApp');
 
           // Restore selected entity if its not the opened one
           if(this.get('appCommunicationHighlighted') && redrawSlectedEntity){
