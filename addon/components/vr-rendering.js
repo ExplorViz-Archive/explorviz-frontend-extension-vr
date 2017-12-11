@@ -1582,7 +1582,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     
     // Draw communication
     accuCommunications.forEach((commu) => {
-      if (commu.source !== commu.target) {
+      if (commu.source.content !== commu.target.content) {
         if (commu.startPoint && commu.endPoint) {
 
           const start = new THREE.Vector3();
