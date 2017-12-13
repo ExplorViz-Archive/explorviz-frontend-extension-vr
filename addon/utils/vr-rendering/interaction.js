@@ -37,6 +37,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   appCommunicationHighlighted: false,
   // mesh of the selected component
   selectedComponentsMesh: null,
+  selectedComponentsColor: null,
 
   application3D: null,
   app3DBinded: false,
@@ -59,6 +60,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   hoverHandlerLandscape: null,
   hoverHandlerApp3D: null,
   userHeight: null,
+
 
   /*
    * This method is called after an application3D  
@@ -305,7 +307,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       null, this.get('raycastObjectsLandscape'));
 
     // Check if hit entity is already highlighted
-    if(intersectedViewObj && this.get('highlightedEntities')[id] && this.get('highlightedEntities')[id].id === intersectedViewObj.object.id){
+    if(intersectedViewObj && this.get('highlightedEntities')[id] && this.get('highlightedEntities')[id] === intersectedViewObj.object){
       return;
     }
 
@@ -331,6 +333,14 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         this.get('colorList')[index],name,this.get('colorList')[entity.type]);
     }
 
+    // Exclude selected component
+    if(intersectedViewObj){
+      if(this.get('selectedComponentsMesh') && this.get('selectedComponentsMesh') === intersectedViewObj.object){
+        // Scale ray distance to distance of intersection
+        controller.getObjectByName('controllerLine').scale.z = intersectedViewObj.distance;
+        return;
+      }
+    }
     /* Look for highlighted entity 'app3D' and unhighlight the 
      * package it if the same controller id highlighted it
      */
@@ -704,6 +714,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
           // Reset communication highlighting
           this.set('appCommunicationHighlighted', null);
+          this.set('selectedComponentsMesh', null);
           // Remove application
           this.trigger('removeApplication');
 
@@ -748,21 +759,26 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Handle component of app3D hit
         else if((emberModelName === "component") && !this.get('app3DBinded')){
 
-          let redrawSlectedEntity = true;
+          let color = new THREE.Color("rgb(255, 0, 0)");
 
           // Opened entity is the selected one 
-          if(this.get('appCommunicationHighlighted') && emberModel === this.get('appCommunicationHighlighted')){
-            redrawSlectedEntity = false;
+          if(this.get('selectedComponentsMesh') && intersectedViewObj.object === this.get('selectedComponentsMesh')){
             this.set('appCommunicationHighlighted', null);
+            this.set('selectedComponentsMesh', null);
           }
 
           emberModel.setOpenedStatus(!emberModel.get('opened'));
+
           // trigger event in component vr-rendering
           this.trigger('redrawApp');
 
           // Restore selected entity if its not the opened one
-          if(this.get('appCommunicationHighlighted') && redrawSlectedEntity){
+          if(this.get('appCommunicationHighlighted') && this.get('selectedComponentsMesh')){
             this.highlightAppCommunication(this.get('appCommunicationHighlighted'));
+            this.get('selectedComponentsMesh').material.color = color;
+            let mesh = this.findMesh(this.get('application3D'));
+            console.log("mesh",mesh, this.get('selectedComponentsMesh').id);
+
             this.trigger('redrawAppCommunication');
           }
         }
@@ -770,6 +786,28 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     }
   },
 
+  findMesh(entity){
+    const self = this;
+
+    let children = entity.children;
+    children.forEach(function(child){
+      console.log("child id:",child.id);
+      if(child.id === self.get('selectedComponentsMesh').id){
+        return child;
+      }
+      else if(child.children){
+        self.findMesh(child);
+      }
+
+    });
+  },
+
+  /*
+   *  This method is used to pass the selected component
+   */
+  getSelectedComponent(){
+    return this.get('appCommunicationHighlighted');
+  },
   /*
    * This method handles the right controller (event 'triggerdown')
    * and is used to open/close systems, nodegroups and 
@@ -818,6 +856,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
           // Reset communication highlighting
           this.set('appCommunicationHighlighted', null);
+          this.set('selectedComponentsMesh', null);
           // Remove application
           this.trigger('removeApplication');
 
@@ -852,61 +891,55 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             }  
           }
         } 
-        
-        // Handle nodegroup or system hit
-        else if (emberModelName === "nodegroup" || emberModelName === "system"){
-          emberModel.setOpened(!emberModel.get('opened'));
-          // Trigger event in component vr-rendering
-          this.trigger('redrawScene'); 
-        }
 
         // Handle component of app3D hit
         else if((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded')){
 
+          let color = new THREE.Color("rgb(255, 0, 0)");
+
           // Just highlight entity and communication lines if component closed or clazz
           if(!emberModel.get('opened') || emberModelName === "clazz"){
-            let color = new THREE.Color("rgb(255, 0, 0)");
 
-            // Save old mesh
+
+            // Check if a component is already highlighted and restore color
+            if(this.get('selectedComponentsMesh') && this.get('appCommunicationHighlighted')){
+              // Return if identical to intersected object
+              if(this.get('selectedComponentsMesh') === intersectedViewObj.object){
+                return;
+              }
+              // Reset communication lines
+              this.highlightAppCommunication(null);
+              // Restore old color 
+              // Handle clazz
+              if(this.get('selectedComponentsMesh').userData.type === 'clazz'){
+                this.get('selectedComponentsMesh').material.color = new THREE.Color(this.get('colorListApp')[this.get('selectedComponentsMesh').userData.type]);
+                emberModel.set('highlighted', true);
+              }
+              // Handle package
+              else{
+                this.get('selectedComponentsMesh').material.color = new THREE.Color(this.get('selectedComponentsColor'));
+              }
+            }
+            
+            // Save old mesh and color
             this.set('selectedComponentsMesh', intersectedViewObj.object);
+            this.set('selectedComponentsColor', intersectedViewObj.object.material.color.clone());
 
             // Set new color
-            if(intersectedViewObj.object.parent.label === intersectedViewObj.object){
-              intersectedViewObj.object.parent.material.color = color;
-            }
-            else{
-              intersectedViewObj.object.material.color = color;
-            }
-
+            intersectedViewObj.object.material.color = color;
             this.set('appCommunicationHighlighted', emberModel);
             this.highlightAppCommunication(emberModel);
             this.trigger('redrawAppCommunication');
-          }
-          // Close component 
-          else {
-            let redrawSlectedEntity = true;
 
-            // Opened entity is the selected one 
-            if(this.get('appCommunicationHighlighted') && emberModel === this.get('appCommunicationHighlighted')){
-              redrawSlectedEntity = false;
-              this.set('appCommunicationHighlighted', null);
-            }
-
-            emberModel.setOpenedStatus(!emberModel.get('opened'));
-
-            this.trigger('redrawApp');
-
-            // Restore selected entity if its not the opened one
-            if(this.get('appCommunicationHighlighted') && redrawSlectedEntity){
-              this.highlightAppCommunication(this.get('appCommunicationHighlighted'));
-              this.trigger('redrawAppCommunication');
-            }
+            // Reset highlighting for selected component
+            this.get('highlightedEntitiesApp')[controller.id] = null;
+            
           }
         }
       }
       else{
         // Reset communication highlighting (nothing hit)
-        if(this.get('appCommunicationHighlighted')){
+        if(this.get('appCommunicationHighlighted') && this.get('selectedComponentsMesh')){
           this.highlightAppCommunication(null);
           // Restore old color 
           // Handle clazz
@@ -915,11 +948,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           }
           // Handle package
           else{
-            this.get('selectedComponentsMesh').material.color = new THREE.Color(this.get('colorListApp')[this.get('selectedComponentsMesh').userData.model.get('color')]);
+            this.get('selectedComponentsMesh').material.color = new THREE.Color(this.get('selectedComponentsColor'));
           }
           this.trigger('redrawAppCommunication');
           this.set('appCommunicationHighlighted', null);
           this.set('selectedComponentsMesh', null);
+          this.get('highlightedEntitiesApp')[controller.id] = null;
         }
       }
     }
@@ -1323,7 +1357,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         if(!emberModel.get('opened') || emberModelName === "clazz"){
           color = new THREE.Color("rgb(255, 0, 0)");
           this.set('selectedComponentsMesh', intersectedViewObj.object);
-          console.log("stored", intersectedViewObj.object.userData.type);
           this.set('appCommunicationHighlighted', emberModel);
           this.highlightAppCommunication(emberModel);
           this.trigger('redrawAppCommunication');
@@ -1334,6 +1367,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           this.highlightAppCommunication(null);
           this.trigger('redrawAppCommunication');
           this.set('appCommunicationHighlighted', null);
+          this.set('selectedComponentsMesh', null);
         }
         // Check if label of box is hit and highlight box anyway
         if(intersectedViewObj.object.parent.label === intersectedViewObj.object){
@@ -1364,6 +1398,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         this.highlightAppCommunication(null);
         this.trigger('redrawAppCommunication');
         this.set('appCommunicationHighlighted', null);
+        this.set('selectedComponentsMesh', null);
       }
 
       // Unhighlight delete button if highlighted
