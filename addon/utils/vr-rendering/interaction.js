@@ -913,7 +913,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
               // Handle clazz
               if(this.get('selectedComponentsMesh').userData.type === 'clazz'){
                 this.get('selectedComponentsMesh').material.color = new THREE.Color(this.get('colorListApp')[this.get('selectedComponentsMesh').userData.type]);
-                emberModel.set('highlighted', true);
               }
               // Handle package
               else{
