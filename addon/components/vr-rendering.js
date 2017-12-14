@@ -1704,6 +1704,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       // Setup interaction for app3D
       self.get('interaction').setupInteractionApp3D(self.get('application3D'), application);
+
+
     }
 
     this.actualizeRaycastObjects();
@@ -1730,11 +1732,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       clazzes.forEach((clazz) => {
         if (component.get('opened')) {
-          if (clazz.get('highlighted')) {
-            createBoxApp(clazz, redHighlighted, true);
-          } else {
-            createBoxApp(clazz, clazzColor, true);
-          }
+          createBoxApp(clazz, clazzColor, true);
         }
       });
 
@@ -1802,6 +1800,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         mesh.name = 'app3DFoundation';
       } else {
         mesh.name = 'app3D';
+      }
+
+      // Store pass highlighted mesh
+      if(component.get('highlighted')){
+        self.get('interaction').saveSelectedMesh(mesh);
       }
 
       self.get('application3D').add(mesh);
