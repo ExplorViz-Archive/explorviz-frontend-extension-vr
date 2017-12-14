@@ -776,7 +776,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           }
           // Opened selected component
           else{
-            this.get('appCommunicationHighlighted').set('highlighted', false);
+            if(this.get('appCommunicationHighlighted')){
+              this.get('appCommunicationHighlighted').set('highlighted', false);
+            }
             this.set('appCommunicationHighlighted', null);
             this.set('selectedComponentsMesh', null);
           }
@@ -1204,7 +1206,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         }
         // Opened selected component
         else{
-          this.get('appCommunicationHighlighted').set('highlighted', false);
+          if(this.get('appCommunicationHighlighted')){
+            this.get('appCommunicationHighlighted').set('highlighted', false);
+          }
           this.set('appCommunicationHighlighted', null);
           this.set('selectedComponentsMesh', null);
         }
