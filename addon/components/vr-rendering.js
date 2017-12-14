@@ -1400,14 +1400,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const controller1 = this.get('controller1');
     const controller2 = this.get('controller2');
     const vrEnvironment = this.get('vrEnvironment');
-    const userHeight = 1.9;
 
     // Init interaction objects
     this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,
       raycaster, this.get('vrLandscape').children, controller1, controller2, 
       vrEnvironment, this.get('configuration.landscapeColors'), 
       this.get('configurationApplication.applicationColors'), this.get('textBox'), 
-      userHeight, this.get('labeler'), this.get('room'));
+      this.get('labeler'), this.get('room'));
 
     // Set listeners
     this.get('interaction').on('redrawScene', function() {
@@ -1670,16 +1669,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       addComponentToScene(foundation, 0xCECECE);
 
-      // Create delete button
       let bboxApp3D = new THREE.Box3().setFromObject(self.get('application3D'));
 
-      // Create delete Button for application
+      // Create delete button
       var geometryDel = new THREE.SphereGeometry(6, 32, 32);
-      
       var materialDel = new THREE.MeshPhongMaterial({
         map: this.get('deleteButtonTexture')
       });
- 
       this.set('deleteButton', new THREE.Mesh(geometryDel, materialDel));
       this.get('deleteButton').geometry.rotateY(-0.3);
       this.get('deleteButton').userData.name = 'deleteButton';
@@ -1698,19 +1694,15 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.get('application3D').updateMatrix();
       self.get('scene').add(self.get('application3D'));
 
-
       // Store application mesh for redraw
       self.set('app3DMesh', self.get('application3D'));
 
       // Setup interaction for app3D
       self.get('interaction').setupInteractionApp3D(self.get('application3D'), application);
 
-
     }
 
     this.actualizeRaycastObjects();
-
-
 
     /*
       This function is used to create all boxes for application3D
@@ -1802,7 +1794,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         mesh.name = 'app3D';
       }
 
-      // Store pass highlighted mesh
+      // Pass highlighted mesh
       if(component.get('highlighted')){
         self.get('interaction').saveSelectedMesh(mesh);
       }

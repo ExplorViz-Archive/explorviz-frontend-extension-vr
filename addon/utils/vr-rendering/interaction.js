@@ -59,7 +59,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   hoverHandler: null,
   hoverHandlerLandscape: null,
   hoverHandlerApp3D: null,
-  userHeight: null,
   selector: null,
 
 
@@ -82,7 +81,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   // Import information from component vr-rendering to manipulate objects global
   setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, 
-    controller2, vrEnvironment, colorList, colorListApp, textBox, userHeight, labeler, floor) {
+    controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, floor) {
 
     this.set('scene', scene);
     this.set('canvas', canvas);
@@ -96,7 +95,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('colorList', colorList);  
     this.set('colorListApp', colorListApp);   
     this.set('textBox', textBox);
-    this.set('userHeight', userHeight);
     this.set('labeler', labeler);
     this.set('floor', floor);
 
@@ -171,87 +169,87 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       if(event.key === 'ArrowDown'){
         self.get('vrEnvironment').position.y -=  0.05;
         self.get('room').position.y -= 0.05;
-        self.get('vrEnvironment').updateMatrix();
-        self.get('room').updateMatrix();
+        self.updateObjectMatrix(self.get('vrEnvironment'));
+        self.updateObjectMatrix(self.get('room'));
 
         if(!self.get('app3DBinded') && self.get('application3D')) {
           self.get('application3D').position.y -=  0.05;
-          self.get('application3D').updateMatrix();
+          self.updateObjectMatrix(self.get('application3D'));
         }
       }
       else if(event.key === 'ArrowUp'){
         self.get('vrEnvironment').position.y += 0.05;
         self.get('room').position.y += 0.05;
-        self.get('vrEnvironment').updateMatrix();
-        self.get('room').updateMatrix();
+        self.updateObjectMatrix(self.get('vrEnvironment'));
+        self.updateObjectMatrix(self.get('room'));
 
         if(!self.get('app3DBinded') && self.get('application3D')) {
           self.get('application3D').position.y +=  0.05;
-          self.get('application3D').updateMatrix();
+          self.updateObjectMatrix(self.get('application3D'));
         }
       }
       else if(event.key === 'ArrowLeft'){
         self.get('vrEnvironment').position.x -=  0.05;
         self.get('room').position.x -= 0.05;
-        self.get('vrEnvironment').updateMatrix();
-        self.get('room').updateMatrix();
+        self.updateObjectMatrix(self.get('vrEnvironment'));
+        self.updateObjectMatrix(self.get('room'));
 
         if(!self.get('app3DBinded') && self.get('application3D')) {
           self.get('application3D').position.x -=  0.05;
-          self.get('application3D').updateMatrix();
+          self.updateObjectMatrix(self.get('application3D'));
         }
       }
       else if(event.key === 'ArrowRight'){
         self.get('vrEnvironment').position.x +=  0.05;
         self.get('room').position.x += 0.05;
-        self.get('vrEnvironment').updateMatrix();
-        self.get('room').updateMatrix();
+        self.updateObjectMatrix(self.get('vrEnvironment'));
+        self.updateObjectMatrix(self.get('room'));
 
         if(!self.get('app3DBinded') && self.get('application3D')) {
           self.get('application3D').position.x +=  0.05;
-          self.get('application3D').updateMatrix();
+          self.updateObjectMatrix(self.get('application3D'));
         }
       }
       else if(event.key === '-'){
         self.get('vrEnvironment').position.z -=  0.05;
         self.get('room').position.z -= 0.05;
-        self.get('vrEnvironment').updateMatrix();
-        self.get('room').updateMatrix();
+        self.updateObjectMatrix(self.get('vrEnvironment'));
+        self.updateObjectMatrix(self.get('room'));
 
         if(!self.get('app3DBinded') && self.get('application3D')) {
           self.get('application3D').position.z -=  0.05;
-          self.get('application3D').updateMatrix();
+          self.updateObjectMatrix(self.get('application3D'));
         }
       }
       else if(event.key === '+'){
         self.get('vrEnvironment').position.z +=  0.05;
         self.get('room').position.z += 0.05;
-        self.get('vrEnvironment').updateMatrix();
-        self.get('room').updateMatrix();
+        self.updateObjectMatrix(self.get('vrEnvironment'));
+        self.updateObjectMatrix(self.get('room'));
 
         if(!self.get('app3DBinded') && self.get('application3D')) {
           self.get('application3D').position.z +=  0.05;
-          self.get('application3D').updateMatrix();
+          self.updateObjectMatrix(self.get('application3D'));
         }
       }
       else if(event.key === 'q'){
         self.get('vrEnvironment').rotation.x +=  0.05;
-        self.get('vrEnvironment').updateMatrix();
+        self.updateObjectMatrix(self.get('vrEnvironment'));
         self.trigger('centerVREnvironment');
 
         if(!self.get('app3DBinded') && self.get('application3D')) {
           self.get('application3D').rotation.x +=  0.05;
-          self.get('application3D').updateMatrix();
+          self.updateObjectMatrix(self.get('application3D'));
         }
       }
       else if(event.key === 'w'){
         self.get('vrEnvironment').rotation.x -=  0.05;
-        self.get('vrEnvironment').updateMatrix();
+        self.updateObjectMatrix(self.get('vrEnvironment'));
         self.trigger('centerVREnvironment');
 
         if(!self.get('app3DBinded') && self.get('application3D')) {
           self.get('application3D').rotation.x -=  0.05;
-          self.get('application3D').updateMatrix();
+          self.updateObjectMatrix(self.get('application3D'));
         }
       }
     };
@@ -769,15 +767,16 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           this.trigger('redrawApp');
 
           // Restore selection
-          if(this.get('appCommunicationHighlighted') && this.get('selectedComponentsMesh') && emberModel !== this.get('appCommunicationHighlighted')){
+          if(this.get('appCommunicationHighlighted') && this.get('selectedComponentsMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened')){
             this.get('selector').highlightAppCommunication(this.get('appCommunicationHighlighted'));
             this.trigger('redrawAppCommunication');
 
             let color = new THREE.Color("rgb(255,0,0)");
             this.get('selectedComponentsMesh').material.color = color;
           }
-          // Opened entity is the selected one
+          // Opened selected component
           else{
+            this.get('appCommunicationHighlighted').set('highlighted', false);
             this.set('appCommunicationHighlighted', null);
             this.set('selectedComponentsMesh', null);
           }
@@ -867,7 +866,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             // Show app3D if not binded to controller
             this.closeAlertifyMessages();
             if(!this.get('app3DBinded')){
-              // trigger event in component vr-rendering
+              // Trigger event in component vr-rendering
               this.trigger('showApplication', emberModel, intersectedViewObj.point);
             }  
           }
@@ -887,12 +886,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
               }
               // Reset communication lines
               this.get('selector').highlightAppCommunication(null);
-              // Restore old color 
-              // Handle clazz
+     
+              // Restore old color (clazz)
               if(this.get('selectedComponentsMesh').userData.type === 'clazz'){
                 this.get('selectedComponentsMesh').material.color = new THREE.Color(this.get('colorListApp')[this.get('selectedComponentsMesh').userData.type]);
               }
-              // Handle package
+              // Restore old color (package)
               else{
                 this.get('selectedComponentsMesh').material.color = new THREE.Color(this.get('selectedComponentsColor'));
               }
@@ -1011,7 +1010,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       vector.setLength(delta * 1.5));
 
   },
-
 
   onMouseOut() {
     this.set('hoverHandler.enableTooltips', false);
@@ -1197,12 +1195,18 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         this.trigger('redrawApp');
 
         // Restore selection
-        if(this.get('appCommunicationHighlighted') && this.get('selectedComponentsMesh') && emberModel !== this.get('appCommunicationHighlighted')){
+        if(this.get('appCommunicationHighlighted') && this.get('selectedComponentsMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened')){
           this.get('selector').highlightAppCommunication(this.get('appCommunicationHighlighted'));
           this.trigger('redrawAppCommunication');
 
           let color = new THREE.Color("rgb(255,0,0)");
           this.get('selectedComponentsMesh').material.color = color;
+        }
+        // Opened selected component
+        else{
+          this.get('appCommunicationHighlighted').set('highlighted', false);
+          this.set('appCommunicationHighlighted', null);
+          this.set('selectedComponentsMesh', null);
         }
       }
     }
@@ -1375,16 +1379,17 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Delete highlighted object entry for app3D
       this.get('highlightedEntitiesApp')[id] = null;
 
-      // Reset communication highlighting
+      // Reset selection highlighting
       if(this.get('appCommunicationHighlighted') && this.get('selectedComponentsMesh') && this.get('selectedComponentsColor')){
+
         // Reset communication lines
         this.get('selector').highlightAppCommunication(null);
 
-        // Restore old color clazz
+        // Restore old color (clazz)
         if(this.get('selectedComponentsMesh').userData.type === 'clazz'){
           this.get('selectedComponentsMesh').material.color = new THREE.Color(this.get('colorListApp')[this.get('selectedComponentsMesh').userData.type]);
         }
-        // Restore old color package
+        // Restore old color (package)
         else{
           this.get('selectedComponentsMesh').material.color = new THREE.Color(this.get('selectedComponentsColor'));
         }
@@ -1418,7 +1423,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       this.get('vrEnvironment').position.x = this.get('vrEnvironment').position.x + distanceXInPercent;
       this.get('vrEnvironment').position.y = this.get('vrEnvironment').position.y - distanceYInPercent;
-      this.get('vrEnvironment').updateMatrix();
+      this.updateObjectMatrix(this.get('vrEnvironment'));
     }
   },
 
@@ -1458,6 +1463,16 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       else if(emberModelName === "package" || emberModelName === "clazz" || emberModelName === "component"){ 
         this.get('hoverHandlerApp3D').showTooltip(mouse, emberModel);
       }
+    }
+  },
+
+  /*
+   *  This method is used to update the matrix of
+   *  a given Object3D
+   */
+  updateObjectMatrix(object){
+    if(object.type === 'Object3D'){
+      object.updateMatrix();
     }
   },
 
