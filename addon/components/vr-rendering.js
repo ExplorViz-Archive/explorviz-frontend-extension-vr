@@ -1713,7 +1713,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       const lightGreen = 0x00BB41;
       const darkGreen = 0x169E2B;
       const clazzColor = 0x3E14A0;
-      const redHighlighted = 0xFF0000;
 
       createBoxApp(component, color, false);
 
