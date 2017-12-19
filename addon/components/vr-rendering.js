@@ -85,6 +85,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   textBox: null,
   // Storage for mesh data
   app3DMesh: null,
+  user: null,
 
   // Application
   application3D: null,
@@ -206,17 +207,25 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('webglrenderer').gammaInput = true;
     this.get('webglrenderer').gammaOutput = true;
 
+    // Create user
+    this.set('user', new THREE.Group());
+    let userHeight = 1.9;
+    this.get('user').position.set( 0, userHeight, 0 );
+            
+    this.get('scene').add( this.get('user') );
+    this.get('user').add( this.get('camera') );
+
     // Create left controller
     this.set('controller1', new ViveController(0));
     this.get('controller1').standingMatrix = this.get('webglrenderer').vr.getStandingMatrix();
     this.get('controller1').name = "controller";
-    this.get('scene').add(this.get('controller1'));
+    this.get('user').add(this.get('controller1'));
 
     // Create right controller
     this.set('controller2', new ViveController(1));
     this.get('controller2').standingMatrix = this.get('webglrenderer').vr.getStandingMatrix();
     this.get('controller2').name = "controller";
-    this.get('scene').add(this.get('controller2'));
+    this.get('user').add(this.get('controller2'));
 
     // Ray for Controller
     this.set('geometry', new THREE.Geometry());
