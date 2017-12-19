@@ -103,7 +103,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   actualizeRaycastObjects() {
 
     let result = (this.get('vrLandscape')) ? this.get('vrLandscape').children : [];
-    const allowedObjects = ['node', 'system', 'nodegroup', 'application', 'communication', 'label', 'floor','component', 'clazz', 'communication'];
+    const allowedObjects = ['node', 'system', 'nodegroup', 'application', 'communication', 'label', 'floor','component', 'clazz', 'deleteButton'];
 
     result = (this.get('application3D')) ? result.concat(this.get('application3D').children) : result;
     result = (this.get('room')) ? result.concat(this.get('room').children) : result;
@@ -120,12 +120,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           return allowedObjects.includes(modelName);
         }
         else if(obj.userData.name){
-        	if(obj.userData.name === 'deleteButton'){
-        		return true;
-        	}
-          else if(obj.userData.name === 'floor'){
-            return true;
-          }
+          const modelName = obj.userData.name;
+          return allowedObjects.includes(modelName);
         }
         else{
          return false;
@@ -1591,7 +1587,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     const self = this;
 
-  	let position = new THREE.Vector3(0, 0, 0);
+    let position = new THREE.Vector3(0, 0, 0);
 
     const accuCommunications = application.get('communicationsAccumulated');
     
