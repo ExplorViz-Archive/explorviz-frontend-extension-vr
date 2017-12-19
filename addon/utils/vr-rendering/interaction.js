@@ -80,7 +80,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   },
 
   // Import information from component vr-rendering to manipulate objects global
-  setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, 
+  setupInteraction(scene, user, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, 
     controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, floor) {
 
     this.set('scene', scene);
@@ -97,6 +97,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('textBox', textBox);
     this.set('labeler', labeler);
     this.set('floor', floor);
+    this.set('user', user);
 
     const self = this;
 
@@ -251,6 +252,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           self.get('application3D').rotation.x -=  0.05;
           self.updateObjectMatrix(self.get('application3D'));
         }
+      }
+
+      // Test case for user teleoport
+      else if(event.key === 'u'){
+        self.get('user').position.z -=  0.05;
       }
     };
 
