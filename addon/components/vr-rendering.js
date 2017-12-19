@@ -106,6 +106,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const allowedObjects = ['node', 'system', 'nodegroup', 'application', 'communication', 'label', 'floor','component', 'clazz', 'communication'];
 
     result = (this.get('application3D')) ? result.concat(this.get('application3D').children) : result;
+    result = (this.get('room')) ? result.concat(this.get('room').children) : result;
+
     result = filterResult(result);
 
     this.set('interaction.raycastObjectsLandscape',  result);
@@ -121,6 +123,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         	if(obj.userData.name === 'deleteButton'){
         		return true;
         	}
+          else if(obj.userData.name === 'floor'){
+            return true;
+          }
         }
         else{
          return false;
@@ -377,6 +382,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     });
     var floorMesh = new THREE.Mesh(floorGeometry, floorMaterial); ///// End floor
     floorMesh.name = 'floor';
+    floorMesh.userData.name = 'floor';
     this.get('room').add(floorMesh);
     self.get('scene').add(this.get('room'));
 

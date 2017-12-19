@@ -406,6 +406,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           }
           return;
         }
+
+        // Handle floor
+        if(intersectedViewObj.object.name === 'floor'){
+          return;
+        }
     
         const emberModel = intersectedViewObj.object.userData.model;
         const emberModelName = emberModel.constructor.modelName;
@@ -530,8 +535,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     // Check if an object is hit
     if(intersectedViewObj){
 
-      // Handle delete button exception
-      if (intersectedViewObj.object.name === 'deleteButton'){
+      // Handle delete button and floor exception
+      if (intersectedViewObj.object.name === 'deleteButton' || intersectedViewObj.object.name === 'floor'){
         return;
       }
 
@@ -730,6 +735,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           return;
         }
 
+        // Handle floor
+        if(intersectedViewObj.object.name === 'floor'){
+          this.get('user').position.x = intersectedViewObj.point.x;
+          this.get('user').position.z = intersectedViewObj.point.z;
+          return;
+        }
+
         const emberModel = intersectedViewObj.object.userData.model;
         const emberModelName = emberModel.constructor.modelName;
         
@@ -848,6 +860,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           // Remove application
           this.trigger('removeApplication');
 
+          return;
+        }
+
+        // Handle floor
+        if(intersectedViewObj.object.name === 'floor'){
           return;
         }
 
@@ -973,8 +990,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     // Check if an object is hit
     if(intersectedViewObj) {
 
-      // Handle delete button exception
-      if (intersectedViewObj.object.name === 'deleteButton'){
+      // Handle delete button and floor exception
+      if (intersectedViewObj.object.name === 'deleteButton' || intersectedViewObj.object.name === 'floor'){
         return;
       }
     
@@ -1161,6 +1178,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         return;
       }
 
+      // Handle floor
+      if(intersectedViewObj.object.name === 'floor'){
+        return;
+      }
+
       // Hide tooltip
       this.get('hoverHandlerLandscape').hideTooltip();
       this.get('hoverHandlerApp3D').hideTooltip();
@@ -1296,6 +1318,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           intersectedViewObj.object.material = this.get('materialHighlighted');
           this.set('deleteButtonHighlighted', id);
         }
+        return;
+      }
+
+      // Handle floor
+      if(intersectedViewObj.object.name === 'floor'){
+        this.get('user').position.x = intersectedViewObj.point.x;
+        this.get('user').position.z = intersectedViewObj.point.z;
         return;
       }
 
@@ -1460,10 +1489,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.get('camera'), this.get('raycastObjectsLandscape'));
 
     if(intersectedViewObj) {
-      // Exclude requests and delete button
-      if (intersectedViewObj.object.name === 'deleteButton'){
+      // Exclude floor and delete button
+      if (intersectedViewObj.object.name === 'deleteButton' || intersectedViewObj.object.name === 'floor'){
         return;
       }
+
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
 
