@@ -251,6 +251,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('controller2').add(line2);
     this.get('scene').add(this.get('vrEnvironment'));
 
+    this.get('room').position.y -= 0.05;
+    this.get('room').updateMatrix();
+    
     // Create text box 
     var color = new THREE.Color("rgb(253,245,230)");
     let material = new THREE.MeshBasicMaterial({
