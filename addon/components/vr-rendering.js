@@ -203,15 +203,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('webglrenderer').setPixelRatio(window.devicePixelRatio);
     this.get('webglrenderer').setSize(width, height);
     this.get('webglrenderer').vr.enabled = true;
-    this.get('webglrenderer').vr.standing = true;
+
     this.get('webglrenderer').shadowMap.enabled = true;
     this.get('webglrenderer').gammaInput = true;
     this.get('webglrenderer').gammaOutput = true;
 
     // Create user
     this.set('user', new THREE.Group());
-    let userHeight = 1.9;
-    this.get('user').position.set( 0, userHeight, 0 );
+    this.get('user').position.set( 0, 0, 0 );
             
     this.get('scene').add( this.get('user') );
     this.get('user').add( this.get('camera') );
@@ -288,10 +287,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       if (self.get('interaction')) {
         // only if no application3D binded on controller
         if (self.get('controller1').userData.selected === undefined) {
-          self.get('interaction').checkIntersection(self.get('controller1'));
+          self.get('interaction').checkIntersectionLeftController(self.get('controller1'));
         }
         if (self.get('controller2').userData.selected === undefined) {
-          self.get('interaction').checkIntersection(self.get('controller2'));
+          self.get('interaction').checkIntersectionRightController(self.get('controller2'));
         }
       }
       self.get('threexStats').update(self.get('webglrenderer'));
