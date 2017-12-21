@@ -501,12 +501,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Scale ray distance to distance of intersection
       controller.getObjectByName('controllerLine').scale.z = intersectedViewObj.distance;
 
-      // Handle delete button
-      if (intersectedViewObj.object.name === 'deleteButton'){
-        this.highlightDeleteButton(intersectedViewObj, id);
-        return;
-      }
-
       // Handle floor (teleport)
       if(intersectedViewObj.object.name === 'floor'){
         this.showTeleportCircle(intersectedViewObj.point);
@@ -517,7 +511,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Remove circle for teleporting
         this.removeTeleportCircle();
       }
-  
+
+      // Handle delete button
+      if (intersectedViewObj.object.name === 'deleteButton'){
+        this.highlightDeleteButton(intersectedViewObj, id);
+        return;
+      }
+
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
 
@@ -1328,12 +1328,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     // Case for intersection object present
     if(intersectedViewObj) {
 
-      // Handle delete button
-      if (intersectedViewObj.object.name === 'deleteButton'){
-        this.highlightDeleteButton(intersectedViewObj, id);
-        return;
-      }
-
       // Handle floor (teleport)
       if(intersectedViewObj.object.name === 'floor'){
         this.showTeleportCircle(intersectedViewObj.point);
@@ -1344,6 +1338,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         this.removeTeleportCircle();
       }
 
+      // Handle delete button
+      if (intersectedViewObj.object.name === 'deleteButton'){
+        this.highlightDeleteButton(intersectedViewObj, id);
+        return;
+      }
 
       // hide tooltip
       this.get('hoverHandlerLandscape').hideTooltip();
@@ -1527,6 +1526,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   },
 
   ////////// Helper functions //////////
+  
   /*
    *  This method is used to look for highlighted 'systems', 
    *  'nodegroups' or 'applications (2D)' and restore their
@@ -1603,7 +1603,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.set('deleteButtonHighlighted', id);
     }
   },
-
 
   /*
    *  This method is used to check if an entity is 
