@@ -51,6 +51,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   previousToolTipObjects: {},
   textBox: null,
+  // Circle for teleporter
+  circle: null,
 
   highlightedEntities: {},
   highlightedEntitiesApp: {},
@@ -158,6 +160,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     // Load texture for delete button highlighted
     this.set('textureHighlighted', new THREE.TextureLoader().load('images/x_white.png'));
+
+////////// Keyboard interaction ////////// 
 
     // Add key listener for room positioning
     window.onkeydown = function(event){
@@ -298,6 +302,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.setupHammerListener();
     
   },
+
+
+////////// Controller interaction ////////// 
 
   /*
    * This method is used to highlight and unhighlight systems, nodegroups, packages
@@ -1135,6 +1142,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     }
   },
 
+////////// Mouse interaction ////////// 
+
   onMouseWheelStart(evt) {
 
     const delta = Math.max(-1, Math.min(1, (evt.wheelDelta || -evt.detail)));
@@ -1297,6 +1306,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle floor
       if(intersectedViewObj.object.name === 'floor'){
+        this.get('camera').position.x = intersectedViewObj.point.x;
+        this.get('camera').position.z = intersectedViewObj.point.z;
+        this.get('camera').updateProjectionMatrix();
         return;
       }
 
@@ -1440,11 +1452,24 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle floor (teleport)
       if(intersectedViewObj.object.name === 'floor'){
-        this.get('camera').position.x = intersectedViewObj.point.x;
-        this.get('camera').position.z = intersectedViewObj.point.z;
-        this.get('camera').updateProjectionMatrix();
+        if(!this.get('circle')){
+          var geometry = new THREE.CircleGeometry( 0.2, 32 );
+          geometry.rotateX(-1.5707963);
+          var material = new THREE.MeshBasicMaterial( { color: 0x019231 } );
+          this.set('circle', new THREE.Mesh( geometry, material ));
+          this.get('scene').add( this.get('circle') );
+        }
+
+        this.get('circle').position.x = intersectedViewObj.point.x;
+        this.get('circle').position.y = intersectedViewObj.point.y + 0.005;
+        this.get('circle').position.z = intersectedViewObj.point.z;
         return;
       }
+      else{
+        // Remove circle for teleporting
+        this.removeTeleporterCircle();
+      }
+
 
       // hide tooltip
       this.get('hoverHandlerLandscape').hideTooltip();
@@ -1536,6 +1561,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Delete highlighted object entry for app3D
       this.get('highlightedEntitiesApp')[id] = null;
 
+      // Remove circle for teleporting
+      this.removeTeleporterCircle();
+
       // Reset selection highlighting
       if(this.get('appCommunicationHighlighted') && this.get('selectedComponentsMesh') && this.get('selectedComponentsColor')){
 
@@ -1621,6 +1649,21 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       else if(emberModelName === "package" || emberModelName === "clazz" || emberModelName === "component"){ 
         this.get('hoverHandlerApp3D').showTooltip(mouse, emberModel);
       }
+    }
+  },
+
+  ////////// Helper functions //////////
+
+  /*
+   *  This mehtod is used to remove the teleporter 
+   *  circle from the scene
+   */
+  removeTeleporterCircle(){
+    if(this.get('circle')){
+      this.get('scene').remove(this.get('circle'));
+      this.get('circle').geometry.dispose();
+      this.get('circle').material.dispose();
+      this.set('circle', null);
     }
   },
 
