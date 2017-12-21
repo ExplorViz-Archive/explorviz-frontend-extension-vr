@@ -1000,11 +1000,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           return;
         }
 
-        // Handle floor
+        // Handle floor (teleport)
         if(intersectedViewObj.object.name === 'floor'){
-          this.get('user').position.x = intersectedViewObj.point.x;
-          this.get('user').position.z = intersectedViewObj.point.z;
-          this.updateObjectMatrix( this.get('user') );
+          this.get('camera').position.x = intersectedViewObj.point.x;
+          this.get('camera').position.z = intersectedViewObj.point.z;
+          this.get('camera').updateProjectionMatrix();
           return;
         }
 
@@ -1148,6 +1148,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     
     this.get('camera').position.addVectors(this.get('camera').position,
       vector.setLength(delta * 1.5));
+
+    this.get('camera').updateProjectionMatrix();
 
   },
 
@@ -1436,10 +1438,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         return;
       }
 
-      // Handle floor
+      // Handle floor (teleport)
       if(intersectedViewObj.object.name === 'floor'){
-        this.get('user').position.x = intersectedViewObj.point.x;
-        this.get('user').position.z = intersectedViewObj.point.z;
+        this.get('camera').position.x = intersectedViewObj.point.x;
+        this.get('camera').position.z = intersectedViewObj.point.z;
+        this.get('camera').updateProjectionMatrix();
         return;
       }
 
