@@ -335,16 +335,19 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
       null, this.get('raycastObjectsLandscape'));
 
-    // Check if hit entity is already highlighted
-    if(intersectedViewObj && this.get('highlightedEntities')[id] && this.get('highlightedEntities')[id] === intersectedViewObj.object){
+    // Verify controllers
+    let id2 = this.verifyControllers(id);
+
+    // Stop if hit entity is already highlighted
+    if(this.isEntityHighlighted(intersectedViewObj, id, id2)){
       return;
     }
 
     // Restore old color of landscape
     this.unhighlightLandscape(id);
 
-    // Return if selected component is hit
-    if(this.excludeSelectedComponent(controller, intersectedViewObj)){
+    // Return if selected entity is hit
+    if(this.excludeSelectedEntity(controller, intersectedViewObj)){
       return;
     }
 
@@ -353,35 +356,20 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     // Case: intersection object present
     if(intersectedViewObj){
-  
-      // Verify controllers
-      let id2 = this.verifyControllers(id);
 
       // Scale ray distance to distance of intersection
       controller.getObjectByName('controllerLine').scale.z = intersectedViewObj.distance;
 
       // Handle delete button
       if (intersectedViewObj.object.name === 'deleteButton'){
-        // Highlight if not highlighted
-        if(!this.get('deleteButtonHighlighted')){
-          // Save unhighlighted material
-          this.set('materialUnhighlighted', intersectedViewObj.object.material);
-          // Set new material
-
-          let materialHighlighted = new THREE.MeshPhongMaterial({
-            map: this.get('textureHighlighted')
-          });
-          this.set('materialHighlighted', materialHighlighted);
-
-          intersectedViewObj.object.material = this.get('materialHighlighted');
-          this.set('deleteButtonHighlighted', id);
-        }
+        this.highlightDeleteButton(intersectedViewObj, id);
         return;
       }
 
       // Handle floor
       if(intersectedViewObj.object.name === 'floor'){
          this.get('highlightedEntities')[id] = null;
+         this.get('highlightedEntitiesApp')[id] = null;
         return;
       }
   
@@ -396,52 +384,46 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
                   
           if(intersectedViewObj.object.type === "system" || intersectedViewObj.object.type === "nodegroup" || intersectedViewObj.object.type === "application"){
 
-            // Highlight if not aready highlighted by the second controller
-            if(!this.get('highlightedEntities')[id2] || (this.get('highlightedEntities')[id2].id && this.get('highlightedEntities')[id2].id !== intersectedViewObj.object.id)){ 
+            let index = "text"+intersectedViewObj.object.type;
 
-              let index = "text"+intersectedViewObj.object.type;
-
-              let name;
-              // Identify entity
-              if(intersectedViewObj.object.type === "nodegroup"){
-                index = "textnode";
-                name = intersectedViewObj.object.userData.model.get('name');
-              }
-              else if(intersectedViewObj.object.type === "application"){
-                index = "textapp";
-                name = intersectedViewObj.object.userData.model.get('name');
-              }
-              else{
-                name = emberModel.get('name');
-              }
-              // Change entity color to red
-              this.get('labeler').redrawLabel(intersectedViewObj.object, 
-                this.get('colorList')[index],name, darkerColor);
-
-              /* Save highlighted object and bind it on controller id 
-                 to quarantee that only this controller can unhighlight it */
-              this.get('highlightedEntities')[id] = intersectedViewObj.object;
+            let name;
+            // Identify entity
+            if(intersectedViewObj.object.type === "nodegroup"){
+              index = "textnode";
+              name = intersectedViewObj.object.userData.model.get('name');
             }
+            else if(intersectedViewObj.object.type === "application"){
+              index = "textapp";
+              name = intersectedViewObj.object.userData.model.get('name');
+            }
+            else{
+              name = emberModel.get('name');
+            }
+            // Change entity color to red
+            this.get('labeler').redrawLabel(intersectedViewObj.object, 
+              this.get('colorList')[index],name, darkerColor);
+
+            /* Save highlighted object and bind it on controller id 
+               to quarantee that only this controller can unhighlight it */
+            this.get('highlightedEntities')[id] = intersectedViewObj.object;
           }
       }
       // Handle hit component/clazz of app3D if its not binded to a Controller
       else if((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded')){
         let color = new THREE.Color(darkerColor);
-        // Highlight if not aready highlighted by the second controller
-        if(!this.get('highlightedEntitiesApp')[id2] || (this.get('highlightedEntitiesApp')[id2].id && this.get('highlightedEntitiesApp')[id2].id !== intersectedViewObj.object.id)){
         
-          // Check if label of box is hit and highlight box anyway
-          if(intersectedViewObj.object.parent.label === intersectedViewObj.object){
-            intersectedViewObj.object.parent.material.color = color;
-          }
-          else{
-            intersectedViewObj.object.material.color = color;
-          }
-
-          /* Save highlighted object and bind it on controller id to quarantee 
-           * that only this controller can unhighlight it */
-          this.get('highlightedEntitiesApp')[id] = intersectedViewObj.object; 
+        // Check if label of box is hit and highlight box anyway
+        if(intersectedViewObj.object.parent.label === intersectedViewObj.object){
+          intersectedViewObj.object.parent.material.color = color;
         }
+        else{
+          intersectedViewObj.object.material.color = color;
+        }
+
+        /* Save highlighted object and bind it on controller id to quarantee 
+         * that only this controller can unhighlight it */
+        this.get('highlightedEntitiesApp')[id] = intersectedViewObj.object; 
+        
       }
       // Reset highlighted enities if node was hit 
       else{
@@ -497,8 +479,16 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
       null, this.get('raycastObjectsLandscape'));
 
-    // Return if selected component is hit
-    if(this.excludeSelectedComponent(controller, intersectedViewObj)){
+    // Verify controllers
+    let id2 = this.verifyControllers(id);
+
+    // Stop if entity is already highlighted by a controller
+    if(this.isEntityHighlighted(intersectedViewObj, id, id2)){
+      return;
+    }  
+
+    // Stop if selected entity is hit
+    if(this.excludeSelectedEntity(controller, intersectedViewObj)){
       return;
     }
 
@@ -507,35 +497,20 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     // Case for intersection object present
     if(intersectedViewObj){
-  
-      // Verify controllers
-      let id2 = this.verifyControllers(id);
 
       // Scale ray distance to distance of intersection
       controller.getObjectByName('controllerLine').scale.z = intersectedViewObj.distance;
 
       // Handle delete button
       if (intersectedViewObj.object.name === 'deleteButton'){
-        // Highlight if not highlighted
-        if(!this.get('deleteButtonHighlighted')){
-          // Save unhighlighted material
-          this.set('materialUnhighlighted', intersectedViewObj.object.material);
-          // Set new material
-
-          let materialHighlighted = new THREE.MeshPhongMaterial({
-            map: this.get('textureHighlighted')
-          });
-          this.set('materialHighlighted', materialHighlighted);
-
-          intersectedViewObj.object.material = this.get('materialHighlighted');
-          this.set('deleteButtonHighlighted', id);
-        }
+        this.highlightDeleteButton(intersectedViewObj, id);
         return;
       }
 
       // Handle floor (teleport)
       if(intersectedViewObj.object.name === 'floor'){
         this.showTeleportCircle(intersectedViewObj.point);
+        this.get('highlightedEntitiesApp')[id] = null;
         return;
       }
       else{
@@ -549,27 +524,24 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Calculate darker color
       let darkerColor = this.calculateDarkerColor(intersectedViewObj.object);
 
-      
       // Handle hit component/clazz of app3D if its not binded to a Controller
       if(((emberModelName === "component" && !emberModel.get('opened'))|| emberModelName === "clazz") && !this.get('app3DBinded')){
         let color = new THREE.Color(darkerColor);
-        // Highlight if not aready highlighted by the second controller
-        if(!this.get('highlightedEntitiesApp')[id2] || (this.get('highlightedEntitiesApp')[id2].id && this.get('highlightedEntitiesApp')[id2].id !== intersectedViewObj.object.id)){
-        
-          // Check if label of box is hit and highlight box anyway
-          if(intersectedViewObj.object.parent.label === intersectedViewObj.object){
-            intersectedViewObj.object.parent.material.color = color;
-          }
-          else{
-            intersectedViewObj.object.material.color = color;
-          }
 
-          /* Save highlighted object and bind it on controller id to quarantee 
-           * that only this controller can unhighlight it */
-          this.get('highlightedEntitiesApp')[id] = intersectedViewObj.object; 
+        // Check if label of box is hit and highlight box anyway
+        if(intersectedViewObj.object.parent.label === intersectedViewObj.object){
+          intersectedViewObj.object.parent.material.color = color;
         }
+        else{
+          intersectedViewObj.object.material.color = color;
+        }
+
+        /* Save highlighted object and bind it on controller id to quarantee 
+         * that only this controller can unhighlight it */
+        this.get('highlightedEntitiesApp')[id] = intersectedViewObj.object; 
+        
       }
-      // Reset highlighted enities if node was hit 
+      // Reset highlighted enities if system/nodegroup/application/node was hit 
       else{
         // Delete highlighted object entry for app3D
         this.get('highlightedEntitiesApp')[id] = null;
@@ -1358,20 +1330,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle delete button
       if (intersectedViewObj.object.name === 'deleteButton'){
-        // Highlight if not highlighted
-        if(!this.get('deleteButtonHighlighted')){
-          // Save unhighlighted material
-          this.set('materialUnhighlighted', intersectedViewObj.object.material);
-
-          // Set new material
-          let materialHighlighted = new THREE.MeshPhongMaterial({
-            map: this.get('textureHighlighted')
-          });
-          this.set('materialHighlighted', materialHighlighted);
-
-          intersectedViewObj.object.material = this.get('materialHighlighted');
-          this.set('deleteButtonHighlighted', id);
-        }
+        this.highlightDeleteButton(intersectedViewObj, id);
         return;
       }
 
@@ -1598,7 +1557,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  This method is used to exclude a selected 'package' or
    *  'clazz' from unhighlighting
    */
-  excludeSelectedComponent(controller, intersectedViewObj){
+  excludeSelectedEntity(controller, intersectedViewObj){
     if(intersectedViewObj){
       if(this.get('selectedComponentsMesh') && this.get('selectedComponentsMesh') === intersectedViewObj.object){
         // Scale ray distance to distance of intersection
@@ -1623,6 +1582,45 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     if(this.get('highlightedEntitiesApp')[id] && this.get('highlightedEntitiesApp')[id].userData.type && this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.type]){  
       this.get('highlightedEntitiesApp')[id].material.color =  
         new THREE.Color(this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.type]);
+    }
+  },
+
+  /*
+   *  This method is used to highlight the delete button
+   */
+  highlightDeleteButton(intersectedViewObj, id){
+    // Highlight if not highlighted
+    if(!this.get('deleteButtonHighlighted')){
+      // Save unhighlighted material
+      this.set('materialUnhighlighted', intersectedViewObj.object.material);
+      // Set new material
+      let materialHighlighted = new THREE.MeshPhongMaterial({
+        map: this.get('textureHighlighted')
+      });
+      this.set('materialHighlighted', materialHighlighted);
+
+      intersectedViewObj.object.material = this.get('materialHighlighted');
+      this.set('deleteButtonHighlighted', id);
+    }
+  },
+
+
+  /*
+   *  This method is used to check if an entity is 
+   *  already highlighted
+   */
+  isEntityHighlighted(intersectedViewObj, id, id2){
+    if(intersectedViewObj){
+      // Landscape or Application3D highlighted by first controller
+      if((this.get('highlightedEntities')[id] && this.get('highlightedEntities')[id] === intersectedViewObj.object) ||
+        (this.get('highlightedEntitiesApp')[id] && this.get('highlightedEntitiesApp')[id] === intersectedViewObj.object)){
+        return true;
+      }
+      // Landscape or Application3D highlighted by second controller
+      else if((this.get('highlightedEntities')[id2] && this.get('highlightedEntities')[id2] === intersectedViewObj.object) ||
+        (this.get('highlightedEntitiesApp')[id2] && this.get('highlightedEntitiesApp')[id2] === intersectedViewObj.object)){
+        return true;
+      }
     }
   },
 
