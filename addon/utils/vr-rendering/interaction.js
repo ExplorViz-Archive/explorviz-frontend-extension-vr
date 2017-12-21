@@ -343,22 +343,19 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     // Restore old color of landscape
     this.unhighlightLandscape(id);
 
-    // Restore old color of application3D or return if selected component is hit
-    if(this.unhighlightApplication3D(controller, intersectedViewObj)){
+    // Return if selected component is hit
+    if(this.excludeSelectedComponent(controller, intersectedViewObj)){
       return;
     }
 
-    // Case for intersection object present
+    // Restore old color of application3D
+    this.unhighlightApplication3D(id);
+
+    // Case: intersection object present
     if(intersectedViewObj){
   
       // Verify controllers
-      let id2;
-      if(id === this.get('controller1').id){
-        id2 = this.get('controller2').id;
-      }
-      else{
-        id2 = this.get('controller1').id;
-      }
+      let id2 = this.verifyControllers(id);
 
       // Scale ray distance to distance of intersection
       controller.getObjectByName('controllerLine').scale.z = intersectedViewObj.distance;
@@ -500,23 +497,19 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
       null, this.get('raycastObjectsLandscape'));
 
-
-    // Restore old color of application3D or return if selected component is hit
-    if(this.unhighlightApplication3D(controller, intersectedViewObj)){
+    // Return if selected component is hit
+    if(this.excludeSelectedComponent(controller, intersectedViewObj)){
       return;
     }
+
+    // Restore old color of application3D
+    this.unhighlightApplication3D(id);
 
     // Case for intersection object present
     if(intersectedViewObj){
   
       // Verify controllers
-      let id2;
-      if(id === this.get('controller1').id){
-        id2 = this.get('controller2').id;
-      }
-      else{
-        id2 = this.get('controller1').id;
-      }
+      let id2 = this.verifyControllers(id);
 
       // Scale ray distance to distance of intersection
       controller.getObjectByName('controllerLine').scale.z = intersectedViewObj.distance;
@@ -1354,38 +1347,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     let id = 123;
 
-    // Look for highlighted entity 'landscape' and unhighlight it if the same controller id highlighted it
-    if(this.get('highlightedEntities')[id] && this.get('highlightedEntities')[id].type && this.get('colorList')[this.get('highlightedEntities')[id].type]){  
-      this.get('highlightedEntities')[id].material.color =  
-        new THREE.Color(this.get('colorList')[this.get('highlightedEntities')[id].type]);
-      
-      let entity = this.get('highlightedEntities')[id];
-      let index = "text"+entity.type;
+    // Restore old color of landscape
+    this.unhighlightLandscape(id);
 
-      // Identify enity
-      if(entity.type === "nodegroup"){
-        index = "textnode";  
-      }
-      else if(entity.type === "application"){
-        index = "textapp";
-      }
-      let name = entity.userData.model.get('name');
+    // Restore old color of application3D
+    this.unhighlightApplication3D(id);
 
-      // Reset the color of the mapped material
-      this.get('labeler').redrawLabel(entity, 
-        this.get('colorList')[index],name,this.get('colorList')[entity.type]);
-    }
-
-    // Look for highlighted entity 'app3D' and unhighlight the package it if the same controller id highlighted it
-    if(this.get('highlightedEntitiesApp')[id] && this.get('highlightedEntitiesApp')[id].userData.model.get('color') && this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.model.get('color')]){  
-      this.get('highlightedEntitiesApp')[id].material.color =  
-        new THREE.Color(this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.model.get('color')]);
-    }
-    // Look for highlighted entity 'app3D' and unhighlight the clazz it if the same controller id highlighted it
-    if(this.get('highlightedEntitiesApp')[id] && this.get('highlightedEntitiesApp')[id].userData.type && this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.type]){  
-      this.get('highlightedEntitiesApp')[id].material.color =  
-        new THREE.Color(this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.type]);
-    }
     // Case for intersection object present
     if(intersectedViewObj) {
 
@@ -1628,13 +1595,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   },
 
   /*
-   *  This method is used to look for highlighted 'packages' or
-   *  'clazzes' of an application3D and restore their color if the 
-   *  same controller id highlighted it
+   *  This method is used to exclude a selected 'package' or
+   *  'clazz' from unhighlighting
    */
-  unhighlightApplication3D(controller, intersectedViewObj){
-    let id = controller.id;
-    // Exclude a selected 'package' or 'clazz' from unhighlighting by returning true
+  excludeSelectedComponent(controller, intersectedViewObj){
     if(intersectedViewObj){
       if(this.get('selectedComponentsMesh') && this.get('selectedComponentsMesh') === intersectedViewObj.object){
         // Scale ray distance to distance of intersection
@@ -1642,6 +1606,14 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         return true;
       }
     }
+  },
+
+  /*
+   *  This method is used to look for highlighted 'packages' or
+   *  'clazzes' of an application3D and restore their color if the 
+   *  same controller id highlighted it
+   */
+  unhighlightApplication3D(id){
     // Handle packages
     if(this.get('highlightedEntitiesApp')[id] && this.get('highlightedEntitiesApp')[id].userData.model.get('color') && this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.model.get('color')]){  
       this.get('highlightedEntitiesApp')[id].material.color =  
@@ -1692,6 +1664,17 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.get('circle').material.dispose();
       this.set('circle', null);
     }
+  },
+
+  verifyControllers(id){
+    let id2;
+    if(id === this.get('controller1').id){
+      id2 = this.get('controller2').id;
+    }
+    else{
+      id2 = this.get('controller1').id;
+    }
+    return id2;
   },
 
   /*
