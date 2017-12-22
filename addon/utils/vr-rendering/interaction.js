@@ -445,11 +445,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Delete highlighted object entry for app3D
       this.get('highlightedEntitiesApp')[id] = null;
 
-      // Unhighlight delete button if highlighted AND delete button was highlighted by this controller
-      if(this.get('application3D') && this.get('deleteButtonHighlighted') === id){
-        this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
-        this.set('deleteButtonHighlighted', null);
-      }
+      // Unhighlight delete button 
+      this.unhighlightedDeleteButton(id, true);
+
       // Resize ray 
       controller.getObjectByName('controllerLine').scale.z = 5;
     }
@@ -546,7 +544,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Delete highlighted object entry for app3D
         this.get('highlightedEntitiesApp')[id] = null;
       }
-      // Unhighlight delete button if app3D or landscape is 
+      // Unhighlight delete button if app3D is 
       // highlighted AND delete button was highlighted by this controller
       if(this.get('application3D') && this.get('highlightedEntitiesApp')[id]  && this.get('deleteButtonHighlighted') === id){
         this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
@@ -562,11 +560,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Remove circle for teleporting
       this.removeTeleportCircle();
 
-      // Unhighlight delete button if highlighted AND delete button was highlighted by this controller
-      if(this.get('application3D') && this.get('deleteButtonHighlighted') === id){
-        this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
-        this.set('deleteButtonHighlighted', null);
-      }
+      // Unhighlight delete button
+      this.unhighlightedDeleteButton(id, true);
+
       // Resize ray 
       controller.getObjectByName('controllerLine').scale.z = 5;
     }
@@ -1457,11 +1453,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         this.trigger('redrawAppCommunication');
       }
 
-      // Unhighlight delete button if highlighted
-      if(this.get('application3D') && this.get('deleteButtonHighlighted')){
-        this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
-        this.set('deleteButtonHighlighted', null);
-      }
+      // Unhighlight delete button
+      this.unhighlightedDeleteButton(id, true);
     }
   },
 
@@ -1601,6 +1594,17 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       intersectedViewObj.object.material = this.get('materialHighlighted');
       this.set('deleteButtonHighlighted', id);
+    }
+  },
+
+  /*
+   *  This method is used to unhighlight the delete button
+   *  if the passed controller id highlighted it
+   */
+  unhighlightedDeleteButton(id, additionalCondition){
+    if(this.get('application3D') && this.get('deleteButtonHighlighted') === id && additionalCondition){
+      this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
+      this.set('deleteButtonHighlighted', null);
     }
   },
 
