@@ -374,37 +374,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Calculate darker color
       let darkerColor = this.calculateDarkerColor(intersectedViewObj.object);
 
-      // Handle hit system, nodegroup or application and change color to red
-      if(emberModelName === "nodegroup" || emberModelName === "system" || emberModelName === "application"){
-                  
-          if(intersectedViewObj.object.type === "system" || intersectedViewObj.object.type === "nodegroup" || intersectedViewObj.object.type === "application"){
+      // Handle hit system, nodegroup or application and change color
+      this.highlightLandscape(emberModel, emberModelName, intersectedViewObj, id, darkerColor);
 
-            let index = "text"+intersectedViewObj.object.type;
-
-            let name;
-            // Identify entity
-            if(intersectedViewObj.object.type === "nodegroup"){
-              index = "textnode";
-              name = intersectedViewObj.object.userData.model.get('name');
-            }
-            else if(intersectedViewObj.object.type === "application"){
-              index = "textapp";
-              name = intersectedViewObj.object.userData.model.get('name');
-            }
-            else{
-              name = emberModel.get('name');
-            }
-            // Change entity color to red
-            this.get('labeler').redrawLabel(intersectedViewObj.object, 
-              this.get('colorList')[index],name, darkerColor);
-
-            /* Save highlighted object and bind it on controller id 
-               to quarantee that only this controller can unhighlight it */
-            this.get('highlightedEntities')[id] = intersectedViewObj.object;
-          }
-      }
       // Handle hit component/clazz of app3D if its not binded to a Controller
-      else if((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded') && emberModel !== this.get('appCommunicationHighlighted')){
+      if((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded') && emberModel !== this.get('appCommunicationHighlighted')){
         let color = new THREE.Color(darkerColor);
         
         // Check if label of box is hit and highlight box anyway
@@ -500,7 +474,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Calculate darker color
       let darkerColor = this.calculateDarkerColor(intersectedViewObj.object);
 
-      // Handle hit component/clazz of app3D if its not binded to a Controller
+      // Handle closed component/clazz of app3D
       if(((emberModelName === "component" && !emberModel.get('opened'))|| emberModelName === "clazz") && !this.get('app3DBinded') && emberModel !== this.get('appCommunicationHighlighted')){
         let color = new THREE.Color(darkerColor);
 
@@ -573,15 +547,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Handle delete button and floor exception
       if (intersectedViewObj.object.name === 'deleteButton' || intersectedViewObj.object.name === 'floor'){
         return;
-      }
-
-      // Verify controllers
-      let id2;
-      if(id === this.get('controller1').id){
-        id2 = this.get('controller2').id;
-      }
-      else{
-        id2 = this.get('controller1').id;
       }
 
       // Remove text box if hit object is not the previous one
@@ -787,10 +752,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
             // No application3D => message
             if(!this.get('application3D')){
-              //const message = "Sorry, no details for <b>" + emberModel.get('name') + 
-              //  "</b> are available.";
-
-              //this.showAlertifyMessage(message);
             }
           } 
           // Handle data for app3D available
@@ -1318,37 +1279,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Calculate darker color
       let darkerColor = this.calculateDarkerColor(intersectedViewObj.object);
 
-      // Handle hit system, nodegroup or application and change color to red  
-      if(emberModelName === "nodegroup" || emberModelName === "system" || emberModelName === "application"){
-               
-          if(intersectedViewObj.object.type === "system" || intersectedViewObj.object.type === "nodegroup" || intersectedViewObj.object.type === "application"){
-        
-            let index = "text"+intersectedViewObj.object.type;
-
-            let name;
-
-            if(intersectedViewObj.object.type === "nodegroup"){
-              index = "textnode";
-              name = intersectedViewObj.object.userData.model.get('name');
-            }
-            else if(intersectedViewObj.object.type === "application"){
-              index = "textapp";
-              name = intersectedViewObj.object.userData.model.get('name');
-            }
-            else{
-              name = emberModel.get('name');
-            }
-
-            // Change entity color 
-            this.get('labeler').redrawLabel(intersectedViewObj.object, 
-              this.get('colorList')[index],name, darkerColor);
-
-            // Save highlighted object
-            this.get('highlightedEntities')[id] = intersectedViewObj.object;
-         }
-      }
+      // Handle hit system, nodegroup or application and change color
+      this.highlightLandscape(emberModel, emberModelName, intersectedViewObj, id, darkerColor);
+      
       // Handle hit component/clazz of app3D 
-      else if(emberModelName === "component" || emberModelName === "clazz"){
+      if(emberModelName === "component" || emberModelName === "clazz"){
 
         // Just highlight communication lines if component closed or clazz
         if(!emberModel.get('opened') || emberModelName === "clazz"){
@@ -1385,11 +1320,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           this.trigger('redrawAppCommunication');
         }
       }
-      // Unhighlight delete button if app3D or landscape is highlighted
-      if(this.get('application3D') && this.get('deleteButtonHighlighted') && (this.get('highlightedEntitiesApp')[id] || this.get('highlightedEntities')[id])){
-        this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
-        this.set('deleteButtonHighlighted', null);
-      }
+      // Unhighlight delete button if app3D or landscape is highlighted 
+      let additionalCondition = (this.get('highlightedEntitiesApp')[id] || this.get('highlightedEntities')[id]);
+      this.unhighlightedDeleteButton(id, additionalCondition);
     }
     // Reset highlighted enities if nothing was hit 
     else{
@@ -1482,6 +1415,40 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   },
 
   ////////// Helper functions //////////
+
+  /*
+   *  This method is used to darken the color of the systems, nodegroups and applications
+   */
+  highlightLandscape(emberModel, emberModelName, intersectedViewObj, id, darkerColor){
+    if(emberModelName === "nodegroup" || emberModelName === "system" || emberModelName === "application"){
+             
+        if(intersectedViewObj.object.type === "system" || intersectedViewObj.object.type === "nodegroup" || intersectedViewObj.object.type === "application"){
+      
+          let index = "text"+intersectedViewObj.object.type;
+
+          let name;
+
+          if(intersectedViewObj.object.type === "nodegroup"){
+            index = "textnode";
+            name = intersectedViewObj.object.userData.model.get('name');
+          }
+          else if(intersectedViewObj.object.type === "application"){
+            index = "textapp";
+            name = intersectedViewObj.object.userData.model.get('name');
+          }
+          else{
+            name = emberModel.get('name');
+          }
+
+          // Change entity color 
+          this.get('labeler').redrawLabel(intersectedViewObj.object, 
+            this.get('colorList')[index],name, darkerColor);
+
+          // Save highlighted object
+          this.get('highlightedEntities')[id] = intersectedViewObj.object;
+       }
+    }
+  },
   
   /*
    *  This method is used to look for highlighted 'systems', 
