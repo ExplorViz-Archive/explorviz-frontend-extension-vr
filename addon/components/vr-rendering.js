@@ -102,7 +102,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   actualizeRaycastObjects() {
 
     let result = (this.get('vrLandscape')) ? this.get('vrLandscape').children : [];
-    const allowedObjects = ['node', 'system', 'nodegroup', 'application', 'communication', 'label', 'floor','component', 'clazz', 'deleteButton'];
+    const allowedObjects = ['node', 'system', 'nodegroup', 'application', 'communication', 'floor','component', 'clazz', 'deleteButton'];
 
     result = (this.get('application3D')) ? result.concat(this.get('application3D').children) : result;
     result = (this.get('room')) ? result.concat(this.get('room').children) : result;

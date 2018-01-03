@@ -379,15 +379,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle hit component/clazz of app3D if its not binded to a Controller
       if((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded') && emberModel !== this.get('appCommunicationHighlighted')){
+
+        // New color 
         let color = new THREE.Color(darkerColor);
-        
-        // Check if label of box is hit and highlight box anyway
-        if(intersectedViewObj.object.parent.label === intersectedViewObj.object){
-          intersectedViewObj.object.parent.material.color = color;
-        }
-        else{
-          intersectedViewObj.object.material.color = color;
-        }
+        intersectedViewObj.object.material.color = color;
 
         /* Save highlighted object and bind it on controller id to quarantee 
          * that only this controller can unhighlight it */
@@ -476,15 +471,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle closed component/clazz of app3D
       if(((emberModelName === "component" && !emberModel.get('opened'))|| emberModelName === "clazz") && !this.get('app3DBinded') && emberModel !== this.get('appCommunicationHighlighted')){
-        let color = new THREE.Color(darkerColor);
 
-        // Check if label of box is hit and highlight box anyway
-        if(intersectedViewObj.object.parent.label === intersectedViewObj.object){
-          intersectedViewObj.object.parent.material.color = color;
-        }
-        else{
-          intersectedViewObj.object.material.color = color;
-        }
+        // New color 
+        let color = new THREE.Color(darkerColor);
+        intersectedViewObj.object.material.color = color;
 
         /* Save highlighted object and bind it on controller id to quarantee 
          * that only this controller can unhighlight it */
