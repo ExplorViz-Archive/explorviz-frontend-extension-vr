@@ -697,31 +697,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Check if an object is hit
       if(intersectedViewObj) {
 
-        // Delete application
+        // Handle delete button
         if (intersectedViewObj.object.name === 'deleteButton'){
-          // Reset highlighting of delete button
-          this.set('deleteButtonHighlighted', null);
-
-          // Check if delete button was highlighted => restore unhighlighted material
-          if(this.get('materialUnhighlighted')){
-            intersectedViewObj.object.material = this.get('materialUnhighlighted');
-          }
-          // Dispose highlighted material
-          if(this.get('materialHighlighted')){
-            this.get('materialHighlighted').map.dispose();
-            this.get('materialHighlighted').dispose();
-          }
-
-          // Remove selection
-          if(this.get('appCommunicationHighlighted')){
-            this.get('selector').highlightAppCommunication(null);
-            this.get('appCommunicationHighlighted').set('highlighted', false);
-            this.set('appCommunicationHighlighted', null);
-            this.set('selectedComponentsMesh', null);
-          }
-          // Remove application
-          this.trigger('removeApplication');
-
+          // Delete application
+          this.deleteApplication3D(intersectedViewObj);
           return;
         }
 
@@ -820,30 +799,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Check if an object is hit
       if(intersectedViewObj) {
 
-        // Delete application
+        // Handle delete button
         if (intersectedViewObj.object.name === 'deleteButton'){
-          // Reset highlighting of delete button
-          this.set('deleteButtonHighlighted', null);
-
-          // Check if delete button was highlighted => restore unhighlighted material
-          if(this.get('materialUnhighlighted')){
-            intersectedViewObj.object.material = this.get('materialUnhighlighted');
-          }
-          // Dispose highlighted material
-          if(this.get('materialHighlighted')){
-            this.get('materialHighlighted').map.dispose();
-            this.get('materialHighlighted').dispose();
-          }
-          // Remove selection
-          if(this.get('appCommunicationHighlighted')){
-            this.get('selector').highlightAppCommunication(null);
-            this.get('appCommunicationHighlighted').set('highlighted', false);
-            this.set('appCommunicationHighlighted', null);
-            this.set('selectedComponentsMesh', null);
-          }
-          // Remove application
-          this.trigger('removeApplication');
-
+          // Delete application
+          this.deleteApplication3D(intersectedViewObj);
           return;
         }
 
@@ -1117,30 +1076,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     // Check if an object is hit
     if(intersectedViewObj) {
 
-      // Delete application
+      // Handle delete button
       if (intersectedViewObj.object.name === 'deleteButton'){
-        // Reset highlighting of delete button
-        this.set('deleteButtonHighlighted', null);
-
-        // Check if delete button was highlighted => restore unhighlighted material
-        if(this.get('materialUnhighlighted')){
-          intersectedViewObj.object.material = this.get('materialUnhighlighted');
-        }
-        // Dispose highlighted material
-        if(this.get('materialHighlighted')){
-          this.get('materialHighlighted').map.dispose();
-          this.get('materialHighlighted').dispose();
-        }
-        // Remove selection
-        if(this.get('appCommunicationHighlighted')){
-          this.get('selector').highlightAppCommunication(null);
-          this.get('appCommunicationHighlighted').set('highlighted', false);
-          this.set('appCommunicationHighlighted', null);
-          this.set('selectedComponentsMesh', null);
-        }
-        // Remove application
-        this.trigger('removeApplication');
-
+        // Delete application
+        this.deleteApplication3D(intersectedViewObj);
         return;
       }
 
@@ -1555,6 +1494,34 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         return true;
       }
     }
+  },
+
+  /*
+   *  This method is used to remove an application
+   *  and to do all necessary clean up
+   */
+  deleteApplication3D(intersectedViewObj){
+    // Reset highlighting of delete button
+    this.set('deleteButtonHighlighted', null);
+
+    // Check if delete button was highlighted => restore unhighlighted material
+    if(this.get('materialUnhighlighted')){
+      intersectedViewObj.object.material = this.get('materialUnhighlighted');
+    }
+    // Dispose highlighted material
+    if(this.get('materialHighlighted')){
+      this.get('materialHighlighted').map.dispose();
+      this.get('materialHighlighted').dispose();
+    }
+    // Remove selection
+    if(this.get('appCommunicationHighlighted')){
+      this.get('selector').highlightAppCommunication(null);
+      this.get('appCommunicationHighlighted').set('highlighted', false);
+      this.set('appCommunicationHighlighted', null);
+      this.set('selectedComponentsMesh', null);
+    }
+    // Remove application
+    this.trigger('removeApplication');
   },
 
   /*
