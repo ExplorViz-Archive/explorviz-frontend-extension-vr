@@ -15,7 +15,7 @@ This addon adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mode t
 
 2. Follow the installation guide of [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend#development)
 
-3. Change to the frontends directory in your CLI, e.g. `cd explorviz-ui-frontend`
+3. Change to the frontends directory in your CLI, e.g. `cd explorviz-frontend`
 
 4. Install this extension via `ember install https://github.com/ExplorViz/explorviz-frontend-plugin-vr.git`
 
