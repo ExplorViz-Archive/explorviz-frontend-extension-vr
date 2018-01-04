@@ -3,7 +3,7 @@ var mergeTrees = require('broccoli-merge-trees');
 var Funnel = require('broccoli-funnel');
 
 module.exports = {
-  name: 'explorviz-frontend-plugin-vr',
+  name: 'explorviz-frontend-extension-vr',
 
     isDevelopingAddon() {
         return true;
