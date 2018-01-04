@@ -1,4 +1,4 @@
-import Router from "explorviz-ui-frontend/router";
+import Router from "explorviz-frontend/router";
 
 export function initialize(app) {
 	let service = app.lookup("service:page-setup");

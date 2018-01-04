@@ -1,18 +1,18 @@
 import Ember from 'ember';
 import THREE from "npm:three";
-import THREEPerformance from 'explorviz-ui-frontend/mixins/threejs-performance';
+import THREEPerformance from 'explorviz-frontend/mixins/threejs-performance';
 import Raycaster from '../utils/vr-rendering/raycaster';
-import applyKlayLayout from 'explorviz-ui-frontend/utils/landscape-rendering/klay-layouter';
+import applyKlayLayout from 'explorviz-frontend/utils/landscape-rendering/klay-layouter';
 import Interaction from '../utils/vr-rendering/interaction';
 import Labeler from '../utils/vr-rendering/labeler';
-import LabelerApp from 'explorviz-ui-frontend/utils/application-rendering/labeler';
-import CalcCenterAndZoom from 'explorviz-ui-frontend/utils/landscape-rendering/center-and-zoom-calculator';
-import ImageLoader from 'explorviz-ui-frontend/utils/three-image-loader';
-import applyCityLayout from 'explorviz-ui-frontend/utils/application-rendering/city-layouter';
+import LabelerApp from 'explorviz-frontend/utils/application-rendering/labeler';
+import CalcCenterAndZoom from 'explorviz-frontend/utils/landscape-rendering/center-and-zoom-calculator';
+import ImageLoader from 'explorviz-frontend/utils/three-image-loader';
+import applyCityLayout from 'explorviz-frontend/utils/application-rendering/city-layouter';
 import {
   createFoundation,
   removeFoundation
-} from 'explorviz-ui-frontend/utils/application-rendering/foundation-builder';
+} from 'explorviz-frontend/utils/application-rendering/foundation-builder';
 
 import layout from "../templates/components/vr-rendering";
 
