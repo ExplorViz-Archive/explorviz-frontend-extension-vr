@@ -1,7 +1,7 @@
 {
-  "name": "explorviz-frontend-plugin-vr",
+  "name": "explorviz-frontend-extension-vr",
   "version": "0.0.1",
-  "description": "VR mode for ExplorViz",
+  "description": "VR mode extension for ExplorViz",
   "keywords": [
     "ember-addon"
   ],
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ExplorViz/explorviz-frontend-plugin-vr.git"
+    "url": "https://github.com/ExplorViz/explorviz-frontend-extension-vr.git"
   },
   "scripts": {
     "build": "ember build",
