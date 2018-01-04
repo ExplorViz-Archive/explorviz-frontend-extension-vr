@@ -1,6 +1,6 @@
 # ExplorViz-Frontend-Extension-VR
 
-This addon adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mode to ExplorViz.
+This extension adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mode to ExplorViz.
 
 ## Requirements
 - [HTC Vive](https://www.vive.com) or [Oculus Rift CV1](https://www.oculus.com/rift/) with controllers and their respective firmware
@@ -17,13 +17,13 @@ This addon adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mode t
 
 3. Change to the frontends directory in your CLI, e.g. `cd explorviz-frontend`
 
-4. Install this extension via `ember install https://github.com/ExplorViz/explorviz-frontend-plugin-vr.git`
+4. Install this extension via `ember install https://github.com/ExplorViz/explorviz-frontend-extension-vr.git`
 
 ## Running & Building
 
 Follow the respective procedure in [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend#running--development)
 
-## Usage
+## Controls
 
 - Upwards Arrow: Move the environment upwards 
 - Downwards Arrow: Move the environment downwards 
