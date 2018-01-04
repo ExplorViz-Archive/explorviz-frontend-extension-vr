@@ -7,13 +7,13 @@ This addon adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mode t
 - A powerful computer that can handle VR
 - Latest version of [Mozilla Firefox](https://www.mozilla.org/)
 - [ExplorViz Backend](https://github.com/ExplorViz/explorviz-backend)
-- [ExplorViz Frontend](https://github.com/ExplorViz/explorviz-ui-frontend)
+- [ExplorViz Frontend](https://github.com/ExplorViz/explorviz-frontend)
 
 ## Installation
 
 1. Setup and install your head-mounted display (HMD)
 
-2. Follow the installation guide of [ExplorViz frontend](https://github.com/ExplorViz/explorviz-ui-frontend#development)
+2. Follow the installation guide of [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend#development)
 
 3. Change to the frontends directory in your CLI, e.g. `cd explorviz-ui-frontend`
 
@@ -21,7 +21,7 @@ This addon adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mode t
 
 ## Running & Building
 
-Follow the respective procedure in [ExplorViz frontend](https://github.com/ExplorViz/explorviz-ui-frontend#running--development)
+Follow the respective procedure in [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend#running--development)
 
 ## Usage
 
