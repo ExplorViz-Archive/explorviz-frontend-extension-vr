@@ -66,6 +66,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   initialRendering: true,
   requestMaterial: null,
   foundationBuilder: null,
+  zeroValue: 0.0000000000000001 * 0.0000000000000001,
 
   // VR
   vrEnvironment: null,
@@ -367,7 +368,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // Create floor
     var floorTexture = new THREE.TextureLoader().load('images/materials/floor.jpg');
-    var floorGeometry = new THREE.BoxGeometry(4, 0, 3);
+    var floorGeometry = new THREE.BoxGeometry(4, this.get('zeroValue'), 3);
     var floorMaterial = new THREE.MeshBasicMaterial({
       map: floorTexture
     });
@@ -1322,7 +1323,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       });
 
       const plane = new THREE.Mesh(new THREE.BoxGeometry(model.get('width'),
-        model.get('height'), 0), material);
+        model.get('height'), self.get('zeroValue')), material);
 
       plane.userData['model'] = model;
       return plane;
@@ -1343,8 +1344,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         color
       });
 
-      const box = new THREE.Mesh(new THREE.BoxGeometry(model.get('width'),
-        model.get('height'), model.get('depth')), material);
+      var height = model.get('height');
+      var depth = model.get('depth');
+      var zero = self.get('zeroValue');
+
+      height = height ? height : zero;
+      depth = depth ? depth : zero;
+      
+      const box = new THREE.Mesh(new THREE.BoxGeometry(model.get('width'), height, depth), material);
 
       box.userData['model'] = model;
       return box;
