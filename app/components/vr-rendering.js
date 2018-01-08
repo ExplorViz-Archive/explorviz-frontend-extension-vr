@@ -1,1 +1,1 @@
-export { default } from 'explorviz-frontend-plugin-vr/components/vr-rendering';
+export { default } from 'explorviz-frontend-extension-vr/components/vr-rendering';

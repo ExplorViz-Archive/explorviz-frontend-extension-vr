@@ -1,1 +1,1 @@
-export { default } from 'explorviz-frontend-plugin-vr/utils/vr-rendering/hover-handler';
+export { default } from 'explorviz-frontend-extension-vr/utils/vr-rendering/hover-handler';

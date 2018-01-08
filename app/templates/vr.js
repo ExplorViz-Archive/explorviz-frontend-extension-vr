@@ -1,1 +1,1 @@
-export { default } from 'explorviz-frontend-plugin-vr/templates/vr';
+export { default } from 'explorviz-frontend-extension-vr/templates/vr';

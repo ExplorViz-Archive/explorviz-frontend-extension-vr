@@ -1,0 +1,1 @@
+export { default, initialize } from 'explorviz-frontend-extension-vr/instance-initializers/explorviz-frontend-extension-vr';

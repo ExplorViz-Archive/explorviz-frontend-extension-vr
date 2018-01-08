@@ -1,8 +1,8 @@
 import Ember from 'ember';
 import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
 import HoverHandler from './hover-handler';
-import HoverHandlerApp3D from 'explorviz-frontend/utils/application-rendering/hover-handler';
-import HoverHandlerLandscape from 'explorviz-frontend/utils/landscape-rendering/hover-handler';
+import HoverHandlerApp3D from 'explorviz-frontend/utils/application-rendering/popup-handler';
+import HoverHandlerLandscape from 'explorviz-frontend/utils/landscape-rendering/popup-handler';
 import AlertifyHandler from 'explorviz-frontend/mixins/alertify-handler';
 import Selector from './selector';
 

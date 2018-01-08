@@ -9,11 +9,7 @@ import LabelerApp from 'explorviz-frontend/utils/application-rendering/labeler';
 import CalcCenterAndZoom from 'explorviz-frontend/utils/landscape-rendering/center-and-zoom-calculator';
 import ImageLoader from 'explorviz-frontend/utils/three-image-loader';
 import applyCityLayout from 'explorviz-frontend/utils/application-rendering/city-layouter';
-import {
-  createFoundation,
-  removeFoundation
-} from 'explorviz-frontend/utils/application-rendering/foundation-builder';
-
+import FoundationBuilder from 'explorviz-frontend/utils/application-rendering/foundation-builder';
 import layout from "../templates/components/vr-rendering";
 
 // Declare globals
@@ -69,6 +65,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   centerAndZoomCalculator: null,
   initialRendering: true,
   requestMaterial: null,
+  foundationBuilder: null,
 
   // VR
   vrEnvironment: null,
@@ -336,6 +333,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       this.set('raycaster', Raycaster.create());
     }
 
+    if (!this.get('foundationBuilder')) {
+      this.set('foundationBuilder', FoundationBuilder.create());
+    } 
+
     if (!this.get('centerAndZoomCalculator')) {
       this.set('centerAndZoomCalculator', CalcCenterAndZoom.create());
     }
@@ -521,9 +522,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }
 
     if (this.get('landscapeRepo.latestApplication')) {
-      // remove foundation of application3D
-      const emberApplication = this.get('application3D.userData.model');
-      removeFoundation(emberApplication, this.get('store'));
+      // remove foundation for re-rendering
+      this.get('foundationBuilder').removeFoundation(this.get('store'));
       this.set('landscapeRepo.latestApplication', null);
     }
 
@@ -1554,9 +1554,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     if(!childrenToRemove){
       // Handle removing whole application3D
       if(entity.name === 'app3D'){
-        // Remove foundation for re-rendering
-        const emberApplication = this.get('application3D.userData.model');
-        removeFoundation(emberApplication, this.get('store'));
+
+        // remove foundation for re-rendering
+        this.get('foundationBuilder').removeFoundation(this.get('store'));
 
         this.set('applicationID', null);
         this.set('application3D', null);
@@ -1659,7 +1659,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     if (application.get('components').get('length') !== 0) {
       // Create foundation for application3D
-      const foundation = createFoundation(application, self.get('store'));
+      const foundation = this.get('foundationBuilder').createFoundation(application, this.get('store'));
 
       // Draw application in 3D application-view
       applyCityLayout(application);

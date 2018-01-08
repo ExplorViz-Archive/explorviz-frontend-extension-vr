@@ -1,1 +1,1 @@
-export { default } from 'explorviz-frontend-plugin-vr/utils/vr-rendering/interaction';
+export { default } from 'explorviz-frontend-extension-vr/utils/vr-rendering/interaction';
