@@ -1426,19 +1426,19 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  'clazzes' of an application3D and restore their color if the 
    *  same controller id highlighted it
    */
-  unhighlightApplication3D(id){
-    // Handle packages
-    if(this.get('highlightedEntitiesApp')[id] && this.get('highlightedEntitiesApp')[id].userData.model.get('color') && this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.model.get('color')]){  
-      this.get('highlightedEntitiesApp')[id].material.color =  
-        new THREE.Color(this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.model.get('color')]);
-    }
-    // Handle clazzes
-    if(this.get('highlightedEntitiesApp')[id] && this.get('highlightedEntitiesApp')[id].userData.type && this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.type]){  
-      this.get('highlightedEntitiesApp')[id].material.color =  
-        new THREE.Color(this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.type]);
-    }
-    this.get('highlightedEntitiesApp')[id] = null;
-  },
+   unhighlightApplication3D(id){
+     // Handle packages
+     if(this.get('highlightedEntitiesApp')[id] && this.get('highlightedEntitiesApp')[id].userData.model.get('color')){
+       this.get('highlightedEntitiesApp')[id].material.color =  
+         new THREE.Color(this.get('highlightedEntitiesApp')[id].userData.model.get('color'));
+     }
+     // Handle clazzes
+     if(this.get('highlightedEntitiesApp')[id] && this.get('highlightedEntitiesApp')[id].userData.type && this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.type]){  
+       this.get('highlightedEntitiesApp')[id].material.color =  
+         new THREE.Color(this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.type]);
+     }
+     this.get('highlightedEntitiesApp')[id] = null;
+   },
 
   /*
    *  This method is used to highlight the delete button
