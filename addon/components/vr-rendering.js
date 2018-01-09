@@ -245,7 +245,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     let material = new THREE.MeshBasicMaterial({
       color
     });
-    this.set('textBox', new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0), material));
+    this.set('textBox', new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, this.get('zeroValue')), material));
     this.get('textBox').name = 'textBox';
 
     // Rotate text box
