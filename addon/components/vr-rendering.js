@@ -207,13 +207,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // Create left controller
     this.set('controller1', new ViveController(0));
-    this.get('controller1').standingMatrix = this.get('webglrenderer').vr.getStandingMatrix();
     this.get('controller1').name = "controller";
     this.get('scene').add(this.get('controller1'));
 
     // Create right controller
     this.set('controller2', new ViveController(1));
-    this.get('controller2').standingMatrix = this.get('webglrenderer').vr.getStandingMatrix();
     this.get('controller2').name = "controller";
     this.get('scene').add(this.get('controller2'));
 
