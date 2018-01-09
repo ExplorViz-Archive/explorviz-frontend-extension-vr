@@ -146,11 +146,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     const self = this;
 
-    // Check if WebVR is supported
-    WEBVR.checkAvailability().catch(function(reject) {
-      self.get('interaction').showAlertifyMessage(reject);
-    });
-
     // Dummy object for raycasting
     this.set('room', new THREE.Object3D());
     this.get('room').name = 'room';
@@ -204,6 +199,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('webglrenderer').shadowMap.enabled = true;
     this.get('webglrenderer').gammaInput = true;
     this.get('webglrenderer').gammaOutput = true;
+
+    // Add VR button
+    document.body.appendChild( WEBVR.createButton( this.get('webglrenderer') ));
 
     // Create left controller
     this.set('controller1', new ViveController(0));
@@ -370,18 +368,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     var floorMaterial = new THREE.MeshBasicMaterial({
       map: floorTexture
     });
-    var floorMesh = new THREE.Mesh(floorGeometry, floorMaterial); ///// End floor
+    var floorMesh = new THREE.Mesh(floorGeometry, floorMaterial); 
     floorMesh.name = 'floor';
     floorMesh.userData.name = 'floor';
     this.get('room').add(floorMesh);
-    self.get('scene').add(this.get('room'));
-
-    // Add VR-Button
-    WEBVR.getVRDisplay(function(display) {
-      self.set('vrAvailable', true);
-      self.get('webglrenderer').vr.setDevice(display);
-      document.body.appendChild(WEBVR.getButton(display, self.get('webglrenderer').domElement));
-    });
+    self.get('scene').add(this.get('room'));///// End floor
 
     // Stop data flow
     this.get('reloadHandler').stopExchange();
@@ -533,10 +524,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     var gl = this.get('canvas').getContext('webgl');
     gl.getExtension('WEBGL_lose_context').loseContext();
 
-    // Remove VR-Button from DOM 
-    if (this.get('vrAvailable')) {
-      document.body.removeChild(document.body.lastChild);
-    }
   },
 
   /**
