@@ -846,7 +846,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             
             // Save old mesh and color
             this.set('selectedComponentsMesh', intersectedViewObj.object);
-            this.set('selectedComponentsColor', intersectedViewObj.object.material.color.clone());
+            if(intersectedViewObj.object.userData.type === 'clazz'){
+              this.set('selectedComponentsColor', new THREE.Color(this.get('colorListApp')[this.get('selectedComponentsMesh').userData.type]));
+            }
+            else{
+              this.set('selectedComponentsColor', intersectedViewObj.object.userData.model.get('color'));
+            }
             this.set('appCommunicationHighlighted', emberModel);
 
             // Set new color
@@ -1231,14 +1236,20 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             }
             // Handle package
             else{
-              this.get('selectedComponentsMesh').material.color = new THREE.Color(this.get('selectedComponentsColor'));
+              this.get('selectedComponentsMesh').material.color = new THREE.Color(this.get('selectedComponentsColor')); 
             }
             this.get('appCommunicationHighlighted').set('highlighted', false);
           }
 
           // Save old mesh and color
           this.set('selectedComponentsMesh', intersectedViewObj.object);
-          this.set('selectedComponentsColor', intersectedViewObj.object.material.color.clone());
+          if(intersectedViewObj.object.userData.type === 'clazz'){
+            this.set('selectedComponentsColor', new THREE.Color(this.get('colorListApp')[this.get('selectedComponentsMesh').userData.type]));
+          }
+          else{
+            this.set('selectedComponentsColor', intersectedViewObj.object.userData.model.get('color'));
+          }
+
           this.set('appCommunicationHighlighted', emberModel);
 
           let color = new THREE.Color("rgb(255,0,0)");
