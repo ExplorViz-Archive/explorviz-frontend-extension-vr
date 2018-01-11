@@ -18,7 +18,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   canvas2: null,
   camera: null,
   room: null,
-  initRoom: true,
 
   renderer: null,
   raycaster: null,
@@ -27,15 +26,14 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   controller2: null,
 
   labeler: null,
-  
   vrEnvironment:null,
 
   colorList: null,
   colorListApp: null,
 
-  // emberModel of the selected component
+  // emberModel of the selected entity
   appCommunicationHighlighted: false,
-  // mesh of the selected component
+  // mesh of the selected entity
   selectedEntitysMesh: null,
   selectedEntitysColor: null,
 
@@ -65,8 +63,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
 
   /*
-   * This method is called after an application3D  
-   * in component vr-rendering is created
+   * This method is called in "vr-rendering" after 
+   * an application3D has been created 
    */
   setupInteractionApp3D(application3D, app) {
     this.set('application3D', application3D);
@@ -83,7 +81,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   // Import information from component vr-rendering to manipulate objects global
   setupInteraction(scene, user, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, 
-    controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, floor) {
+    controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, room) {
 
     this.set('scene', scene);
     this.set('canvas', canvas);
@@ -98,7 +96,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('colorListApp', colorListApp);   
     this.set('textBox', textBox);
     this.set('labeler', labeler);
-    this.set('floor', floor);
+    this.set('room', room);
     this.set('user', user);
 
     const self = this;
@@ -165,11 +163,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     // Add key listener for room positioning
     window.onkeydown = function(event){
-      // Get room
-      if(self.get('initRoom')){
-        self.set('room', self.get('scene').getObjectByName("room"));
-        self.set('initRoom', false);
-      }
+
       // Handle keys
       if(event.key === 'ArrowDown'){
         self.get('vrEnvironment').position.y -=  0.05;
@@ -792,9 +786,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         // Handle floor (teleport)
         if(intersectedViewObj.object.name === 'floor'){
-          this.get('camera').position.x = intersectedViewObj.point.x;
-          this.get('camera').position.z = intersectedViewObj.point.z;
-          this.get('camera').updateProjectionMatrix();
+          this.teleportToPosition(intersectedViewObj.point);
           return;
         }
 
