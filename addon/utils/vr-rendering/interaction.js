@@ -1427,13 +1427,20 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  same controller id highlighted it
    */
    unhighlightApplication3D(id){
-     // Handle packages
-     if(this.get('highlightedEntitiesApp')[id] && this.get('highlightedEntitiesApp')[id].userData.model.get('color')){
+    // Package highlihgted
+    let condition1 = this.get('highlightedEntitiesApp')[id] && this.get('highlightedEntitiesApp')[id].userData.model.get('color'); 
+    // Clazz highlighted
+    let condition2 = this.get('highlightedEntitiesApp')[id] && this.get('highlightedEntitiesApp')[id].userData.type && this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.type];
+    // No entity selected or selected one is not highlighted
+    let condition3 = (!this.get('selectedComponentsMesh') || (this.get('highlightedEntitiesApp')[id] !== this.get('selectedComponentsMesh')));
+    
+    // Handle packages
+    if(condition1 && condition3){
        this.get('highlightedEntitiesApp')[id].material.color =  
          new THREE.Color(this.get('highlightedEntitiesApp')[id].userData.model.get('color'));
      }
      // Handle clazzes
-     if(this.get('highlightedEntitiesApp')[id] && this.get('highlightedEntitiesApp')[id].userData.type && this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.type]){  
+     if(condition2 && condition3){  
        this.get('highlightedEntitiesApp')[id].material.color =  
          new THREE.Color(this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.type]);
      }
