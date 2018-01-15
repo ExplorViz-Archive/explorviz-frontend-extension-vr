@@ -373,7 +373,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle hit component/clazz of app3D if its not binded to a Controller
       if((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded') && emberModel !== this.get('appCommunicationHighlighted')){
-
         // New color 
         let color = new THREE.Color(darkerColor);
         intersectedViewObj.object.material.color = color;
@@ -808,7 +807,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
               // Reset communication lines
               this.get('selector').highlightAppCommunication(null);
               // Restore old color
-              this.restoreSelectedEntitiesColor();
+              this.restoreSelectedEntity(this.verifyControllers(controller.id));
      
               this.get('appCommunicationHighlighted').set('highlighted', false);
             }
@@ -835,12 +834,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && this.get('selectedEntitysColor')){
           this.get('selector').highlightAppCommunication(null);
           // Restore selected entity and communication lines
-          this.restoreSelectedEntity();
+          this.restoreSelectedEntity(this.verifyControllers(controller.id));
   
           this.set('appCommunicationHighlighted', null);
           this.set('selectedEntitysMesh', null);
+          this.set('selectedEntitysColor', null);
           this.trigger('redrawAppCommunication');
-          this.get('highlightedEntitiesApp')[controller.id] = null;
         }
       }
     }
@@ -1186,7 +1185,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             // Reset communication lines
             this.get('selector').highlightAppCommunication(null);
             // Restore selected entity and communication lines
-            this.restoreSelectedEntity();
+            this.restoreSelectedEntity(id);
           }
 
           // Save selected entity and communication highlighting
@@ -1216,7 +1215,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         this.get('selector').highlightAppCommunication(null);
 
         // Restore selected entity and communication lines
-        this.restoreSelectedEntity();
+        this.restoreSelectedEntity(id);
 
         this.set('appCommunicationHighlighted', null);
         this.set('selectedEntitysMesh', null);
@@ -1372,7 +1371,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  a selected entity and to reset the highlighting of the
    *  communication lines
    */
-  restoreSelectedEntity(){
+  restoreSelectedEntity(id){
+    
     // Restore old color (clazz)
     if(this.get('selectedEntitysMesh').userData.type === 'clazz'){
       this.get('selectedEntitysMesh').material.color = new THREE.Color(this.get('colorListApp')[this.get('selectedEntitysMesh').userData.type]);
@@ -1381,6 +1381,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     else{
       this.get('selectedEntitysMesh').material.color = new THREE.Color(this.get('selectedEntitysColor'));
     }
+
+    // Check if entity is highlighted by the other controller and change color
+    if(this.get('highlightedEntitiesApp')[id] && this.get('selectedEntitysMesh') && this.get('highlightedEntitiesApp')[id] === this.get('selectedEntitysMesh')){
+      this.get('highlightedEntitiesApp')[id].material.color = new THREE.Color(this.calculateDarkerColor(this.get('selectedEntitysMesh')));
+    }
+
     this.get('appCommunicationHighlighted').set('highlighted', false);
   },
 
