@@ -49,8 +49,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   previousToolTipObjects: {},
   textBox: null,
-  // Circle for teleporter
-  circle: null,
+  // Area for teleporter
+  area: null,
 
   highlightedEntities: {},
   highlightedEntitiesApp: {},
@@ -442,12 +442,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle floor (teleport)
       if(intersectedViewObj.object.name === 'floor'){
-        this.showTeleportCircle(intersectedViewObj.point);
+        this.showTeleportArea(intersectedViewObj.point);
         return;
       }
       else{
-        // Remove circle for teleporting
-        this.removeTeleportCircle();
+        // Remove area for teleporting
+        this.removeTeleportArea();
       }
 
       // Handle delete button
@@ -482,8 +482,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     // Reset highlighted enities if nothing was hit 
     else{
 
-      // Remove circle for teleporting
-      this.removeTeleportCircle();
+      // Remove area for teleporting
+      this.removeTeleportArea();
 
       // Unhighlight delete button
       this.unhighlightedDeleteButton(id, true);
@@ -1144,12 +1144,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle floor (teleport)
       if(intersectedViewObj.object.name === 'floor'){
-        this.showTeleportCircle(intersectedViewObj.point);
+        this.showTeleportArea(intersectedViewObj.point);
         return;
       }
       else{
-        // Remove circle for teleporting
-        this.removeTeleportCircle();
+        // Remove area for teleporting
+        this.removeTeleportArea();
       }
 
       // Handle delete button
@@ -1205,8 +1205,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     }
     // Nothing hit 
     else{
-      // Remove circle for teleporting
-      this.removeTeleportCircle();
+      // Remove area for teleporting
+      this.removeTeleportArea();
 
       // Reset selection 
       if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && this.get('selectedEntitysColor')){
@@ -1519,38 +1519,56 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  the new position
    */
   teleportToPosition(position){
-    this.get('camera').position.x = position.x;
-    this.get('camera').position.z = position.z;
-    this.get('camera').updateProjectionMatrix();
+
+    let offsetX = position.x - this.get('camera').position.x;
+    let offsetZ = position.z - this.get('camera').position.z;
+
+    this.get('room').position.x -= offsetX;
+    this.get('room').position.z -= offsetZ;
+
+    this.updateObjectMatrix(this.get('room'));
+
+    this.get('vrEnvironment').position.x -= offsetX;
+    this.get('vrEnvironment').position.z -= offsetZ;
+
+    this.updateObjectMatrix(this.get('vrEnvironment'));
+
+    if(this.get('Application3D')){
+      this.get('Application3D').position.x -= offsetX;
+      this.get('Application3D').position.z -= offsetZ;
+    }
+    this.updateObjectMatrix(this.get('Application3D'));
+    
+
   },
 
   /*
    *  This method is used to create and update
-   *  the teleport circle
+   *  the teleport area
    */
-  showTeleportCircle(intersectionPoint){
-    if(!this.get('circle')){
-      var geometry = new THREE.CircleGeometry( 0.2, 32 );
+  showTeleportArea(intersectionPoint){
+    if(!this.get('area')){
+      var geometry = new THREE.PlaneGeometry( 0.2, 0.2 );
       geometry.rotateX(-1.5707963);
       var material = new THREE.MeshBasicMaterial( { color: 0x019231 } );
-      this.set('circle', new THREE.Mesh( geometry, material ));
-      this.get('scene').add( this.get('circle') );
+      this.set('area', new THREE.Mesh( geometry, material ));
+      this.get('scene').add( this.get('area') );
     }
-    this.get('circle').position.x = intersectionPoint.x;
-    this.get('circle').position.y = intersectionPoint.y + 0.005;
-    this.get('circle').position.z = intersectionPoint.z;
+    this.get('area').position.x = intersectionPoint.x;
+    this.get('area').position.y = intersectionPoint.y + 0.005;
+    this.get('area').position.z = intersectionPoint.z;
   },
 
   /*
    *  This mehtod is used to remove the teleport
-   *  circle from the scene
+   *  area from the scene
    */
-  removeTeleportCircle(){
-    if(this.get('circle')){
-      this.get('scene').remove(this.get('circle'));
-      this.get('circle').geometry.dispose();
-      this.get('circle').material.dispose();
-      this.set('circle', null);
+  removeTeleportArea(){
+    if(this.get('area')){
+      this.get('scene').remove(this.get('area'));
+      this.get('area').geometry.dispose();
+      this.get('area').material.dispose();
+      this.set('area', null);
     }
   },
 
@@ -1570,7 +1588,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  a given Object3D
    */
   updateObjectMatrix(object){
-    if(object.type === 'Object3D'){
+    if(object){
       object.updateMatrix();
     }
   },
