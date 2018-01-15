@@ -84,6 +84,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   // Storage for mesh data
   app3DMesh: null,
   user: null,
+  teleportArea: null,
 
   // Application
   application3D: null,
@@ -487,6 +488,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('interaction').off('showApplication');
     this.get('interaction').off('redrawAppCommunication');
     this.get('interaction').off('removeApplication');
+    this.get('interaction').off('showTeleportArea');
+    this.get('interaction').off('removeTeleportArea');
 
     this.get('interaction').removeHandlers();
 
@@ -1430,6 +1433,31 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.addCommunicationToApp(app3DModel);
       self.get('application3D').updateMatrix();
 
+    });
+
+    // Show teleport area
+    this.get('interaction').on('showTeleportArea', function(intersectionPoint) {
+      if(!self.get('teleportArea')){
+        // Create teleport area
+        var geometry = new THREE.CircleGeometry( 0.2, 32 );
+        geometry.rotateX(-1.5707963);
+        var material = new THREE.MeshBasicMaterial( { color: 0x019231 } );
+        self.set('teleportArea', new THREE.Mesh( geometry, material ));
+        self.get('scene').add(self.get('teleportArea'));
+      }
+      self.get('teleportArea').position.x = intersectionPoint.x;
+      self.get('teleportArea').position.y = intersectionPoint.y + 0.005;
+      self.get('teleportArea').position.z = intersectionPoint.z;
+    });
+
+    // Remove teleport area from the scene
+    this.get('interaction').on('removeTeleportArea', function() {
+      if(self.get('teleportArea')){
+        let trash = new THREE.Object3D();
+        trash.add(self.get('teleportArea'));
+        self.removeChildren(trash);
+        self.set('teleportArea', null);
+      }
     });
 
     /*

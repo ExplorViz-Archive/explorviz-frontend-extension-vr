@@ -49,8 +49,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   previousToolTipObjects: {},
   textBox: null,
-  // Area for teleporter
-  area: null,
 
   highlightedEntities: {},
   highlightedEntitiesApp: {},
@@ -1532,14 +1530,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('vrEnvironment').position.z -= offsetZ;
 
     this.updateObjectMatrix(this.get('vrEnvironment'));
-
-    if(this.get('Application3D')){
-      this.get('Application3D').position.x -= offsetX;
-      this.get('Application3D').position.z -= offsetZ;
-    }
-    this.updateObjectMatrix(this.get('Application3D'));
-    
-
   },
 
   /*
@@ -1547,16 +1537,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  the teleport area
    */
   showTeleportArea(intersectionPoint){
-    if(!this.get('area')){
-      var geometry = new THREE.PlaneGeometry( 0.2, 0.2 );
-      geometry.rotateX(-1.5707963);
-      var material = new THREE.MeshBasicMaterial( { color: 0x019231 } );
-      this.set('area', new THREE.Mesh( geometry, material ));
-      this.get('scene').add( this.get('area') );
-    }
-    this.get('area').position.x = intersectionPoint.x;
-    this.get('area').position.y = intersectionPoint.y + 0.005;
-    this.get('area').position.z = intersectionPoint.z;
+    this.trigger('showTeleportArea', intersectionPoint)
   },
 
   /*
@@ -1564,12 +1545,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  area from the scene
    */
   removeTeleportArea(){
-    if(this.get('area')){
-      this.get('scene').remove(this.get('area'));
-      this.get('area').geometry.dispose();
-      this.get('area').material.dispose();
-      this.set('area', null);
-    }
+    this.trigger('removeTeleportArea');
   },
 
   verifyControllers(id){
