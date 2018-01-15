@@ -1537,7 +1537,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  the teleport area
    */
   showTeleportArea(intersectionPoint){
-    this.trigger('showTeleportArea', intersectionPoint)
+    this.trigger('showTeleportArea', intersectionPoint);
   },
 
   /*
