@@ -25,11 +25,13 @@ Follow the respective procedure in [ExplorViz frontend](https://github.com/Explo
 
 ## Controls
 
-- Upwards Arrow: Move the environment upwards 
-- Downwards Arrow: Move the environment downwards 
-- Leftwards Arrow: Move the environment leftwards
-- Rightwards Arrow: Move the environment rightwards
-- '+': Zoom in
-- '-': Zoom out
-- 'q': Rotate the environment forwards
-- 'w': Rotate the environment backwards
+### Keyboard:
+
+- :arrow_up:: Move the environment upwards 
+- :arrow_down:: Move the environment downwards 
+- :arrow_left:: Move the environment leftwards
+- :arrow_right:: Move the environment rightwards
+- <kbd>+</kbd>: Zoom in 
+- <kbd>-</kbd>: Zoom out
+- <kbd>q</kbd>: Rotate the environment forwards
+- <kbd>w</kbd>: Rotate the environment backwards
