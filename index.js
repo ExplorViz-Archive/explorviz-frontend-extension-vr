@@ -28,6 +28,7 @@ module.exports = {
     app.import('vendor/vr/OBJLoader.js');
     app.import('vendor/vr/ViveController.js');
     app.import('vendor/vr/WebVR.js');
+    app.import('vendor/async/async.js');
 
   return app.toTree();
   }

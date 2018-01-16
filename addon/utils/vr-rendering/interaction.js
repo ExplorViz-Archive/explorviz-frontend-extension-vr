@@ -78,7 +78,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   },
 
   // Import information from component vr-rendering to manipulate objects global
-  setupInteraction(scene, user, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, 
+  setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, 
     controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, room) {
 
     this.set('scene', scene);
@@ -95,7 +95,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('textBox', textBox);
     this.set('labeler', labeler);
     this.set('room', room);
-    this.set('user', user);
 
     const self = this;
 
@@ -249,15 +248,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           self.updateObjectMatrix(self.get('application3D'));
         }
       }
-
-      // Test cases for user teleoport
-      else if(event.key === 'u'){
-        self.get('camera').position.y +=  0.05;
-      }
-      else if(event.key === 'i'){
-        self.get('room').rotation.x -=  0.05;
-        self.updateObjectMatrix(self.get('room'));
-      }
     };
 
     // Zoom handler    
@@ -287,7 +277,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.set('hoverHandlerApp3D', HoverHandlerApp3D.create());
     }
 
-    // Init hihglighter
+    // Init selector
     if (!this.get('selector')) {
       this.set('selector', Selector.create());
     }

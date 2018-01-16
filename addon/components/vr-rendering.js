@@ -16,6 +16,7 @@ import layout from "../templates/components/vr-rendering";
 /*global WEBVR*/
 /*global ViveController*/
 /*global createOBJLoader*/
+/*global async*/
 
 /**
  * This component unites landscape(adapted to 3D)-, application-rendering
@@ -589,7 +590,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }
 
     // Layout landscape
-    applyKlayLayout(emberLandscape);
+    async.asyncify(applyKlayLayout(emberLandscape));
 
     this.set('vrEnvironment.userData.model', emberLandscape);
 
@@ -982,8 +983,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
 
     // Helper functions //
-
-    
 
     /*
      *  This function is used to calculate the depth for 
@@ -1405,10 +1404,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const controller1 = this.get('controller1');
     const controller2 = this.get('controller2');
     const vrEnvironment = this.get('vrEnvironment');
-    const user = this.get('user');
 
     // Init interaction objects
-    this.get('interaction').setupInteraction(scene, user, canvas, camera, webglrenderer,
+    this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,
       raycaster, this.get('vrLandscape').children, controller1, controller2, 
       vrEnvironment, this.get('configuration.landscapeColors'), 
       this.get('configurationApplication.applicationColors'), this.get('textBox'), 
