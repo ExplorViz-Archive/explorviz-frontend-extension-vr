@@ -1432,9 +1432,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('interaction').on('showTeleportArea', function(intersectionPoint) {
       if(!self.get('teleportArea')){
         // Create teleport area
-        var geometry = new THREE.CircleGeometry( 0.2, 32 );
+        var geometry = new THREE.RingGeometry(0.14, 0.2, 32 );
         geometry.rotateX(-1.5707963);
-        var material = new THREE.MeshBasicMaterial( { color: 0x019231 } );
+        var material = new THREE.MeshBasicMaterial( {
+         color: new THREE.Color(0x0000dc)} );
+        material.transparent = true;
+        material.opacity = 0.4;
         self.set('teleportArea', new THREE.Mesh( geometry, material ));
         self.get('scene').add(self.get('teleportArea'));
       }
