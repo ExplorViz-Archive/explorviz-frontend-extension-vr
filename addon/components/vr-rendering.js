@@ -84,7 +84,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   textBox: null,
   // Storage for mesh data
   app3DMesh: null,
-  user: null,
   teleportArea: null,
 
   // Application
@@ -175,8 +174,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('vrEnvironment').rotateX(-1.5707963);
     this.get('vrEnvironment').updateMatrix();
 
-    this.set('user', new THREE.Group());
-
     // Remove stored applications
     this.set('landscapeRepo.latestApplication', null);
 
@@ -191,8 +188,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('scene.background', new THREE.Color(0xffffff));
 
     this.set('camera', new THREE.PerspectiveCamera(70, width / height, 0.1, 10));
-    this.get('user').add(this.get('camera'));
-    this.get('scene').add(this.get('user'));
 
     // Create and configure renderer
     this.set('webglrenderer', new THREE.WebGLRenderer({
@@ -213,12 +208,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // Create left controller
     this.set('controller1', new ViveController(0));
     this.get('controller1').name = "controller";
-    this.get('user').add(this.get('controller1'));
+    this.get('scene').add(this.get('controller1'));
 
     // Create right controller
     this.set('controller2', new ViveController(1));
     this.get('controller2').name = "controller";
-    this.get('user').add(this.get('controller2'));
+    this.get('scene').add(this.get('controller2'));
 
     // Ray for Controller
     this.set('geometry', new THREE.Geometry());

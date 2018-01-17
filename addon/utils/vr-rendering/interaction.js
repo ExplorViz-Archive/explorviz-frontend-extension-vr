@@ -694,7 +694,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         const emberModelName = emberModel.constructor.modelName;
         
         // Handle application hit
-        if(emberModelName === "application" && !this.get('app3DBinded')){
+        if(emberModelName === "application" && !this.get('app3DBinded') && emberModel.get('components').get('length') !==0){
           // Trigger event in component vr-rendering
           this.trigger('showApplication', emberModel, intersectedViewObj.point); 
         } 
