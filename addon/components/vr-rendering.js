@@ -16,7 +16,6 @@ import layout from "../templates/components/vr-rendering";
 /*global WEBVR*/
 /*global ViveController*/
 /*global createOBJLoader*/
-/*global async*/
 
 /**
  * This component unites landscape(adapted to 3D)-, application-rendering
@@ -585,7 +584,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }
 
     // Layout landscape
-    async.asyncify(applyKlayLayout(emberLandscape));
+    applyKlayLayout(emberLandscape);
 
     this.set('vrEnvironment.userData.model', emberLandscape);
 
