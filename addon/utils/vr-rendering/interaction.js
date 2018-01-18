@@ -450,8 +450,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Calculate darker color
       let darkerColor = this.calculateDarkerColor(intersectedViewObj.object);
 
+      // Show teleport area on opened systems
+      if(emberModelName === "system" && intersectedViewObj.object.name === "systemOpened"){
+        this.trigger('showTeleportArea', intersectedViewObj.point);
+      }
+      
       // Handle closed component/clazz of app3D
-      if(((emberModelName === "component" && !emberModel.get('opened'))|| emberModelName === "clazz") && !this.get('app3DBinded') && emberModel !== this.get('appCommunicationHighlighted')){
+      else if(((emberModelName === "component" && !emberModel.get('opened'))|| emberModelName === "clazz") && !this.get('app3DBinded') && emberModel !== this.get('appCommunicationHighlighted')){
 
         // New color 
         let color = new THREE.Color(darkerColor);
@@ -1158,7 +1163,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle hit system, nodegroup or application and change color
       this.highlightLandscape(emberModel, emberModelName, intersectedViewObj, id, darkerColor);
-      
+
       // Handle hit component/clazz of app3D 
       if(emberModelName === "component" || emberModelName === "clazz"){
 
