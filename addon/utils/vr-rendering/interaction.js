@@ -430,12 +430,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle floor (teleport)
       if(intersectedViewObj.object.name === 'floor'){
-        this.showTeleportArea(intersectedViewObj.point);
+        this.trigger('showTeleportArea', intersectedViewObj.point);
         return;
       }
       else{
         // Remove area for teleporting
-        this.removeTeleportArea();
+        this.trigger('removeTeleportArea');
       }
 
       // Handle delete button
@@ -471,7 +471,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     else{
 
       // Remove area for teleporting
-      this.removeTeleportArea();
+      this.trigger('removeTeleportArea');
 
       // Unhighlight delete button
       this.unhighlightedDeleteButton(id, true);
@@ -1132,12 +1132,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle floor (teleport)
       if(intersectedViewObj.object.name === 'floor'){
-        this.showTeleportArea(intersectedViewObj.point);
+        this.trigger('showTeleportArea', intersectedViewObj.point);
         return;
       }
       else{
         // Remove area for teleporting
-        this.removeTeleportArea();
+        this.trigger('removeTeleportArea');
       }
 
       // Handle delete button
@@ -1194,7 +1194,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     // Nothing hit 
     else{
       // Remove area for teleporting
-      this.removeTeleportArea();
+      this.trigger('removeTeleportArea');
 
       // Reset selection 
       if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && this.get('selectedEntitysColor')){
@@ -1523,21 +1523,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   },
 
   /*
-   *  This method is used to create and update
-   *  the teleport area
+   *  This method is used to identify the controller ids of
+   *  each controller
    */
-  showTeleportArea(intersectionPoint){
-    this.trigger('showTeleportArea', intersectionPoint);
-  },
-
-  /*
-   *  This mehtod is used to remove the teleport
-   *  area from the scene
-   */
-  removeTeleportArea(){
-    this.trigger('removeTeleportArea');
-  },
-
   verifyControllers(id){
     let id2;
     if(id === this.get('controller1').id){
