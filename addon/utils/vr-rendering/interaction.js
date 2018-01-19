@@ -405,9 +405,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     const direction = new THREE.Vector3(0,0,-1);
     direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
+    var raycastingObjects = this.excludeLandscape();
+
     // Calculate hit object
     const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
-      null, this.get('raycastObjectsLandscape'));
+      null, raycastingObjects);
 
     // Verify controllers
     let id2 = this.verifyControllers(id);
@@ -762,9 +764,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       const direction = new THREE.Vector3(0,0,-1);
       direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
+      var raycastingObjects = this.excludeLandscape();
+
       // Calculate hit object
       const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
-        null, this.get('raycastObjectsLandscape'));
+        null, raycastingObjects);
 
       // Check if an object is hit
       if(intersectedViewObj) {
@@ -1525,6 +1529,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('vrEnvironment').position.z -= offsetZ;
 
     this.updateObjectMatrix(this.get('vrEnvironment'));
+
+    if(this.get('application3D') && !this.get('app3DBinded')){
+      this.get('application3D').position.x -= offsetX;
+      this.get('application3D').position.z -= offsetZ;
+      this.updateObjectMatrix(this.get('application3D'));
+    }
   },
 
   /*
@@ -1550,6 +1560,19 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     if(object){
       object.updateMatrix();
     }
+  },
+
+  /*
+   *  This method is used to exclude the landscape from raycasting
+   */ 
+  excludeLandscape(){
+    var raycastingObjects = [];
+    this.get('raycastObjectsLandscape').forEach(function(entity) {
+      if(entity.type !== "system" && entity.type !== "nodegroup" && entity.name !== "node" && entity.name !== "application"){
+        raycastingObjects.push(entity);
+      }
+    });
+    return raycastingObjects;
   },
 
   /*
