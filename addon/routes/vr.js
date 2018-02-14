@@ -1,8 +1,12 @@
-import Ember from 'ember';
-import AuthenticatedRouteMixin from 'ember-simple-auth/mixins/authenticated-route-mixin';
+import BaseRoute from 'explorviz-frontend/routes/base-route';
 
-const { Route } = Ember;
+export default BaseRoute.extend({
 
-export default Route.extend(AuthenticatedRouteMixin, {
+  actions: {
+    // @Override BaseRoute
+    resetRoute() {
+      
+    }
+  }
 
 });
