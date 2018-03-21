@@ -654,7 +654,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           var oldSystemDepth = system.get('depth');
 
           // Calculate system depth (height) depending on the amount of traget requests
-          if (allRequests[system.get('id')]) {
+          if (allRequests && allRequests[system.get('id')]) {
             system.set('depth', assignDepth(allRequests[system.get('id')]));
           }
 
@@ -722,7 +722,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
               /* Calculate depth (height) for nodegroups relative to the 
               amount of traget requests */
-              if (allRequests[nodegroup.get('id')]) {
+              if (allRequests && allRequests[nodegroup.get('id')]) {
                 nodegroup.set('depth', assignDepth(allRequests[nodegroup.get('id')]));
               }
 
@@ -768,7 +768,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
               let oldNodeDepth = nodegroup.get('depth');
 
               // Set nodegroup depth relative to the amount of traget requests
-              if (allRequests[node.get('id')]) {
+              if (allRequests && allRequests[node.get('id')]) {
                 node.set('depth', assignDepth(allRequests[node.get('id')]));
               }
 
@@ -883,7 +883,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     self.set('configuration.landscapeColors.textchanged', false);
 
-    const appCommunication = emberLandscape.get('applicationCommunication');
+    const appCommunication = emberLandscape.get('outgoingApplicationCommunications');
 
     const tiles = [];
 
@@ -1036,6 +1036,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      */
     function computeRequests(appCommunication) {
       let requests = {};
+      if(!appCommunication){
+        return;
+      }
       appCommunication.forEach((communication) => {
 
         if (!requests[communication.get('target').get('id')]) {
@@ -1603,54 +1606,49 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     let position = new THREE.Vector3(0, 0, 0);
 
-    const accuCommunications = application.get('communicationsAccumulated');
-    
-    // Draw communication
-    accuCommunications.forEach((commu) => {
-      if (commu.source.content !== commu.target.content) {
-        if (commu.startPoint && commu.endPoint) {
+    const viewCenterPoint = this.get('centerAndZoomCalculator.centerPoint');
 
-          const start = new THREE.Vector3();
-          start.subVectors(commu.startPoint, position);
-          start.multiplyScalar(0.5);
+    const cumulatedClazzCommunications = application.get('cumulatedClazzCommunications');
 
-          const end = new THREE.Vector3();
-          end.subVectors(commu.endPoint, position);
-          end.multiplyScalar(0.5);
+    cumulatedClazzCommunications.forEach((cumuClazzCommu) => {
+      if (cumuClazzCommu.get('startPoint') && cumuClazzCommu.get('endPoint')) {
+        const start = new THREE.Vector3();
+        start.subVectors(cumuClazzCommu.get('startPoint'), viewCenterPoint);
+        start.multiplyScalar(0.5);
 
-          if (start.y >= end.y) {
-            end.y = start.y;
-          } else {
-            start.y = end.y;
-          }
+        const end = new THREE.Vector3();
+        end.subVectors(cumuClazzCommu.get('endPoint'), viewCenterPoint);
+        end.multiplyScalar(0.5);
 
-          let transparent = false;
-          let opacityValue = 1.0;
-
-          if (commu.state === "TRANSPARENT") {
-            transparent = true;
-            opacityValue = 0.4;
-          }
-
-          const material = new THREE.MeshBasicMaterial({
-            color: new THREE.Color(0xf49100),
-            opacity: opacityValue,
-            transparent: transparent
-          });
-
-          const thickness = commu.pipeSize * 0.3;
-
-          const pipe = cylinderMesh(start, end, material, thickness);
-
-          pipe.userData.model = commu;
-          pipe.name = 'app3DCommunication';
-
-
-          self.get('application3D').add(pipe);
-
+        if(start.y >= end.y) {
+          end.y = start.y;
+        } else {
+          start.y = end.y;
         }
+
+        let transparent = false;
+        let opacityValue = 1.0;
+
+        if(cumuClazzCommu.get('state') === "TRANSPARENT") {
+          transparent = true;
+          opacityValue = 0.4;
+        }
+
+        const material = new THREE.MeshBasicMaterial({
+          color : new THREE.Color(0xf49100),
+          opacity : opacityValue,
+          transparent : transparent
+        });
+
+        const thickness = cumuClazzCommu.get('lineThickness') * 0.3;
+
+        const pipe = cylinderMesh(start, end, material, thickness);
+
+        pipe.userData.model = cumuClazzCommu;
+        self.get('application3D').add(pipe);
       }
     });
+
     /*
      *  This function is used to create the pipes
      */
