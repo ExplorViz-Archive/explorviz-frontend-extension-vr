@@ -604,8 +604,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           this.get('webglrenderer'));
       }
 
-      // Compute the amount of requests for every id
-      let allRequests = computeRequests(emberLandscape.get('applicationCommunication'));
+      // TODO: Compute the amount of requests for every id
+      let allRequests = null; //computeRequests(emberLandscape.get('outgoingApplicationCommunications'));
 
       var centerPoint = this.get('centerAndZoomCalculator.centerPoint');
 
@@ -1603,8 +1603,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   addCommunicationToApp(application){
 
     const self = this;
-
-    let position = new THREE.Vector3(0, 0, 0);
 
     const viewCenterPoint = this.get('centerAndZoomCalculator.centerPoint');
 

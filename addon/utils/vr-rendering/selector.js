@@ -17,27 +17,34 @@ export default Ember.Object.extend({
    *  This method is used to highlight the communication lines of
    *  the intersected object. Highlight all communication lines
    *  if "undefined" or "null" is passed
+   *
+   *  TODO: Complete adaptation to latest changes of model in backend
    */
   highlightAppCommunication(entity) {
 
-    const communicationsAccumulated = this.get('latestApplication').get('communicationsAccumulated');
+    const outgoingClazzCommunications = this.get('latestApplication').get('cumulatedClazzCommunications');
 
-    communicationsAccumulated.forEach((commu) => {
+    if(outgoingClazzCommunications != null){
 
-      if(entity === null || entity === undefined){
-        commu.state = "SHOW_DIRECTION_IN_AND_OUT";
-      }
-      else {
-        if ((commu.source != null && commu.source.get('fullQualifiedName') === entity.get('fullQualifiedName')) ||
-          (commu.target != null && commu.target.get('fullQualifiedName') === entity.get('fullQualifiedName'))) {
+      outgoingClazzCommunications.forEach((clazzCommunication) => {
 
-          commu.state = "SHOW_DIRECTION_IN_AND_OUT";
-        } 
-        else {
-          commu.state = "TRANSPARENT";
+        if(entity === null || entity === undefined){
+          outgoingClazzCommunications.state = "TRANSPARENT";
+          
         }
-      } 
-    });
+        else{
+          if ((clazzCommunication.sourceClazz != null && clazzCommunication.get('sourceClazz').get('fullQualifiedName') === entity.get('fullQualifiedName')) ||
+          (clazzCommunication.targetClazz != null && clazzCommunication.get('targetClazz').get('fullQualifiedName') === entity.get('fullQualifiedName'))) {
+            clazzCommunication.state = "NORMAL";
+
+          } 
+          else {
+            clazzCommunication.state = "TRANSPARENT";
+          }
+        }
+      });
+    } 
+    
   }
   
 });
