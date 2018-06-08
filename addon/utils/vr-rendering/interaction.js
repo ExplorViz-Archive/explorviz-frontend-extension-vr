@@ -5,6 +5,7 @@ import HoverHandlerApp3D from 'explorviz-frontend/utils/application-rendering/po
 import HoverHandlerLandscape from 'explorviz-frontend/utils/landscape-rendering/popup-handler';
 import AlertifyHandler from 'explorviz-frontend/mixins/alertify-handler';
 import Selector from './selector';
+import THREE from "npm:three";
 
 /*
  *  This util is used to realize the interaction by handeling
