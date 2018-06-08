@@ -5,11 +5,11 @@ var Funnel = require('broccoli-funnel');
 module.exports = {
   name: 'explorviz-frontend-extension-vr',
 
-    isDevelopingAddon() {
-        return true;
-    },
+  isDevelopingAddon() {
+      return true;
+  },  
     
-    treeForPublic: function(tree) {
+  treeForPublic: function(tree) {
     var assetsTree = new Funnel('public');
     return mergeTrees([tree, assetsTree], {
       overwrite: true
@@ -19,16 +19,9 @@ module.exports = {
   included: function(app) {
     this._super.included.apply(this, arguments);
 
-    if (app.import) {
-      this.importDependencies(app);
-    }
-  },
-
-  importDependencies: function(app) {
     app.import('vendor/vr/OBJLoader.js');
     app.import('vendor/vr/ViveController.js');
     app.import('vendor/vr/WebVR.js');
-
-  return app.toTree();
   }
+
 };
