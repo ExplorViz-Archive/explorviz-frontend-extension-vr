@@ -458,7 +458,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const self = this;
 
     // Stop rendering
-    self.get('webglrenderer').animate(null);
+    self.get('webglrenderer').setAnimationLoop(null);
     this.get('webglrenderer').dispose();
     
     this.set('scene', null);
