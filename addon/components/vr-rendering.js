@@ -1032,8 +1032,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     /*
      *  This function is used to compute the amount of 
-     *  all requests for each entity (id)
+     *  all requests for each entity (id) [not yet in use]
      */
+    /*
     function computeRequests(appCommunication) {
       let requests = {};
       if(!appCommunication){
@@ -1065,6 +1066,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       });
       return requests;
     }
+	*/
 
 
     /* 
