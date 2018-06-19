@@ -25,14 +25,14 @@ export default Ember.Object.extend({
     // calculate objects intersecting the picking ray (true => recursive)
     const intersections = raycaster.intersectObjects(possibleObjects,
       false);
-	  
+
     // Return content
     if (intersections.length > 0) {
-		  return intersections[0];
+        return intersections[0];
     }
     else{
-		  return;
-	  }
+        return;
+    }
   }
   
 });
