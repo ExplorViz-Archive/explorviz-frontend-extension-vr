@@ -265,7 +265,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // VR Rendering loop //
     function animate() {  
-      self.get('webglrenderer').animate(render);
+      self.get('webglrenderer').setAnimationLoop(render);
     }
 
     function render() {
@@ -1085,8 +1085,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       const bboxFloor = new THREE.Box3().setFromObject(floor);
       const bboxLandscape = new THREE.Box3().setFromObject(vrEnvironment);
 
-      let floorSize = bboxFloor.getSize();
-      let landscapeSize = bboxLandscape.getSize();
+      let floorSize = new THREE.Vector3();
+      bboxFloor.getSize(floorSize);
+      let landscapeSize = new THREE.Vector3();
+      bboxLandscape.getSize(landscapeSize);
 
       let requests = vrEnvironment.getObjectByName("earth");
 
@@ -1362,13 +1364,15 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const bboxFloor = new THREE.Box3().setFromObject(floor);
 
     // Calculate center of the floor 
-    const centerFloor = bboxFloor.getCenter();
+    const centerFloor = new THREE.Vector3();
+    bboxFloor.getCenter(centerFloor);
 
     // Compute bounding box of the vrEnvironment
     const bboxLandscape = new THREE.Box3().setFromObject(vrEnvironment);
 
     // Calculate center of the landscape(3D) (vrEnvironment) 
-    const centerLandscape = bboxLandscape.getCenter();
+    const centerLandscape = new THREE.Vector3();
+    bboxLandscape.getCenter(centerLandscape);
 
     // Set new position of vrEnvironment
     vrEnvironment.position.x += centerFloor.x - centerLandscape.x;
@@ -1491,7 +1495,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           intersectionPoint, new THREE.Vector3(0, 0, 0));
 
         let bboxApp3D = new THREE.Box3().setFromObject(self.get('application3D'));
-        let app3DSize = bboxApp3D.getSize();
+        let app3DSize = new THREE.Vector3();
+        bboxApp3D.getSize(app3DSize);
         app3DSize.multiplyScalar(0.5);
         let newPosition = new THREE.Vector3();
         // Center x and z
