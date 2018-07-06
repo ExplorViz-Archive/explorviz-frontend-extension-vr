@@ -1,5 +1,5 @@
 import Ember from 'ember';
-import THREE from "npm:three";
+import THREE from "three";
 import THREEPerformance from 'explorviz-frontend/mixins/threejs-performance';
 import Raycaster from '../utils/vr-rendering/raycaster';
 import applyKlayLayout from 'explorviz-frontend/utils/landscape-rendering/klay-layouter';

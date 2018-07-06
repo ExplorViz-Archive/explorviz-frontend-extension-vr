@@ -1,5 +1,5 @@
 import Ember from 'ember';
-import THREE from "npm:three";
+import THREE from "three";
 
 /*
  * This util is used to draw the labels of the
