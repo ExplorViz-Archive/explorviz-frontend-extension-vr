@@ -11,6 +11,7 @@ import ImageLoader from 'explorviz-frontend/utils/three-image-loader';
 import applyCityLayout from 'explorviz-frontend/utils/application-rendering/city-layouter';
 import FoundationBuilder from 'explorviz-frontend/utils/application-rendering/foundation-builder';
 import layout from "../templates/components/vr-rendering";
+import { inject as service } from "@ember/service";
 
 // Declare globals
 /*global WEBVR*/
@@ -90,6 +91,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   applicationID: null,
   app3DPresent: false,
 
+  // multi-user
+  socket: service('web-socket'),
+
 
   didRender() {
     this._super(...arguments);
@@ -146,6 +150,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   initRendering() {
 
     const self = this;
+
+    this.get('socket').connect();
 
     // Dummy object for raycasting
     this.set('room', new THREE.Object3D());
