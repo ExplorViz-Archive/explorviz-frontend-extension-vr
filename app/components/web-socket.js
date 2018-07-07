@@ -1,0 +1,1 @@
+export { default } from 'explorviz-frontend-extension-vr/components/web-socket';
