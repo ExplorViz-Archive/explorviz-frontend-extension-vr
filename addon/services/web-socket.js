@@ -1,30 +1,20 @@
-import Component from '@ember/component';
-import { inject as service } from '@ember/service';
+import Service, { inject as service } from '@ember/service';
 
-export default Component.extend({
-
-  /*
+export default Service.extend({
+    /*
    * 1. Inject the websockets service
    */
   websockets: service(),
   socketRef: null,
 
-  didInsertElement() {
+  init() {
     this._super(...arguments);
+  },
 
-    /*
-      2. The next step you need to do is to create your actual websocket. Calling socketFor
-      will retrieve a cached websocket if one exists or in this case it
-      will create a new one for us.
-    */
+  start() {
+
     const socket = this.websockets.socketFor('ws://localhost:4444/');
 
-    /*
-      3. The next step is to define your event handlers. All event handlers
-      are added via the `on` method and take 3 arguments: event name, callback
-      function, and the context in which to invoke the callback. All 3 arguments
-      are required.
-    */
     socket.on('open', this.myOpenHandler, this);
     socket.on('message', this.myMessageHandler, this);
     socket.on('close', this.myCloseHandler, this);
@@ -32,14 +22,11 @@ export default Component.extend({
     this.set('socketRef', socket);
   },
 
-  willDestroyElement() {
+  destroy() {
     this._super(...arguments);
 
     const socket = this.socketRef;
 
-    /*
-      4. The final step is to remove all of the listeners you have setup.
-    */
     socket.off('open', this.myOpenHandler);
     socket.off('message', this.myMessageHandler);
     socket.off('close', this.myCloseHandler);
