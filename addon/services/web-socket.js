@@ -3,18 +3,27 @@ import Service, { inject as service } from '@ember/service';
 export default Service.extend({
   websockets: service(),
   socketRef: null,
+  openHandler: null,
+  messageHandler: null,
+  closeHandler: null,
+
 
   init() {
     this._super(...arguments);
   },
 
-  start() {
+  start(handler, address, port) {
+    const {open, close, message} = handler;
+    this.set("openHandler", open);
+    this.set("closeHandler", close);
+    this.set("messageHandler", message);
 
     //create WebSocket
-    const socket = this.websockets.socketFor('ws://localhost:4444/');
-    socket.on('open', this.myOpenHandler, this);
-    socket.on('message', this.myMessageHandler, this);
-    socket.on('close', this.myCloseHandler, this);
+    const socket = this.websockets.socketFor(`ws://${address}:${port}`);
+
+    socket.on('open', this.openHandler, this);
+    socket.on('message', this.messageHandler, this);
+    socket.on('close', this.closeHandler, this);
 
     this.set('socketRef', socket);
   },
@@ -25,21 +34,13 @@ export default Service.extend({
     const socket = this.socketRef;
 
     //remove listeners
-    socket.off('open', this.myOpenHandler);
-    socket.off('message', this.myMessageHandler);
-    socket.off('close', this.myCloseHandler);
-  },
+    socket.off('open', this.openHandler);
+    socket.off('message', this.messageHandler);
+    socket.off('close', this.closeHandler);
 
-  myOpenHandler(event) {
-    console.log(`On open event has been called: ${event}`);
-  },
-
-  myMessageHandler(event) {
-    console.log(`Message: ${event.data}`);
-  },
-
-  myCloseHandler(event) {
-    console.log(`On close event has been called: ${event}`);
+    this.set("openHandler", null);
+    this.set("closeHandler", null);
+    this.set("messageHandler", null);
   }
   
 });
