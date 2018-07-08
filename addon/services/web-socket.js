@@ -7,7 +7,6 @@ export default Service.extend({
   messageHandler: null,
   closeHandler: null,
 
-
   init() {
     this._super(...arguments);
   },
