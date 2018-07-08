@@ -1,9 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 
 export default Service.extend({
-    /*
-   * 1. Inject the websockets service
-   */
   websockets: service(),
   socketRef: null,
 
@@ -13,8 +10,8 @@ export default Service.extend({
 
   start() {
 
+    //create WebSocket
     const socket = this.websockets.socketFor('ws://localhost:4444/');
-
     socket.on('open', this.myOpenHandler, this);
     socket.on('message', this.myMessageHandler, this);
     socket.on('close', this.myCloseHandler, this);
@@ -27,6 +24,7 @@ export default Service.extend({
 
     const socket = this.socketRef;
 
+    //remove listeners
     socket.off('open', this.myOpenHandler);
     socket.off('message', this.myMessageHandler);
     socket.off('close', this.myCloseHandler);
@@ -42,11 +40,6 @@ export default Service.extend({
 
   myCloseHandler(event) {
     console.log(`On close event has been called: ${event}`);
-  },
-
-  actions: {
-    sendButtonPressed() {
-      this.socketRef.send('Hello Websocket World');
-    }
   }
+  
 });
