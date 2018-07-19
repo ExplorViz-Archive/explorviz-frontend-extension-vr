@@ -89,8 +89,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   application3D: null,
   applicationID: null,
   app3DPresent: false,
-  
-
 
   didRender() {
     this._super(...arguments);
