@@ -112,7 +112,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     for(i = 0; i < this.get('openApps').length; i++){
       console.log("Length of added: " + self.get('openApps')[i].application3D.children.length);
       for(j = 0; j < self.get('openApps')[i].application3D.children.length; j++){
-        self.get('openApps')[i].application3D.children[j].userData.index = i;
+        self.get('openApps')[i].application3D.children[j].userData.object3D = self.get('openApps')[i].application3D;
       }
       result = result.concat(self.get('openApps')[i].application3D.children); //change this with concat
     }

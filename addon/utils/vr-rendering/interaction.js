@@ -169,9 +169,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('application3D')) {
-          self.get('application3D').position.y -=  0.05;
-          self.updateObjectMatrix(self.get('application3D'));
+        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+          self.get('openApps').forEach(function(app){
+            app.application3D.position.y -=  0.05;
+            self.updateObjectMatrix(app.application3D);
+          });
         }
       }
       else if(event.key === 'ArrowUp'){
@@ -180,9 +182,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('application3D')) {
-          self.get('application3D').position.y +=  0.05;
-          self.updateObjectMatrix(self.get('application3D'));
+        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+          self.get('openApps').forEach(function(app){
+            app.application3D.position.y +=  0.05;
+            self.updateObjectMatrix(app.application3D);
+          });
         }
       }
       else if(event.key === 'ArrowLeft'){
@@ -191,9 +195,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('application3D')) {
-          self.get('application3D').position.x -=  0.05;
-          self.updateObjectMatrix(self.get('application3D'));
+        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+          self.get('openApps').forEach(function(app){
+            app.application3D.position.x -=  0.05;
+            self.updateObjectMatrix(app.application3D);
+          });
         }
       }
       else if(event.key === 'ArrowRight'){
@@ -202,9 +208,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('application3D')) {
-          self.get('application3D').position.x +=  0.05;
-          self.updateObjectMatrix(self.get('application3D'));
+        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+          self.get('openApps').forEach(function(app){
+            app.application3D.position.x +=  0.05;
+            self.updateObjectMatrix(app.application3D);
+          });
         }
       }
       else if(event.key === '-'){
@@ -213,9 +221,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('application3D')) {
-          self.get('application3D').position.z -=  0.05;
-          self.updateObjectMatrix(self.get('application3D'));
+        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+          self.get('openApps').forEach(function(app){
+            app.application3D.position.z -=  0.05;
+            self.updateObjectMatrix(app.application3D);
+          });
         }
       }
       else if(event.key === '+'){
@@ -224,9 +234,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('application3D')) {
-          self.get('application3D').position.z +=  0.05;
-          self.updateObjectMatrix(self.get('application3D'));
+        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+          self.get('openApps').forEach(function(app){
+            app.application3D.position.z +=  0.05;
+            self.updateObjectMatrix(app.application3D);
+          });
         }
       }
       else if(event.key === 'q'){
@@ -234,9 +246,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.trigger('centerVREnvironment');
 
-        if(!self.get('app3DBinded') && self.get('application3D')) {
-          self.get('application3D').rotation.x +=  0.05;
-          self.updateObjectMatrix(self.get('application3D'));
+        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+          self.get('openApps').forEach(function(app){
+            app.application3D.rotation.x +=  0.05;
+            self.updateObjectMatrix(app.application3D);
+          });
         }
       }
       else if(event.key === 'w'){
@@ -244,9 +258,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.trigger('centerVREnvironment');
 
-        if(!self.get('app3DBinded') && self.get('application3D')) {
-          self.get('application3D').rotation.x -=  0.05;
-          self.updateObjectMatrix(self.get('application3D'));
+        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+          self.get('openApps').forEach(function(app){
+            app.application3D.rotation.x -=  0.05;
+            self.updateObjectMatrix(app.application3D);
+          });
         }
       }
     };
@@ -891,7 +907,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         tempMatrix.getInverse(controller.matrixWorld);
 
         console.log(intersectedViewObj.object.userData);
-        let object = self.get('openApps')[intersectedViewObj.object.userData.index].application3D;
+        let object = intersectedViewObj.object.userData.object3D;
         
 
         // Set transforamtion relative to controller transformation
