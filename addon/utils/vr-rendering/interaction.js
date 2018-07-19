@@ -38,6 +38,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   selectedEntitysMesh: null,
   selectedEntitysColor: null,
 
+  openApps: [],
   application3D: null,
   app3DBinded: false,
   app3DBindedByController: {},
@@ -65,9 +66,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * This method is called in "vr-rendering" after 
    * an application3D has been created 
    */
-  setupInteractionApp3D(application3D, app) {
-    this.set('application3D', application3D);
-    this.get('selector').saveLatestApplication(app);
+  setupInteractionApp3D(openApps) {
+    this.set('openApps', openApps);
   },
 
   /*
@@ -848,6 +848,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and is used to move, zoom and rotate application3D
    */
   onControllerThumbpadDown(event){
+    const self = this;
+    console.log("Thumbpad down");
 
     const controller = event.target;
 
@@ -868,6 +870,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     // Check if an object is hit
     if(intersectedViewObj) {
+      console.log("Object was hit");
 
       // Handle delete button and floor exception
       if (intersectedViewObj.object.name === 'deleteButton' || intersectedViewObj.object.name === 'floor'){
@@ -886,7 +889,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         // Get inverse of controller transoformation      
         tempMatrix.getInverse(controller.matrixWorld);
-        var object = this.get('application3D');
+
+        console.log(intersectedViewObj.object.userData);
+        let object = self.get('openApps')[intersectedViewObj.object.userData.index].application3D;
+        
+
         // Set transforamtion relative to controller transformation
         object.matrix.premultiply( tempMatrix );
         // Split up matrix into position, quaternion and scale
