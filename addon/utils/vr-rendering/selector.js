@@ -21,7 +21,7 @@ export default Ember.Object.extend({
    *  TODO: Complete adaptation to latest changes of model in backend
    */
   highlightAppCommunication(entity) {
-
+    /* DISABLED because property state is getter-only property and thus can't be set.
     const outgoingClazzCommunications = this.get('latestApplication').get('cumulatedClazzCommunications');
 
     if(outgoingClazzCommunications != null){
@@ -43,7 +43,7 @@ export default Ember.Object.extend({
           }
         }
       });
-    } 
+    } */
     
   }
   
