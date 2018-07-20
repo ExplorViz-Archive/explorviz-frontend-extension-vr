@@ -2,7 +2,7 @@ import { inject as service } from '@ember/service';
 import EmberMap from '@ember/map';
 import User from '../utils/multi-user/user';
 import VRRendering from './vr-rendering';
-import THREE from 'three';
+//import THREE from 'three';
 
 export default VRRendering.extend({
   websockets: service(),
@@ -19,17 +19,27 @@ export default VRRendering.extend({
     socket.on('close', this.closeHandler, this);
 
     this.set('socketRef', socket);
+        //call update function with 60 fps
+        setInterval(this.update.bind(this), 1000 / 60);
 
-    //call update function with 60 fps
-    setInterval(this.update.bind(this), 1000 / 60);
   },
 
   update() {
-    //send camera position
+    //send camera and controller position
     let positionObj = {
       "event": "position",
-      "id": this.get('userID'),
-      "camera": this.camera.position.toArray(),
+      "camera": {
+        "position": this.camera.position.toArray(),
+        "quaternion": this.camera.quaternion.toArray()
+      },
+      "controller1": {
+        "position": this.controller1.position.toArray(),
+        "quaternion": this.controller1.quaternion.toArray()
+      },
+      "controller2": {
+        "position": this.controller2.position.toArray(),
+        "quaternion": this.controller2.quaternion.toArray()
+      },
       "time": Date.now()
     };
     let JSONObj = JSON.stringify(positionObj);
@@ -51,7 +61,7 @@ export default VRRendering.extend({
 
   messageHandler(event) {
     const data = JSON.parse(event.data);
-    console.log(`${event.data}`);
+    //console.log(`${event.data}`);
     if(data.event) {
       // message sent to client on own connect
       if(data.event === 'init') {
@@ -64,8 +74,11 @@ export default VRRendering.extend({
           user.set('id', userData.id);
           user.set('name', userData.name);
           this.get('users').set(userData.id, user);
-          if(userData.id !== data.id)
-            this.get('scene').add(user.get('mesh'));
+          if(userData.id !== data.id) {
+            this.get('scene').add(user.get('camera.model'));
+            this.get('scene').add(user.get('controller1.model'));
+            this.get('scene').add(user.get('controller2.model'));
+          }
         }
         // set own id
         this.set('userID', data.id);
@@ -75,19 +88,26 @@ export default VRRendering.extend({
         user.init();
         user.set('name', data.user.name);
         user.set('id', data.user.id);
-        user.set('camera', new THREE.Vector3());
 
         this.get('users').set(data.user.id, user);
         
-        this.get('scene').add(user.get('mesh'));
+        this.get('scene').add(user.get('camera.model'));
+        this.get('scene').add(user.get('controller1.model'));
+        this.get('scene').add(user.get('controller2.model'));
 
         console.log(`${data.user.name} connected with ID ${data.user.id}`);
       } else if(data.event === 'position') {
-        let { camera, id, controllers } = data;
+        let { camera, id, controller1, controller2 } = data;
         let user = this.get('users').get(id);
-        //+2 translation for testing purposes
-        user.setPosition(new THREE.Vector3(camera[0]+2, camera[1], camera[2]));
         
+        user.camera.position.fromArray(camera.position);
+        user.camera.quaternion.fromArray(camera.quaternion);
+        user.controller1.position.fromArray(controller1.position);
+        user.controller1.quaternion.fromArray(controller1.quaternion);
+        user.controller2.position.fromArray(controller2.position);
+        user.controller2.quaternion.fromArray(controller2.quaternion);
+        user.updateControllers();
+        user.updateCamera();
       }
     }
   },
