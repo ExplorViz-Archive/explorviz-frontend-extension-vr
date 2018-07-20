@@ -169,7 +169,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+        if(!self.get('app3DBinded') && self.get('openApps').size > 0) {
           self.get('openApps').forEach(function(app){
             app.position.y -=  0.05;
             self.updateObjectMatrix(app);
@@ -182,7 +182,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+        if(!self.get('app3DBinded') && self.get('openApps').size > 0) {
           self.get('openApps').forEach(function(app){
             app.position.y +=  0.05;
             self.updateObjectMatrix(app);
@@ -195,7 +195,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+        if(!self.get('app3DBinded') && self.get('openApps').size > 0) {
           self.get('openApps').forEach(function(app){
             app.position.x -=  0.05;
             self.updateObjectMatrix(app);
@@ -208,7 +208,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+        if(!self.get('app3DBinded') && self.get('openApps').size > 0) {
           self.get('openApps').forEach(function(app){
             app.position.x +=  0.05;
             self.updateObjectMatrix(app);
@@ -221,7 +221,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+        if(!self.get('app3DBinded') && self.get('openApps').size > 0) {
           self.get('openApps').forEach(function(app){
             app.position.z -=  0.05;
             self.updateObjectMatrix(app);
@@ -234,7 +234,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+        if(!self.get('app3DBinded') && self.get('openApps').size > 0) {
           self.get('openApps').forEach(function(app){
             app.position.z +=  0.05;
             self.updateObjectMatrix(app);
@@ -246,7 +246,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.trigger('centerVREnvironment');
 
-        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+        if(!self.get('app3DBinded') && self.get('openApps').size > 0) {
           self.get('openApps').forEach(function(app){
             app.rotation.x +=  0.05;
             self.updateObjectMatrix(app);
@@ -258,7 +258,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.trigger('centerVREnvironment');
 
-        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+        if(!self.get('app3DBinded') && self.get('openApps').size > 0) {
           self.get('openApps').forEach(function(app){
             app.rotation.x -=  0.05;
             self.updateObjectMatrix(app);
@@ -1533,8 +1533,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.set('appCommunicationHighlighted', null);
       this.set('selectedEntitysMesh', null);
     }
-    // Remove application 
-    this.trigger('removeApplication', intersectedViewObj.object.userData.appID);
+    // Remove application if delete button was hit
+    if (intersectedViewObj.object.userData.appID){
+      this.trigger('removeApplication', intersectedViewObj.object.userData.appID);
+    }
   },
 
   /*
