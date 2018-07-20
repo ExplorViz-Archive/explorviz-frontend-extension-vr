@@ -1538,7 +1538,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       if (self.get('app3DPresent')) {
         self.removeChildren(self.get('openApps').get(appID));
         self.get('openApps').delete(appID);
-        self.set('app3DPresent', false);
+        if (self.get('openApps').size == 0){
+          self.set('app3DPresent', false);
+        }
       }
     });
   }, // END initInteraction
