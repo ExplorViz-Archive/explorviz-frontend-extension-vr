@@ -1725,7 +1725,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       this.get('deleteButton').userData.name = 'deleteButton';
       this.get('deleteButton').name = "deleteButton";
       self.get('deleteButton').position.set(
-        self.get('openApps').get(application.id).x,bboxApp3D.max.y*3.5,self.get('openApps').get(application.id).position.z);
+        self.get('openApps').get(application.id).position.x,bboxApp3D.max.y*3.5,self.get('openApps').get(application.id).position.z);
 
       // Scale application
       self.get('openApps').get(application.id).scale.x = 0.01;
