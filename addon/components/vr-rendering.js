@@ -11,7 +11,7 @@ import ImageLoader from 'explorviz-frontend/utils/three-image-loader';
 import applyCityLayout from 'explorviz-frontend/utils/application-rendering/city-layouter';
 import FoundationBuilder from 'explorviz-frontend/utils/application-rendering/foundation-builder';
 import layout from "../templates/components/vr-rendering";
-import EmberObject from '@ember/object';
+import EmberMap from '@ember/map';
 
 // Declare globals
 /*global WEBVR*/
@@ -83,11 +83,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   deleteButton: null,
   textBox: null,
   // Storage for mesh data
-  app3DMesh: null,
+  app3DMeshes: null,
   teleportArea: null,
 
   // Application
-  openApps : [],
+  openApps : null,
   application3D: null,
   applicationID: null,
   app3DPresent: false,
@@ -107,16 +107,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     let result = (this.get('vrLandscape')) ? this.get('vrLandscape').children : [];
     const allowedObjects = ['node', 'system', 'nodegroup', 'application', 'communication', 'floor','component', 'clazz', 'deleteButton'];
 
-    console.log("Length before:" + result.length);
-    let i, j;
-    for(i = 0; i < this.get('openApps').length; i++){
-      console.log("Length of added: " + self.get('openApps')[i].application3D.children.length);
-      for(j = 0; j < self.get('openApps')[i].application3D.children.length; j++){
-        self.get('openApps')[i].application3D.children[j].userData.object3D = self.get('openApps')[i].application3D;
-      }
-      result = result.concat(self.get('openApps')[i].application3D.children); //change this with concat
-    }
-    console.log("length after: " + result.length);
+    self.get('openApps').forEach(function(app){
+      app.children.forEach(function(child){
+        child.userData.object3D = app;
+      });
+      result = result.concat(app.children);
+    });
 
     result = (this.get('room')) ? result.concat(this.get('room').children) : result;
 
@@ -273,6 +269,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       map: requestTexture
     });
     this.set('requestMaterial',requestMaterial);
+    
+    this.set('openApps', EmberMap.create());
+    this.set('app3DMeshes', EmberMap.create());
 
     // Load image for delete button
     this.set('deleteButtonTexture', new THREE.TextureLoader().load('images/x_white_transp.png'));
@@ -1440,19 +1439,15 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     this.get('interaction').on('redrawAppCommunication', function() {
       // Delete communication lines of application3D
-      let i = 0;
-      for (i = 0; i < self.get('openApps').length; i++){
-        self.removeChildren(self.get('openApps')[i].application3D, ['app3DCommunication']);
-        self.get('openApps')[i].application3D.updateMatrix();
-      }
+      self.get('openApps').forEach(function(app){
+        self.removeChildren(app, ['app3DCommunication']);
+        app.updateMatrix();
+      });
 
-      i = 0;
-      for (i = 0; i < self.get('openApps').length; i++){
-        let app3DModel = self.get('openApps')[i].application3D.userData.model;
-        // Draw communication lines of application3D
-        self.addCommunicationToApp(app3DModel);
-        self.get('openApps')[i].application3D.updateMatrix();
-      }
+      self.get('openApps').forEach(function(app){
+        self.addCommunicationToApp(app.userData.model);
+        app.updateMatrix();
+      });
     });
 
     // Show teleport area
@@ -1489,17 +1484,20 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      */
     this.get('interaction').on('redrawApp', function() {
       // Store app3D Data because application3D is removed in the next step
-      var appPosition = self.get('app3DMesh').position;
-      var appRotation = self.get('app3DMesh').rotation;
-      let app3DModel = self.get('application3D.userData.model');
-      // Empty application 3D (remove app3D)
-      self.removeChildren(self.get('application3D'));
 
-      // Add application3D to scene
-      self.add3DApplicationToLandscape(app3DModel, appPosition, appRotation);
-      self.get('application3D').updateMatrix();
+      self.get('openApps').forEach(function(app) {
+        var appPosition = app.position;
+        var appRotation = app.rotation;
+        let app3DModel = app.userData.model;
 
+        // Empty application 3D (remove app3D)
+        self.removeChildren(app);
 
+        self.get('openApps').delete(app3DModel.id);
+        // Add application3D to scene
+        self.add3DApplicationToLandscape(app3DModel, appPosition, appRotation);
+        app.updateMatrix();
+      });
     }); ///// End redraw application3D 
 
     /*
@@ -1514,20 +1512,18 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.add3DApplicationToLandscape(emberModel, 
         intersectionPoint, new THREE.Vector3(0, 0, 0));
 
-      let index = self.getIndexOfApp(emberModel.id);
-      let bboxApp3D = new THREE.Box3().setFromObject(self.get('openApps')[index].application3D);
-      let app3DSize = new THREE.Vector3();
-      bboxApp3D.getSize(app3DSize);
-      app3DSize.multiplyScalar(0.5);
+      //let bboxApp3D = new THREE.Box3().setFromObject(self.get('openApps').get(emberModel.id));
+      //let app3DSize = bboxApp3D.getSize(app3DSize);
+      //app3DSize.multiplyScalar(0.5);
       let newPosition = new THREE.Vector3();
       // Center x and z
-      newPosition.x = intersectionPoint.x - app3DSize.x;
-      newPosition.z = intersectionPoint.z - app3DSize.z;
+      newPosition.x = intersectionPoint.x;// - app3DSize.x;
+      newPosition.z = intersectionPoint.z;// - app3DSize.z;
       // Uncenter y for better overview
-      newPosition.y = intersectionPoint.y + app3DSize.y*2;
-      self.get('openApps')[index].application3D.position.set(newPosition.x, newPosition.y, newPosition.z);
+      newPosition.y = intersectionPoint.y;// + app3DSize.y*2;
+      self.get('openApps').get(emberModel.id).position.set(newPosition.x, newPosition.y, newPosition.z);
       self.set('app3DPresent', true);
-      self.get('openApps')[index].application3D.updateMatrix();
+      self.get('openApps').get(emberModel.id).updateMatrix();
 
     });
     /*
@@ -1543,18 +1539,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       }
     });
   }, // END initInteraction
-
-  getIndexOfApp(appID){
-    let i = 0;
-    for (i = 0; i < this.get('openApps').length; i++) {
-      if (this.get('openApps')[i].applicationID == appID){
-        console.log("IDs:" + this.get('openApps')[i].applicationID + "," + appID);
-        return i;
-      }
-    }
-    return this.get('openApps').length - 1;
-  },
-
 
   /*
    *  This method is used to remove the given children of an object3D.
@@ -1680,8 +1664,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         const pipe = cylinderMesh(start, end, material, thickness);
 
         pipe.userData.model = cumuClazzCommu;
-        let index = self.getIndexOfApp(application.id);
-        self.get('openApps')[index].application3D.add(pipe);
+        self.get('openApps').get(application.id).add(pipe);
       }
     });
 
@@ -1718,20 +1701,17 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       // Draw application in 3D application-view
       applyCityLayout(application);
 
-      let index = self.get('openApps').length;
+      self.get('openApps').set(application.id, new THREE.Object3D());
 
-      self.get('openApps').push(
-        EmberObject.create({ applicationID: application.id, application3D: new THREE.Object3D()}));
-
-      self.get('openApps')[index].application3D.matrixAutoUpdate = false;
-      self.get('openApps')[index].application3D.name = 'app3D';
-      self.get('openApps')[index].application3D.userData.model = application;
+      self.get('openApps').get(application.id).matrixAutoUpdate = false;
+      self.get('openApps').get(application.id).name = 'app3D';
+      self.get('openApps').get(application.id).userData.model = application;
 
       this.addCommunicationToApp(application);
 
-      addComponentToScene(foundation, 0xCECECE);
+      addComponentToScene(foundation, 0xCECECE, application.id);
 
-      let bboxApp3D = new THREE.Box3().setFromObject(self.get('openApps')[index].application3D);
+      let bboxApp3D = new THREE.Box3().setFromObject(self.get('openApps').get(application.id));
 
       // Create delete button
       var geometryDel = new THREE.SphereGeometry(6, 32, 32);
@@ -1742,27 +1722,27 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       this.get('deleteButton').geometry.rotateY(-0.3);
       this.get('deleteButton').userData.name = 'deleteButton';
       this.get('deleteButton').name = "deleteButton";
-      self.get('deleteButton').position.set(self.get('openApps')[index].application3D.position.x,bboxApp3D.max.y*3.5,self.get('openApps')[index].application3D.position.z);
+      self.get('deleteButton').position.set(self.get('openApps').
+            get(application.id).x,bboxApp3D.max.y*3.5,self.get('openApps').get(application.id).position.z);
 
       // Scale application
-      self.get('openApps')[index].application3D.scale.x = 0.01;
-      self.get('openApps')[index].application3D.scale.y = 0.01;
-      self.get('openApps')[index].application3D.scale.z = 0.01;
+      self.get('openApps').get(application.id).scale.x = 0.01;
+      self.get('openApps').get(application.id).scale.y = 0.01;
+      self.get('openApps').get(application.id).scale.z = 0.01;
 
       // Apply last position and rotation
-      self.get('openApps')[index].application3D.position.set(position.x, position.y, position.z);
-      self.get('openApps')[index].application3D.rotation.set(rotation.x, rotation.y, rotation.z);
-      self.get('openApps')[index].application3D.add(self.get('deleteButton'));
-      self.get('openApps')[index].application3D.updateMatrix();
+      self.get('openApps').get(application.id).position.set(position.x, position.y, position.z);
+      self.get('openApps').get(application.id).rotation.set(rotation.x, rotation.y, rotation.z);
+      self.get('openApps').get(application.id).add(self.get('deleteButton'));
+      self.get('openApps').get(application.id).updateMatrix();
 
-      self.get('scene').add(self.get('openApps')[index].application3D);
+      self.get('scene').add(self.get('openApps').get(application.id));
 
       // Store application mesh for redraw
-      self.set('app3DMesh', self.get('openApps')[index].application3D);
+      self.get('app3DMeshes').set(application.id, self.get('openApps').get(application.id));
 
       // Setup interaction for app3D
       self.get('interaction').setupInteractionApp3D(self.get('openApps'));
-
     }
 
     this.actualizeRaycastObjects();
@@ -1770,14 +1750,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     /*
       This function is used to create all boxes for application3D
     */
-    function addComponentToScene(component, color) {
+    function addComponentToScene(component, color, appID) {
 
       const grey = 0xCECECE;
       const lightGreen = 0x00BB41;
       const darkGreen = 0x169E2B;
       const clazzColor = 0x3E14A0;
 
-      createBoxApp(component, color, false);
+      createBoxApp(component, color, false, appID);
 
       component.set('color', color);
 
@@ -1786,7 +1766,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       clazzes.forEach((clazz) => {
         if (component.get('opened')) {
-          createBoxApp(clazz, clazzColor, true);
+          createBoxApp(clazz, clazzColor, true, appID);
         }
       });
 
@@ -1794,19 +1774,19 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         if (component.get('opened')) {
           if (child.get('opened')) {
             if (component.get('color') === grey) {
-              addComponentToScene(child, lightGreen);
+              addComponentToScene(child, lightGreen, appID);
             } else if (component.get('color') === darkGreen) {
-              addComponentToScene(child, lightGreen);
+              addComponentToScene(child, lightGreen, appID);
             } else {
-              addComponentToScene(child, darkGreen);
+              addComponentToScene(child, darkGreen, appID);
             }
           } else {
             if (component.get('color') === grey) {
-              addComponentToScene(child, lightGreen);
+              addComponentToScene(child, lightGreen, appID);
             } else if (component.get('color') === darkGreen) {
-              addComponentToScene(child, lightGreen);
+              addComponentToScene(child, lightGreen,appID);
             } else {
-              addComponentToScene(child, darkGreen);
+              addComponentToScene(child, darkGreen,appID);
             }
           }
         }
@@ -1816,7 +1796,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     /*
      *  This function is used to create the meshes for th application3D
      */
-    function createBoxApp(component, color, isClass) {
+    function createBoxApp(component, color, isClass, appID) {
 
       let centerPoint = new THREE.Vector3(component.get('positionX') +
         component.get('width') / 2.0, component.get('positionY') +
@@ -1846,12 +1826,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       mesh.userData.type = isClass ? 'clazz' : 'package';
 
       mesh.userData.opened = component.get('opened');
-
-      let index = self.getIndexOfApp(component.id);
-      console.log("Index: " + index);
-      console.log(self.get('openApps'));
-      self.get('labelerApp').createLabel(mesh, self.get('openApps')[index].application3D,
-        self.get('font'));
+      self.get('labelerApp').createLabel(mesh, self.get('openApps').get(appID), self.get('font'));
 
       if (color === 0xCECECE) {
         mesh.name = 'app3DFoundation';
@@ -1864,7 +1839,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         self.get('interaction').saveSelectedMesh(mesh);
       }
 
-      self.get('openApps')[index].application3D.add(mesh);
+      self.get('openApps').get(appID).add(mesh);
 
     } // END createBoxApp
 

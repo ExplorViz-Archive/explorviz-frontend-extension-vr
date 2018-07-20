@@ -38,7 +38,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   selectedEntitysMesh: null,
   selectedEntitysColor: null,
 
-  openApps: [],
+  openApps: null,
   application3D: null,
   app3DBinded: false,
   app3DBindedByController: {},
@@ -171,8 +171,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
           self.get('openApps').forEach(function(app){
-            app.application3D.position.y -=  0.05;
-            self.updateObjectMatrix(app.application3D);
+            app.position.y -=  0.05;
+            self.updateObjectMatrix(app);
           });
         }
       }
@@ -184,8 +184,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
           self.get('openApps').forEach(function(app){
-            app.application3D.position.y +=  0.05;
-            self.updateObjectMatrix(app.application3D);
+            app.position.y +=  0.05;
+            self.updateObjectMatrix(app);
           });
         }
       }
@@ -197,8 +197,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
           self.get('openApps').forEach(function(app){
-            app.application3D.position.x -=  0.05;
-            self.updateObjectMatrix(app.application3D);
+            app.position.x -=  0.05;
+            self.updateObjectMatrix(app);
           });
         }
       }
@@ -210,8 +210,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
           self.get('openApps').forEach(function(app){
-            app.application3D.position.x +=  0.05;
-            self.updateObjectMatrix(app.application3D);
+            app.position.x +=  0.05;
+            self.updateObjectMatrix(app);
           });
         }
       }
@@ -223,8 +223,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
           self.get('openApps').forEach(function(app){
-            app.application3D.position.z -=  0.05;
-            self.updateObjectMatrix(app.application3D);
+            app.position.z -=  0.05;
+            self.updateObjectMatrix(app);
           });
         }
       }
@@ -236,8 +236,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
           self.get('openApps').forEach(function(app){
-            app.application3D.position.z +=  0.05;
-            self.updateObjectMatrix(app.application3D);
+            app.position.z +=  0.05;
+            self.updateObjectMatrix(app);
           });
         }
       }
@@ -248,8 +248,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
           self.get('openApps').forEach(function(app){
-            app.application3D.rotation.x +=  0.05;
-            self.updateObjectMatrix(app.application3D);
+            app.rotation.x +=  0.05;
+            self.updateObjectMatrix(app);
           });
         }
       }
@@ -260,8 +260,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
           self.get('openApps').forEach(function(app){
-            app.application3D.rotation.x -=  0.05;
-            self.updateObjectMatrix(app.application3D);
+            app.rotation.x -=  0.05;
+            self.updateObjectMatrix(app);
           });
         }
       }
@@ -721,6 +721,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         if(emberModelName === "application" && !this.get('app3DBinded') && emberModel.get('components').get('length') !==0){
           // Trigger event in component vr-rendering
           this.trigger('showApplication', emberModel, intersectedViewObj.point); 
+          console.log("application hit");
         } 
         
         // Handle nodegroup or system hit
@@ -732,12 +733,18 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Handle component of app3D hit
         else if((emberModelName === "component") && !this.get('app3DBinded')){
 
+          console.log("component of app3D hit with right Controller");
           // Toggle state and redraw app
           emberModel.setOpenedStatus(!emberModel.get('opened'));
           this.trigger('redrawApp');
 
           // Restore selection
-          if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened')){
+          
+
+          /*
+          if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened'))
+          
+          {
             this.get('selector').highlightAppCommunication(this.get('appCommunicationHighlighted'));
             this.trigger('redrawAppCommunication');
 
@@ -751,14 +758,14 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             }
             this.set('appCommunicationHighlighted', null);
             this.set('selectedEntitysMesh', null);
-          }
+          }*/
         }
       }
     }
   },
 
   /*
-   * This method handles the right controller (event 'triggerdown')
+   * This method handles the left controller (event 'triggerdown')
    * and is used 
    * select components/clazzes of application3D and teleport. 
    */
@@ -819,7 +826,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
                 return;
               }
               // Reset communication lines
-              this.get('selector').highlightAppCommunication(null);
+              //this.get('selector').highlightAppCommunication(null);
               // Restore old color
               this.restoreSelectedEntity(this.verifyControllers(controller.id));
      
@@ -834,7 +841,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             intersectedViewObj.object.material.color = color;
             // Highlight communication lines
             this.get('appCommunicationHighlighted').set('highlighted', true);
-            this.get('selector').highlightAppCommunication(emberModel);
+            //this.get('selector').highlightAppCommunication(emberModel);
             this.trigger('redrawAppCommunication');
 
             // Reset highlighting for selected component
@@ -846,7 +853,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       else{
         // Reset communication highlighting (nothing hit)
         if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && this.get('selectedEntitysColor')){
-          this.get('selector').highlightAppCommunication(null);
+          //this.get('selector').highlightAppCommunication(null); //disabled until further notice
           // Restore selected entity and communication lines
           this.restoreSelectedEntity(this.verifyControllers(controller.id));
   
