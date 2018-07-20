@@ -88,7 +88,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   // Application
   openApps : null,
-  app3DPresent: false,
   
 
 
@@ -530,9 +529,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       this.get('foundationBuilder').removeFoundation(this.get('store'));
       this.set('landscapeRepo.latestApplication', null);
     }
-
-    this.set('applicationID', null);
-    this.set('application3D', null);
 
     // Clean up Webgl contexts
     var gl = this.get('canvas').getContext('webgl');
@@ -1524,7 +1520,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       // Uncenter y for better overview
       newPosition.y = intersectionPoint.y;//  + app3DSize.y*2;
       self.get('openApps').get(emberModel.id).position.set(newPosition.x, newPosition.y, newPosition.z);
-      self.set('app3DPresent', true);
       self.get('openApps').get(emberModel.id).updateMatrix();
 
     });
@@ -1535,12 +1530,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('interaction').on('removeApplication', function(appID) {
 
       // Remove 3D Application if present
-      if (self.get('app3DPresent')) {
+      if (self.get('openApps').has(appID)) {
         self.removeChildren(self.get('openApps').get(appID));
         self.get('openApps').delete(appID);
-        if (self.get('openApps').size == 0){
-          self.set('app3DPresent', false);
-        }
       }
     });
   }, // END initInteraction
@@ -1606,9 +1598,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
         // remove foundation for re-rendering
         this.get('foundationBuilder').removeFoundation(this.get('store'));
-
-        this.set('applicationID', null);
-        this.set('application3D', null);
         // Update application3D in interaction
         this.get('interaction').setupInteractionApp3D(null, null);
         this.set('landscapeRepo.latestApplication', null);
