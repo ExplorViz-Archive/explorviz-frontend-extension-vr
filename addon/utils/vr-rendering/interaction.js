@@ -741,7 +741,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           // Restore selection
           
 
-          /*
+          
           if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened'))
           
           {
@@ -758,7 +758,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             }
             this.set('appCommunicationHighlighted', null);
             this.set('selectedEntitysMesh', null);
-          }*/
+          }
         }
       }
     }
@@ -826,7 +826,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
                 return;
               }
               // Reset communication lines
-              //this.get('selector').highlightAppCommunication(null);
+              this.get('selector').highlightAppCommunication(null);
               // Restore old color
               this.restoreSelectedEntity(this.verifyControllers(controller.id));
      
@@ -841,7 +841,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             intersectedViewObj.object.material.color = color;
             // Highlight communication lines
             this.get('appCommunicationHighlighted').set('highlighted', true);
-            //this.get('selector').highlightAppCommunication(emberModel);
+            this.get('selector').highlightAppCommunication(emberModel);
             this.trigger('redrawAppCommunication');
 
             // Reset highlighting for selected component
@@ -853,7 +853,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       else{
         // Reset communication highlighting (nothing hit)
         if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && this.get('selectedEntitysColor')){
-          //this.get('selector').highlightAppCommunication(null); //disabled until further notice
+          this.get('selector').highlightAppCommunication(null); //disabled until further notice
           // Restore selected entity and communication lines
           this.restoreSelectedEntity(this.verifyControllers(controller.id));
   
