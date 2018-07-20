@@ -1499,6 +1499,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('interaction').on('showApplication', function(emberModel, intersectionPoint) {
       self.set('viewImporter.importedURL', null);
 
+      //dont allow to open the same two apps
+      if (self.get('openApps').has(emberModel.id)){
+        return;
+      }
       // Add 3D Application to scene (also if one exists already)
       self.set('landscapeRepo.latestApplication', emberModel);
       self.add3DApplicationToLandscape(emberModel, 
