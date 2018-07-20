@@ -1258,16 +1258,24 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     if(event.button === 1){
       // Translate camera
-      var distanceXInPercent = (delta.x /
+      let distanceXInPercent = (delta.x /
         parseFloat(this.get('renderer').domElement.clientWidth)) * ( -10.0);
 
-      var distanceYInPercent = (delta.y /
+      let distanceYInPercent = (delta.y /
         parseFloat(this.get('renderer').domElement.clientHeight)) * 10.0;
 
       this.get('vrEnvironment').position.x = this.get('vrEnvironment').position.x + distanceXInPercent;
+      this.get('vrEnvironment').position.z = this.get('vrEnvironment').position.z - distanceYInPercent;
+      this.updateObjectMatrix(this.get('vrEnvironment'));
+    } else if(event.button === 3){
+      // Translate camera
+      let distanceYInPercent = (delta.y /
+        parseFloat(this.get('renderer').domElement.clientHeight)) * 10.0;
+
       this.get('vrEnvironment').position.y = this.get('vrEnvironment').position.y - distanceYInPercent;
       this.updateObjectMatrix(this.get('vrEnvironment'));
     }
+    
   },
 
   /*
