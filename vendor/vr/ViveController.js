@@ -42,7 +42,7 @@ ViveController = function ( id ) {
 	this.matrixAutoUpdate = false;
 
 	this.getGamepad = function () {
-
+		console.log("Gamepad: " + gamepad);
 		return gamepad;
 
 	};
@@ -68,6 +68,7 @@ ViveController = function ( id ) {
 
 			var pose = gamepad.pose;
 
+			//adjust y position here, because controllers else are too low 
 			if ( pose.position !== null ) scope.position.fromArray( [pose.position[0], pose.position[1] + 1.61, pose.position[2]] );
 			if ( pose.orientation !== null ) scope.quaternion.fromArray( pose.orientation );
 			scope.matrix.compose( scope.position, scope.quaternion, scope.scale );
