@@ -721,7 +721,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         if(emberModelName === "application" && !this.get('app3DBinded') && emberModel.get('components').get('length') !==0){
           // Trigger event in component vr-rendering
           this.trigger('showApplication', emberModel, intersectedViewObj.point); 
-          console.log("application hit");
         } 
         
         // Handle nodegroup or system hit
@@ -733,7 +732,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Handle component of app3D hit
         else if((emberModelName === "component") && !this.get('app3DBinded')){
 
-          console.log("component of app3D hit with right Controller");
           // Toggle state and redraw app
           emberModel.setOpenedStatus(!emberModel.get('opened'));
           this.trigger('redrawApp');
@@ -872,7 +870,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    */
   onControllerThumbpadDown(event){
     const self = this;
-    console.log("Thumbpad down");
 
     const controller = event.target;
 
@@ -893,7 +890,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     // Check if an object is hit
     if(intersectedViewObj) {
-      console.log("Object was hit");
 
       // Handle delete button and floor exception
       if (intersectedViewObj.object.name === 'deleteButton' || intersectedViewObj.object.name === 'floor'){
@@ -913,7 +909,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Get inverse of controller transoformation      
         tempMatrix.getInverse(controller.matrixWorld);
 
-        console.log(intersectedViewObj.object.userData);
         let object = intersectedViewObj.object.userData.object3D;
         
 

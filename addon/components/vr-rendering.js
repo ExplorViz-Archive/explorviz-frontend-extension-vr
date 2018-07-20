@@ -88,9 +88,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   // Application
   openApps : null,
-  application3D: null,
-  applicationID: null,
   app3DPresent: false,
+  
+
 
   didRender() {
     this._super(...arguments);
@@ -1510,15 +1510,19 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.add3DApplicationToLandscape(emberModel, 
         intersectionPoint, new THREE.Vector3(0, 0, 0));
 
+        
       //let bboxApp3D = new THREE.Box3().setFromObject(self.get('openApps').get(emberModel.id));
-      //let app3DSize = bboxApp3D.getSize(app3DSize);
+      //let app3DSize = new THREE.Vector3();
+      //bboxApp3D.getSize(app3DSize);
       //app3DSize.multiplyScalar(0.5);
       let newPosition = new THREE.Vector3();
+
+      //console.log("x: " + app3DSize.x + ",y:" + app3DSize.y + ",z:" + app3DSize.z);*/
       // Center x and z
-      newPosition.x = intersectionPoint.x;// - app3DSize.x;
-      newPosition.z = intersectionPoint.z;// - app3DSize.z;
+      newPosition.x = intersectionPoint.x;//  - app3DSize.x;
+      newPosition.z = intersectionPoint.z;//  - app3DSize.z;
       // Uncenter y for better overview
-      newPosition.y = intersectionPoint.y;// + app3DSize.y*2;
+      newPosition.y = intersectionPoint.y;//  + app3DSize.y*2;
       self.get('openApps').get(emberModel.id).position.set(newPosition.x, newPosition.y, newPosition.z);
       self.set('app3DPresent', true);
       self.get('openApps').get(emberModel.id).updateMatrix();
@@ -1720,8 +1724,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       this.get('deleteButton').geometry.rotateY(-0.3);
       this.get('deleteButton').userData.name = 'deleteButton';
       this.get('deleteButton').name = "deleteButton";
-      self.get('deleteButton').position.set(self.get('openApps').
-            get(application.id).x,bboxApp3D.max.y*3.5,self.get('openApps').get(application.id).position.z);
+      self.get('deleteButton').position.set(
+        self.get('openApps').get(application.id).x,bboxApp3D.max.y*3.5,self.get('openApps').get(application.id).position.z);
 
       // Scale application
       self.get('openApps').get(application.id).scale.x = 0.01;
