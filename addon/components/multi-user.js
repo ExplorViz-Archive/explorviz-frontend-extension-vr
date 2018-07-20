@@ -19,7 +19,7 @@ export default VRRendering.extend({
     socket.on('close', this.closeHandler, this);
 
     this.set('socketRef', socket);
-        //call update function with 60 fps
+        //call update function with 1 fps
         setInterval(this.update.bind(this), 1000 / 60);
 
   },
@@ -61,18 +61,18 @@ export default VRRendering.extend({
 
   messageHandler(event) {
     const data = JSON.parse(event.data);
-    //console.log(`${event.data}`);
     if(data.event) {
       // message sent to client on own connect
       if(data.event === 'init') {
+        console.log(`${event.data}`);
         this.set("users", EmberMap.create());
         // create User model for all users and add them to the users map
         for (var i = 0; i < data.users.length; i++) {
           const userData = data.users[i];
-          const user = User.create();
+          let user = User.create();
           user.init();
-          user.set('id', userData.id);
           user.set('name', userData.name);
+          user.set('id', userData.id);
           this.get('users').set(userData.id, user);
           if(userData.id !== data.id) {
             this.get('scene').add(user.get('camera.model'));
@@ -84,11 +84,11 @@ export default VRRendering.extend({
         this.set('userID', data.id);
         console.log(`You just connected with id ${this.get('userID')}`);
       } else if(data.event === 'user_connect') { // new user connected
+        console.log(`${event.data}`);
         let user = User.create();
         user.init();
         user.set('name', data.user.name);
         user.set('id', data.user.id);
-
         this.get('users').set(data.user.id, user);
         
         this.get('scene').add(user.get('camera.model'));
@@ -97,17 +97,12 @@ export default VRRendering.extend({
 
         console.log(`${data.user.name} connected with ID ${data.user.id}`);
       } else if(data.event === 'position') {
+        console.log(`${data.camera.position}`);
         let { camera, id, controller1, controller2 } = data;
         let user = this.get('users').get(id);
-        
-        user.camera.position.fromArray(camera.position);
-        user.camera.quaternion.fromArray(camera.quaternion);
-        user.controller1.position.fromArray(controller1.position);
-        user.controller1.quaternion.fromArray(controller1.quaternion);
-        user.controller2.position.fromArray(controller2.position);
-        user.controller2.quaternion.fromArray(controller2.quaternion);
-        user.updateControllers();
-        user.updateCamera();
+
+        user.updateControllers({ controller1, controller2 });
+        user.updateCamera(camera);
       }
     }
   },
