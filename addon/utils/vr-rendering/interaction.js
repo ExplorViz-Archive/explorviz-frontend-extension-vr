@@ -1533,8 +1533,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.set('appCommunicationHighlighted', null);
       this.set('selectedEntitysMesh', null);
     }
-    // Remove application
-    this.trigger('removeApplication');
+    // Remove application 
+    this.trigger('removeApplication', intersectedViewObj.object.userData.appID);
   },
 
   /*

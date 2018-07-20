@@ -1532,11 +1532,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      * This interaction listener is used to delete an existing application3D 
      * (controller button pressed or mouse doubleclick)
      */
-    this.get('interaction').on('removeApplication', function() {
+    this.get('interaction').on('removeApplication', function(appID) {
 
       // Remove 3D Application if present
       if (self.get('app3DPresent')) {
-        self.removeChildren(self.get('application3D'));
+        self.removeChildren(self.get('openApps').get(appID));
+        self.get('openApps').delete(appID);
         self.set('app3DPresent', false);
       }
     });
@@ -1723,6 +1724,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       this.set('deleteButton', new THREE.Mesh(geometryDel, materialDel));
       this.get('deleteButton').geometry.rotateY(-0.3);
       this.get('deleteButton').userData.name = 'deleteButton';
+      this.get('deleteButton').userData.appID = application.id;
       this.get('deleteButton').name = "deleteButton";
       self.get('deleteButton').position.set(
         self.get('openApps').get(application.id).position.x,bboxApp3D.max.y*3.5,self.get('openApps').get(application.id).position.z);
