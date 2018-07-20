@@ -88,9 +88,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   // Application
   openApps : null,
-  application3D: null,
-  applicationID: null,
-  app3DPresent: false,
+  
+
 
   didRender() {
     this._super(...arguments);
@@ -530,9 +529,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       this.get('foundationBuilder').removeFoundation(this.get('store'));
       this.set('landscapeRepo.latestApplication', null);
     }
-
-    this.set('applicationID', null);
-    this.set('application3D', null);
 
     // Clean up Webgl contexts
     var gl = this.get('canvas').getContext('webgl');
@@ -1480,22 +1476,20 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      * This interaction listener is used to redraw the application3D 
      * ("opened" value of package changed) 
      */
-    this.get('interaction').on('redrawApp', function() {
+    this.get('interaction').on('redrawApp', function(appID) {
       // Store app3D Data because application3D is removed in the next step
 
-      self.get('openApps').forEach(function(app) {
-        var appPosition = app.position;
-        var appRotation = app.rotation;
-        let app3DModel = app.userData.model;
+      var appPosition = self.get('openApps').get(appID).position;
+      var appRotation = self.get('openApps').get(appID).rotation;
+      let app3DModel = self.get('openApps').get(appID).userData.model;
 
-        // Empty application 3D (remove app3D)
-        self.removeChildren(app);
+      // Empty application 3D (remove app3D)
+      self.removeChildren(self.get('openApps').get(appID));
 
-        self.get('openApps').delete(app3DModel.id);
-        // Add application3D to scene
-        self.add3DApplicationToLandscape(app3DModel, appPosition, appRotation);
-        app.updateMatrix();
-      });
+      //self.get('openApps').delete(app3DModel.id);
+      // Add application3D to scene
+      self.add3DApplicationToLandscape(app3DModel, appPosition, appRotation);
+      self.get('openApps').get(appID).updateMatrix();
     }); ///// End redraw application3D 
 
     /*
@@ -1505,22 +1499,29 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('interaction').on('showApplication', function(emberModel, intersectionPoint) {
       self.set('viewImporter.importedURL', null);
 
+      //dont allow to open the same two apps
+      if (self.get('openApps').has(emberModel.id)){
+        return;
+      }
       // Add 3D Application to scene (also if one exists already)
       self.set('landscapeRepo.latestApplication', emberModel);
       self.add3DApplicationToLandscape(emberModel, 
         intersectionPoint, new THREE.Vector3(0, 0, 0));
 
+        
       //let bboxApp3D = new THREE.Box3().setFromObject(self.get('openApps').get(emberModel.id));
-      //let app3DSize = bboxApp3D.getSize(app3DSize);
+      //let app3DSize = new THREE.Vector3();
+      //bboxApp3D.getSize(app3DSize);
       //app3DSize.multiplyScalar(0.5);
       let newPosition = new THREE.Vector3();
+
+      //console.log("x: " + app3DSize.x + ",y:" + app3DSize.y + ",z:" + app3DSize.z);*/
       // Center x and z
-      newPosition.x = intersectionPoint.x;// - app3DSize.x;
-      newPosition.z = intersectionPoint.z;// - app3DSize.z;
+      newPosition.x = intersectionPoint.x;//  - app3DSize.x;
+      newPosition.z = intersectionPoint.z;//  - app3DSize.z;
       // Uncenter y for better overview
-      newPosition.y = intersectionPoint.y;// + app3DSize.y*2;
+      newPosition.y = intersectionPoint.y;//  + app3DSize.y*2;
       self.get('openApps').get(emberModel.id).position.set(newPosition.x, newPosition.y, newPosition.z);
-      self.set('app3DPresent', true);
       self.get('openApps').get(emberModel.id).updateMatrix();
 
     });
@@ -1528,12 +1529,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      * This interaction listener is used to delete an existing application3D 
      * (controller button pressed or mouse doubleclick)
      */
-    this.get('interaction').on('removeApplication', function() {
+    this.get('interaction').on('removeApplication', function(appID) {
 
       // Remove 3D Application if present
-      if (self.get('app3DPresent')) {
-        self.removeChildren(self.get('application3D'));
-        self.set('app3DPresent', false);
+      if (self.get('openApps').has(appID)) {
+        self.removeChildren(self.get('openApps').get(appID));
+        self.get('openApps').delete(appID);
       }
     });
   }, // END initInteraction
@@ -1599,9 +1600,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
         // remove foundation for re-rendering
         this.get('foundationBuilder').removeFoundation(this.get('store'));
-
-        this.set('applicationID', null);
-        this.set('application3D', null);
         // Update application3D in interaction
         this.get('interaction').setupInteractionApp3D(null, null);
         this.set('landscapeRepo.latestApplication', null);
@@ -1720,8 +1718,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       this.get('deleteButton').geometry.rotateY(-0.3);
       this.get('deleteButton').userData.name = 'deleteButton';
       this.get('deleteButton').name = "deleteButton";
-      self.get('deleteButton').position.set(self.get('openApps').
-            get(application.id).x,bboxApp3D.max.y*3.5,self.get('openApps').get(application.id).position.z);
+      self.get('deleteButton').position.set(
+        self.get('openApps').get(application.id).position.x,bboxApp3D.max.y*3.5,self.get('openApps').get(application.id).position.z);
 
       // Scale application
       self.get('openApps').get(application.id).scale.x = 0.01;
@@ -1733,6 +1731,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.get('openApps').get(application.id).rotation.set(rotation.x, rotation.y, rotation.z);
       self.get('openApps').get(application.id).add(self.get('deleteButton'));
       self.get('openApps').get(application.id).updateMatrix();
+
+      //add id of app to children
+      self.get('openApps').get(application.id).children.forEach(function (child){
+        child.userData.appID = application.id;
+      });
 
       self.get('scene').add(self.get('openApps').get(application.id));
 

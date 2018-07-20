@@ -169,7 +169,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+        if(!self.get('app3DBinded') && self.get('openApps').size > 0) {
           self.get('openApps').forEach(function(app){
             app.position.y -=  0.05;
             self.updateObjectMatrix(app);
@@ -182,7 +182,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+        if(!self.get('app3DBinded') && self.get('openApps').size > 0) {
           self.get('openApps').forEach(function(app){
             app.position.y +=  0.05;
             self.updateObjectMatrix(app);
@@ -195,7 +195,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+        if(!self.get('app3DBinded') && self.get('openApps').size > 0) {
           self.get('openApps').forEach(function(app){
             app.position.x -=  0.05;
             self.updateObjectMatrix(app);
@@ -208,7 +208,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+        if(!self.get('app3DBinded') && self.get('openApps').size > 0) {
           self.get('openApps').forEach(function(app){
             app.position.x +=  0.05;
             self.updateObjectMatrix(app);
@@ -221,7 +221,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+        if(!self.get('app3DBinded') && self.get('openApps').size > 0) {
           self.get('openApps').forEach(function(app){
             app.position.z -=  0.05;
             self.updateObjectMatrix(app);
@@ -234,7 +234,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.updateObjectMatrix(self.get('room'));
 
-        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+        if(!self.get('app3DBinded') && self.get('openApps').size > 0) {
           self.get('openApps').forEach(function(app){
             app.position.z +=  0.05;
             self.updateObjectMatrix(app);
@@ -246,7 +246,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.trigger('centerVREnvironment');
 
-        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+        if(!self.get('app3DBinded') && self.get('openApps').size > 0) {
           self.get('openApps').forEach(function(app){
             app.rotation.x +=  0.05;
             self.updateObjectMatrix(app);
@@ -258,7 +258,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.trigger('centerVREnvironment');
 
-        if(!self.get('app3DBinded') && self.get('openApps').length > 0) {
+        if(!self.get('app3DBinded') && self.get('openApps').size > 0) {
           self.get('openApps').forEach(function(app){
             app.rotation.x -=  0.05;
             self.updateObjectMatrix(app);
@@ -721,7 +721,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         if(emberModelName === "application" && !this.get('app3DBinded') && emberModel.get('components').get('length') !==0){
           // Trigger event in component vr-rendering
           this.trigger('showApplication', emberModel, intersectedViewObj.point); 
-          console.log("application hit");
         } 
         
         // Handle nodegroup or system hit
@@ -733,15 +732,14 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Handle component of app3D hit
         else if((emberModelName === "component") && !this.get('app3DBinded')){
 
-          console.log("component of app3D hit with right Controller");
           // Toggle state and redraw app
           emberModel.setOpenedStatus(!emberModel.get('opened'));
-          this.trigger('redrawApp');
+          this.trigger('redrawApp', intersectedViewObj.object.userData.appID);
 
           // Restore selection
           
 
-          /*
+          
           if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened'))
           
           {
@@ -758,7 +756,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             }
             this.set('appCommunicationHighlighted', null);
             this.set('selectedEntitysMesh', null);
-          }*/
+          }
         }
       }
     }
@@ -826,7 +824,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
                 return;
               }
               // Reset communication lines
-              //this.get('selector').highlightAppCommunication(null);
+              this.get('selector').highlightAppCommunication(null);
               // Restore old color
               this.restoreSelectedEntity(this.verifyControllers(controller.id));
      
@@ -841,7 +839,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             intersectedViewObj.object.material.color = color;
             // Highlight communication lines
             this.get('appCommunicationHighlighted').set('highlighted', true);
-            //this.get('selector').highlightAppCommunication(emberModel);
+            this.get('selector').highlightAppCommunication(emberModel);
             this.trigger('redrawAppCommunication');
 
             // Reset highlighting for selected component
@@ -853,7 +851,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       else{
         // Reset communication highlighting (nothing hit)
         if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && this.get('selectedEntitysColor')){
-          //this.get('selector').highlightAppCommunication(null); //disabled until further notice
+          this.get('selector').highlightAppCommunication(null); //disabled until further notice
           // Restore selected entity and communication lines
           this.restoreSelectedEntity(this.verifyControllers(controller.id));
   
@@ -872,7 +870,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    */
   onControllerThumbpadDown(event){
     const self = this;
-    console.log("Thumbpad down");
 
     const controller = event.target;
 
@@ -893,7 +890,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     // Check if an object is hit
     if(intersectedViewObj) {
-      console.log("Object was hit");
 
       // Handle delete button and floor exception
       if (intersectedViewObj.object.name === 'deleteButton' || intersectedViewObj.object.name === 'floor'){
@@ -913,7 +909,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Get inverse of controller transoformation      
         tempMatrix.getInverse(controller.matrixWorld);
 
-        console.log(intersectedViewObj.object.userData);
         let object = intersectedViewObj.object.userData.object3D;
         
 
@@ -1116,7 +1111,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       else if(emberModelName === "component"){
         emberModel.setOpenedStatus(!emberModel.get('opened'));
         // Trigger event in component vr-rendering
-        this.trigger('redrawApp');
+        this.trigger('redrawApp', emberModel.id);
 
         // Restore selection
         if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened')){
@@ -1263,16 +1258,24 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     if(event.button === 1){
       // Translate camera
-      var distanceXInPercent = (delta.x /
-        parseFloat(this.get('renderer').domElement.clientWidth)) * 100.0;
+      let distanceXInPercent = (delta.x /
+        parseFloat(this.get('renderer').domElement.clientWidth)) * ( -10.0);
 
-      var distanceYInPercent = (delta.y /
-        parseFloat(this.get('renderer').domElement.clientHeight)) * 100.0;
+      let distanceYInPercent = (delta.y /
+        parseFloat(this.get('renderer').domElement.clientHeight)) * 10.0;
 
       this.get('vrEnvironment').position.x = this.get('vrEnvironment').position.x + distanceXInPercent;
+      this.get('vrEnvironment').position.z = this.get('vrEnvironment').position.z - distanceYInPercent;
+      this.updateObjectMatrix(this.get('vrEnvironment'));
+    } else if(event.button === 3){
+      // Translate camera
+      let distanceYInPercent = (delta.y /
+        parseFloat(this.get('renderer').domElement.clientHeight)) * 10.0;
+
       this.get('vrEnvironment').position.y = this.get('vrEnvironment').position.y - distanceYInPercent;
       this.updateObjectMatrix(this.get('vrEnvironment'));
     }
+    
   },
 
   /*
@@ -1538,8 +1541,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.set('appCommunicationHighlighted', null);
       this.set('selectedEntitysMesh', null);
     }
-    // Remove application
-    this.trigger('removeApplication');
+    // Remove application if delete button was hit
+    if (intersectedViewObj.object.userData.appID){
+      this.trigger('removeApplication', intersectedViewObj.object.userData.appID);
+    }
   },
 
   /*
