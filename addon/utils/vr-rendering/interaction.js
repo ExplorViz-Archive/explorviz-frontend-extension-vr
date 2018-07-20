@@ -734,7 +734,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
           // Toggle state and redraw app
           emberModel.setOpenedStatus(!emberModel.get('opened'));
-          this.trigger('redrawApp');
+          this.trigger('redrawApp', intersectedViewObj.object.userData.appID);
 
           // Restore selection
           
@@ -1111,7 +1111,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       else if(emberModelName === "component"){
         emberModel.setOpenedStatus(!emberModel.get('opened'));
         // Trigger event in component vr-rendering
-        this.trigger('redrawApp');
+        this.trigger('redrawApp', emberModel.id);
 
         // Restore selection
         if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened')){

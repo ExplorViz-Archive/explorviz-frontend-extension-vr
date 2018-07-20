@@ -1476,22 +1476,20 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      * This interaction listener is used to redraw the application3D 
      * ("opened" value of package changed) 
      */
-    this.get('interaction').on('redrawApp', function() {
+    this.get('interaction').on('redrawApp', function(appID) {
       // Store app3D Data because application3D is removed in the next step
 
-      self.get('openApps').forEach(function(app) {
-        var appPosition = app.position;
-        var appRotation = app.rotation;
-        let app3DModel = app.userData.model;
+      var appPosition = self.get('openApps').get(appID).position;
+      var appRotation = self.get('openApps').get(appID).rotation;
+      let app3DModel = self.get('openApps').get(appID).userData.model;
 
-        // Empty application 3D (remove app3D)
-        self.removeChildren(app);
+      // Empty application 3D (remove app3D)
+      self.removeChildren(self.get('openApps').get(appID));
 
-        self.get('openApps').delete(app3DModel.id);
-        // Add application3D to scene
-        self.add3DApplicationToLandscape(app3DModel, appPosition, appRotation);
-        app.updateMatrix();
-      });
+      //self.get('openApps').delete(app3DModel.id);
+      // Add application3D to scene
+      self.add3DApplicationToLandscape(app3DModel, appPosition, appRotation);
+      self.get('openApps').get(appID).updateMatrix();
     }); ///// End redraw application3D 
 
     /*
@@ -1715,7 +1713,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       this.set('deleteButton', new THREE.Mesh(geometryDel, materialDel));
       this.get('deleteButton').geometry.rotateY(-0.3);
       this.get('deleteButton').userData.name = 'deleteButton';
-      this.get('deleteButton').userData.appID = application.id;
       this.get('deleteButton').name = "deleteButton";
       self.get('deleteButton').position.set(
         self.get('openApps').get(application.id).position.x,bboxApp3D.max.y*3.5,self.get('openApps').get(application.id).position.z);
@@ -1730,6 +1727,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.get('openApps').get(application.id).rotation.set(rotation.x, rotation.y, rotation.z);
       self.get('openApps').get(application.id).add(self.get('deleteButton'));
       self.get('openApps').get(application.id).updateMatrix();
+
+      //add id of app to children
+      self.get('openApps').get(application.id).children.forEach(function (child){
+        child.userData.appID = application.id;
+      });
 
       self.get('scene').add(self.get('openApps').get(application.id));
 
