@@ -42,7 +42,7 @@ ViveController = function ( id ) {
 	this.matrixAutoUpdate = false;
 
 	this.getGamepad = function () {
-		console.log("Gamepad: " + gamepad);
+		//console.log("Gamepad: " + gamepad);
 		return gamepad;
 
 	};

@@ -14,16 +14,13 @@ export default VRRendering.extend({
 
   didInsertElement() {
     this._super(...arguments);
-    setTimeout(() => {
-      const socket = this.websockets.socketFor('ws://192.168.48.208:4444/');
-      socket.on('open', this.openHandler, this);
-      socket.on('message', this.messageHandler, this);
-      socket.on('close', this.closeHandler, this);
+    const socket = this.websockets.socketFor('ws://192.168.48.208:4444/');
+    socket.on('open', this.openHandler, this);
+    socket.on('message', this.messageHandler, this);
+    socket.on('close', this.closeHandler, this);
 
-      this.set('socketRef', socket);
-      //call update function with 60 fps
-      setInterval(this.update.bind(this), 1000 / 60);
-    }, 2000);
+    this.set('socketRef', socket);
+    //call update function with 60 fps
     
 
   },
@@ -99,6 +96,7 @@ export default VRRendering.extend({
           }
         }
         console.log(`You just connected with id ${this.get('userID')}`);
+        setInterval(this.update.bind(this), 1000 / 60);
       } else if(data.event === 'user_connecting') { // new user connecting
         console.log(`${event.data}`);
         console.log(`New client connecting with ID ${data.id}`);
@@ -111,7 +109,7 @@ export default VRRendering.extend({
         user.set('status', 'connected');
         user.init();
         this.get('users').set(data.user.id, user);
-        
+
         //add model for new user
         this.get('scene').add(user.get('camera.model'));
         this.get('scene').add(user.get('controller1.model'));
@@ -121,9 +119,11 @@ export default VRRendering.extend({
       } else if(data.event === 'position') {
         console.log(`${data.camera.position}`);
         let { camera, id, controller1, controller2 } = data;
-        let user = this.get('users').get(id);
-        user.updateControllers({ controller1, controller2 });
-        user.updateCamera(camera);
+        if(this.get('users').has(id)) {
+          let user = this.get('users').get(id);
+          user.updateControllers({ controller1, controller2 });
+          user.updateCamera(camera);
+        }
       }
     }
   },
