@@ -85,11 +85,12 @@ export default VRRendering.extend({
           user.set('name', userData.name);
           user.set('id', userData.id);
           user.set('device', userData.device);
+          user.set('state', 'connected');
           user.init();
           this.get('users').set(userData.id, user);
 
           //add models for other users
-          if(userData.id !== data.id && user.status === 'connected') {
+          if(userData.id !== data.id && user.state === 'connected') {
             this.get('scene').add(user.get('camera.model'));
             this.get('scene').add(user.get('controller1.model'));
             this.get('scene').add(user.get('controller2.model'));
@@ -106,7 +107,7 @@ export default VRRendering.extend({
         user.set('name', data.user.name);
         user.set('id', data.user.id);
         user.set('device', data.user.device);
-        user.set('status', 'connected');
+        user.set('state', 'connected');
         user.init();
         this.get('users').set(data.user.id, user);
 
@@ -117,7 +118,6 @@ export default VRRendering.extend({
 
         console.log(`${data.user.name} connected with ID ${data.user.id} and ${data.user.device}`);
       } else if(data.event === 'position') {
-        console.log(`${data.camera.position}`);
         let { camera, id, controller1, controller2 } = data;
         if(this.get('users').has(id)) {
           let user = this.get('users').get(id);
