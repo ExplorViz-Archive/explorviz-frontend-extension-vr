@@ -13,7 +13,7 @@ export default VRRendering.extend({
 
   didInsertElement() {
     this._super(...arguments);
-    const socket = this.websockets.socketFor('ws://localhost:4444/');
+    const socket = this.websockets.socketFor('ws://192.168.48.208:4444/');
     socket.on('open', this.openHandler, this);
     socket.on('message', this.messageHandler, this);
     socket.on('close', this.closeHandler, this);
