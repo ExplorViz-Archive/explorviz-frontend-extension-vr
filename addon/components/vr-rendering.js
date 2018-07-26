@@ -389,7 +389,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('reloadHandler').stopExchange();
 
     this.get('controller1').update();
-    if(this.controller1.getGamepad()) {
+    if(this.controller1.getGamepad() !== undefined) {
       const device = this.controller1.getGamepad().id.startsWith( 'Oculus Touch' ) ? "oculus" : "vive";
       this.loadControllers(device);
     }
@@ -420,8 +420,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         self.get('controller1.model').add(obj.clone());
         self.get('controller2.model').add(obj.clone());
       });
-    }
-    else if(device === "oculus") {
+    } else if(device === "oculus") {
       // Load Oculus Controller Model
       loader.setPath('oculus_cv1_controller/');
       loader.load('oculus_cv1_controller_left.obj', function(object) {
