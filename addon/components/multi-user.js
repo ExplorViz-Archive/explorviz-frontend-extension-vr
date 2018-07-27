@@ -13,6 +13,35 @@ export default VRRendering.extend({
   userID: null,
   lastPositions: { camera: null, controller1: null, controller2: null },
   controllersConnected: { controller1: false, controller2: false },
+  fps: 90,
+  lastTime: new Date().getTime(),
+  currentTime: 0,
+  deltaTime: 0,
+  updateQueue: [],
+
+  gameLoop() {
+    this.currentTime = new Date().getTime();
+
+    this.deltaTime = this.currentTime - this.lastTime;
+
+    if(this.deltaTime > 1000/this.fps) {
+      this.updateControllers();
+      this.update();
+      this.sendUpdates();
+      this.render2();
+
+      this.lastTime = this.currentTime;
+    }
+    requestAnimationFrame(this.gameLoop.bind(this));
+  },
+
+  sendUpdates() {
+    //there are updates to send
+    if(this.updateQueue.length > 0) {
+      this.send(this.updateQueue);
+      this.set('updateQueue', []);
+    }
+  },
 
   didInsertElement() {
     this._super(...arguments);
@@ -32,24 +61,16 @@ export default VRRendering.extend({
       socket.on('close', this.closeHandler, this);
 
       this.set('socketRef', socket);
+      this.gameLoop();
     });
   },
 
   update() {
-    if(this.camera && !this.lastPositions.camera) {
-      this.lastPositions.camera = this.camera.position.toArray();
-    }
-    if(this.controller1 && !this.lastPositions.controller1) {
-      this.lastPositions.controller1 = this.controller1.position.toArray();
-    }
-    if(this.controller2 && !this.lastPositions.controller2) {
-      this.lastPositions.controller2 = this.controller2.position.toArray();
-    }
-    this.updatePositions();
-    this.updateControllers();
+    this.updateAndSendPositions();
+    this.sendControllerUpdate();
   },
 
-  updateControllers() {
+  sendControllerUpdate() {
     let controllerObj = {
       "event": "receive_user_controllers",
       "time": Date.now()
@@ -91,12 +112,22 @@ export default VRRendering.extend({
       }
 
       if(controllerObj.disconnect || controllerObj.connect) {
-        this.send(controllerObj);
+        this.updateQueue.push(controllerObj);
       }
     }
   },
 
-  updatePositions() {
+  updateAndSendPositions() {
+    if(this.camera && !this.lastPositions.camera) {
+      this.lastPositions.camera = this.camera.position.toArray();
+    }
+    if(this.controller1 && !this.lastPositions.controller1) {
+      this.lastPositions.controller1 = this.controller1.position.toArray();
+    }
+    if(this.controller2 && !this.lastPositions.controller2) {
+      this.lastPositions.controller2 = this.controller2.position.toArray();
+    }
+
     let positionObj = {
       "event": "receive_user_positions",
       "time": Date.now()
@@ -132,12 +163,10 @@ export default VRRendering.extend({
       };
     }
 
-    console.log(positionObj);
-
     if(hasChanged) {
       this.lastPositions = currentPositions;
 
-      this.send(positionObj);
+      this.updateQueue.push(positionObj);
     }
   },
 
@@ -155,50 +184,51 @@ export default VRRendering.extend({
   },
 
   messageHandler(event) {
-    const data = JSON.parse(event.data);
-    switch(data.event) {
-      case 'receive_self_connecting':
-        console.log(`${event.data}`);
-        this.receiveSelfConnecting(data);
-        console.log(`You are connecting with id ${this.get('userID')}`);
-        break;
-      case 'receive_self_connected':
-        console.log(`${event.data}`);
-        this.receiveSelfConnected(data);
-        console.log(`You just connected with id ${this.get('userID')}`);
-        //call update function with 60 fps
-        setInterval(this.update.bind(this), 1000 / 60);
-        break;
-      case 'receive_user_connecting':
-        console.log(`${event.data}`);
-        console.log(`New client connecting with ID ${data.id}`);
-        break;
-      case 'receive_user_connected':
-        console.log(`${event.data}`);
-        this.receiveUserConnected(data);
-        console.log(`${data.user.name} connected with ID ${data.user.id}`);
-        break;
-      case 'receive_user_positions':
-        console.log(`${event.data}`);
-        this.receiveUserPositions(data);
-        break;
-      case 'receive_user_controllers':
-        console.log(`${event.data}`);
-        this.receiveUserControllers(data);
-        break;
+    const messages = JSON.parse(event.data);
+    for(let i = 0; i < messages.length; i++) {
+      let data = messages[i];
+      switch(data.event) {
+        case 'receive_self_connecting':
+          console.log(`${event.data}`);
+          this.onSelfConnecting(data);
+          console.log(`You are connecting with id ${this.get('userID')}`);
+          break;
+        case 'receive_self_connected':
+          console.log(`${event.data}`);
+          this.onSelfConnected(data);
+          console.log(`You just connected with id ${this.get('userID')}`);
+          break;
+        case 'receive_user_connecting':
+          console.log(`${event.data}`);
+          console.log(`New client connecting with ID ${data.id}`);
+          break;
+        case 'receive_user_connected':
+          console.log(`${event.data}`);
+          this.onUserConnected(data);
+          console.log(`${data.user.name} connected with ID ${data.user.id}`);
+          break;
+        case 'receive_user_positions':
+          console.log(`${event.data}`);
+          this.onUserPositions(data);
+          break;
+        case 'receive_user_controllers':
+          console.log(`${event.data}`);
+          this.onUserControllers(data);
+          break;
+      }
     }
   },
 
-  receiveSelfConnecting(data) {
+  onSelfConnecting(data) {
     this.set('userID', data.id);
     let JSONObj = {
       "event": "receive_connect_request",
       "name": "" + data.id
     };
-    this.send(JSONObj);
+    this.updateQueue.push(JSONObj);
   },
 
-  receiveSelfConnected(data) {
+  onSelfConnected(data) {
     // create User model for all users and add them to the users map
     for (let i = 0; i < data.users.length; i++) {
       const userData = data.users[i];
@@ -212,7 +242,7 @@ export default VRRendering.extend({
         user.initController1(userData.controllers.controller1);
       }
       if(userData.controllers.controller2) {
-        user.initController2(userData.controllers.controller1);
+        user.initController2(userData.controllers.controller2);
       }
       this.get('users').set(userData.id, user);
 
@@ -223,7 +253,7 @@ export default VRRendering.extend({
     }
   },
 
-  receiveUserConnected(data) {
+  onUserConnected(data) {
     let user = User.create();
     user.set('name', data.user.name);
     user.set('id', data.user.id);
@@ -235,7 +265,7 @@ export default VRRendering.extend({
     this.get('scene').add(user.get('camera.model'));
   },
 
-  receiveUserPositions(data) {
+  onUserPositions(data) {
     let { camera, id, controller1, controller2 } = data;
     if(this.get('users').has(id)) {
       let user = this.get('users').get(id);
@@ -248,7 +278,7 @@ export default VRRendering.extend({
     }
   },
 
-  receiveUserControllers(data) {
+  onUserControllers(data) {
     let { id, disconnect, connect } = data;
 
     if(!this.get('users').has(id))
@@ -277,6 +307,7 @@ export default VRRendering.extend({
   },
 
   send(obj) {
+    console.log(`Sending: ${JSON.stringify(obj)}`);
     this.socketRef.send(JSON.stringify(obj));
   },
 

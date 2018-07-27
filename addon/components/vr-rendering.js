@@ -274,31 +274,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('deleteButtonTexture', new THREE.TextureLoader().load('images/x_white_transp.png'));
 
     // VR Rendering loop //
-    function animate() {  
-      self.get('webglrenderer').setAnimationLoop(render);
-    }
+    //function animate() {  
+    //  self.get('webglrenderer').setAnimationLoop(render);
+    //}
 
-    function render() {
-      // Update Controller
-      self.get('controller1').update();
-      self.get('controller2').update();
 
-      // Check raycast for intersection
-      if (self.get('interaction')) {
-        // only if no application3D binded on controller
-        if (self.get('controller1').userData.selected === undefined) {
-          self.get('interaction').checkIntersectionLeftController(self.get('controller1'));
-        }
-        if (self.get('controller2').userData.selected === undefined) {
-          self.get('interaction').checkIntersectionRightController(self.get('controller2'));
-        }
-      }
-      self.get('threexStats').update(self.get('webglrenderer'));
-      self.get('stats').begin();
-      self.get('webglrenderer').render(self.get('scene'), self.get('camera'));
-      self.get('stats').end();
-    }
-    animate();
+    //animate();
 
     ////////////////////
 
@@ -402,6 +383,28 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       });
   },
 
+  updateControllers() {
+    this.get('controller1').update();
+    this.get('controller2').update();
+    // Check raycast for intersection
+    if (this.get('interaction')) {
+      // only if no application3D binded on controller
+      if (this.get('controller1').userData.selected === undefined) {
+        this.get('interaction').checkIntersectionLeftController(this.get('controller1'));
+      }
+      if (this.get('controller2').userData.selected === undefined) {
+        this.get('interaction').checkIntersectionRightController(this.get('controller2'));
+      }
+    }
+  },
+
+  render2() {
+    this.get('threexStats').update(this.get('webglrenderer'));
+    this.get('stats').begin();
+    this.get('webglrenderer').render(this.get('scene'), this.get('camera'));
+    this.get('stats').end();
+  },
+
   loadControllers(device) {
     let OBJLoader = createOBJLoader(THREE);
     let loader = new OBJLoader(THREE.DefaultLoadingManager);
@@ -449,7 +452,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   /*
    * This method is used to listen for events triggered Controller.
-   * The corresponding funcinoalities are not yet implemented in VR.
+   * The corresponding functionalities are not yet implemented in VR.
    * But they can used as templates in the future.
    */
   initListener() {
