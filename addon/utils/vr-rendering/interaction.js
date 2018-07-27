@@ -268,7 +268,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     };
 
     // Zoom handler    
-    canvas.addEventListener('mousewheel', registerMouseWheel, false);
+    canvas.addEventListener('wheel', registerMouseWheel, false);
 
     function registerMouseWheel(evt) {
       self.onMouseWheelStart(evt);
@@ -927,8 +927,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 ////////// Mouse interaction ////////// 
 
   onMouseWheelStart(evt) {
-
-    const delta = Math.max(-1, Math.min(1, (evt.wheelDelta || -evt.detail)));
+    console.log("test");
+    const delta = Math.max(-1, Math.min(1, evt.deltaY));
 
     const mX = (evt.clientX / window.innerWidth ) * 2 - 1;
     const mY = - (evt.clientY / window.innerHeight ) * 2 + 1;
