@@ -208,12 +208,16 @@ export default VRRendering.extend({
           console.log(`${data.user.name} connected with ID ${data.user.id}`);
           break;
         case 'receive_user_positions':
-          console.log(`${event.data}`);
+          // console.log(`${event.data}`);
           this.onUserPositions(data);
           break;
         case 'receive_user_controllers':
-          console.log(`${event.data}`);
+          // console.log(`${event.data}`);
           this.onUserControllers(data);
+          break;
+        case 'receive_landscape':
+          console.log(`${event.data}`);
+          this.onLandscapeData(data);
           break;
       }
     }
@@ -306,8 +310,13 @@ export default VRRendering.extend({
     }
   },
 
+  onLandscapeData(data){
+    let systems = data.systems;
+    this.setLandscapeState(systems);
+  },
+
   send(obj) {
-    console.log(`Sending: ${JSON.stringify(obj)}`);
+    // console.log(`Sending: ${JSON.stringify(obj)}`);
     this.socketRef.send(JSON.stringify(obj));
   },
 
