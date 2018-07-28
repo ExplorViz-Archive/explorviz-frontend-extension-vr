@@ -164,82 +164,28 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle keys
       if(event.key === 'ArrowDown'){
-        self.get('vrEnvironment').position.y -=  0.05;
-        self.get('room').position.y -= 0.05;
-        self.updateObjectMatrix(self.get('vrEnvironment'));
-        self.updateObjectMatrix(self.get('room'));
-
-        if(!self.get('app3DBinded') && self.get('openApps')) {
-          self.get('openApps').forEach(function(app){
-            app.position.y -=  0.05;
-            self.updateObjectMatrix(app);
-          });
-        }
+        self.get('camera').position.setY(self.get('camera').position.y+0.05);
+        self.get('camera').updateProjectionMatrix();
       }
       else if(event.key === 'ArrowUp'){
-        self.get('vrEnvironment').position.y += 0.05;
-        self.get('room').position.y += 0.05;
-        self.updateObjectMatrix(self.get('vrEnvironment'));
-        self.updateObjectMatrix(self.get('room'));
-
-        if(!self.get('app3DBinded') && self.get('openApps')) {
-          self.get('openApps').forEach(function(app){
-            app.position.y +=  0.05;
-            self.updateObjectMatrix(app);
-          });
-        }
+        self.get('camera').position.setY(self.get('camera').position.y-0.05);
+        self.get('camera').updateProjectionMatrix();
       }
       else if(event.key === 'ArrowLeft'){
-        self.get('vrEnvironment').position.x -=  0.05;
-        self.get('room').position.x -= 0.05;
-        self.updateObjectMatrix(self.get('vrEnvironment'));
-        self.updateObjectMatrix(self.get('room'));
-
-        if(!self.get('app3DBinded') && self.get('openApps')) {
-          self.get('openApps').forEach(function(app){
-            app.position.x -=  0.05;
-            self.updateObjectMatrix(app);
-          });
-        }
+        self.get('camera').position.setX(self.get('camera').position.x+0.05);
+        self.get('camera').updateProjectionMatrix();
       }
       else if(event.key === 'ArrowRight'){
-        self.get('vrEnvironment').position.x +=  0.05;
-        self.get('room').position.x += 0.05;
-        self.updateObjectMatrix(self.get('vrEnvironment'));
-        self.updateObjectMatrix(self.get('room'));
-
-        if(!self.get('app3DBinded') && self.get('openApps')) {
-          self.get('openApps').forEach(function(app){
-            app.position.x +=  0.05;
-            self.updateObjectMatrix(app);
-          });
-        }
+        self.get('camera').position.setX(self.get('camera').position.x-0.05);
+        self.get('camera').updateProjectionMatrix();
       }
       else if(event.key === '-'){
-        self.get('vrEnvironment').position.z -=  0.05;
-        self.get('room').position.z -= 0.05;
-        self.updateObjectMatrix(self.get('vrEnvironment'));
-        self.updateObjectMatrix(self.get('room'));
-
-        if(!self.get('app3DBinded') && self.get('openApps')) {
-          self.get('openApps').forEach(function(app){
-            app.position.z -=  0.05;
-            self.updateObjectMatrix(app);
-          });
-        }
+        self.get('camera').position.setZ(self.get('camera').position.z+0.05);
+        self.get('camera').updateProjectionMatrix();
       }
       else if(event.key === '+'){
-        self.get('vrEnvironment').position.z +=  0.05;
-        self.get('room').position.z += 0.05;
-        self.updateObjectMatrix(self.get('vrEnvironment'));
-        self.updateObjectMatrix(self.get('room'));
-
-        if(!self.get('app3DBinded') && self.get('openApps')) {
-          self.get('openApps').forEach(function(app){
-            app.position.z +=  0.05;
-            self.updateObjectMatrix(app);
-          });
-        }
+        self.get('camera').position.setZ(self.get('camera').position.z-0.05);
+        self.get('camera').updateProjectionMatrix();
       }
       else if(event.key === 'q'){
         self.get('vrEnvironment').rotation.x +=  0.05;
@@ -869,8 +815,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and is used to move, zoom and rotate application3D
    */
   onControllerThumbpadDown(event){
-    const self = this;
-
     const controller = event.target;
 
      // Calculate controller direction and origin
@@ -927,7 +871,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 ////////// Mouse interaction ////////// 
 
   onMouseWheelStart(evt) {
-    console.log("test");
     const delta = Math.max(-1, Math.min(1, evt.deltaY));
 
     const mX = (evt.clientX / window.innerWidth ) * 2 - 1;
@@ -938,7 +881,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     vector.sub(this.get('camera').position);
     
     this.get('camera').position.addVectors(this.get('camera').position,
-      vector.setLength(delta * 1.5));
+      vector.setLength(delta * 0.1));
 
     this.get('camera').updateProjectionMatrix();
 
@@ -1552,25 +1495,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  the new position
    */
   teleportToPosition(position){
+    
+    this.get('camera').position.setX(position.x);
+    //maybe don't update height, cause position.y is at floor height
+    //this.get('camera').position.setY(position.y);
+    this.get('camera').position.setZ(position.z);
 
-    let offsetX = position.x - this.get('camera').position.x;
-    let offsetZ = position.z - this.get('camera').position.z;
-
-    this.get('room').position.x -= offsetX;
-    this.get('room').position.z -= offsetZ;
-
-    this.updateObjectMatrix(this.get('room'));
-
-    this.get('vrEnvironment').position.x -= offsetX;
-    this.get('vrEnvironment').position.z -= offsetZ;
-
-    this.updateObjectMatrix(this.get('vrEnvironment'));
-
-    if(this.get('application3D') && !this.get('app3DBinded')){
-      this.get('application3D').position.x -= offsetX;
-      this.get('application3D').position.z -= offsetZ;
-      this.updateObjectMatrix(this.get('application3D'));
-    }
+    this.get('camera').updateProjectionMatrix();
   },
 
   /*
