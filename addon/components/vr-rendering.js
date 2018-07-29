@@ -1898,42 +1898,43 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   }, // END add 3D application to the landscape(3D)
 
-  setSystemState(id, isOpen){
+  setEntityState(id, isOpen){
+    const self = this;
     this.get('vrLandscape').children.forEach(function (system) {
       if (system.userData.model && system.userData.model.id == id) {
         system.userData.model.setOpened(isOpen);
+        self.populateScene();
+        return;
       }
 
     });
-    this.populateScene();
   },
 
-  setLandscapeState(systems, nodeGroups){
+  setLandscapeState(systems, nodegroups){
     let vrLandscape = this.get('vrLandscape').children
     systems.forEach(function (system){
       let id = system.id;
       let isOpen = system.opened;
-      vrLandscape.forEach(function (landscapeSystem) {
-        if (landscapeSystem.userData.model && landscapeSystem.userData.model.id == id) {
-          landscapeSystem.userData.model.setOpened(isOpen);
+      vrLandscape.forEach(function (entity) {
+        if (entity.userData.model && entity.userData.model.id == id) {
+          entity.userData.model.setOpened(isOpen);
         }
-
-        //doesnt work for nodeGroups yet
-        let landscapeGroups = landscapeSystem.children;
-        landscapeGroups.forEach(function (landscapeGroup) {
-          nodeGroups.forEach(function (nodeGroup) {
-            let id = nodeGroup.id;
-            let isOpen = nodeGroup.opened;
-            if (landscapeGroup.userData.model && landscapeGroup.userData.model.id == id) {
-              console.log("open nodeGroup");
-              landscapeGroup.userData.model.setOpened(isOpen);
-            }
-            
-          });
-        });
       });
     });
     //this.populateScene();
+
+    nodegroups.forEach(function (nodegroup){
+      let id = nodegroup.id;
+      let isOpen = nodegroup.opened;
+      vrLandscape.forEach(function (entity) {
+        if (entity.userData.model && entity.userData.model.id == id) {
+          entity.userData.model.setOpened(isOpen);
+        }
+      });
+    });
+
+    //this.populateScene();
+    
   },
 
 
