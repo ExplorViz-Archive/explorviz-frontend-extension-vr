@@ -70,6 +70,26 @@ export default VRRendering.extend({
     this.sendControllerUpdate();
   },
 
+  sendSystemUpdate(id, isOpen){
+    let systemObj = {
+      "event": "receive_system_update",
+      "time": Date.now(),
+      "id": id,
+      "isOpen": isOpen
+    }
+    this.updateQueue.push(systemObj);
+  },
+
+  sendNodeGroupUpdate(id, isOpen){
+    let nodeGroupObj = {
+      "event": "receive_nodeGroup_update",
+      "time": Date.now(),
+      "id": id,
+      "isOpen": isOpen
+    }
+    this.updateQueue.push(nodeGroupObj);
+  },
+
   sendControllerUpdate() {
     let controllerObj = {
       "event": "receive_user_controllers",
@@ -219,6 +239,14 @@ export default VRRendering.extend({
           console.log(`${event.data}`);
           this.onLandscapeData(data);
           break;
+        case 'receive_system_update':
+          console.log(data);
+          this.onSystemChange(data.id, data.isOpen);
+          break;
+        case 'receive_nodeGroup_update':
+          console.log(data);
+          this.onNodeGroupChange(data.id, data.isOpen);
+          break;
       }
     }
   },
@@ -310,9 +338,18 @@ export default VRRendering.extend({
     }
   },
 
+  //TODO: also implement nodeGroup states
   onLandscapeData(data){
     let systems = data.systems;
     this.setLandscapeState(systems);
+  },
+
+  onSystemChange(id, isOpen){
+    console.log("A system has changed its state");
+  },
+
+  onNodeGroupChange(id, isOpen){
+    console.log("A nodeGroup has changed its state");
   },
 
   send(obj) {

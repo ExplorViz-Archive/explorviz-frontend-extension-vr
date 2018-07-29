@@ -1904,6 +1904,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         }
       });
     });
+    //this.populateScene();
   },
 
 
