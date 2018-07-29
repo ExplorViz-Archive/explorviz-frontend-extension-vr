@@ -351,9 +351,11 @@ export default VRRendering.extend(Ember.Evented, {
 
       if(userData.controllers.controller1) {
         user.initController1(userData.controllers.controller1);
+        this.get('scene').add(user.get('controller1.model'));
       }
       if(userData.controllers.controller2) {
         user.initController2(userData.controllers.controller2);
+        this.get('scene').add(user.get('controller2.model'));
       }
 
       this.get('users').set(userData.id, user);
