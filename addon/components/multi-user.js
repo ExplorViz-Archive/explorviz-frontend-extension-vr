@@ -9,26 +9,33 @@ export default VRRendering.extend({
   websockets: service(),
   socketRef: null,
   //Map: UserID -> User
-  users: EmberMap.create(),
+  users: null,
   userID: null,
-  lastPositions: { camera: null, controller1: null, controller2: null },
-  controllersConnected: { controller1: false, controller2: false },
+  state: null,
+  lastPositions: null,
+  controllersConnected: null,
   fps: 90,
-  lastTime: new Date().getTime(),
+  lastTime: null,
   currentTime: 0,
   deltaTime: 0,
   updateQueue: [],
+  running: false,
 
   gameLoop() {
+    if(!this.running)
+      return;
+
     this.currentTime = new Date().getTime();
 
     this.deltaTime = this.currentTime - this.lastTime;
 
     if(this.deltaTime > 1000/this.fps) {
-      this.updateControllers();
-      this.update();
+      if(this.get('users').has(this.userID) && this.get('users').get(this.userID).state === 'connected') {
+        this.updateControllers();
+        this.update();
+        this.render2();
+      }
       this.sendUpdates();
-      this.render2();
 
       this.lastTime = this.currentTime;
     }
@@ -43,10 +50,19 @@ export default VRRendering.extend({
     }
   },
 
-  didInsertElement() {
+  didRender() {
     this._super(...arguments);
+
+    console.log(this.get('users'));
+    this.set('users', EmberMap.create());
+    console.log(this.get('users'));
+    this.set('lastPositions', { camera: null, controller1: null, controller2: null });
+    this.set('controllersConnected', { controller1: false, controller2: false });
+    this.set('lastTime', new Date().getTime());
+
     let host, port;
     Ember.$.getJSON("config/config_multiuser.json").then(json => {
+      console.log("Read JSON");
       host = json.host;
       port = json.port;
 
@@ -55,12 +71,15 @@ export default VRRendering.extend({
         return;
       }
 
+      console.log("Open Socket");
       const socket = this.websockets.socketFor(`ws://${host}:${port}/`);
       socket.on('open', this.openHandler, this);
       socket.on('message', this.messageHandler, this);
       socket.on('close', this.closeHandler, this);
 
       this.set('socketRef', socket);
+      console.log("Start gameLoop");
+      this.running = true;
       this.gameLoop();
     });
   },
@@ -190,13 +209,36 @@ export default VRRendering.extend({
     }
   },
 
+  disconnect() {
+    const disconnectMessage = [{
+      "event": "receive_disconnect_request"
+    }];
+    this.send(disconnectMessage);
+  },
+
   willDestroyElement() {
+    console.log("Destroy");
     this._super(...arguments);
 
+    this.running = false;
+    this.disconnect();
     const socket = this.socketRef;
-    socket.off('open', this.myOpenHandler);
-    socket.off('message', this.myMessageHandler);
-    socket.off('close', this.myCloseHandler);
+    if(socket) {
+      socket.off('open', this.myOpenHandler);
+      socket.off('message', this.myMessageHandler);
+      socket.off('close', this.myCloseHandler);
+      socket.close();
+    }
+    this.socketRef = null,
+    this.users = null;
+    this.userID = null;
+    this.state = null;
+    this.lastPositions = null;
+    this.controllersConnected = null;
+    this.lastTime = null;
+    this.currentTime = 0;
+    this.deltaTime = 0;
+    this.updateQueue = [];
   },
 
   openHandler(event) {
@@ -228,12 +270,15 @@ export default VRRendering.extend({
           console.log(`${data.user.name} connected with ID ${data.user.id}`);
           break;
         case 'receive_user_positions':
-          // console.log(`${event.data}`);
           this.onUserPositions(data);
           break;
         case 'receive_user_controllers':
           // console.log(`${event.data}`);
           this.onUserControllers(data);
+          break;
+        case 'receive_user_disconnect':
+          console.log(`${event.data}`);
+          this.onUserDisconnect(data);
           break;
         case 'receive_landscape':
           console.log(`${event.data}`);
@@ -295,6 +340,17 @@ export default VRRendering.extend({
 
     //add model for new user
     this.get('scene').add(user.get('camera.model'));
+  },
+
+  onUserDisconnect(data) {
+    let { id } = data;
+    if(this.get('users') && this.get('users').has(id)) {
+      let user = this.get('users').get(id);
+      user.removeController1();
+      user.removeController2();
+      user.removeCamera();
+      this.get('users').remove(id);
+    }
   },
 
   onUserPositions(data) {

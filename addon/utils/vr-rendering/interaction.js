@@ -18,6 +18,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   canvas: null,
   canvas2: null,
   camera: null,
+  user: null,
   room: null,
 
   renderer: null,
@@ -80,7 +81,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   // Import information from component vr-rendering to manipulate objects global
   setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, 
-    controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, room) {
+    controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, room, user) {
 
     this.set('scene', scene);
     this.set('canvas', canvas);
@@ -96,6 +97,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('textBox', textBox);
     this.set('labeler', labeler);
     this.set('room', room);
+    this.set('user', user);
 
     const self = this;
 
@@ -1001,7 +1003,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     // Check if an object is hit
     if(intersectedViewObj) {
-
       // Handle delete button
       if (intersectedViewObj.object.name === 'deleteButton'){
         // Delete application
@@ -1495,13 +1496,23 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  the new position
    */
   teleportToPosition(position){
+    const cameraDirection = new THREE.Vector3();
+    const cameraOffset = new THREE.Vector3();
+
+    cameraDirection.set(0, 0, -1);
+    cameraDirection.applyQuaternion(this.camera.quaternion);
+    cameraDirection.y = 0;
+    cameraDirection.normalize();
+    cameraOffset.copy(this.camera.position);
+    cameraOffset.y = 0;
+    this.user.position.subVectors(position, cameraOffset);
     
-    this.get('camera').position.setX(position.x);
+    //this.get('camera').position.setX(position.x);
     //maybe don't update height, cause position.y is at floor height
     //this.get('camera').position.setY(position.y);
-    this.get('camera').position.setZ(position.z);
+    //this.get('camera').position.setZ(position.z);
 
-    this.get('camera').updateProjectionMatrix();
+    //this.get('camera').updateProjectionMatrix();
   },
 
   /*

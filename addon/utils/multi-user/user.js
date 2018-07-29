@@ -147,16 +147,28 @@ export default EmberObject.extend({
   },
   
   updateController1(controller) {
-    this.controller1.position.fromArray(controller.position);
-    this.controller1.quaternion.fromArray(controller.quaternion);
-    this.controller1.model.position.copy(this.controller1.position);
-    this.controller1.model.quaternion.copy(this.controller1.quaternion);
+    if(this.controller1.position)
+      this.controller1.position.fromArray(controller.position);
+    if(this.controller1.quaternion)
+      this.controller1.quaternion.fromArray(controller.quaternion);
+    if(this.controller1.model) {
+      if(this.controller1.model.quaternion)
+        this.controller1.model.quaternion.copy(this.controller1.quaternion);
+      if(this.controller1.model.position)
+        this.controller1.model.position.copy(this.controller1.position);
+    }
   },
   
   updateController2(controller) {
-    this.controller2.position.fromArray(controller.position);
-    this.controller2.quaternion.fromArray(controller.quaternion);
-    this.controller2.model.position.copy(this.controller2.position);
-    this.controller2.model.quaternion.copy(this.controller2.quaternion);
+    if(this.controller2.position)
+      this.controller2.position.fromArray(controller.position);
+    if(this.controller2.quaternion)
+      this.controller2.quaternion.fromArray(controller.quaternion);
+    if(this.controller2.model) {
+      if(this.controller2.model.quaternion)
+        this.controller2.model.position.copy(this.controller2.position);
+      if(this.controller2.model.position)
+        this.controller2.model.quaternion.copy(this.controller2.quaternion);
+    }
   }
 });

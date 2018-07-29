@@ -54,6 +54,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   font: null,
   initDone: false,
 
+  user: null,
+
   configuration: Ember.inject.service("configuration"),
   configurationApplication: Ember.inject.service("configuration"),
   hammerManager: null,
@@ -92,7 +94,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
 
   didRender() {
-    this._super(...arguments);
+  this._super(...arguments);
     this.initRendering();
     this.initListener();
   },
@@ -151,6 +153,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
    * @method initRendering
    */
   initRendering() {
+    console.log("Init Rendering Start");
 
     const self = this;
 
@@ -220,6 +223,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('controller2', new ViveController(1));
     this.get('controller2').name = "controller";
     this.get('scene').add(this.get('controller2'));
+
+    this.set('user', new THREE.Group());
+    this.get('scene').add(this.get('user'));
+    this.get('user').add(this.get('camera'));
+    this.get('user').add(this.get('controller1'));
+    this.get('user').add(this.get('controller2'));
 
     // Ray for Controller
     this.set('geometry', new THREE.Geometry());
@@ -381,6 +390,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         self.set('initDone', true);
         self.populateScene();
       });
+    console.log("Init Rendering End");
   },
 
   updateControllers() {
@@ -406,6 +416,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   },
 
   loadControllers(device) {
+    const self = this;
     let OBJLoader = createOBJLoader(THREE);
     let loader = new OBJLoader(THREE.DefaultLoadingManager);
 
@@ -420,8 +431,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         let controller = obj.children[0];
         controller.material.map = loader.load('onepointfive_texture.png');
         controller.material.specularMap = loader.load('onepointfive_spec.png');
-        self.get('controller1.model').add(obj.clone());
-        self.get('controller2.model').add(obj.clone());
+        self.get('controller1').add(obj.clone());
+        self.get('controller2').add(obj.clone());
       });
     } else if(device === "oculus") {
       // Load Oculus Controller Model
@@ -434,7 +445,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         let controller = obj.children[0];
         controller.material.map = loader.load('external_controller01_col.png');
         controller.material.specularMap = loader.load('external_controller01_spec.png');
-        self.get('controller1.model').add(obj.clone());
+        self.get('controller1').add(obj.clone());
       });
       loader.load('oculus_cv1_controller_right.obj', function(object) {
         const obj = object;
@@ -444,7 +455,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         let controller = obj.children[0];
         controller.material.map = loader.load('external_controller01_col.png');
         controller.material.specularMap = loader.load('external_controller01_spec.png');
-        self.get('controller2.model').add(obj.clone());
+        self.get('controller2').add(obj.clone());
         
       });
     }
@@ -456,7 +467,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
    * But they can used as templates in the future.
    */
   initListener() {
-
+    console.log("Init Listener Start");
     const self = this;
 
     this.get('viewImporter').on('transmitView', function(newState) {
@@ -492,6 +503,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('landscapeRepo').on("updated", function() {
       self.onUpdated();
     });
+    console.log("Init Listener End");
   },
 
   /**
@@ -511,6 +523,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('scene', null);
     this.set('webglrenderer', null);
     this.set('camera', null);
+    this.set('user', null);
     this.get('urlBuilder').off('requestURL');
     this.removePerformanceMeasurement();
     //this.$(window).off('resize.visualization');
@@ -1451,13 +1464,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const controller1 = this.get('controller1');
     const controller2 = this.get('controller2');
     const vrEnvironment = this.get('vrEnvironment');
+    const user = this.get('user');
 
     // Init interaction objects
     this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,
       raycaster, this.get('vrLandscape').children, controller1, controller2, 
       vrEnvironment, this.get('configuration.landscapeColors'), 
       this.get('configurationApplication.applicationColors'), this.get('textBox'), 
-      this.get('labeler'), this.get('room'));
+      this.get('labeler'), this.get('room'), user);
 
     // Set listeners
     this.get('interaction').on('redrawScene', function() {
