@@ -1898,6 +1898,28 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   }, // END add 3D application to the landscape(3D)
 
+  setSystemState(id, isOpen){
+    this.get('vrLandscape').children.forEach(function (system) {
+      if (system.userData.model && system.userData.model.id == id) {
+        system.userData.model.setOpened(isOpen);
+      }
+
+    });
+  },
+
+  setLandscapeState(systems){
+    let vrLandscape = this.get('vrLandscape').children
+    systems.forEach(function (system){
+      let id = system.id;
+      let isOpen = system.opened;
+      vrLandscape.forEach(function (system) {
+        if (system.userData.model && system.userData.model.id == id) {
+          system.userData.model.setOpened(isOpen);
+        }
+      });
+    });
+  },
+
 
   // ONLY FOR DEBUGGIN
   debugPlane(x, y, z, width, height, color1, parent) {
