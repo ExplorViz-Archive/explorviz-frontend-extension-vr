@@ -88,6 +88,9 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('interaction').on('systemStateChanged', function(id, isOpen) {
       self.sendSystemUpdate(id, isOpen);
     });
+    this.get('interaction').on('nodegroupStateChanged', function(id, isOpen) {
+      self.sendNodegroupUpdate(id, isOpen);
+    });
   },
 
 
@@ -108,9 +111,9 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(systemObj);
   },
 
-  sendNodeGroupUpdate(id, isOpen){
+  sendNodegroupUpdate(id, isOpen){
     let nodeGroupObj = {
-      "event": "receive_nodeGroup_update",
+      "event": "receive_nodegroup_update",
       "time": Date.now(),
       "id": id,
       "isOpen": isOpen
@@ -312,15 +315,15 @@ export default VRRendering.extend(Ember.Evented, {
           break;
         case 'receive_landscape':
           console.log(data);
-          this.onLandscapeData(data);
+          this.onInitialLandscape(data);
           break;
         case 'receive_system_update':
           console.log(data);
-          this.onSystemChange(data.id, data.isOpen);
+          this.onLandscapeUpdate(data.id, data.isOpen);
           break;
-        case 'receive_nodeGroup_update':
+        case 'receive_nodegroup_update':
           console.log(data);
-          this.onNodeGroupChange(data.id, data.isOpen);
+          this.onLandscapeUpdate(data.id, data.isOpen);
           break;
       }
     }
@@ -429,18 +432,14 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
   
-  onLandscapeData(data){
+  onInitialLandscape(data){
     let systems = data.systems;
     let nodeGroups = data.nodeGroups;
     this.setLandscapeState(systems, nodeGroups);
   },
 
-  onSystemChange(id, isOpen){
-    this.setSystemState(id, isOpen);
-  },
-
-  onNodeGroupChange(id, isOpen){
-    console.log("A nodeGroup has changed its state");
+  onLandscapeUpdate(id, isOpen){
+    this.setEntityState(id, isOpen);
   },
 
   send(obj) {
