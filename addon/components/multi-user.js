@@ -5,7 +5,7 @@ import VRRendering from './vr-rendering';
 import Ember from 'ember';
 import THREE from 'three';
 
-export default VRRendering.extend({
+export default VRRendering.extend(Ember.Evented, {
   websockets: service(),
   socketRef: null,
   //Map: UserID -> User
@@ -51,6 +51,7 @@ export default VRRendering.extend({
   },
 
   didRender() {
+    const self = this;
     this._super(...arguments);
 
     console.log(this.get('users'));
@@ -82,7 +83,14 @@ export default VRRendering.extend({
       this.running = true;
       this.gameLoop();
     });
+
+    //initialize interaction events
+    this.get('interaction').on('systemStateChanged', function(id, isOpen) {
+      self.sendSystemUpdate(id, isOpen);
+    });
   },
+
+
 
   update() {
     this.updateAndSendPositions();
@@ -90,6 +98,7 @@ export default VRRendering.extend({
   },
 
   sendSystemUpdate(id, isOpen){
+    console.log("Sending system update");
     let systemObj = {
       "event": "receive_system_update",
       "time": Date.now(),
@@ -419,8 +428,7 @@ export default VRRendering.extend({
       }
     }
   },
-
-  //TODO: also implement nodeGroup states
+  
   onLandscapeData(data){
     let systems = data.systems;
     let nodeGroups = data.nodeGroups;
@@ -428,7 +436,7 @@ export default VRRendering.extend({
   },
 
   onSystemChange(id, isOpen){
-    console.log("A system has changed its state");
+    this.setSystemState(id, isOpen);
   },
 
   onNodeGroupChange(id, isOpen){

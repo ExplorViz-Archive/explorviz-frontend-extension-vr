@@ -1905,6 +1905,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       }
 
     });
+    this.populateScene();
   },
 
   setLandscapeState(systems, nodeGroups){
@@ -1916,6 +1917,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         if (landscapeSystem.userData.model && landscapeSystem.userData.model.id == id) {
           landscapeSystem.userData.model.setOpened(isOpen);
         }
+
+        //doesnt work for nodeGroups yet
         let landscapeGroups = landscapeSystem.children;
         landscapeGroups.forEach(function (landscapeGroup) {
           nodeGroups.forEach(function (nodeGroup) {
