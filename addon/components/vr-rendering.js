@@ -1907,15 +1907,27 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     });
   },
 
-  setLandscapeState(systems){
+  setLandscapeState(systems, nodeGroups){
     let vrLandscape = this.get('vrLandscape').children
     systems.forEach(function (system){
       let id = system.id;
       let isOpen = system.opened;
-      vrLandscape.forEach(function (system) {
-        if (system.userData.model && system.userData.model.id == id) {
-          system.userData.model.setOpened(isOpen);
+      vrLandscape.forEach(function (landscapeSystem) {
+        if (landscapeSystem.userData.model && landscapeSystem.userData.model.id == id) {
+          landscapeSystem.userData.model.setOpened(isOpen);
         }
+        let landscapeGroups = landscapeSystem.children;
+        landscapeGroups.forEach(function (landscapeGroup) {
+          nodeGroups.forEach(function (nodeGroup) {
+            let id = nodeGroup.id;
+            let isOpen = nodeGroup.opened;
+            if (landscapeGroup.userData.model && landscapeGroup.userData.model.id == id) {
+              console.log("open nodeGroup");
+              landscapeGroup.userData.model.setOpened(isOpen);
+            }
+            
+          });
+        });
       });
     });
     //this.populateScene();

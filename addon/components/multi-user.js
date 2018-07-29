@@ -397,7 +397,8 @@ export default VRRendering.extend({
   //TODO: also implement nodeGroup states
   onLandscapeData(data){
     let systems = data.systems;
-    this.setLandscapeState(systems);
+    let nodeGroups = data.nodeGroups;
+    this.setLandscapeState(systems, nodeGroups);
   },
 
   onSystemChange(id, isOpen){
