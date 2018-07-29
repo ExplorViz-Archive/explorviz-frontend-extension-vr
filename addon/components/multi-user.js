@@ -3,7 +3,7 @@ import EmberMap from '@ember/map';
 import User from '../utils/multi-user/user';
 import VRRendering from './vr-rendering';
 import Ember from 'ember';
-//import THREE from 'three';
+import THREE from 'three';
 
 export default VRRendering.extend({
   websockets: service(),
@@ -137,14 +137,23 @@ export default VRRendering.extend({
   },
 
   updateAndSendPositions() {
-    if(this.camera && !this.lastPositions.camera) {
-      this.lastPositions.camera = this.camera.position.toArray();
+    if(this.camera && this.user && !this.lastPositions.camera) {
+      const pos = new THREE.Vector3();
+      pos.add(this.user.position);
+      pos.add(this.camera.position);
+      this.lastPositions.camera = pos.toArray();
     }
     if(this.controller1 && !this.lastPositions.controller1) {
-      this.lastPositions.controller1 = this.controller1.position.toArray();
+      const pos = new THREE.Vector3();
+      pos.add(this.user.position);
+      pos.add(this.controller1.position);
+      this.lastPositions.controller1 = pos.toArray();
     }
     if(this.controller2 && !this.lastPositions.controller2) {
-      this.lastPositions.controller2 = this.controller2.position.toArray();
+      const pos = new THREE.Vector3();
+      pos.add(this.user.position);
+      pos.add(this.controller2.position);
+      this.lastPositions.controller2 = pos.toArray();
     }
 
     let positionObj = {
@@ -152,10 +161,22 @@ export default VRRendering.extend({
       "time": Date.now()
     };
 
+    const posCamera = new THREE.Vector3();
+    posCamera.add(this.user.position);
+    posCamera.add(this.camera.position);
+
+    const posController1 = new THREE.Vector3();
+    posController1.add(this.user.position);
+    posController1.add(this.controller1.position);
+
+    const posController2 = new THREE.Vector3();
+    posController2.add(this.user.position);
+    posController2.add(this.controller2.position);
+
     let currentPositions = {
-      controller1: this.controller1.position.toArray(),
-      controller2: this.controller2.position.toArray(),
-      camera: this.camera.position.toArray()
+      controller1: posController1.toArray(),
+      controller2: posController2.toArray(),
+      camera: posCamera.toArray()
     }
 
     let hasChanged = false;
@@ -163,27 +184,28 @@ export default VRRendering.extend({
     if(JSON.stringify(currentPositions.controller1) !== JSON.stringify(this.lastPositions.controller1)) {
       hasChanged = true;
       positionObj.controller1 = {
-        "position": this.controller1.position.toArray(),
+        "position": currentPositions.controller1,
         "quaternion": this.controller1.quaternion.toArray()
       };
     }
     if(JSON.stringify(currentPositions.controller2) !== JSON.stringify(this.lastPositions.controller2)) {
       hasChanged = true;
       positionObj.controller2 = {
-        "position": this.controller2.position.toArray(),
+        "position": currentPositions.controller2,
         "quaternion": this.controller2.quaternion.toArray()
       };
     }
     if(JSON.stringify(currentPositions.camera) !== JSON.stringify(this.lastPositions.camera)) {
       hasChanged = true;
       positionObj.camera = {
-        "position": this.camera.position.toArray(),
+        "position": currentPositions.camera,
         "quaternion": this.camera.quaternion.toArray()
       };
     }
 
     if(hasChanged) {
       this.lastPositions = currentPositions;
+      //console.log(currentPositions.camera[0]);
 
       this.updateQueue.push(positionObj);
     }
@@ -207,7 +229,6 @@ export default VRRendering.extend({
       socket.off('open', this.myOpenHandler);
       socket.off('message', this.myMessageHandler);
       socket.off('close', this.myCloseHandler);
-      socket.close();
     }
     this.socketRef = null,
     this.users = null;
@@ -231,21 +252,21 @@ export default VRRendering.extend({
       let data = messages[i];
       switch(data.event) {
         case 'receive_self_connecting':
-          console.log(`${event.data}`);
+          console.log(data);
           this.onSelfConnecting(data);
           console.log(`You are connecting with id ${this.get('userID')}`);
           break;
         case 'receive_self_connected':
-          console.log(`${event.data}`);
+          console.log(data);
           this.onSelfConnected(data);
           console.log(`You just connected with id ${this.get('userID')}`);
           break;
         case 'receive_user_connecting':
-          console.log(`${event.data}`);
+          console.log(data);
           console.log(`New client connecting with ID ${data.id}`);
           break;
         case 'receive_user_connected':
-          console.log(`${event.data}`);
+          console.log(data);
           this.onUserConnected(data);
           console.log(`${data.user.name} connected with ID ${data.user.id}`);
           break;
@@ -253,15 +274,15 @@ export default VRRendering.extend({
           this.onUserPositions(data);
           break;
         case 'receive_user_controllers':
-          // console.log(`${event.data}`);
+          console.log(data);
           this.onUserControllers(data);
           break;
         case 'receive_user_disconnect':
-          console.log(`${event.data}`);
+          console.log(data);
           this.onUserDisconnect(data);
           break;
         case 'receive_landscape':
-          console.log(`${event.data}`);
+          console.log(data);
           this.onLandscapeData(data);
           break;
       }
