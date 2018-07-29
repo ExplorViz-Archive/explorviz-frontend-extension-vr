@@ -368,9 +368,12 @@ export default VRRendering.extend({
     if(this.get('users') && this.get('users').has(id)) {
       let user = this.get('users').get(id);
       user.removeController1();
+      this.get('scene').remove(user.get('controller1.model'));
       user.removeController2();
+      this.get('scene').remove(user.get('controller2.model'));
       user.removeCamera();
-      this.get('users').remove(id);
+      this.get('scene').remove(user.get('camera.model'));
+      this.get('users').delete(id);
     }
   },
 
@@ -397,18 +400,24 @@ export default VRRendering.extend({
     if(connect) {
       if(connect.controller1) {
         user.initController1(connect.controller1);
+        this.get('scene').add(user.get('controller1.model'));
       }
       if(connect.controller2) {
         user.initController2(connect.controller2);
+        this.get('scene').add(user.get('controller2.model'));
       }
     }
     if(disconnect) {
       for (let i = 0; i < disconnect.length; i++) {
         const controller = disconnect[i];
         if(controller === 'controller1') {
+          console.log("Controller1 disconnected");
+          this.get('scene').remove(user.get('controller1.model'));
           user.removeController1();
         }
         if(controller === 'controller2') {
+          console.log("Controller2 disconnected");
+          this.get('scene').remove(user.get('controller2.model'));
           user.removeController2();
         }
       }
