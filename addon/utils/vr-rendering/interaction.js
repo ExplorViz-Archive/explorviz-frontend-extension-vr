@@ -166,28 +166,22 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle keys
       if(event.key === 'ArrowDown'){
-        self.get('camera').position.setY(self.get('camera').position.y+0.05);
-        self.get('camera').updateProjectionMatrix();
+        self.get('user').position.y += 0.05;
       }
       else if(event.key === 'ArrowUp'){
-        self.get('camera').position.setY(self.get('camera').position.y-0.05);
-        self.get('camera').updateProjectionMatrix();
+        self.get('user').position.y -= 0.05;
       }
       else if(event.key === 'ArrowLeft'){
-        self.get('camera').position.setX(self.get('camera').position.x+0.05);
-        self.get('camera').updateProjectionMatrix();
+        self.get('user').position.x += 0.05;
       }
       else if(event.key === 'ArrowRight'){
-        self.get('camera').position.setX(self.get('camera').position.x-0.05);
-        self.get('camera').updateProjectionMatrix();
+        self.get('user').position.x -= 0.05;
       }
       else if(event.key === '-'){
-        self.get('camera').position.setZ(self.get('camera').position.z+0.05);
-        self.get('camera').updateProjectionMatrix();
+        self.get('user').position.z += 0.05;
       }
       else if(event.key === '+'){
-        self.get('camera').position.setZ(self.get('camera').position.z-0.05);
-        self.get('camera').updateProjectionMatrix();
+        self.get('user').position.z -= 0.05;
       }
       else if(event.key === 'q'){
         self.get('vrEnvironment').rotation.x +=  0.05;
@@ -1513,12 +1507,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     cameraOffset.y = 0;
     this.user.position.subVectors(position, cameraOffset);
     
-    //this.get('camera').position.setX(position.x);
-    //maybe don't update height, cause position.y is at floor height
-    //this.get('camera').position.setY(position.y);
-    //this.get('camera').position.setZ(position.z);
-
-    //this.get('camera').updateProjectionMatrix();
   },
 
   /*

@@ -269,6 +269,7 @@ export default VRRendering.extend(Ember.Evented, {
     this.currentTime = 0;
     this.deltaTime = 0;
     this.updateQueue = [];
+
   },
 
   openHandler(event) {
@@ -344,6 +345,13 @@ export default VRRendering.extend(Ember.Evented, {
       user.set('id', userData.id);
       user.set('state', 'connected');
       user.init();
+
+      if(userData.controllers.controller1) {
+        user.initController1(userData.controllers.controller1);
+      }
+      if(userData.controllers.controller2) {
+        user.initController2(userData.controllers.controller2);
+      }
 
       this.get('users').set(userData.id, user);
 
