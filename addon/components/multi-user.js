@@ -336,12 +336,6 @@ export default VRRendering.extend({
       user.set('state', 'connected');
       user.init();
 
-      if(userData.controllers.controller1) {
-        user.initController1(userData.controllers.controller1);
-      }
-      if(userData.controllers.controller2) {
-        user.initController2(userData.controllers.controller2);
-      }
       this.get('users').set(userData.id, user);
 
       //add models for other users
@@ -367,12 +361,12 @@ export default VRRendering.extend({
     let { id } = data;
     if(this.get('users') && this.get('users').has(id)) {
       let user = this.get('users').get(id);
-      user.removeController1();
       this.get('scene').remove(user.get('controller1.model'));
-      user.removeController2();
+      user.removeController1();
       this.get('scene').remove(user.get('controller2.model'));
-      user.removeCamera();
+      user.removeController2();
       this.get('scene').remove(user.get('camera.model'));
+      user.removeCamera();
       this.get('users').delete(id);
     }
   },
@@ -400,10 +394,12 @@ export default VRRendering.extend({
     if(connect) {
       if(connect.controller1) {
         user.initController1(connect.controller1);
+        console.log("Controller1 connected");
         this.get('scene').add(user.get('controller1.model'));
       }
       if(connect.controller2) {
         user.initController2(connect.controller2);
+        console.log("Controller2 connected");
         this.get('scene').add(user.get('controller2.model'));
       }
     }

@@ -20,15 +20,20 @@ export default EmberObject.extend({
     model: null
   },
   camera: {
-    position: new THREE.Vector3(),
-    quaternion: new THREE.Quaternion(),
-    model: new THREE.Object3D()
+    position: null,
+    quaternion: null,
+    model: null
   },
 
   init() {
     const self = this;
     let OBJLoader = createOBJLoader(THREE);
     let loader = new OBJLoader(THREE.DefaultLoadingManager);
+
+    this.camera.position = new THREE.Vector3();
+    this.camera.quaternion = new THREE.Quaternion();
+    this.camera.model = new THREE.Object3D();
+
     // Load HMD Model
     loader.setPath('generic_hmd/');
     loader.load('generic_hmd.obj', function(object) {
@@ -53,7 +58,7 @@ export default EmberObject.extend({
     this.controller1.quaternion = new THREE.Quaternion();
     this.controller1.model = new THREE.Object3D();
 
-    if(name === 'Oculus Touch (Left)') {
+    if(name == 'Oculus Touch (Left)') {
       loader.setPath('oculus_cv1_controller/');
       loader.load('oculus_cv1_controller_left.obj', function(object) {
         const obj = object;
@@ -91,7 +96,7 @@ export default EmberObject.extend({
     this.controller2.quaternion = new THREE.Quaternion();
     this.controller2.model = new THREE.Object3D();
 
-    if(name === 'Oculus Touch (Right)') {
+    if(name == 'Oculus Touch (Right)') {
       loader.setPath('oculus_cv1_controller/');
       loader.load('oculus_cv1_controller_right.obj', function(object) {
         const obj = object;
@@ -152,10 +157,10 @@ export default EmberObject.extend({
     if(this.controller1.quaternion)
       this.controller1.quaternion.fromArray(controller.quaternion);
     if(this.controller1.model) {
-      if(this.controller1.model.quaternion)
-        this.controller1.model.quaternion.copy(this.controller1.quaternion);
       if(this.controller1.model.position)
         this.controller1.model.position.copy(this.controller1.position);
+      if(this.controller1.model.quaternion)
+        this.controller1.model.quaternion.copy(this.controller1.quaternion);
     }
   },
   
@@ -165,9 +170,9 @@ export default EmberObject.extend({
     if(this.controller2.quaternion)
       this.controller2.quaternion.fromArray(controller.quaternion);
     if(this.controller2.model) {
-      if(this.controller2.model.quaternion)
-        this.controller2.model.position.copy(this.controller2.position);
       if(this.controller2.model.position)
+        this.controller2.model.position.copy(this.controller2.position);
+      if(this.controller2.model.quaternion)
         this.controller2.model.quaternion.copy(this.controller2.quaternion);
     }
   }
