@@ -100,6 +100,9 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('interaction').on('appReleased', function(appID, position, quaternion){
       self.sendAppReleased(appID, position, quaternion);
     });
+    this.get('interaction').on('appBinded', function(appID, appPosition, isBoundToController1, controllerPosition){
+      self.sendAppBinded(appID, appPosition, isBoundToController1, controllerPosition);
+    });
   },
 
 
@@ -163,6 +166,18 @@ export default VRRendering.extend(Ember.Evented, {
       "id": appID,
       "position" : position.toArray(),
       "quaternion" : quaternion.toArray()
+    }
+    this.updateQueue.push(appObj);
+  },
+
+  sendAppBinded(appID, appPosition, isBoundToController1, controllerPosition){
+    let appObj = {
+      "event": "receive_app_binded",
+      "time": Date.now(),
+      "appID": appID,
+      "appPosition" : appPosition.toArray(),
+      "isBoundToController1" : isBoundToController1,
+      "controllerPosition" : controllerPosition.toArray()
     }
     this.updateQueue.push(appObj);
   },
@@ -380,6 +395,10 @@ export default VRRendering.extend(Ember.Evented, {
           console.log(data);
           this.onAppClosed(data.id);
           break;
+        case 'receive_app_binded':
+          console.log(data);
+          this.onAppBinded(data.appID, data.appPosition, data.isBoundToController1, data.controllerPosition);
+          break;
         case 'receive_app_released':
           console.log(data);
           this.onAppReleased(data.id, data.position, data.quaternion);
@@ -520,18 +539,75 @@ export default VRRendering.extend(Ember.Evented, {
     if (this.get('openApps').has(appID)) {
       this.removeChildren(this.get('openApps').get(appID));
       this.get('openApps').delete(appID);
+    } 
+  },
+
+  onAppBinded(appID, appPosition, isBoundToController1, controllerPosition){
+    console.log("onAppBinded is called");
+    console.log("appID: " + appID);
+    if (!this.get('openApps').has(appID)){
+      return;
     }
+    let app = this.get('openApps').get(appID);
+    app.position.x = appPosition[0];
+    app.position.y = appPosition[1];
+    app.position.z = appPosition[2];
+
+    let controller;
+    if (isBoundToController1){
+      controller = this.get('controller1');
+    } else {
+      controller = this.get('controller2');
+    }
+    controller.position.x = controllerPosition[0];
+    controller.position.x = controllerPosition[1];
+    controller.position.x = controllerPosition[2];
+
+    var tempMatrix = new THREE.Matrix4();
+    // Get inverse of controller transoformation      
+    tempMatrix.getInverse(controller.matrixWorld);
+
+    tempMatrix.identity().extractRotation( controller.matrixWorld );
+    
+
+    // Set transforamtion relative to controller transformation
+    app.matrix.premultiply( tempMatrix );
+    // Split up matrix into position, quaternion and scale
+    app.matrix.decompose( app.position, app.quaternion, app.scale);
+    // Add object to controller
+    controller.add(app);
+    // Store object 
+    controller.userData.selected = app; 
+
   },
 
   onAppReleased(appID, position, quatArray){
     if (this.get('openApps').has(appID)) {
-      let app = this.get('openApps').get(appID);
-      app.position.x = position[0];
-      app.position.y = position[1];
-      app.position.z = position[2];
+      console.log("onAppReleased: App found");
+      /*
+      let app = this.get('openApps').get(appID).userData.model;
       let quaternion = new THREE.Quaternion(quatArray[0], quatArray[1], quatArray[2], quatArray[3]);
-      app.setRotationFromQuaternion(quaternion);
-     }
+
+      // Empty application 3D (remove app3D)
+      this.removeChildren(this.get('openApps').get(appID));
+
+      //self.get('openApps').delete(app3DModel.id);
+      // Add application3D to scene
+      this.add3DApplicationToLandscape(app, position, quaternion);
+      this.get('openApps').get(appID).updateMatrix();*/
+      //var appPosition = this.get('openApps').get(appID).position;
+      var appPosition = new THREE.Vector3(position[0], position[1], position[2]);
+      var appQuaternion = new THREE.Quaternion(quatArray[0], quatArray[1], quatArray[2], quatArray[3]);
+      let app3DModel = this.get('openApps').get(appID).userData.model;
+
+      // Empty application 3D (remove app3D)
+      this.removeChildren(this.get('openApps').get(appID));
+
+      //self.get('openApps').delete(app3DModel.id);
+      // Add application3D to scene
+      this.add3DApplicationToLandscape(app3DModel, appPosition, appQuaternion);
+      this.get('openApps').get(appID).updateMatrix();
+     }       
   },
 
 

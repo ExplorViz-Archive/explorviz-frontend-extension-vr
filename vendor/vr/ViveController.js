@@ -69,7 +69,7 @@ ViveController = function ( id ) {
 			var pose = gamepad.pose;
 
 			//adjust y position here, because controllers else are too low 
-			if ( pose.position !== null ) scope.position.fromArray( [pose.position[0], pose.position[1] + 1.61, pose.position[2]] );
+			if ( pose.position !== null ) scope.position.fromArray( [pose.position[0], pose.position[1] + 0.80, pose.position[2]] );
 			if ( pose.orientation !== null ) scope.quaternion.fromArray( pose.orientation );
 			scope.matrix.compose( scope.position, scope.quaternion, scope.scale );
 			scope.matrixWorldNeedsUpdate = true;
@@ -99,12 +99,13 @@ ViveController = function ( id ) {
 
 			}
 
+/*
 			if ( gripsArePressed !== gamepad.buttons[ 2 ].pressed ) {
 
 				gripsArePressed = gamepad.buttons[ 2 ].pressed;
 				scope.dispatchEvent( { type: gripsArePressed ? 'gripsdown' : 'gripsup' } );
 
-			}
+			}*/
 
 			if ( menuIsPressed !== gamepad.buttons[ 3 ].pressed ) {
 
