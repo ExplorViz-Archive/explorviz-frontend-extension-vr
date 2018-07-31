@@ -1048,6 +1048,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Handle nodegroup or system hit
       else if (emberModelName === "nodegroup" || emberModelName === "system"){
         emberModel.setOpened(!emberModel.get('opened'));
+
+        if (emberModelName === "system"){
+          this.trigger('systemStateChanged',emberModel.id, emberModel.get('opened'));
+        } else if (emberModelName === "nodegroup"){
+          this.trigger('nodegroupStateChanged',emberModel.id, emberModel.get('opened'));
+        }
         // Trigger event in component vr-rendering
         this.trigger('redrawScene');
       }

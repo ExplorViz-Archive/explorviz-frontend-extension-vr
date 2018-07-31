@@ -1600,7 +1600,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       newPosition.y = intersectionPoint.y;//  + app3DSize.y*2;
       self.get('openApps').get(emberModel.id).position.set(newPosition.x, newPosition.y, newPosition.z);
       self.get('openApps').get(emberModel.id).updateMatrix();
-
+      self.trigger('applicationOpened', emberModel.id, self.get('openApps').get(emberModel.id));
     });
     /*
      * This interaction listener is used to delete an existing application3D 
