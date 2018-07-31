@@ -91,6 +91,9 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('interaction').on('nodegroupStateChanged', function(id, isOpen) {
       self.sendNodegroupUpdate(id, isOpen);
     });
+    this.on('applicationOpened', function(app) {
+      self.sendAppOpened(app);
+    });
   },
 
 
@@ -119,6 +122,23 @@ export default VRRendering.extend(Ember.Evented, {
       "isOpen": isOpen
     }
     this.updateQueue.push(nodeGroupObj);
+  },
+
+  sendAppOpened(id, app){
+    let position = new THREE.Vector3();
+    app.getWorldPosition(position);
+    
+    let quaternion = new THREE.Vector3();
+    app.getWorldQuaternion(quaternion);
+
+    let appObj = {
+      "event": "receive_app_opened",
+      "time": Date.now(),
+      "id": id,
+      "position" : position.toArray(),
+      "quaternion" : quaternion.toArray()
+    }
+    this.updateQueue.push(appObj);
   },
 
   sendControllerUpdate() {
