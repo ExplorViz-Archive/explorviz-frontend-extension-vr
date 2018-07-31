@@ -98,14 +98,14 @@ export default VRRendering.extend(Ember.Evented, {
     this.on('applicationOpened', (id, app) => {
       this.sendAppOpened(id, app);
     });
-    this.get('interaction').on('removeApplication', function(appID) {
-      self.sendAppClosed(appID);
+    this.get('interaction').on('removeApplication',(appID) => {
+      this.sendAppClosed(appID);
     });
-    this.get('interaction').on('appReleased', function(appID, position, quaternion){
-      self.sendAppReleased(appID, position, quaternion);
+    this.get('interaction').on('appReleased',(appID, position, quaternion) => {
+      this.sendAppReleased(appID, position, quaternion);
     });
-    this.get('interaction').on('appBinded', function(appID, appPosition, isBoundToController1, controllerPosition){
-      self.sendAppBinded(appID, appPosition, isBoundToController1, controllerPosition);
+    this.get('interaction').on('appBinded',(appID, appPosition, isBoundToController1, controllerPosition) => {
+      this.sendAppBinded(appID, appPosition, isBoundToController1, controllerPosition);
     });
   },
 
