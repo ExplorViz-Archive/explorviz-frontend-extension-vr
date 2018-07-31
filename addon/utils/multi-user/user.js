@@ -1,9 +1,8 @@
 import EmberObject from '@ember/object';
 import THREE from 'three';
 
-/*global createOBJLoader*/
-
 export default EmberObject.extend({
+  label: null,
   name: null,
   id: null,
   state: null,
@@ -25,103 +24,30 @@ export default EmberObject.extend({
     model: null
   },
 
-  init() {
-    const self = this;
-    let OBJLoader = createOBJLoader(THREE);
-    let loader = new OBJLoader(THREE.DefaultLoadingManager);
-
+  initCamera(obj) {
     this.camera.position = new THREE.Vector3();
     this.camera.quaternion = new THREE.Quaternion();
     this.camera.model = new THREE.Object3D();
 
-    // Load HMD Model
-    loader.setPath('generic_hmd/');
-    loader.load('generic_hmd.obj', function(object) {
-      const obj = object;
-      obj.name = "hmdTexture";
-      let loader = new THREE.TextureLoader();
-      loader.setPath('generic_hmd/');
-      let controller = obj.children[0];
-      controller.material.map = loader.load('generic_hmd.tga');
-      self.get('camera.model').add(obj.clone());
-    });
+    this.get('camera.model').add(obj);
   },
 
-  initController1(name) {
-    console.log("init c1");
-    const self = this;
-    let OBJLoader = createOBJLoader(THREE);
-    let loader = new OBJLoader(THREE.DefaultLoadingManager);
-
+  initController1(name, obj) {
     this.controller1.id = name;
     this.controller1.position = new THREE.Vector3();
     this.controller1.quaternion = new THREE.Quaternion();
     this.controller1.model = new THREE.Object3D();
 
-    if(name == 'Oculus Touch (Left)') {
-      loader.setPath('oculus_cv1_controller/');
-      loader.load('oculus_cv1_controller_left.obj', function(object) {
-        const obj = object;
-        obj.name = "oculusTexture";
-        let loader = new THREE.TextureLoader();
-        loader.setPath('oculus_cv1_controller/');
-        let controller = obj.children[0];
-        controller.material.map = loader.load('external_controller01_col.png');
-        controller.material.specularMap = loader.load('external_controller01_spec.png');
-        self.get('controller1.model').add(obj.clone());
-      });
-    } else {
-      // Load VIVE Controller Model
-      loader.setPath('vive-controller/');
-      loader.load('vr_controller_vive_1_5.obj', function(object) {
-        const obj = object;
-        obj.name = "viveTexture";
-        let loader = new THREE.TextureLoader();
-        loader.setPath('vive-controller/');
-        let controller = obj.children[0];
-        controller.material.map = loader.load('onepointfive_texture.png');
-        controller.material.specularMap = loader.load('onepointfive_spec.png');
-        self.get('controller1.model').add(obj.clone());
-      });
-    }
+    this.get('controller1.model').add(obj);
   },
 
-  initController2(name) {
-    const self = this;
-    let OBJLoader = createOBJLoader(THREE);
-    let loader = new OBJLoader(THREE.DefaultLoadingManager);
-
+  initController2(name, obj) {
     this.controller2.id = name;
     this.controller2.position = new THREE.Vector3();
     this.controller2.quaternion = new THREE.Quaternion();
     this.controller2.model = new THREE.Object3D();
 
-    if(name == 'Oculus Touch (Right)') {
-      loader.setPath('oculus_cv1_controller/');
-      loader.load('oculus_cv1_controller_right.obj', function(object) {
-        const obj = object;
-        obj.name = "oculusTexture";
-        let loader = new THREE.TextureLoader();
-        loader.setPath('oculus_cv1_controller/');
-        let controller = obj.children[0];
-        controller.material.map = loader.load('external_controller01_col.png');
-        controller.material.specularMap = loader.load('external_controller01_spec.png');
-        self.get('controller2.model').add(obj.clone());
-      });
-    } else {
-      // Load VIVE Controller Model
-      loader.setPath('vive-controller/');
-      loader.load('vr_controller_vive_1_5.obj', function(object) {
-        const obj = object;
-        obj.name = "viveTexture";
-        let loader = new THREE.TextureLoader();
-        loader.setPath('vive-controller/');
-        let controller = obj.children[0];
-        controller.material.map = loader.load('onepointfive_texture.png');
-        controller.material.specularMap = loader.load('onepointfive_spec.png');
-        self.get('controller2.model').add(obj.clone());
-      });
-    }
+    this.get('controller2.model').add(obj);
   },
 
   removeController1() {

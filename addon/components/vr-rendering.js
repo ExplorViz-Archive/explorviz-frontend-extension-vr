@@ -90,6 +90,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   // Application
   openApps : null,
+
+  oculusLeftControllerObject: null,
+  oculusRightControllerObject: null,
+  viveControllerObject: null,
   
 
 
@@ -379,6 +383,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('room').add(floorMesh);
     self.get('scene').add(this.get('room'));///// End floor
 
+    this.loadControllerModels();
+
     // Stop data flow
     this.get('reloadHandler').stopExchange();
     // Load font for labels and synchronously proceed with populating the scene
@@ -389,6 +395,53 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         self.populateScene();
       });
     console.log("Init Rendering End");
+  },
+
+  loadControllerModels() {
+    let OBJLoader = createOBJLoader(THREE);
+    let loader = new OBJLoader(THREE.DefaultLoadingManager);
+
+    loader.setPath('oculus_cv1_controller/');
+    loader.load('oculus_cv1_controller_left.obj', object => {
+      const obj = object;
+      obj.name = "controllerTexture";
+      let loader = new THREE.TextureLoader();
+      loader.setPath('oculus_cv1_controller/');
+      let controller = obj.children[0];
+      controller.material.map = loader.load('external_controller01_col.png');
+      controller.material.specularMap = loader.load('external_controller01_spec.png');
+      controller.rotateX(0.71);
+      controller.position.x -= 0.0071;
+      controller.position.y += 0.035;
+      controller.position.z -= 0.035;
+      this.set('oculusLeftControllerObject', obj.clone());
+    });
+    loader.setPath('oculus_cv1_controller/');
+    loader.load('oculus_cv1_controller_right.obj', object => {
+      const obj = object;
+      obj.name = "controllerTexture";
+      let loader = new THREE.TextureLoader();
+      loader.setPath('oculus_cv1_controller/');
+      let controller = obj.children[0];
+      controller.material.map = loader.load('external_controller01_col.png');
+      controller.material.specularMap = loader.load('external_controller01_spec.png');
+      controller.rotateX(0.71);
+      controller.position.x += 0.0071;
+      controller.position.y += 0.035;
+      controller.position.z -= 0.035;
+      this.set('oculusRightControllerObject', obj.clone());
+    });
+    loader.setPath('vive-controller/');
+    loader.load('vr_controller_vive_1_5.obj', object => {
+      const obj = object;
+      obj.name = "controllerTexture";
+      let loader = new THREE.TextureLoader();
+      loader.setPath('vive-controller/');
+      let controller = obj.children[0];
+      controller.material.map = loader.load('onepointfive_texture.png');
+      controller.material.specularMap = loader.load('onepointfive_spec.png');
+      this.set('viveControllerObject', obj.clone());
+    });
   },
 
   updateControllers() {
@@ -436,53 +489,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       && !controller.getObjectByName("controllerTexture")) {
 
       let name = controller.getGamepad().id;
-      let OBJLoader = createOBJLoader(THREE);
-      let loader = new OBJLoader(THREE.DefaultLoadingManager);
 
       if (name === "Oculus Touch (Left)") {
-        // Load Oculus Controller Model
-        loader.setPath('oculus_cv1_controller/');
-        loader.load('oculus_cv1_controller_left.obj', function(object) {
-          const obj = object;
-          obj.name = "controllerTexture";
-          let loader = new THREE.TextureLoader();
-          loader.setPath('oculus_cv1_controller/');
-          obj.children[0].material.map = loader.load('external_controller01_col.png');
-          obj.children[0].material.specularMap = loader.load('external_controller01_spec.png');
-          obj.children[0].rotateX(0.71);
-          obj.children[0].position.x -= 0.0071;
-          obj.children[0].position.y += 0.035;
-          obj.children[0].position.z -= 0.035;
-          controller.add(obj.clone());
-        });
+        controller.add(this.oculusLeftControllerObject.clone());
       } else if (name === "Oculus Touch (Right)") {
-        loader.setPath('oculus_cv1_controller/');
-        loader.load('oculus_cv1_controller_right.obj', function(object) {
-          const obj = object;
-          obj.name = "controllerTexture";
-          let loader = new THREE.TextureLoader();
-          loader.setPath('oculus_cv1_controller/');
-          obj.children[0].material.map = loader.load('external_controller01_col.png');
-          obj.children[0].material.specularMap = loader.load('external_controller01_spec.png');
-          obj.children[0].rotateX(0.71);
-          obj.children[0].position.x += 0.0071;
-          obj.children[0].position.y += 0.035;
-          obj.children[0].position.z -= 0.035;
-          controller.add(obj.clone());
-          
-        });
+        controller.add(this.oculusRightControllerObject.clone());
       } else {
-        // Load VIVE Controller Model
-        loader.setPath('vive-controller/');
-        loader.load('vr_controller_vive_1_5.obj', function(object) {
-          const obj = object;
-          obj.name = "controllerTexture";
-          let loader = new THREE.TextureLoader();
-          loader.setPath('vive-controller/');
-          obj.children[0].material.map = loader.load('onepointfive_texture.png');
-          obj.children[0].material.specularMap = loader.load('onepointfive_spec.png');
-          controller.add(obj.clone());
-        });
+        controller.add(this.viveControllerObject.clone());
       }
     }
   },
