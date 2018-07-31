@@ -98,6 +98,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.on('applicationOpened', (id, app) => {
       this.sendAppOpened(id, app);
     });
+    this.get('interaction').on('removeApplication', function(appID) {
+      self.sendAppClosed(appID);
+    });
+    this.get('interaction').on('applicationMoved', function(appID, position, quaternion){
+
+    });
   },
 
   loadHMDModel() {
@@ -154,6 +160,15 @@ export default VRRendering.extend(Ember.Evented, {
       "id": id,
       "position" : position.toArray(),
       "quaternion" : quaternion.toArray()
+    }
+    this.updateQueue.push(appObj);
+  },
+
+  sendAppClosed(appID){
+    let appObj = {
+      "event": "receive_app_closed",
+      "time": Date.now(),
+      "id": appID
     }
     this.updateQueue.push(appObj);
   },
@@ -364,6 +379,14 @@ export default VRRendering.extend(Ember.Evented, {
           
           this.onLandscapeUpdate(data.id, data.isOpen);
           break;
+        case 'receive_app_opened':
+          console.log(data);
+          this.onAppOpened(data.id, data.position, data.quaternion);
+          break;
+        case 'receive_app_closed':
+          console.log(data);
+          this.onAppClosed(data.id);
+          break;
       }
     }
   },
@@ -515,6 +538,17 @@ export default VRRendering.extend(Ember.Evented, {
 
   onLandscapeUpdate(id, isOpen){
     this.setEntityState(id, isOpen);
+  },
+
+  onAppOpened(id, position, quaternion){
+    this.showApplication(id, position, quaternion);
+  },
+
+  onAppClosed(appID){
+    if (this.get('openApps').has(appID)) {
+      this.removeChildren(this.get('openApps').get(appID));
+      this.get('openApps').delete(appID);
+    }
   },
 
   send(obj) {

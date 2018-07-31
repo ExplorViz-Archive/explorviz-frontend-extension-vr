@@ -609,6 +609,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.get('scene').add(object);
       // Delete stored application3D 
       controller.userData.selected = undefined;
+
+      this.trigger('appReleased', object.userData.model.id, object.position, object.quaternion);
     }
   },
 
