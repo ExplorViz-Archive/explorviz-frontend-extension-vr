@@ -97,8 +97,8 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('interaction').on('removeApplication', function(appID) {
       self.sendAppClosed(appID);
     });
-    this.get('interaction').on('applicationMoved', function(appID, position, quaternion){
-
+    this.get('interaction').on('appReleased', function(appID, position, quaternion){
+      self.sendAppReleased(appID, position, quaternion);
     });
   },
 
@@ -152,6 +152,17 @@ export default VRRendering.extend(Ember.Evented, {
       "event": "receive_app_closed",
       "time": Date.now(),
       "id": appID
+    }
+    this.updateQueue.push(appObj);
+  },
+
+  sendAppReleased(appID, position, quaternion){
+    let appObj = {
+      "event": "receive_app_released",
+      "time": Date.now(),
+      "id": appID,
+      "position" : position.toArray(),
+      "quaternion" : quaternion.toArray()
     }
     this.updateQueue.push(appObj);
   },
@@ -369,6 +380,10 @@ export default VRRendering.extend(Ember.Evented, {
           console.log(data);
           this.onAppClosed(data.id);
           break;
+        case 'receive_app_released':
+          console.log(data);
+          this.onAppReleased(data.id, data.position, data.quaternion);
+          break;
       }
     }
   },
@@ -507,6 +522,18 @@ export default VRRendering.extend(Ember.Evented, {
       this.get('openApps').delete(appID);
     }
   },
+
+  onAppReleased(appID, position, quatArray){
+    if (this.get('openApps').has(appID)) {
+      let app = this.get('openApps').get(appID);
+      app.position.x = position[0];
+      app.position.y = position[1];
+      app.position.z = position[2];
+      let quaternion = new THREE.Quaternion(quatArray[0], quatArray[1], quatArray[2], quatArray[3]);
+      app.setRotationFromQuaternion(quaternion);
+     }
+  },
+
 
   send(obj) {
     // console.log(`Sending: ${JSON.stringify(obj)}`);
