@@ -241,6 +241,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     line1.scale.z = 5;
     line1.material.color = new THREE.Color('rgb(0,0,0)');
     line1.material.opacity = 0.25;
+    line1.position.y -= 0.005;
+    line1.position.z -= 0.02;
 
     // Create green ray for left controller
     let line2 = new THREE.Line(this.get('geometry'));
@@ -248,6 +250,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     line2.scale.z = 5;
     line2.material.color = new THREE.Color('rgb(0,204,51)');
     line2.material.opacity = 0.25;
+    line2.position.y -= 0.005;
+    line2.position.z -= 0.02;
 
     // Add rays to controllers
     this.get('controller1').add(line1);
