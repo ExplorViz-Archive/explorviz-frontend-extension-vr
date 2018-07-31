@@ -91,8 +91,8 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('interaction').on('nodegroupStateChanged', function(id, isOpen) {
       self.sendNodegroupUpdate(id, isOpen);
     });
-    this.on('applicationOpened', function(app) {
-      self.sendAppOpened(app);
+    this.on('applicationOpened', function(id, app) {
+      self.sendAppOpened(id, app);
     });
   },
 
@@ -128,7 +128,7 @@ export default VRRendering.extend(Ember.Evented, {
     let position = new THREE.Vector3();
     app.getWorldPosition(position);
     
-    let quaternion = new THREE.Vector3();
+    let quaternion = new THREE.Quaternion();
     app.getWorldQuaternion(quaternion);
 
     let appObj = {
