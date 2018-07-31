@@ -445,6 +445,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           loader.setPath('oculus_cv1_controller/');
           obj.children[0].material.map = loader.load('external_controller01_col.png');
           obj.children[0].material.specularMap = loader.load('external_controller01_spec.png');
+          obj.children[0].rotateX(0.71);
+          obj.children[0].position.x -= 0.0071;
+          obj.children[0].position.y += 0.035;
+          obj.children[0].position.z -= 0.035;
           controller.add(obj.clone());
         });
       } else if (name === "Oculus Touch (Right)") {
@@ -456,6 +460,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           loader.setPath('oculus_cv1_controller/');
           obj.children[0].material.map = loader.load('external_controller01_col.png');
           obj.children[0].material.specularMap = loader.load('external_controller01_spec.png');
+          obj.children[0].rotateX(0.71);
+          obj.children[0].position.x += 0.0071;
+          obj.children[0].position.y += 0.035;
+          obj.children[0].position.z -= 0.035;
           controller.add(obj.clone());
           
         });
