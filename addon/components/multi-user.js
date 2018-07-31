@@ -346,6 +346,10 @@ export default VRRendering.extend(Ember.Evented, {
           console.log(data);
           this.onLandscapeUpdate(data.id, data.isOpen);
           break;
+        case 'receive_app_opened':
+          console.log(data);
+          this.onAppOpened(data.id, data.position, data.quaternion);
+          break;
       }
     }
   },
@@ -472,6 +476,10 @@ export default VRRendering.extend(Ember.Evented, {
 
   onLandscapeUpdate(id, isOpen){
     this.setEntityState(id, isOpen);
+  },
+
+  onAppOpened(id, position, quaternion){
+    this.showApplication(id, position, quaternion);
   },
 
   send(obj) {

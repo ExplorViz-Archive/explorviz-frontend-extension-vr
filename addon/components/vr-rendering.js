@@ -1925,7 +1925,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   },
 
   setLandscapeState(systems, nodegroups){
-    let vrLandscape = this.get('vrLandscape').children
+    let vrLandscape = this.get('vrLandscape').children;
     systems.forEach(function (system){
       let id = system.id;
       let isOpen = system.opened;
@@ -1949,6 +1949,51 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     //this.populateScene();
     
+  },
+
+  showApplication(id, position, quaternion){
+    const self = this;
+
+    self.set('viewImporter.importedURL', null);
+
+    console.log("getAppModel");
+    let emberModel = this.getAppModel(id);
+   
+    console.log("ID: " + emberModel.id);
+    //dont allow to open the same two apps
+    if (self.get('openApps').has(emberModel.id)){
+      return;
+    }
+
+    // Add 3D Application to scene (also if one exists already)
+    self.set('landscapeRepo.latestApplication', emberModel);
+    let posVector = new THREE.Vector3(position[0], position[1], position[2]);
+    self.add3DApplicationToLandscape(emberModel, posVector, new THREE.Vector3(0, 0, 0));
+
+    self.get('openApps').get(emberModel.id).updateMatrix();
+  },
+
+  getAppModel(id){
+    let model = null;
+    
+    let systems = this.get('landscapeRepo.latestLandscape').get('systems');
+
+    systems.forEach(function (system){
+      let nodegroups = system.get('nodegroups');
+      nodegroups.forEach(function (nodeGroup){
+        let nodes = nodeGroup.get('nodes');
+        nodes.forEach(function (node){
+          let apps = node.get('applications');
+          apps.forEach(function (app){
+            if(app.get('id') === id){
+              console.log("App found");
+              model = app;
+            }
+          });
+        });
+      });
+    });
+    return model;
   },
 
 
