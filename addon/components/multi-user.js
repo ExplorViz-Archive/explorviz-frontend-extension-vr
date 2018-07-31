@@ -94,6 +94,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.on('applicationOpened', function(id, app) {
       self.sendAppOpened(id, app);
     });
+    this.get('interaction').on('removeApplication', function(appID) {
+      self.sendAppClosed(appID);
+    });
+    this.get('interaction').on('applicationMoved', function(appID, position, quaternion){
+
+    });
   },
 
 
@@ -137,6 +143,15 @@ export default VRRendering.extend(Ember.Evented, {
       "id": id,
       "position" : position.toArray(),
       "quaternion" : quaternion.toArray()
+    }
+    this.updateQueue.push(appObj);
+  },
+
+  sendAppClosed(appID){
+    let appObj = {
+      "event": "receive_app_closed",
+      "time": Date.now(),
+      "id": appID
     }
     this.updateQueue.push(appObj);
   },
@@ -350,6 +365,10 @@ export default VRRendering.extend(Ember.Evented, {
           console.log(data);
           this.onAppOpened(data.id, data.position, data.quaternion);
           break;
+        case 'receive_app_closed':
+          console.log(data);
+          this.onAppClosed(data.id);
+          break;
       }
     }
   },
@@ -480,6 +499,13 @@ export default VRRendering.extend(Ember.Evented, {
 
   onAppOpened(id, position, quaternion){
     this.showApplication(id, position, quaternion);
+  },
+
+  onAppClosed(appID){
+    if (this.get('openApps').has(appID)) {
+      this.removeChildren(this.get('openApps').get(appID));
+      this.get('openApps').delete(appID);
+    }
   },
 
   send(obj) {

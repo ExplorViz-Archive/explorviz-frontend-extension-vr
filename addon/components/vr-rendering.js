@@ -1557,7 +1557,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       // Store app3D Data because application3D is removed in the next step
 
       var appPosition = self.get('openApps').get(appID).position;
-      var appRotation = self.get('openApps').get(appID).rotation;
+      var appQuaternion = self.get('openApps').get(appID).quaternion;
       let app3DModel = self.get('openApps').get(appID).userData.model;
 
       // Empty application 3D (remove app3D)
@@ -1565,7 +1565,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       //self.get('openApps').delete(app3DModel.id);
       // Add application3D to scene
-      self.add3DApplicationToLandscape(app3DModel, appPosition, appRotation);
+      self.add3DApplicationToLandscape(app3DModel, appPosition, appQuaternion);
       self.get('openApps').get(appID).updateMatrix();
     }); ///// End redraw application3D 
 
@@ -1583,7 +1583,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       // Add 3D Application to scene (also if one exists already)
       self.set('landscapeRepo.latestApplication', emberModel);
       self.add3DApplicationToLandscape(emberModel, 
-        intersectionPoint, new THREE.Vector3(0, 0, 0));
+        intersectionPoint, new THREE.Quaternion());
 
         
       //let bboxApp3D = new THREE.Box3().setFromObject(self.get('openApps').get(emberModel.id));
@@ -1764,7 +1764,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
    * This function is used to add application3D
    * to the landscape(3D)
    */
-  add3DApplicationToLandscape(application, position, rotation) {
+  add3DApplicationToLandscape(application, position, quaternion) {
     const self = this;
 
     if (application.get('components').get('length') !== 0) {
@@ -1805,7 +1805,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       // Apply last position and rotation
       self.get('openApps').get(application.id).position.set(position.x, position.y, position.z);
-      self.get('openApps').get(application.id).rotation.set(rotation.x, rotation.y, rotation.z);
+      self.get('openApps').get(application.id).setRotationFromQuaternion(quaternion);
       self.get('openApps').get(application.id).add(self.get('deleteButton'));
       self.get('openApps').get(application.id).updateMatrix();
 
@@ -1963,13 +1963,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     
   },
 
-  showApplication(id, position, quaternion){
+  showApplication(id, position, quatArray){
     const self = this;
 
     self.set('viewImporter.importedURL', null);
 
     console.log("getAppModel");
-    let emberModel = this.getAppModel(id);
+    let emberModel = self.get('store').peekRecord('application', id);
    
     console.log("ID: " + emberModel.id);
     //dont allow to open the same two apps
@@ -1980,32 +1980,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // Add 3D Application to scene (also if one exists already)
     self.set('landscapeRepo.latestApplication', emberModel);
     let posVector = new THREE.Vector3(position[0], position[1], position[2]);
-    self.add3DApplicationToLandscape(emberModel, posVector, new THREE.Vector3(0, 0, 0));
+    let quaternion = new THREE.Quaternion(quatArray[0], quatArray[1], quatArray[2], quatArray[3]);
+    self.add3DApplicationToLandscape(emberModel, posVector, quaternion);
 
     self.get('openApps').get(emberModel.id).updateMatrix();
-  },
-
-  getAppModel(id){
-    let model = null;
-    
-    let systems = this.get('landscapeRepo.latestLandscape').get('systems');
-
-    systems.forEach(function (system){
-      let nodegroups = system.get('nodegroups');
-      nodegroups.forEach(function (nodeGroup){
-        let nodes = nodeGroup.get('nodes');
-        nodes.forEach(function (node){
-          let apps = node.get('applications');
-          apps.forEach(function (app){
-            if(app.get('id') === id){
-              console.log("App found");
-              model = app;
-            }
-          });
-        });
-      });
-    });
-    return model;
   },
 
 
