@@ -5,6 +5,8 @@ import VRRendering from './vr-rendering';
 import Ember from 'ember';
 import THREE from 'three';
 
+/*global createOBJLoader*/
+
 export default VRRendering.extend(Ember.Evented, {
   websockets: service(),
   socketRef: null,
@@ -20,6 +22,8 @@ export default VRRendering.extend(Ember.Evented, {
   deltaTime: 0,
   updateQueue: [],
   running: false,
+  hmdObject: null,
+
 
   gameLoop() {
     if(!this.running)
@@ -30,7 +34,7 @@ export default VRRendering.extend(Ember.Evented, {
     this.deltaTime = this.currentTime - this.lastTime;
 
     if(this.deltaTime > 1000/this.fps) {
-      if(this.get('users').has(this.userID) && this.get('users').get(this.userID).state === 'connected') {
+      if(this.userID && this.state === 'connected') {
         this.updateControllers();
         this.update();
         this.render2();
@@ -51,8 +55,8 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   didRender() {
-    const self = this;
     this._super(...arguments);
+    this.loadHMDModel();
 
     console.log(this.get('users'));
     this.set('users', EmberMap.create());
@@ -85,18 +89,31 @@ export default VRRendering.extend(Ember.Evented, {
     });
 
     //initialize interaction events
-    this.get('interaction').on('systemStateChanged', function(id, isOpen) {
-      self.sendSystemUpdate(id, isOpen);
+    this.get('interaction').on('systemStateChanged', (id, isOpen) => {
+      this.sendSystemUpdate(id, isOpen);
     });
-    this.get('interaction').on('nodegroupStateChanged', function(id, isOpen) {
-      self.sendNodegroupUpdate(id, isOpen);
+    this.get('interaction').on('nodegroupStateChanged', (id, isOpen) => {
+      this.sendNodegroupUpdate(id, isOpen);
     });
-    this.on('applicationOpened', function(id, app) {
-      self.sendAppOpened(id, app);
+    this.on('applicationOpened', (id, app) => {
+      this.sendAppOpened(id, app);
     });
   },
 
-
+  loadHMDModel() {
+    let OBJLoader = createOBJLoader(THREE);
+    let loader = new OBJLoader(THREE.DefaultLoadingManager);
+    // Load HMD Model
+    loader.setPath('generic_hmd/');
+    loader.load('generic_hmd.obj', object => {
+      const obj = object;
+      obj.name = "hmdTexture";
+      let loader = new THREE.TextureLoader();
+      loader.setPath('generic_hmd/');
+      obj.children[0].material.map = loader.load('generic_hmd.tga');
+      this.set('hmdObject', obj);
+    });
+  },
 
   update() {
     this.updateAndSendPositions();
@@ -344,6 +361,7 @@ export default VRRendering.extend(Ember.Evented, {
           break;
         case 'receive_nodegroup_update':
           console.log(data);
+          
           this.onLandscapeUpdate(data.id, data.isOpen);
           break;
       }
@@ -367,26 +385,38 @@ export default VRRendering.extend(Ember.Evented, {
       user.set('name', userData.name);
       user.set('id', userData.id);
       user.set('state', 'connected');
-      user.init();
 
       if(userData.controllers.controller1) {
-        user.initController1(userData.controllers.controller1);
-        if(userData.id !== this.get('userID') && user.state === 'connected')
-          this.get('scene').add(user.get('controller1.model'));
+        if(userData.controllers.controller1 === 'Oculus Touch (Left)') {
+          user.initController1(userData.controllers.controller1, this.get('oculusLeftControllerObject').clone());
+        } else if(userData.controllers.controller1 === 'Oculus Touch (Right)') {
+          user.initController1(userData.controllers.controller1, this.get('oculusRightControllerObject').clone());
+        } else {
+          user.initController1(userData.controllers.controller1, this.get('viveControllerObject').clone());
+        }
+
+        this.get('scene').add(user.get('controller1.model'));
       }
+
       if(userData.controllers.controller2) {
-        user.initController2(userData.controllers.controller2);
-        if(userData.id !== this.get('userID') && user.state === 'connected')
-          this.get('scene').add(user.get('controller2.model'));
+        if(userData.controllers.controller2 === 'Oculus Touch (Right)') {
+          user.initController2(userData.controllers.controller2, this.get('oculusRightControllerObject').clone());
+        } else if (userData.controllers.controller2 === 'Oculus Touch (Left)') {
+          user.initController2(userData.controllers.controller2, this.get('oculusLeftControllerObject').clone());
+        } else {
+          user.initController2(userData.controllers.controller2, this.get('viveControllerObject').clone());
+        }
+
+        this.get('scene').add(user.get('controller2.model'));
       }
+
+      user.initCamera(this.get('hmdObject').clone());
+      //add models for other users
+      this.get('scene').add(user.get('camera.model'));
 
       this.get('users').set(userData.id, user);
-
-      //add models for other users
-      if(userData.id !== this.get('userID') && user.state === 'connected') {
-        this.get('scene').add(user.get('camera.model'));
-      }
     }
+    this.state = "connected";
   },
 
   onUserConnected(data) {
@@ -394,11 +424,12 @@ export default VRRendering.extend(Ember.Evented, {
     user.set('name', data.user.name);
     user.set('id', data.user.id);
     user.set('state', 'connected');
-    user.init();
+    user.initCamera(this.get('hmdObject').clone());
     this.get('users').set(data.user.id, user);
 
     //add model for new user
     this.get('scene').add(user.get('camera.model'));
+
   },
 
   onUserDisconnect(data) {
@@ -437,12 +468,24 @@ export default VRRendering.extend(Ember.Evented, {
     let user = this.get('users').get(id);
     if(connect) {
       if(connect.controller1) {
-        user.initController1(connect.controller1);
+        if(connect.controller1 === 'Oculus Touch (Left)') {
+            user.initController1(connect.controller1, this.get('oculusLeftControllerObject').clone());
+        } else if(connect.controller1 === 'Oculus Touch (Right)') {
+            user.initController1(connect.controller1, this.get('oculusRightControllerObject').clone());
+        } else {
+            user.initController1(connect.controller1, this.get('viveControllerObject').clone());
+        }
         console.log("Controller1 connected");
         this.get('scene').add(user.get('controller1.model'));
       }
       if(connect.controller2) {
-        user.initController2(connect.controller2);
+        if(connect.controller2 === 'Oculus Touch (Right)') {
+            user.initController2(connect.controller2, this.get('oculusRightControllerObject').clone());
+        } else if(connect.controller2 === 'Oculus Touch (Left)') {
+            user.initController2(connect.controller2, this.get('oculusLeftControllerObject').clone());
+        } else {
+            user.initController2(connect.controller2, this.get('viveControllerObject').clone());
+        }
         console.log("Controller2 connected");
         this.get('scene').add(user.get('controller2.model'));
       }
