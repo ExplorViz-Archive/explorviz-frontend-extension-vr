@@ -377,12 +377,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // Stop data flow
     this.get('reloadHandler').stopExchange();
-
-    this.get('controller1').update();
-    if(this.controller1.getGamepad() !== undefined) {
-      const device = this.controller1.getGamepad().id.startsWith( 'Oculus Touch' ) ? "oculus" : "vive";
-      this.loadControllers(device);
-    }
     // Load font for labels and synchronously proceed with populating the scene
     new THREE.FontLoader()
       .load('three.js/fonts/roboto_mono_bold_typeface.json', function(font) {
@@ -396,6 +390,24 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   updateControllers() {
     this.get('controller1').update();
     this.get('controller2').update();
+
+    // remove controller 1 model if controller disconnected
+    if((this.get('controller1').getGamepad() === undefined || this.get('controller1').getGamepad().pose === undefined)) {
+      let model = this.get('controller1').getObjectByName("controllerTexture");
+      if(model)
+        this.get('controller1').remove(model);
+    } else {
+      this.loadController(this.get('controller1'));
+    }
+    if((this.get('controller2').getGamepad() === undefined || this.get('controller2').getGamepad().pose === undefined)) {
+      let model = this.get('controller2').getObjectByName("controllerTexture");
+      if(model)
+        this.get('controller2').remove(model);
+    } else {
+      this.loadController(this.get('controller2'));
+    }
+
+
     // Check raycast for intersection
     if (this.get('interaction')) {
       // only if no application3D binded on controller
@@ -415,49 +427,51 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('stats').end();
   },
 
-  loadControllers(device) {
-    const self = this;
-    let OBJLoader = createOBJLoader(THREE);
-    let loader = new OBJLoader(THREE.DefaultLoadingManager);
+  loadController(controller) {
+    if(controller.getGamepad() !== undefined && controller.getGamepad().pose !== undefined
+      && !controller.getObjectByName("controllerTexture")) {
 
-    if(device === "vive") {
-      // Load VIVE Controller Model
-      loader.setPath('vive-controller/');
-      loader.load('vr_controller_vive_1_5.obj', function(object) {
-        const obj = object;
-        obj.name = "viveTexture";
-        let loader = new THREE.TextureLoader();
+      let name = controller.getGamepad().id;
+      let OBJLoader = createOBJLoader(THREE);
+      let loader = new OBJLoader(THREE.DefaultLoadingManager);
+
+      if (name === "Oculus Touch (Left)") {
+        // Load Oculus Controller Model
+        loader.setPath('oculus_cv1_controller/');
+        loader.load('oculus_cv1_controller_left.obj', function(object) {
+          const obj = object;
+          obj.name = "controllerTexture";
+          let loader = new THREE.TextureLoader();
+          loader.setPath('oculus_cv1_controller/');
+          obj.children[0].material.map = loader.load('external_controller01_col.png');
+          obj.children[0].material.specularMap = loader.load('external_controller01_spec.png');
+          controller.add(obj.clone());
+        });
+      } else if (name === "Oculus Touch (Right)") {
+        loader.setPath('oculus_cv1_controller/');
+        loader.load('oculus_cv1_controller_right.obj', function(object) {
+          const obj = object;
+          obj.name = "controllerTexture";
+          let loader = new THREE.TextureLoader();
+          loader.setPath('oculus_cv1_controller/');
+          obj.children[0].material.map = loader.load('external_controller01_col.png');
+          obj.children[0].material.specularMap = loader.load('external_controller01_spec.png');
+          controller.add(obj.clone());
+          
+        });
+      } else {
+        // Load VIVE Controller Model
         loader.setPath('vive-controller/');
-        let controller = obj.children[0];
-        controller.material.map = loader.load('onepointfive_texture.png');
-        controller.material.specularMap = loader.load('onepointfive_spec.png');
-        self.get('controller1').add(obj.clone());
-        self.get('controller2').add(obj.clone());
-      });
-    } else if(device === "oculus") {
-      // Load Oculus Controller Model
-      loader.setPath('oculus_cv1_controller/');
-      loader.load('oculus_cv1_controller_left.obj', function(object) {
-        const obj = object;
-        obj.name = "oculusTextureLeft";
-        let loader = new THREE.TextureLoader();
-        loader.setPath('oculus_cv1_controller/');
-        let controller = obj.children[0];
-        controller.material.map = loader.load('external_controller01_col.png');
-        controller.material.specularMap = loader.load('external_controller01_spec.png');
-        self.get('controller1').add(obj.clone());
-      });
-      loader.load('oculus_cv1_controller_right.obj', function(object) {
-        const obj = object;
-        obj.name = "oculusTextureRight";
-        let loader = new THREE.TextureLoader();
-        loader.setPath('oculus_cv1_controller/');
-        let controller = obj.children[0];
-        controller.material.map = loader.load('external_controller01_col.png');
-        controller.material.specularMap = loader.load('external_controller01_spec.png');
-        self.get('controller2').add(obj.clone());
-        
-      });
+        loader.load('vr_controller_vive_1_5.obj', function(object) {
+          const obj = object;
+          obj.name = "controllerTexture";
+          let loader = new THREE.TextureLoader();
+          loader.setPath('vive-controller/');
+          obj.children[0].material.map = loader.load('onepointfive_texture.png');
+          obj.children[0].material.specularMap = loader.load('onepointfive_spec.png');
+          controller.add(obj.clone());
+        });
+      }
     }
   },
 
