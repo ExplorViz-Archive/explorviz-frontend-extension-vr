@@ -417,7 +417,7 @@ export default VRRendering.extend(Ember.Evented, {
             data.isBoundToController1, data.controllerPosition, data.controllerQuaternion);
           break;
         case 'receive_app_released':
-          this.showApp(data.id, data.position, data.quaternion);
+          this.updateApp(data.id, data.position, data.quaternion);
           break;
       }
     }
@@ -565,7 +565,11 @@ export default VRRendering.extend(Ember.Evented, {
   onInitialLandscape(data){
     let systems = data.systems;
     let nodeGroups = data.nodeGroups;
+    let openApps = data.openApps;
     this.setLandscapeState(systems, nodeGroups);
+    openApps.forEach(app => {
+      this.showApplication(app.id, app.position, app.quaternion);
+    });
   },
 
   onLandscapeUpdate(id, isOpen){
@@ -584,7 +588,7 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   onAppBinded(userID, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion){
-    this.showApp(appID, appPosition, appQuaternion);
+    this.updateApp(appID, appPosition, appQuaternion);
 
     if (!this.get('openApps').has(appID)){
       return;
@@ -609,7 +613,7 @@ export default VRRendering.extend(Ember.Evented, {
 
   },
 
-  showApp(appID, position, quatArray){
+  updateApp(appID, position, quatArray){
     if (this.get('openApps').has(appID)) {
       var appPosition = new THREE.Vector3(position[0], position[1], position[2]);
       var appQuaternion = new THREE.Quaternion(quatArray[0], quatArray[1], quatArray[2], quatArray[3]);
