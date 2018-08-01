@@ -1951,28 +1951,29 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   setLandscapeState(systems, nodegroups){
     let vrLandscape = this.get('vrLandscape').children;
-    systems.forEach(function (system){
-      let id = system.id;
-      let isOpen = system.opened;
-      vrLandscape.forEach(function (entity) {
-        if (entity.userData.model && entity.userData.model.id == id) {
-          entity.userData.model.setOpened(isOpen);
-        }
-      });
+    systems.forEach(system => {
+      let emberModel = this.get('store').peekRecord('system', system.id);
+      emberModel.setOpened(system.opened);
     });
-    //this.populateScene();
+    this.populateScene();
 
     nodegroups.forEach(function (nodegroup){
       let id = nodegroup.id;
       let isOpen = nodegroup.opened;
-      vrLandscape.forEach(function (entity) {
+      vrLandscape.forEach(entity => {
         if (entity.userData.model && entity.userData.model.id == id) {
           entity.userData.model.setOpened(isOpen);
         }
       });
     });
 
-    //this.populateScene();
+        /*
+    nodegroups.forEach(nodegroup => {
+      let emberModel = this.get('store').peekRecord('nodegroup', nodegroup.id);
+      emberModel.setOpened(nodegroup.opened);
+    });*/
+
+    this.populateScene();
     
   },
 
