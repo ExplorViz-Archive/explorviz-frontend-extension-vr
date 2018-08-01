@@ -872,7 +872,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         //send information about app binding to backend
         let boundToController1 = controller.id === this.get('controller1').id;
-        this.trigger('appBinded', 70, object.position, boundToController1, controller.position);
+        this.trigger('appBinded', "70", object.position, object.quaternion, boundToController1, controller.position, controller.quaternion);
       }
     }
   },
