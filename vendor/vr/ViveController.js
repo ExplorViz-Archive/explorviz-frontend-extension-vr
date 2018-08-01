@@ -69,7 +69,12 @@ ViveController = function ( id ) {
 			var pose = gamepad.pose;
 
 			//adjust y position here, because controllers else are too low 
-			if ( pose.position !== null ) scope.position.fromArray( [pose.position[0], pose.position[1] + 0.80, pose.position[2]] );
+			if ( pose.position !== null ) scope.position.fromArray( [pose.position[0], pose.position[1], pose.position[2]] );
+			if(gamepad.id.startsWith( 'Oculus Touch' )) {
+				scope.position.y += 1.61;
+			} else {
+				scope.position.y += 0.8;
+			}
 			if ( pose.orientation !== null ) scope.quaternion.fromArray( pose.orientation );
 			scope.matrix.compose( scope.position, scope.quaternion, scope.scale );
 			scope.matrixWorldNeedsUpdate = true;
