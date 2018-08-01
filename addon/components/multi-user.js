@@ -404,24 +404,19 @@ export default VRRendering.extend(Ember.Evented, {
           break;
         case 'receive_nodegroup_update':
           console.log(data);
-          
           this.onLandscapeUpdate(data.id, data.isOpen);
           break;
         case 'receive_app_opened':
-          console.log(data);
           this.onAppOpened(data.id, data.position, data.quaternion);
           break;
         case 'receive_app_closed':
-          console.log(data);
           this.onAppClosed(data.id);
           break;
         case 'receive_app_binded':
-          console.log(data);
           this.onAppBinded(data.userID, data.appID, data.appPosition, data.appQuaternion, 
             data.isBoundToController1, data.controllerPosition, data.controllerQuaternion);
           break;
         case 'receive_app_released':
-          console.log(data);
           this.showApp(data.id, data.position, data.quaternion);
           break;
       }
@@ -589,17 +584,13 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   onAppBinded(userID, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion){
-    console.log("onAppBinded is called with " + "appID: " + appID);
-    console.log("Apps: " + this.get('openApps').get('keys'));
     this.showApp(appID, appPosition, appQuaternion);
+
     if (!this.get('openApps').has(appID)){
-      console.log("App not found in on AppBinded");
       return;
     }
+
     let app = this.get('openApps').get(appID);
-    app.position.fromArray(appPosition);
-    app.quaternion.fromArray(appQuaternion);
-    console.log("App was found");
 
     let controller;
     if (isBoundToController1){
@@ -608,7 +599,6 @@ export default VRRendering.extend(Ember.Evented, {
       controller = this.get('users').get(userID).get('controller2').model;
     }
 
-    console.log("Controller: " + controller);
     controller.position.fromArray(controllerPosition);
     controller.quaternion.fromArray(controllerQuaternion);
 

@@ -849,8 +849,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Component or clazz hit and app3D not aready binded
       if((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded') ){
-        
-        console.log("Controller Id: " + controller.id + " bound an app");
         // set bool for application3D binded
         this.set('app3DBinded',true);
         this.get('app3DBindedByController')[controller.id] = "true";
@@ -872,7 +870,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         //send information about app binding to backend
         let boundToController1 = controller.id === this.get('controller1').id;
-        this.trigger('appBinded', "70", object.position, object.quaternion, boundToController1, controller.position, controller.quaternion);
+        let appID = intersectedViewObj.object.parent.userData.model.id;
+        this.trigger('appBinded', appID, object.position, object.quaternion, boundToController1, controller.position, controller.quaternion);
       }
     }
   },
