@@ -23,6 +23,8 @@ export default VRRendering.extend(Ember.Evented, {
   updateQueue: [],
   running: false,
   hmdObject: null,
+  canvas2: null,
+  messageQueue: [],
 
 
   gameLoop() {
@@ -87,6 +89,11 @@ export default VRRendering.extend(Ember.Evented, {
       this.running = true;
       this.gameLoop();
     });
+    this.enqueueMessage("User x just connected");
+    this.enqueueMessage("User y just connected");
+    this.enqueueMessage("User z just connected");
+    this.enqueueMessage("User x disconnected");
+
 
     //initialize interaction events
     this.get('interaction').on('systemStateChanged', (id, isOpen) => {
@@ -107,6 +114,88 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('interaction').on('appBinded',(appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion) => {
       this.sendAppBinded(appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion);
     });
+  },
+
+  enqueueMessage(text) {
+    this.messageQueue.unshift(text);
+    if(this.messageQueue.length === 1) {
+      this.showMessage();
+    }
+  },
+
+  showMessage() {
+    if(this.messageQueue.length <= 0)
+      return;
+    
+    let message = this.messageQueue[this.messageQueue.length-1];
+    this.createMessageBox(message);
+    setTimeout(closeAfterTime.bind(this), 3000);
+
+    function closeAfterTime() {
+      this.deleteMessageBox();
+      setTimeout(() => {
+        if(this.messageQueue.length > 0) {
+          this.messageQueue.pop();
+          this.showMessage();
+        }
+      }, 800);
+    }
+  },
+
+  createMessageBox(text) {
+    var color = new THREE.Color("rgb(253,245,230)");
+    let material = new THREE.MeshBasicMaterial({
+      color
+    });
+    let textBox = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, this.get('zeroValue')), material);
+    textBox.name = 'messageBox';
+    textBox.geometry.rotateX(0.45);
+
+    this.set('canvas2', document.createElement('canvas'));
+    this.get('canvas2').width = 512;
+    this.get('canvas2').height = 84;
+    let canvas2 = this.get('canvas2');
+    var ctx = canvas2.getContext('2d');
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, canvas2.width, canvas2.height);
+  
+    // Draw Message
+    ctx.font = '20px arial';
+    ctx.fillStyle = 'white';
+    ctx.textAlign = "center";
+    ctx.fillText(text, canvas2.width / 2, 20);
+       
+    // create texture out of canvas
+    let texture = new THREE.Texture(canvas2);
+    // Map texture
+    material = new THREE.MeshBasicMaterial({map: texture});
+    material.transparent = true;
+    material.opacity = 0.5;
+
+    // Update texture      
+    texture.needsUpdate = true;
+    // Update mesh material
+    textBox.material = material;
+    textBox.position.z -= 0.4;
+    //textBox.position.x -= 0.05;
+    textBox.position.y += 0.32;
+    this.camera.add(textBox);
+    let y = 0;
+    function animate() {
+      y -= 0.01;
+      if (y > -0.16) {
+        textBox.position.y -=0.01;
+      } else {
+        return;
+      }
+      requestAnimationFrame(animate);
+    }
+    animate();
+  },
+
+  deleteMessageBox() {
+    let messageBox = this.camera.getObjectByName('messageBox');
+    this.camera.remove(messageBox);
   },
 
   loadHMDModel() {
@@ -485,6 +574,8 @@ export default VRRendering.extend(Ember.Evented, {
     //add model for new user
     this.get('scene').add(user.get('camera.model'));
 
+    this.enqueueMessage(`${user.get('name')} just connected.`);
+
   },
 
   onUserDisconnect(data) {
@@ -498,6 +589,7 @@ export default VRRendering.extend(Ember.Evented, {
       this.get('scene').remove(user.get('camera.model'));
       user.removeCamera();
       this.get('users').delete(id);
+      this.enqueueMessage(`${user.get('name')} disconnected.`);
     }
   },
 
