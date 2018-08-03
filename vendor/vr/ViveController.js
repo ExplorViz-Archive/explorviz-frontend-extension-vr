@@ -104,15 +104,15 @@ ViveController = function ( id ) {
 
 			}
 
-/*
-			if ( gripsArePressed !== gamepad.buttons[ 2 ].pressed ) {
+
+			if ( typeof gamepad.buttons[ 2 ] != 'undefined' && gripsArePressed !== gamepad.buttons[ 2 ].pressed ) {
 
 				gripsArePressed = gamepad.buttons[ 2 ].pressed;
 				scope.dispatchEvent( { type: gripsArePressed ? 'gripsdown' : 'gripsup' } );
 
-			}*/
+			}
 
-			if ( menuIsPressed !== gamepad.buttons[ 3 ].pressed ) {
+			if ( typeof gamepad.buttons[ 3 ] != 'undefined' && menuIsPressed !== gamepad.buttons[ 3 ].pressed ) {
 
 				menuIsPressed = gamepad.buttons[ 3 ].pressed;
 				scope.dispatchEvent( { type: menuIsPressed ? 'menudown' : 'menuup' } );
