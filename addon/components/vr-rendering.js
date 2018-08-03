@@ -1989,6 +1989,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   },
 
   redrawApplication(appID){
+    //only redraw if app is opened
+    if (!this.get('openApps').has(appID)){
+      return;
+    }
     // Store app3D Data because application3D is removed in the next step
     var appPosition = this.get('openApps').get(appID).position;
     var appQuaternion = this.get('openApps').get(appID).quaternion;

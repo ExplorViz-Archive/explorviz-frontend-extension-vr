@@ -367,7 +367,6 @@ export default VRRendering.extend(Ember.Evented, {
     this.currentTime = 0;
     this.deltaTime = 0;
     this.updateQueue = [];
-
   },
 
   openHandler(event) {
@@ -588,6 +587,10 @@ export default VRRendering.extend(Ember.Evented, {
     let openApps = data.openApps;
     this.setLandscapeState(systems, nodeGroups);
     openApps.forEach(app => {
+      let openComponents = app.openComponents;
+      openComponents.forEach(componentID => {
+        this.get('store').peekRecord('component', componentID).setOpenedStatus('true');
+      });
       this.showApplication(app.id, app.position, app.quaternion);
     });
   },
