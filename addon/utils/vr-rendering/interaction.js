@@ -682,9 +682,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Handle component of app3D hit
         else if((emberModelName === "component") && !this.get('app3DBinded')){
 
+          let appID = intersectedViewObj.object.userData.appID;
+
           // Toggle state and redraw app
           emberModel.setOpenedStatus(!emberModel.get('opened'));
-          this.trigger('redrawApp', intersectedViewObj.object.userData.appID);
+          this.trigger('redrawApp', appID);
+
+          this.trigger('componentOpened', appID , emberModel.id);
 
           // Restore selection
           
@@ -870,7 +874,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         //send information about app binding to backend
         let boundToController1 = controller.id === this.get('controller1').id;
-        let appID = intersectedViewObj.object.parent.userData.model.id;
+        let appID = intersectedViewObj.object.userData.appID;
+        //let appID = intersectedViewObj.object.parent.userData.model.id;
         this.trigger('appBinded', appID, object.position, object.quaternion, boundToController1, controller.position, controller.quaternion);
       }
     }

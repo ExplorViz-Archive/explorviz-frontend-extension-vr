@@ -1567,19 +1567,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      * ("opened" value of package changed) 
      */
     this.get('interaction').on('redrawApp', function(appID) {
-      // Store app3D Data because application3D is removed in the next step
-
-      var appPosition = self.get('openApps').get(appID).position;
-      var appQuaternion = self.get('openApps').get(appID).quaternion;
-      let app3DModel = self.get('openApps').get(appID).userData.model;
-
-      // Empty application 3D (remove app3D)
-      self.removeChildren(self.get('openApps').get(appID));
-
-      //self.get('openApps').delete(app3DModel.id);
-      // Add application3D to scene
-      self.add3DApplicationToLandscape(app3DModel, appPosition, appQuaternion);
-      self.get('openApps').get(appID).updateMatrix();
+      self.redrawApplication(appID);
     }); ///// End redraw application3D 
 
     /*
@@ -1977,7 +1965,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     
   },
 
-  showApplication(id, position, quatArray){
+  showApplication(id, posArray, quatArray){
     const self = this;
 
     self.set('viewImporter.importedURL', null);
@@ -1993,11 +1981,26 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // Add 3D Application to scene (also if one exists already)
     self.set('landscapeRepo.latestApplication', emberModel);
-    let posVector = new THREE.Vector3(position[0], position[1], position[2]);
+    let position = new THREE.Vector3(posArray[0], posArray[1], posArray[2]);
     let quaternion = new THREE.Quaternion(quatArray[0], quatArray[1], quatArray[2], quatArray[3]);
-    self.add3DApplicationToLandscape(emberModel, posVector, quaternion);
+    self.add3DApplicationToLandscape(emberModel, position, quaternion);
 
     self.get('openApps').get(emberModel.id).updateMatrix();
+  },
+
+  redrawApplication(appID){
+    // Store app3D Data because application3D is removed in the next step
+    var appPosition = this.get('openApps').get(appID).position;
+    var appQuaternion = this.get('openApps').get(appID).quaternion;
+    let app3DModel = this.get('openApps').get(appID).userData.model;
+
+    // Empty application 3D (remove app3D)
+    this.removeChildren(this.get('openApps').get(appID));
+
+    //self.get('openApps').delete(app3DModel.id);
+    // Add application3D to scene
+    this.add3DApplicationToLandscape(app3DModel, appPosition, appQuaternion);
+    this.get('openApps').get(appID).updateMatrix();
   },
 
 

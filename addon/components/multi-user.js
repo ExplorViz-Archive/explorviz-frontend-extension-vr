@@ -10,6 +10,7 @@ import THREE from 'three';
 export default VRRendering.extend(Ember.Evented, {
   websockets: service(),
   socketRef: null,
+  
   //Map: UserID -> User
   users: null,
   userID: null,
@@ -107,6 +108,9 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('interaction').on('appBinded',(appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion) => {
       this.sendAppBinded(appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion);
     });
+    this.get('interaction').on('componentOpened', (appID , componentID) => {
+      this.sendComponentOpened(appID, componentID);
+    });
   },
 
   loadHMDModel() {
@@ -197,6 +201,16 @@ export default VRRendering.extend(Ember.Evented, {
       "id": appID,
       "position" : position.toArray(),
       "quaternion" : quaternion.toArray()
+    }
+    this.updateQueue.push(appObj);
+  },
+
+  sendComponentOpened(appID, componentID){
+    let appObj = {
+      "event": "receive_component_opened",
+      "time": Date.now(),
+      "appID": appID,
+      "componentID": componentID
     }
     this.updateQueue.push(appObj);
   },
@@ -417,7 +431,12 @@ export default VRRendering.extend(Ember.Evented, {
             data.isBoundToController1, data.controllerPosition, data.controllerQuaternion);
           break;
         case 'receive_app_released':
-          this.updateApp(data.id, data.position, data.quaternion);
+          this.updateAppPosition(data.id, data.position, data.quaternion);
+          break;
+        case 'receive_component_opened':
+          console.log(data);
+          this.get('store').peekRecord('component', data.componentID).setOpenedStatus('true');
+          this.redrawApplication(data.appID);
           break;
       }
     }
@@ -588,7 +607,7 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   onAppBinded(userID, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion){
-    this.updateApp(appID, appPosition, appQuaternion);
+    this.updateAppPosition(appID, appPosition, appQuaternion);
 
     if (!this.get('openApps').has(appID)){
       return;
@@ -613,7 +632,7 @@ export default VRRendering.extend(Ember.Evented, {
 
   },
 
-  updateApp(appID, position, quatArray){
+  updateAppPosition(appID, position, quatArray){
     if (this.get('openApps').has(appID)) {
       var appPosition = new THREE.Vector3(position[0], position[1], position[2]);
       var appQuaternion = new THREE.Quaternion(quatArray[0], quatArray[1], quatArray[2], quatArray[3]);
