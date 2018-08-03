@@ -10,6 +10,7 @@ import THREE from 'three';
 export default VRRendering.extend(Ember.Evented, {
   websockets: service(),
   socketRef: null,
+  
   //Map: UserID -> User
   users: null,
   userID: null,
@@ -113,6 +114,9 @@ export default VRRendering.extend(Ember.Evented, {
     });
     this.get('interaction').on('appBinded',(appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion) => {
       this.sendAppBinded(appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion);
+    });
+    this.get('interaction').on('componentUpdate', (appID , componentID, isOpened) => {
+      this.sendComponentUpdate(appID, componentID, isOpened);
     });
   },
 
@@ -290,6 +294,17 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(appObj);
   },
 
+  sendComponentUpdate(appID, componentID, isOpened){
+    let appObj = {
+      "event": "receive_component_update",
+      "time": Date.now(),
+      "appID": appID,
+      "componentID": componentID,
+      "isOpened": isOpened
+    }
+    this.updateQueue.push(appObj);
+  },
+
   sendControllerUpdate() {
     let controllerObj = {
       "event": "receive_user_controllers",
@@ -441,7 +456,6 @@ export default VRRendering.extend(Ember.Evented, {
     this.currentTime = 0;
     this.deltaTime = 0;
     this.updateQueue = [];
-
   },
 
   openHandler(event) {
@@ -506,7 +520,12 @@ export default VRRendering.extend(Ember.Evented, {
             data.isBoundToController1, data.controllerPosition, data.controllerQuaternion);
           break;
         case 'receive_app_released':
-          this.updateApp(data.id, data.position, data.quaternion);
+          this.updateAppPosition(data.id, data.position, data.quaternion);
+          break;
+        case 'receive_component_update':
+          console.log(data);
+          this.get('store').peekRecord('component', data.componentID).setOpenedStatus(data.isOpened);
+          this.redrawApplication(data.appID);
           break;
       }
     }
@@ -660,6 +679,10 @@ export default VRRendering.extend(Ember.Evented, {
     let openApps = data.openApps;
     this.setLandscapeState(systems, nodeGroups);
     openApps.forEach(app => {
+      let openComponents = app.openComponents;
+      openComponents.forEach(componentID => {
+        this.get('store').peekRecord('component', componentID).setOpenedStatus('true');
+      });
       this.showApplication(app.id, app.position, app.quaternion);
     });
   },
@@ -680,7 +703,7 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   onAppBinded(userID, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion){
-    this.updateApp(appID, appPosition, appQuaternion);
+    this.updateAppPosition(appID, appPosition, appQuaternion);
 
     if (!this.get('openApps').has(appID)){
       return;
@@ -705,7 +728,7 @@ export default VRRendering.extend(Ember.Evented, {
 
   },
 
-  updateApp(appID, position, quatArray){
+  updateAppPosition(appID, position, quatArray){
     if (this.get('openApps').has(appID)) {
       var appPosition = new THREE.Vector3(position[0], position[1], position[2]);
       var appQuaternion = new THREE.Quaternion(quatArray[0], quatArray[1], quatArray[2], quatArray[3]);
