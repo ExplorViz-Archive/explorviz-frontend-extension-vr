@@ -688,7 +688,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           emberModel.setOpenedStatus(!emberModel.get('opened'));
           this.trigger('redrawApp', appID);
 
-          this.trigger('componentOpened', appID , emberModel.id);
+          this.trigger('componentUpdate', appID , emberModel.id, emberModel.get('opened'));
 
           // Restore selection
           
