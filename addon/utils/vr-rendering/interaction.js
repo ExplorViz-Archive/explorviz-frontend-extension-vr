@@ -1516,16 +1516,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  the new position
    */
   teleportToPosition(position){
-    const cameraDirection = new THREE.Vector3();
     const cameraOffset = new THREE.Vector3();
 
-    cameraDirection.set(0, 0, -1);
-    cameraDirection.applyQuaternion(this.camera.quaternion);
-    cameraDirection.y = 0;
-    cameraDirection.normalize();
     cameraOffset.copy(this.camera.position);
     cameraOffset.y = 0;
-    this.user.position.subVectors(position, cameraOffset);
+    this.user.position.subVectors(new THREE.Vector3(position.x, this.user.position.y, position.z), cameraOffset);
     
   },
 
