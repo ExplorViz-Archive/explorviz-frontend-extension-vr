@@ -1446,8 +1446,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  if the passed controller id highlighted it
    */
   unhighlightedDeleteButton(id, additionalCondition){
-    if(this.get('application3D') && this.get('deleteButtonHighlighted') === id && additionalCondition){
-      this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
+    if(this.get('openApps') && this.get('deleteButtonHighlighted') === id && additionalCondition){
+      this.get('openApps').forEach( app => {
+        app.getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
+      });
+      //this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
       this.set('deleteButtonHighlighted', null);
     }
   },
@@ -1483,7 +1486,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  and to do all necessary clean up
    */
   deleteApplication3D(intersectedViewObj){
-    // Reset highlighting of delete button
+    // Reset highlighting of delete buttonghlighting of delete button
     this.set('deleteButtonHighlighted', null);
 
     // Check if delete button was highlighted => restore unhighlighted material
