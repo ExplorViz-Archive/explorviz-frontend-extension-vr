@@ -1599,7 +1599,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       newPosition.z = intersectionPoint.z;//  - app3DSize.z;
       // Uncenter y for better overview
       newPosition.y = intersectionPoint.y;//  + app3DSize.y*2;
-      self.get('openApps').get(emberModel.id).position.set(newPosition.x, newPosition.y, newPosition.z);
+      self.get('openApps').get(emberModel.id).position.set(newPosition.x, newPosition.y + 0.3, newPosition.z);
       self.get('openApps').get(emberModel.id).updateMatrix();
       self.trigger('applicationOpened', emberModel.id, self.get('openApps').get(emberModel.id));
     });
