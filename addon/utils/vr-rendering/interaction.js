@@ -1236,6 +1236,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.get('vrEnvironment').position.y = this.get('vrEnvironment').position.y - distanceYInPercent;
       this.updateObjectMatrix(this.get('vrEnvironment'));
     }
+
+    this.trigger('landscapeMoved');
     
   },
 
