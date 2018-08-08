@@ -581,6 +581,7 @@ export default VRRendering.extend(Ember.Evented, {
         }
 
         this.get('scene').add(user.get('controller1.model'));
+        this.addLineToControllerModel(user.controller1, user.color);
       }
 
       if(userData.controllers.controller2) {
@@ -593,6 +594,7 @@ export default VRRendering.extend(Ember.Evented, {
         }
 
         this.get('scene').add(user.get('controller2.model'));
+        this.addLineToControllerModel(user.controller2, user.color);
       }
 
       user.initCamera(this.get('hmdObject').clone());
