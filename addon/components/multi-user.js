@@ -660,7 +660,8 @@ export default VRRendering.extend(Ember.Evented, {
     let line = new THREE.Line(this.get('geometry'));
     line.name = 'controllerLine';
     line.scale.z = 5;
-    line.material.color = new THREE.Color(`rgb(${color[0]},${color[1]},${color[2]})`);
+    line.material.color = new THREE.Color(0,0,0);
+    line.material.color.fromArray([color[0]/255.0,color[1]/255.0,color[2]/255.0]);
     line.material.opacity = 0.25;
     line.position.y -= 0.005;
     line.position.z -= 0.02;
