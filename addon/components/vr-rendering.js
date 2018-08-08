@@ -1754,7 +1754,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       const pipe = new THREE.Mesh(edgeGeometry, material);
       pipe.applyMatrix(orientation);
 
-      pipe.position.x = (pointY.x + pointX.x) / 2.0;
+      //adding 5.5 so the lines are positioned correctly
+      //unsure if it works for every application
+      pipe.position.x = (pointY.x + pointX.x) / 2.0 + 5.5;
       pipe.position.y = (pointY.y + pointX.y) / 2.0;
       pipe.position.z = (pointY.z + pointX.z) / 2.0;
       return pipe;
