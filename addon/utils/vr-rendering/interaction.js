@@ -1225,8 +1225,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       let distanceYInPercent = (delta.y /
         parseFloat(this.get('renderer').domElement.clientHeight)) * 10.0;
 
-      this.get('vrEnvironment').position.x = this.get('vrEnvironment').position.x + distanceXInPercent;
-      this.get('vrEnvironment').position.z = this.get('vrEnvironment').position.z - distanceYInPercent;
+      this.get('vrEnvironment').position.x +=  distanceXInPercent;
+      this.get('vrEnvironment').position.z -= distanceYInPercent;
       this.updateObjectMatrix(this.get('vrEnvironment'));
     } else if(event.button === 3){
       // Translate camera
@@ -1236,6 +1236,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.get('vrEnvironment').position.y = this.get('vrEnvironment').position.y - distanceYInPercent;
       this.updateObjectMatrix(this.get('vrEnvironment'));
     }
+
+    this.trigger('landscapeMoved');
     
   },
 

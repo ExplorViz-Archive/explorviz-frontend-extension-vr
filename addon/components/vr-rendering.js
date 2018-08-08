@@ -90,6 +90,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   // Application
   openApps : null,
+  foundations: null,
 
   oculusLeftControllerObject: null,
   oculusRightControllerObject: null,
@@ -285,6 +286,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('requestMaterial',requestMaterial);
     
     this.set('openApps', EmberMap.create());
+    this.set('foundations', EmberMap.create());
     this.set('app3DMeshes', EmberMap.create());
 
     // Load image for delete button
@@ -613,11 +615,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       this.set('initialRendering', true);
     }
 
-    if (this.get('landscapeRepo.latestApplication')) {
-      // remove foundation for re-rendering
-      this.get('foundationBuilder').removeFoundation(this.get('store'));
-      this.set('landscapeRepo.latestApplication', null);
-    }
+    this.get('openApps').forEach( (app) => {
+        // remove foundation for re-rendering
+        this.removeFoundation(app.id, this.get('store'));
+        this.set('landscapeRepo.latestApplication', null);
+    });
+
 
     // Clean up Webgl contexts
     var gl = this.get('canvas').getContext('webgl');
@@ -1447,7 +1450,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }
     // Add text to the boxes
     this.get('labeler').drawTextLabels();
-
   },
   //////////// END populateScene
 
@@ -1677,7 +1679,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       if(entity.name === 'app3D'){
 
         // remove foundation for re-rendering
-        this.get('foundationBuilder').removeFoundation(this.get('store'));
+        this.removeFoundation(entity.userData.model.id, this.get('store'));
         // Update application3D in interaction
         this.get('interaction').setupInteractionApp3D(null, null);
         this.set('landscapeRepo.latestApplication', null);
@@ -1689,6 +1691,25 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // Update possible objects for intersection with controller (application3D)
     this.set('interaction.raycastObjects', this.get('scene.children'));
 
+  },
+
+  removeFoundation(appID, store){
+    const foundation = this.get('foundations').get(appID);
+
+    if(!foundation) {
+      return false;
+    }
+
+    const emberApplication = foundation.get('belongingApplication');
+
+    emberApplication.set('components', foundation.get('children'));
+    emberApplication.get('components').forEach((component) => {
+      component.set('parentComponent', null);
+    });
+    
+    store.unloadRecord(foundation);
+
+    return true; 
   },
 
   
@@ -1773,6 +1794,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     if (application.get('components').get('length') !== 0) {
       // Create foundation for application3D
       const foundation = this.get('foundationBuilder').createFoundation(application, this.get('store'));
+      self.get('foundations').set(application.id, foundation);
 
       // Draw application in 3D application-view
       applyCityLayout(application);
@@ -1999,6 +2021,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     var appPosition = this.get('openApps').get(appID).position;
     var appQuaternion = this.get('openApps').get(appID).quaternion;
     let app3DModel = this.get('openApps').get(appID).userData.model;
+
+    console.log(this.get('openApps').get(appID).children);
 
     // Empty application 3D (remove app3D)
     this.removeChildren(this.get('openApps').get(appID));

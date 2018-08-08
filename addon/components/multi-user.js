@@ -116,6 +116,9 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('interaction').on('componentUpdate', (appID , componentID, isOpened) => {
       this.sendComponentUpdate(appID, componentID, isOpened);
     });
+    this.get('interaction').on('landscapeMoved', () => {
+      this.sendLandscapeUpdate();
+    });
   },
 
   enqueueMessage(text) {
@@ -218,6 +221,22 @@ export default VRRendering.extend(Ember.Evented, {
   update() {
     this.updateAndSendPositions();
     this.sendControllerUpdate();
+  },
+
+  sendLandscapeUpdate(){
+    let position = new THREE.Vector3();
+    this.get('vrEnvironment').getWorldPosition(position);
+
+    let quaternion = new THREE.Quaternion();
+    this.get('vrEnvironment').getWorldQuaternion(quaternion);
+
+    let landscapeObj = {
+      "event": "receive_landscape_position",
+      "time": Date.now(),
+      "position" : position.toArray(),
+      "quaternion" : quaternion.toArray()
+    }
+    this.updateQueue.push(landscapeObj);
   },
 
   sendSystemUpdate(id, isOpen){
@@ -499,6 +518,10 @@ export default VRRendering.extend(Ember.Evented, {
           console.log(data);
           this.onInitialLandscape(data);
           break;
+          case 'receive_landscape_position':
+          console.log(data);
+          this.onLandscapePosition(data.position, data.quaternion);
+          break;
         case 'receive_system_update':
           console.log(data);
           this.onLandscapeUpdate(data.id, data.isOpen);
@@ -707,6 +730,21 @@ export default VRRendering.extend(Ember.Evented, {
       });
       this.showApplication(app.id, app.position, app.quaternion);
     });
+
+    if(data.hasOwnProperty('landscape')){
+      let position = data.landscape.position;
+      let quaternion = data.landscape.quaternion;
+      this.onLandscapePosition(position, quaternion);
+    }
+  },
+
+  onLandscapePosition(position, quaternion){
+    console.log("Position: " + quaternion);
+    this.get('vrEnvironment').position.fromArray(position);
+    this.get('vrEnvironment').quaternion.fromArray(quaternion);
+    if(this.get('vrEnvironment')){
+      this.get('vrEnvironment').updateMatrix();
+    }
   },
 
   onLandscapeUpdate(id, isOpen){
