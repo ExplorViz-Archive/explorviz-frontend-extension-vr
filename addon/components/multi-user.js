@@ -61,9 +61,7 @@ export default VRRendering.extend(Ember.Evented, {
     this._super(...arguments);
     this.loadHMDModel();
 
-    console.log(this.get('users'));
     this.set('users', EmberMap.create());
-    console.log(this.get('users'));
     this.set('lastPositions', { camera: null, controller1: null, controller2: null });
     this.set('controllersConnected', { controller1: false, controller2: false });
     this.set('lastTime', new Date().getTime());
@@ -547,6 +545,7 @@ export default VRRendering.extend(Ember.Evented, {
       let user = User.create();
       user.set('name', userData.name);
       user.set('id', userData.id);
+      user.set('color', userData.color);
       user.set('state', 'connected');
 
       if(userData.controllers.controller1) {
@@ -586,6 +585,7 @@ export default VRRendering.extend(Ember.Evented, {
     let user = User.create();
     user.set('name', data.user.name);
     user.set('id', data.user.id);
+    user.set('color', data.user.color);
     user.set('state', 'connected');
     user.initCamera(this.get('hmdObject').clone());
     this.get('users').set(data.user.id, user);
@@ -625,6 +625,23 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
+  addLineToControllerModel(controller, color) {
+    // Ray for Controller
+    this.set('geometry', new THREE.Geometry());
+    this.get('geometry').vertices.push(new THREE.Vector3(0, 0, 0));
+    this.get('geometry').vertices.push(new THREE.Vector3(0, 0, -1));
+
+    // Create black ray for left controller
+    let line = new THREE.Line(this.get('geometry'));
+    line.name = 'controllerLine';
+    line.scale.z = 5;
+    line.material.color = new THREE.Color(`rgb(${color[0]},${color[1]},${color[2]})`);
+    line.material.opacity = 0.25;
+    line.position.y -= 0.005;
+    line.position.z -= 0.02;
+    controller.model.add(line);
+  },
+
   onUserControllers(data) {
     let { id, disconnect, connect } = data;
 
@@ -641,8 +658,11 @@ export default VRRendering.extend(Ember.Evented, {
         } else {
             user.initController1(connect.controller1, this.get('viveControllerObject').clone());
         }
-        console.log("Controller1 connected");
+        this.addLineToControllerModel(user.controller1, user.color);
+        console.log("Controller1 line added");
         this.get('scene').add(user.get('controller1.model'));
+        console.log("Controller1 connected");
+
       }
       if(connect.controller2) {
         if(connect.controller2 === 'Oculus Touch (Right)') {
@@ -652,8 +672,10 @@ export default VRRendering.extend(Ember.Evented, {
         } else {
             user.initController2(connect.controller2, this.get('viveControllerObject').clone());
         }
-        console.log("Controller2 connected");
+        this.addLineToControllerModel(user.controller2, user.color);
+        console.log("Controller2 line added");
         this.get('scene').add(user.get('controller2.model'));
+        console.log("Controller2 connected");
       }
     }
     if(disconnect) {
