@@ -152,7 +152,7 @@ export default VRRendering.extend(Ember.Evented, {
     let material = new THREE.MeshBasicMaterial({
       color
     });
-    let textBox = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, this.get('zeroValue')), material);
+    let textBox = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.05), material);
     textBox.name = 'messageBox';
     textBox.geometry.rotateX(0.45);
 
@@ -173,7 +173,7 @@ export default VRRendering.extend(Ember.Evented, {
     // create texture out of canvas
     let texture = new THREE.Texture(canvas2);
     // Map texture
-    material = new THREE.MeshBasicMaterial({map: texture});
+    material = new THREE.MeshBasicMaterial({map: texture, depthTest: false});
     material.transparent = true;
     material.opacity = 0.5;
 
