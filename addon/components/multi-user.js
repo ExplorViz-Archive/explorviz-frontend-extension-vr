@@ -760,6 +760,7 @@ export default VRRendering.extend(Ember.Evented, {
 
   onAppClosed(appID){
     if (this.get('openApps').has(appID)) {
+      this.get('boundApps').delete(appID);
       this.removeChildren(this.get('openApps').get(appID));
       this.get('openApps').delete(appID);
     } 
