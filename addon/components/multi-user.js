@@ -519,7 +519,6 @@ export default VRRendering.extend(Ember.Evented, {
           this.onInitialLandscape(data);
           break;
           case 'receive_landscape_position':
-          console.log(data);
           this.onLandscapePosition(data.position, data.quaternion);
           break;
         case 'receive_system_update':
@@ -541,6 +540,7 @@ export default VRRendering.extend(Ember.Evented, {
             data.isBoundToController1, data.controllerPosition, data.controllerQuaternion);
           break;
         case 'receive_app_released':
+          this.get('boundApps').delete(data.id);
           this.updateAppPosition(data.id, data.position, data.quaternion);
           break;
         case 'receive_component_update':
@@ -766,6 +766,8 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   onAppBinded(userID, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion){
+    this.get('boundApps').add(appID);
+
     this.updateAppPosition(appID, appPosition, appQuaternion);
 
     if (!this.get('openApps').has(appID)){

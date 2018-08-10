@@ -62,6 +62,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   hoverHandlerApp3D: null,
   selector: null,
 
+  boundApps : null,
+
 
   /*
    * This method is called in "vr-rendering" after 
@@ -81,7 +83,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   // Import information from component vr-rendering to manipulate objects global
   setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, 
-    controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, room, user) {
+    controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, room, user, boundApps) {
 
     this.set('scene', scene);
     this.set('canvas', canvas);
@@ -98,6 +100,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('labeler', labeler);
     this.set('room', room);
     this.set('user', user);
+    this.set('boundApps', boundApps);
 
     const self = this;
 
@@ -853,6 +856,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Component or clazz hit and app3D not aready binded
       if((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded') ){
+        let appID = intersectedViewObj.object.userData.appID;
+
+        if (this.get('boundApps').has(appID)){
+          return;
+        }
+
         // set bool for application3D binded
         this.set('app3DBinded',true);
         this.get('app3DBindedByController')[controller.id] = "true";
@@ -874,7 +883,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         //send information about app binding to backend
         let boundToController1 = controller.id === this.get('controller1').id;
-        let appID = intersectedViewObj.object.userData.appID;
         //let appID = intersectedViewObj.object.parent.userData.model.id;
         this.trigger('appBinded', appID, object.position, object.quaternion, boundToController1, controller.position, controller.quaternion);
       }

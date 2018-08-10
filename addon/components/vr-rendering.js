@@ -91,6 +91,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   // Application
   openApps : null,
   foundations: null,
+  boundApps: null,
 
   oculusLeftControllerObject: null,
   oculusRightControllerObject: null,
@@ -288,6 +289,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('openApps', EmberMap.create());
     this.set('foundations', EmberMap.create());
     this.set('app3DMeshes', EmberMap.create());
+    this.set('boundApps', new Set());
 
     // Load image for delete button
     this.set('deleteButtonTexture', new THREE.TextureLoader().load('images/x_white_transp.png'));
@@ -1512,7 +1514,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       raycaster, this.get('vrLandscape').children, controller1, controller2, 
       vrEnvironment, this.get('configuration.landscapeColors'), 
       this.get('configurationApplication.applicationColors'), this.get('textBox'), 
-      this.get('labeler'), this.get('room'), user);
+      this.get('labeler'), this.get('room'), user, this.get('boundApps'));
 
     // Set listeners
     this.get('interaction').on('redrawScene', function() {
