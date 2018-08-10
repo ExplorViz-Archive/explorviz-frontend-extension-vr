@@ -687,6 +687,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
           let appID = intersectedViewObj.object.userData.appID;
 
+          //dont allow altering bound apps
+          if (this.get('boundApps').has(appID)){
+            return;
+          }
+
           // Toggle state and redraw app
           emberModel.setOpenedStatus(!emberModel.get('opened'));
           this.trigger('redrawApp', appID);
@@ -1516,7 +1521,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.set('selectedEntitysMesh', null);
     }
     // Remove application if delete button was hit
-    if (intersectedViewObj.object.userData.appID){
+    if (intersectedViewObj.object.userData.appID && !this.get('boundApps').has(intersectedViewObj.object.userData.appID)){
       this.trigger('removeApplication', intersectedViewObj.object.userData.appID);
     }
   },
