@@ -781,8 +781,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
             // Check if a component is already highlighted and restore color
             if(this.get('selectedEntitysMesh') && this.get('appCommunicationHighlighted') && this.get('selectedEntitysColor')){
-              // Return if identical to intersected object
+              // If identical to intersected object unhighlight and return
               if(this.get('selectedEntitysMesh') === intersectedViewObj.object){
+                this.restoreSelectedEntity(this.verifyControllers(controller.id));
+                this.set('selectedEntitysMesh', null);
+                this.set('selectedEntitysColor', null);
                 return;
               }
               // Reset communication lines
@@ -1177,6 +1180,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           if(this.get('selectedEntitysMesh') && this.get('appCommunicationHighlighted') && this.get('selectedEntitysColor')){
             // Return if identical to intersected object
             if(this.get('selectedEntitysMesh') === intersectedViewObj.object){
+              this.restoreSelectedEntity(id);
+              this.set('selectedEntitysMesh', null);
               return;
             }
             // Reset communication lines
