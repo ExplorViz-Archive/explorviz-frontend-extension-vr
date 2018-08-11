@@ -181,16 +181,16 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle keys
       if(event.key === 'ArrowDown'){
-        self.get('user').position.y += 0.05;
-      }
-      else if(event.key === 'ArrowUp'){
         self.get('user').position.y -= 0.05;
       }
+      else if(event.key === 'ArrowUp'){
+        self.get('user').position.y += 0.05;
+      }
       else if(event.key === 'ArrowLeft'){
-        self.get('user').position.x += 0.05;
+        self.get('user').position.x -= 0.05;
       }
       else if(event.key === 'ArrowRight'){
-        self.get('user').position.x -= 0.05;
+        self.get('user').position.x += 0.05;
       }
       else if(event.key === '-'){
         self.get('user').position.z += 0.05;
