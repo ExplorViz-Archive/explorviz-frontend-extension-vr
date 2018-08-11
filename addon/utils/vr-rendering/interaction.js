@@ -202,25 +202,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         self.get('vrEnvironment').rotation.x +=  0.05;
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.trigger('centerVREnvironment');
-
-        if(!self.get('app3DBinded') && self.get('openApps')) {
-          self.get('openApps').forEach(function(app){
-            app.rotation.x +=  0.05;
-            self.updateObjectMatrix(app);
-          });
-        }
       }
       else if(event.key === 'w'){
         self.get('vrEnvironment').rotation.x -=  0.05;
         self.updateObjectMatrix(self.get('vrEnvironment'));
         self.trigger('centerVREnvironment');
-
-        if(!self.get('app3DBinded') && self.get('openApps')) {
-          self.get('openApps').forEach(function(app){
-            app.rotation.x -=  0.05;
-            self.updateObjectMatrix(app);
-          });
-        }
       }
     };
 
