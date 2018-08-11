@@ -152,13 +152,13 @@ export default VRRendering.extend(Ember.Evented, {
     let material = new THREE.MeshBasicMaterial({
       color
     });
-    let textBox = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, this.get('zeroValue')), material);
+    let textBox = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.05), material);
     textBox.name = 'messageBox';
     textBox.geometry.rotateX(0.45);
 
     this.set('canvas2', document.createElement('canvas'));
     this.get('canvas2').width = 512;
-    this.get('canvas2').height = 84;
+    this.get('canvas2').height = 64;
     let canvas2 = this.get('canvas2');
     var ctx = canvas2.getContext('2d');
     ctx.fillStyle = '#000000';
@@ -173,7 +173,7 @@ export default VRRendering.extend(Ember.Evented, {
     // create texture out of canvas
     let texture = new THREE.Texture(canvas2);
     // Map texture
-    material = new THREE.MeshBasicMaterial({map: texture});
+    material = new THREE.MeshBasicMaterial({map: texture, depthTest: false});
     material.transparent = true;
     material.opacity = 0.5;
 

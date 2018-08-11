@@ -63,6 +63,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   selector: null,
 
   boundApps : null,
+  
+  emptyFunction: () => {},
 
 
   /*
@@ -110,39 +112,49 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('canvas2').height = 128;
 
     // Setup event listener in each controller for each button
-    self.get('controller1').addEventListener('triggerdown', registerLeftControllerTriggerDown);
-    self.get('controller2').addEventListener('triggerdown', registerRightControllerTriggerDown);
-    self.get('controller1').addEventListener('thumbpaddown', registerControllerThumbpadDown);
-    self.get('controller2').addEventListener('thumbpaddown', registerControllerThumbpadDown);
-    self.get('controller1').addEventListener('thumbpadup', registerControllerThumbpadUp);
-    self.get('controller2').addEventListener('thumbpadup', registerControllerThumbpadUp);
-    self.get('controller1').addEventListener('gripsdown', registerControllerGripsDownController1);
-    self.get('controller2').addEventListener('gripsdown', registerControllerGripsDownController2);
+    this.get('controller1').addEventListener('triggerdown', registerTriggerDownController1);
+    this.get('controller2').addEventListener('triggerdown', registerTriggerDownController2);
+    // this.get('controller1').addEventListener('triggerup', this.emptyFunction);
+    // this.get('controller2').addEventListener('triggerup', this.emptyFunction);
+    this.get('controller1').addEventListener('thumbpaddown', registerThumbpadDownController1);
+    this.get('controller2').addEventListener('thumbpaddown', registerThumbpadDownController2);
+    // this.get('controller1').addEventListener('thumbpadup', this.emptyFunction);
+    // this.get('controller2').addEventListener('thumbpadup', this.emptyFunction);
+    // this.get('controller1').addEventListener('gripdown', this.emptyFunction);
+    this.get('controller2').addEventListener('gripdown', registerGripDownController2);
+    // this.get('controller1').addEventListener('gripup', this.emptyFunction);
+    this.get('controller2').addEventListener('gripup', registerGripUpController2);
+    // this.get('controller1').addEventListener('menudown', this.emptyFunction);
+    // this.get('controller2').addEventListener('menudown', this.emptyFunction);
+    // this.get('controller1').addEventListener('menuup', this.emptyFunction);
+    // this.get('controller2').addEventListener('menuup', this.emptyFunction);
+    // this.get('controller1').addEventListener('axischanged', this.emptyFunction);
+    // this.get('controller2').addEventListener('axischanged', this.emptyFunction);
 
     /* The following functions handle the events by
      * calling the corresponding method
      */
-    function registerRightControllerTriggerDown(event){
-      self.onRightControllerTriggerDown(event);
-    } 
-    function registerLeftControllerTriggerDown(event){
-      self.onLeftControllerTriggerDown(event);
+    function registerTriggerDownController2(event){
+      self.onTriggerDownController2(event);
+    }
+    function registerTriggerDownController1(event){
+      self.onTriggerDownController1(event);
     }
 
-    function registerControllerThumbpadDown(event){
-      self.onControllerThumbpadDown(event);
+    function registerGripDownController2(event){
+      self.onGripDownController1(event);
     }
      
-    function registerControllerThumbpadUp(event){
-      self.onThumbpadControllerUp(event);
+    function registerGripUpController2(event){
+      self.onGripUpController1(event);
     }
   
-    // Function for handling gripsdown for left and right hand
-    function registerControllerGripsDownController1(evt){
-      self.onControllerGripsDown(evt, false);
+    // Function for handling gripdown for left and right hand
+    function registerThumbpadDownController1(evt){
+      self.onThumbpadDownController1(evt, false);
     }
-    function registerControllerGripsDownController2(evt){
-      self.onControllerGripsDown(evt, true);
+    function registerThumbpadDownController2(evt){
+      self.onThumbpadDownController1(evt, true);
     } 
 
     // mouseout handler for disabling notifications
@@ -453,13 +465,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
 
   /*
-   * This method handles the controller event 'gripsdown'
+   * This method handles the controller event 'gripdown'
    * and is used to show information about the intersected object. 
    * The additional parameter assigns a users hand to the controller
    * and adapts the position of the text box. 
-   * @method - onControllerGripsDown
+   * @method - onThumbpadDownController1
    */
-  onControllerGripsDown(event, rightHand){
+  onThumbpadDownController1(event, rightHand){
 
     const controller = event.target;
 
@@ -592,7 +604,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and is used to release the app3D from controller 
    * and put it back into the scene
    */
-  onThumbpadControllerUp(event){
+  onGripUpController1(event){
 
     const controller = event.target;
 
@@ -623,7 +635,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and is used to open/close systems, nodegroups and 
    * components of 3D application. 
    */
-  onRightControllerTriggerDown(event){
+  onTriggerDownController2(event){
 
     const controller = event.target;
 
@@ -729,7 +741,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and is used 
    * select components/clazzes of application3D and teleport. 
    */
-  onLeftControllerTriggerDown(event){
+  onTriggerDownController1(event){
 
     const controller = event.target;
 
@@ -833,7 +845,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * This method handles the controller event 'thumbpaddown'
    * and is used to move, zoom and rotate application3D
    */
-  onControllerThumbpadDown(event){
+  onGripDownController1(event){
     const controller = event.target;
 
      // Calculate controller direction and origin
@@ -997,14 +1009,24 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('canvas').removeEventListener('mousestop', this.handleHover);
     this.get('canvas').removeEventListener('mouseenter', this.onMouseEnter);
     this.get('canvas').removeEventListener('mouseout', this.onMouseOut);
-    this.get('controller1').removeEventListener('triggerdown',this.onControllerTriggerDown);
-    this.get('controller2').removeEventListener('triggerdown',this.onControllerTriggerDown);
-    this.get('controller1').removeEventListener('thumbpaddown',this.onControllerThumbpadDown);
-    this.get('controller2').removeEventListener('thumbpaddown',this.onControllerThumbpadDown);
-    this.get('controller1').removeEventListener('thumbpadup',this.onControllerThumbpadUp);
-    this.get('controller2').removeEventListener('thumbpadup',this.onControllerThumbpadUp);
-    this.get('controller1').removeEventListener('gripsdown',this.onControllerGrispDown);
-    this.get('controller2').removeEventListener('gripsdown',this.onControllerGrispDown);
+    this.get('controller1').removeEventListener('triggerdown', this.onTriggerDownController1);
+    this.get('controller2').removeEventListener('triggerdown', this.onTriggerDownController2);
+    // this.get('controller1').removeEventListener('triggerup', this.emptyFunction);
+    // this.get('controller2').removeEventListener('triggerup', this.emptyFunction);
+    this.get('controller1').removeEventListener('thumbpaddown', this.onThumbpadDownController1);
+    this.get('controller2').removeEventListener('thumbpaddown', this.onThumbpadDownController1);
+    // this.get('controller1').removeEventListener('thumbpadup', this.emptyFunction);
+    // this.get('controller2').removeEventListener('thumbpadup', this.emptyFunction);
+    // this.get('controller1').removeEventListener('gripdown', this.emptyFunction);
+    this.get('controller2').removeEventListener('gripdown', this.onGripDownController2);
+    // this.get('controller1').removeEventListener('gripup', this.emptyFunction);
+    this.get('controller2').removeEventListener('gripup', this.onGripUpController2);
+    // this.get('controller1').removeEventListener('menudown', this.emptyFunction);
+    // this.get('controller2').removeEventListener('menudown', this.emptyFunction);
+    // this.get('controller1').removeEventListener('menuup', this.emptyFunction);
+    // this.get('controller2').removeEventListener('menuup', this.emptyFunction);
+    // this.get('controller1').removeEventListener('axischanged', this.emptyFunction);
+    // this.get('controller2').removeEventListener('axischanged', this.emptyFunction);
   },
 
   /*
