@@ -158,7 +158,7 @@ export default VRRendering.extend(Ember.Evented, {
 
     this.set('canvas2', document.createElement('canvas'));
     this.get('canvas2').width = 512;
-    this.get('canvas2').height = 84;
+    this.get('canvas2').height = 64;
     let canvas2 = this.get('canvas2');
     var ctx = canvas2.getContext('2d');
     ctx.fillStyle = '#000000';
