@@ -23,6 +23,12 @@ export default EmberObject.extend({
     quaternion: null,
     model: null
   },
+  hasHighlightedEntity : false,
+  highlightedEntity: {
+    appID : null,
+    entityID: null,
+    originalColor : null
+  },
   color: null,
 
   initCamera(obj) {
@@ -105,5 +111,13 @@ export default EmberObject.extend({
       if(this.controller2.model.quaternion)
         this.controller2.model.quaternion.copy(this.controller2.quaternion);
     }
+  },
+
+  setHighlightedEntity(appID, entityID, originalColor){
+    this.hasHighlightedEntity = true;
+    this.highlightedEntity.appID = appID;
+    this.highlightedEntity.entityID = entityID;
+    this.highlightedEntity.originalColor = originalColor;
   }
+
 });

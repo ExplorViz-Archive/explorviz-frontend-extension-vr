@@ -88,11 +88,6 @@ export default VRRendering.extend(Ember.Evented, {
       this.running = true;
       this.gameLoop();
     });
-    this.enqueueMessage("User x just connected");
-    this.enqueueMessage("User y just connected");
-    this.enqueueMessage("User z just connected");
-    this.enqueueMessage("User x disconnected");
-
 
     //initialize interaction events
     this.get('interaction').on('systemStateChanged', (id, isOpen) => {
@@ -118,6 +113,9 @@ export default VRRendering.extend(Ember.Evented, {
     });
     this.get('interaction').on('landscapeMoved', () => {
       this.sendLandscapeUpdate();
+    });
+    this.get('interaction').on('entityHighlighted', (isHighlighted, appID, entityID, color) => {
+      this.sendHighlightingUpdate(isHighlighted, appID, entityID, color);
     });
   },
 
@@ -320,6 +318,19 @@ export default VRRendering.extend(Ember.Evented, {
       "isOpened": isOpened
     }
     this.updateQueue.push(appObj);
+  },
+
+  sendHighlightingUpdate(isHighlighted, appID, entityID, color){
+    let hightlightObj = {
+      "event": "receive_hightlight_update",
+      "time": Date.now(),
+      "userID" : this.get('userID'),
+      "appID": appID,
+      "entityID": entityID,
+      "isHighlighted": isHighlighted,
+      "color": color
+    }
+    this.updateQueue.push(hightlightObj);
   },
 
   sendControllerUpdate() {
@@ -548,6 +559,10 @@ export default VRRendering.extend(Ember.Evented, {
           this.get('store').peekRecord('component', data.componentID).setOpenedStatus(data.isOpened);
           this.redrawApplication(data.appID);
           break;
+        case 'receive_hightlight_update':
+          console.log(data);
+          this.onHighlightingUpdate(data.userID, data.isHighlighted, data.appID, data.entityID, data.color);
+          break;
       }
     }
   },
@@ -625,6 +640,8 @@ export default VRRendering.extend(Ember.Evented, {
   onUserDisconnect(data) {
     let { id } = data;
     if(this.get('users') && this.get('users').has(id)) {
+      //unhighlight possible objects of disconnected user
+      this.onHighlightingUpdate(id, false);
       let user = this.get('users').get(id);
       this.get('scene').remove(user.get('controller1.model'));
       user.removeController1();
@@ -807,6 +824,50 @@ export default VRRendering.extend(Ember.Evented, {
       this.add3DApplicationToLandscape(app3DModel, appPosition, appQuaternion);
       this.get('openApps').get(appID).updateMatrix();
      }       
+  },
+
+  onHighlightingUpdate(userID, isHighlighted, appID, entityID, originalColor){
+    let user = this.get('users').get(userID);
+
+    //save highlighted entity
+    if (isHighlighted){
+      this.onHighlightingUpdate(userID, false);
+      user.highlightedEntity.appID = appID;
+      user.highlightedEntity.entityID = entityID;
+      user.highlightedEntity.originalColor = originalColor;
+    //restore highlighted entity data
+    } else {
+      appID = user.highlightedEntity.appID;
+      entityID = user.highlightedEntity.entityID;
+      originalColor = user.highlightedEntity.originalColor;
+    }
+
+    let app = this.get('openApps').get(appID);
+
+    if(!app){
+      return;
+    }
+
+    app.children.forEach( child => {
+      if (child.userData.model && child.userData.model.id === entityID){
+
+        let hsl = new Object();
+        child.material.emissive.getHSL(hsl);
+
+        if (isHighlighted){
+          let colorArray = user.get('color');
+          let userColor = new THREE.Color(colorArray[0]/255.0, colorArray[1]/255.0, colorArray[2]/255.0);
+          child.material.color = new THREE.Color(userColor);
+          //darken the color (same is done for HMDs)
+          child.material.emissive.setHSL(hsl.h, hsl.s, 0.1);
+        } else {
+          child.material.color = new THREE.Color(originalColor);
+          //lighten color up again
+          child.material.emissive.setHSL(hsl.h, hsl.s, 0);
+        }
+        return;
+      }
+    });
   },
 
 
