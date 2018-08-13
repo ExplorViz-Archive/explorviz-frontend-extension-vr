@@ -537,6 +537,7 @@ export default VRRendering.extend(Ember.Evented, {
             data.isBoundToController1, data.controllerPosition, data.controllerQuaternion);
           break;
         case 'receive_app_released':
+          console.log(data);
           this.get('boundApps').delete(data.id);
           this.updateAppPosition(data.id, data.position, data.quaternion);
           break;
