@@ -242,11 +242,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           this.get('vrEnvironment').rotation.x +=  0.05;
           this.updateObjectMatrix(this.get('vrEnvironment'));
           this.trigger('centerVREnvironment');
+          this.trigger('landscapeMoved');
           break;
         case 'w':
           this.get('vrEnvironment').rotation.x -=  0.05;
           this.updateObjectMatrix(this.get('vrEnvironment'));
           this.trigger('centerVREnvironment');
+          this.trigger('landscapeMoved');
           break;
       }
     };

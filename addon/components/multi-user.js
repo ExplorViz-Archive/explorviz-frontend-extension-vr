@@ -244,7 +244,7 @@ export default VRRendering.extend(Ember.Evented, {
 
   sendLandscapeUpdate(){
     let position = new THREE.Vector3();
-    this.get('vrEnvironment').getWorldPosition(position);
+    this.get('vrEnvironment').localToWorld(position);
 
     let quaternion = new THREE.Quaternion();
     this.get('vrEnvironment').getWorldQuaternion(quaternion);
@@ -783,7 +783,6 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   onLandscapePosition(position, quaternion){
-    console.log("Position: " + quaternion);
     this.get('vrEnvironment').position.fromArray(position);
     this.get('vrEnvironment').quaternion.fromArray(quaternion);
     if(this.get('vrEnvironment')){
