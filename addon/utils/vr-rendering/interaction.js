@@ -1145,19 +1145,30 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       }
       // Handle component of app3D hit
       else if(emberModelName === "component"){
+        let appID = intersectedViewObj.object.userData.appID;
+
+        //dont allow altering bound apps
+        if (this.get('boundApps').has(appID)){
+          return;
+        }
+
+        // Toggle state and redraw app
         emberModel.setOpenedStatus(!emberModel.get('opened'));
-        // Trigger event in component vr-rendering
-        this.trigger('redrawApp', emberModel.id);
+        this.trigger('redrawApp', appID);
+
+        this.trigger('componentUpdate', appID , emberModel.id, emberModel.get('opened'));
 
         // Restore selection
-        if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened')){
+        if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened'))
+        
+        {
           this.get('selector').highlightAppCommunication(this.get('appCommunicationHighlighted'));
           this.trigger('redrawAppCommunication');
 
           let color = new THREE.Color("rgb(255,0,0)");
           this.get('selectedEntitysMesh').material.color = color;
         }
-        // Opened selected component
+        // Open selected component
         else{
           if(this.get('appCommunicationHighlighted')){
             this.get('appCommunicationHighlighted').set('highlighted', false);
