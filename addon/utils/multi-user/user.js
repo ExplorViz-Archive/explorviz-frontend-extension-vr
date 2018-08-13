@@ -6,6 +6,11 @@ export default EmberObject.extend({
   name: null,
   id: null,
   state: null,
+  highlightedEntity: {
+    appID : null,
+    entityID: null,
+    originalColor : null
+  },
   controller1: null,
   controller2: null,
   camera: null,
@@ -83,5 +88,12 @@ export default EmberObject.extend({
       this.controller2.model.position.copy(this.controller2.position);
       this.controller2.model.quaternion.copy(this.controller2.quaternion);
     }
+  },
+
+  setHighlightedEntity(appID, entityID, originalColor){
+    this.highlightedEntity.appID = appID;
+    this.highlightedEntity.entityID = entityID;
+    this.highlightedEntity.originalColor = originalColor;
   }
+
 });
