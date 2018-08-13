@@ -473,10 +473,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     if (this.get('interaction')) {
       // only if no application3D binded on controller
       if (this.get('controller1').userData.selected === undefined) {
-        this.get('interaction').checkIntersectionLeftController(this.get('controller1'));
+        this.get('interaction').checkIntersectionLeftController();
       }
       if (this.get('controller2').userData.selected === undefined) {
-        this.get('interaction').checkIntersectionRightController(this.get('controller2'));
+        this.get('interaction').checkIntersectionRightController();
       }
     }
   },

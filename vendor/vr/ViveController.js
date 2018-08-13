@@ -53,6 +53,7 @@ ViveController = function ( id ) {
 		if ( button === 'trigger' ) return triggerIsPressed;
 		if ( button === 'grip' ) return gripIsPressed;
 		if ( button === 'menu' ) return menuIsPressed;
+		if ( button === 'axes' ) return axes;
 
 	};
 
