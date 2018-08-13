@@ -6,35 +6,22 @@ export default EmberObject.extend({
   name: null,
   id: null,
   state: null,
-  controller1: {
-    id: null,
-    position: null,
-    quaternion: null,
-    model: null
-  },
-  controller2: {
-    id: null,
-    position: null,
-    quaternion: null,
-    model: null
-  },
-  camera: {
-    position: null,
-    quaternion: null,
-    model: null
-  },
-  hasHighlightedEntity : false,
   highlightedEntity: {
     appID : null,
     entityID: null,
     originalColor : null
   },
+  controller1: null,
+  controller2: null,
+  camera: null,
   color: null,
 
   initCamera(obj) {
-    this.camera.position = new THREE.Vector3();
-    this.camera.quaternion = new THREE.Quaternion();
-    this.camera.model = new THREE.Object3D();
+    this.camera = {
+      position: new THREE.Vector3(),
+      quaternion: new THREE.Quaternion(),
+      model: new THREE.Object3D()
+    };
     let hsl = new Object();
     obj.children[0].material.emissive.setRGB(this.color[0]/255.0,this.color[1]/255.0,this.color[2]/255.0);
     obj.children[0].material.emissive.getHSL(hsl);
@@ -43,78 +30,67 @@ export default EmberObject.extend({
   },
 
   initController1(name, obj) {
-    this.controller1.id = name;
-    this.controller1.position = new THREE.Vector3();
-    this.controller1.quaternion = new THREE.Quaternion();
-    this.controller1.model = new THREE.Object3D();
+    this.controller1 = {
+      id: name,
+      position: new THREE.Vector3(),
+      quaternion: new THREE.Quaternion(),
+      model: new THREE.Object3D()
+    };
 
     this.get('controller1.model').add(obj);
   },
 
   initController2(name, obj) {
-    this.controller2.id = name;
-    this.controller2.position = new THREE.Vector3();
-    this.controller2.quaternion = new THREE.Quaternion();
-    this.controller2.model = new THREE.Object3D();
+    this.controller2 = {
+      id: name,
+      position: new THREE.Vector3(),
+      quaternion: new THREE.Quaternion(),
+      model: new THREE.Object3D()
+    };
 
     this.get('controller2.model').add(obj);
   },
 
   removeController1() {
-    this.controller1.id = null;
-    this.controller1.position = null;
-    this.controller1.quaternion = null;
-    this.controller1.model = null;
+    this.controller1 = null;
   },
 
   removeController2() {
-    this.controller2.id = null;
-    this.controller2.position = null;
-    this.controller2.quaternion = null;
-    this.controller2.model = null;
+    this.controller2 = null;
   },
 
   removeCamera() {
-    this.camera.position = null;
-    this.camera.quaternion = null;
-    this.camera.model = null;
+    this.camera = null;
   },
   
   updateCamera(camera) {
-    this.camera.position.fromArray(camera.position);
-    this.camera.quaternion.fromArray(camera.quaternion);
-    this.camera.model.position.copy(this.camera.position);
-    this.camera.model.quaternion.copy(this.camera.quaternion);
+    if(this.camera) {
+      this.camera.position.fromArray(camera.position);
+      this.camera.quaternion.fromArray(camera.quaternion);
+      this.camera.model.position.copy(this.camera.position);
+      this.camera.model.quaternion.copy(this.camera.quaternion);
+    }
   },
   
   updateController1(controller) {
-    if(this.controller1.position)
+    if(this.controller1) {
       this.controller1.position.fromArray(controller.position);
-    if(this.controller1.quaternion)
       this.controller1.quaternion.fromArray(controller.quaternion);
-    if(this.controller1.model) {
-      if(this.controller1.model.position)
-        this.controller1.model.position.copy(this.controller1.position);
-      if(this.controller1.model.quaternion)
-        this.controller1.model.quaternion.copy(this.controller1.quaternion);
+      this.controller1.model.position.copy(this.controller1.position);
+      this.controller1.model.quaternion.copy(this.controller1.quaternion);
     }
   },
   
   updateController2(controller) {
-    if(this.controller2.position)
+    if(this.controller2) {
       this.controller2.position.fromArray(controller.position);
-    if(this.controller2.quaternion)
       this.controller2.quaternion.fromArray(controller.quaternion);
-    if(this.controller2.model) {
-      if(this.controller2.model.position)
-        this.controller2.model.position.copy(this.controller2.position);
-      if(this.controller2.model.quaternion)
-        this.controller2.model.quaternion.copy(this.controller2.quaternion);
+      this.controller2.model.position.copy(this.controller2.position);
+      this.controller2.model.quaternion.copy(this.controller2.quaternion);
     }
   },
 
   setHighlightedEntity(appID, entityID, originalColor){
-    this.hasHighlightedEntity = true;
     this.highlightedEntity.appID = appID;
     this.highlightedEntity.entityID = entityID;
     this.highlightedEntity.originalColor = originalColor;

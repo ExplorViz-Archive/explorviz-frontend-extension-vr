@@ -1,6 +1,7 @@
 import { inject as service } from '@ember/service';
 import EmberMap from '@ember/map';
 import User from '../utils/multi-user/user';
+import Menu from '../utils/multi-user/menu';
 import VRRendering from './vr-rendering';
 import Ember from 'ember';
 import THREE from 'three';
@@ -146,42 +147,27 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   createMessageBox(text) {
-    var color = new THREE.Color("rgb(253,245,230)");
-    let material = new THREE.MeshBasicMaterial({
-      color
+    let menu = new Menu();
+    menu.set('title', 'menu_messageBox');
+    menu.set('width', 512);
+    menu.set('height', 64);
+    menu.set('opacity', 0.5);
+    menu.set('color', new THREE.Color(0,0,0));
+    menu.addText(text, 20, { x: 256, y: 20}, '#FFFFFF', 'center');
+
+    menu.createMesh();
+
+    let textBox = menu.mesh;
+    this.menu = textBox;
+    this.get('interaction').on('menuInteraction', (name, uv) => {
+      console.log(name);
+      console.log(`x: ${uv.x}, y: ${uv.y}`)
     });
-    let textBox = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.05), material);
-    textBox.name = 'messageBox';
-    textBox.geometry.rotateX(0.45);
 
-    this.set('canvas2', document.createElement('canvas'));
-    this.get('canvas2').width = 512;
-    this.get('canvas2').height = 64;
-    let canvas2 = this.get('canvas2');
-    var ctx = canvas2.getContext('2d');
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, canvas2.width, canvas2.height);
-  
-    // Draw Message
-    ctx.font = '20px arial';
-    ctx.fillStyle = 'white';
-    ctx.textAlign = "center";
-    ctx.fillText(text, canvas2.width / 2, 20);
-       
-    // create texture out of canvas
-    let texture = new THREE.Texture(canvas2);
-    // Map texture
-    material = new THREE.MeshBasicMaterial({map: texture, depthTest: false});
-    material.transparent = true;
-    material.opacity = 0.5;
-
-    // Update texture      
-    texture.needsUpdate = true;
-    // Update mesh material
-    textBox.material = material;
-    textBox.position.z -= 0.4;
-    //textBox.position.x -= 0.05;
     textBox.position.y += 0.32;
+    textBox.position.z -= 0.4;
+    textBox.rotateX(0.45);
+
     this.camera.add(textBox);
     let y = 0;
     function animate() {
@@ -197,7 +183,7 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   deleteMessageBox() {
-    let messageBox = this.camera.getObjectByName('messageBox');
+    let messageBox = this.camera.getObjectByName('menu_messageBox');
     this.camera.remove(messageBox);
   },
 
@@ -580,11 +566,12 @@ export default VRRendering.extend(Ember.Evented, {
     // create User model for all users and add them to the users map
     for (let i = 0; i < data.users.length; i++) {
       const userData = data.users[i];
-      let user = User.create();
+      let user = new User();
       user.set('name', userData.name);
       user.set('id', userData.id);
       user.set('color', userData.color);
       user.set('state', 'connected');
+      console.log(user);
 
       if(userData.controllers.controller1) {
         if(userData.controllers.controller1 === 'Oculus Touch (Left)') {
@@ -622,11 +609,12 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   onUserConnected(data) {
-    let user = User.create();
+    let user = new User();
     user.set('name', data.user.name);
     user.set('id', data.user.id);
     user.set('color', data.user.color);
     user.set('state', 'connected');
+    console.log(user);
     user.initCamera(this.get('hmdObject').clone());
     this.get('users').set(data.user.id, user);
 
@@ -832,9 +820,7 @@ export default VRRendering.extend(Ember.Evented, {
     //save highlighted entity
     if (isHighlighted){
       this.onHighlightingUpdate(userID, false);
-      user.highlightedEntity.appID = appID;
-      user.highlightedEntity.entityID = entityID;
-      user.highlightedEntity.originalColor = originalColor;
+      user.setHighlightedEntity(appID, entityID, originalColor);
     //restore highlighted entity data
     } else {
       appID = user.highlightedEntity.appID;
