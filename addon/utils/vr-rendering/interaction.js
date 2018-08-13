@@ -190,7 +190,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     }
   
     // Function for handling gripdown for left and right hand
-    function registerThumbpadDownController1(evt){
+    function registerThumbpadDownController1(evt) {
       self.onThumbpadDownController1(evt, false);
     }
     function registerThumbpadDownController2(evt){
@@ -217,36 +217,37 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 ////////// Keyboard interaction ////////// 
 
     // Add key listener for room positioning
-    window.onkeydown = function(event){
-
+    window.onkeydown = event => {
       // Handle keys
-      if(event.key === 'ArrowDown'){
-        self.get('user').position.y -= 0.05;
-      }
-      else if(event.key === 'ArrowUp'){
-        self.get('user').position.y += 0.05;
-      }
-      else if(event.key === 'ArrowLeft'){
-        self.get('user').position.x -= 0.05;
-      }
-      else if(event.key === 'ArrowRight'){
-        self.get('user').position.x += 0.05;
-      }
-      else if(event.key === '-'){
-        self.get('user').position.z += 0.05;
-      }
-      else if(event.key === '+'){
-        self.get('user').position.z -= 0.05;
-      }
-      else if(event.key === 'q'){
-        self.get('vrEnvironment').rotation.x +=  0.05;
-        self.updateObjectMatrix(self.get('vrEnvironment'));
-        self.trigger('centerVREnvironment');
-      }
-      else if(event.key === 'w'){
-        self.get('vrEnvironment').rotation.x -=  0.05;
-        self.updateObjectMatrix(self.get('vrEnvironment'));
-        self.trigger('centerVREnvironment');
+      switch(event.key) {
+        case 'ArrowDown':
+          this.get('user').position.y -= 0.05;
+          break;
+        case 'ArrowUp':
+          this.get('user').position.y += 0.05;
+          break;
+        case 'ArrowLeft':
+          this.get('user').position.x -= 0.05;
+          break;
+        case 'ArrowRight':
+          this.get('user').position.x += 0.05;
+          break;
+        case '-':
+          this.get('user').position.z += 0.05;
+          break;
+        case '+':
+          this.get('user').position.z -= 0.05;
+          break;
+        case 'q':
+          this.get('vrEnvironment').rotation.x +=  0.05;
+          this.updateObjectMatrix(this.get('vrEnvironment'));
+          this.trigger('centerVREnvironment');
+          break;
+        case 'w':
+          this.get('vrEnvironment').rotation.x -=  0.05;
+          this.updateObjectMatrix(this.get('vrEnvironment'));
+          this.trigger('centerVREnvironment');
+          break;
       }
     };
 
@@ -349,10 +350,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Handle floor
       if(intersectedViewObj.object.name === 'floor'){
         return;
-      }
-
-      if(intersectedViewObj.object.name.startsWith('menu')) {
-        this.trigger('menuInteraction', intersectedViewObj.object.name, intersectedViewObj.object.uv);
       }
   
       const emberModel = intersectedViewObj.object.userData.model;
@@ -795,7 +792,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       var raycastingObjects = this.excludeLandscape();
 
       // Calculate hit object
-      const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
+      const intersectedViewObj = this.get('raycaster').raycasting(origin, direction,
         null, raycastingObjects);
 
       // Check if an object is hit

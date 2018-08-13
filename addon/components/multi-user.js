@@ -27,6 +27,7 @@ export default VRRendering.extend(Ember.Evented, {
   hmdObject: null,
   canvas2: null,
   messageQueue: [],
+  menues: new EmberMap(),
 
 
   gameLoop() {
@@ -39,6 +40,11 @@ export default VRRendering.extend(Ember.Evented, {
 
     if(this.deltaTime > 1000/this.fps) {
       if(this.userID && this.state === 'connected') {
+        let menues = [];
+        this.menues.forEach((menu) => {
+          menues.push(menu.mesh);
+        });
+        this.checkIntersectionRightController(menues);
         this.updateControllers();
         this.update();
         this.render2();
@@ -146,6 +152,35 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
+  checkIntersectionRightController(objects) {
+    let controller = this.get('controller2');
+
+    var tempMatrix = new THREE.Matrix4();
+
+    // Calculate controller direction and origin
+    tempMatrix.identity().extractRotation( controller.matrixWorld );
+    
+    const origin = new THREE.Vector3();
+    origin.setFromMatrixPosition(controller.matrixWorld);
+
+    const direction = new THREE.Vector3(0,0,-1);
+    direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
+
+    // Calculate hit object
+    const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
+      null, objects);
+    
+    if(intersectedViewObj) {
+      let name = intersectedViewObj.object.name;
+      if(name.startsWith('menu_')) {
+        let menu = this.menues.get(name);
+        if(menu) {
+          menu.interact('rightIntersect', intersectedViewObj.uv);
+        }
+      }
+    }
+  },
+
   createMessageBox(text) {
     let menu = new Menu();
     menu.set('title', 'menu_messageBox');
@@ -155,15 +190,14 @@ export default VRRendering.extend(Ember.Evented, {
     menu.set('color', new THREE.Color(0,0,0));
     menu.addText(text, 20, { x: 256, y: 20}, '#FFFFFF', 'center');
 
+    menu.interact = (interaction, position) => {
+      //TODO
+    };
+
     menu.createMesh();
+    this.menues.set(menu.title, menu);
 
     let textBox = menu.mesh;
-    this.menu = textBox;
-    this.get('interaction').on('menuInteraction', (name, uv) => {
-      console.log(name);
-      console.log(`x: ${uv.x}, y: ${uv.y}`)
-    });
-
     textBox.position.y += 0.32;
     textBox.position.z -= 0.4;
     textBox.rotateX(0.45);
@@ -184,6 +218,7 @@ export default VRRendering.extend(Ember.Evented, {
 
   deleteMessageBox() {
     let messageBox = this.camera.getObjectByName('menu_messageBox');
+    this.menues.delete('menu_messageBox');
     this.camera.remove(messageBox);
   },
 

@@ -1,5 +1,6 @@
 import EmberObject from '@ember/object';
 import THREE from 'three';
+import EmberMap from '@ember/map';
 
 export default EmberObject.extend({
   title: null,
