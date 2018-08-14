@@ -7,11 +7,7 @@ import Ember from 'ember';
  */
 export default Ember.Object.extend({
 
-  latestApplication: null,
-
-  saveLatestApplication(application){
-    this.set('latestApplication', application);
-  },
+  store: Ember.inject.service('store'),
 
   /*
    *  This method is used to highlight the communication lines of
@@ -20,9 +16,10 @@ export default Ember.Object.extend({
    *
    *  TODO: Complete adaptation to latest changes of model in backend
    */
-  highlightAppCommunication(entity) {
-    /* DISABLED because property state is getter-only property and thus can't be set.
-    const outgoingClazzCommunications = this.get('latestApplication').get('cumulatedClazzCommunications');
+  highlightAppCommunication(entity, app) {
+    /*
+    //DISABLED because property state is getter-only property and thus can't be set.
+    const outgoingClazzCommunications = app.get('cumulatedClazzCommunications');
 
     if(outgoingClazzCommunications != null){
 
