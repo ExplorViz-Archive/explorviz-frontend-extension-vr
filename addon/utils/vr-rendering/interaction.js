@@ -1543,10 +1543,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  if the passed controller id highlighted it
    */
   unhighlightedDeleteButton(id, additionalCondition){
-    console.log(`DeleteID: ${this.get('deleteButtonHighlighted')}`);
-    console.log(`id controlelr: ${id}`);
     if(this.get('openApps') && this.get('deleteButtonHighlighted') === id && additionalCondition){
-      console.log('test unhighlight')
       this.get('openApps').forEach( app => {
         app.getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
       });
