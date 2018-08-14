@@ -34,17 +34,14 @@ export default VRRendering.extend(Ember.Evented, {
     if(!this.running)
       return;
 
+    //this.enqueueMessage('Testg123');
+
     this.currentTime = new Date().getTime();
 
     this.deltaTime = this.currentTime - this.lastTime;
 
     if(this.deltaTime > 1000/this.fps) {
       if(this.userID && this.state === 'connected') {
-        let menues = [];
-        this.menues.forEach((menu) => {
-          menues.push(menu.mesh);
-        });
-        this.checkIntersectionRightController(menues);
         this.updateControllers();
         this.update();
         this.render2();
@@ -68,10 +65,31 @@ export default VRRendering.extend(Ember.Evented, {
     this._super(...arguments);
     this.loadHMDModel();
 
+    const self = this;
+
     this.set('users', EmberMap.create());
     this.set('lastPositions', { camera: null, controller1: null, controller2: null });
     this.set('controllersConnected', { controller1: false, controller2: false });
     this.set('lastTime', new Date().getTime());
+    let old_checkIntersectionRightController = this.get('interaction').checkIntersectionRightController;
+    this.get('interaction').checkIntersectionRightController = function() {
+      let menues = [];
+      self.menues.forEach((menu) => {
+        menues.push(menu.mesh);
+      });
+      let menuHit = self.checkIntersectionRightController(menues);
+      if(menuHit) {
+        // Unhighlight delete button
+        this.unhighlightedDeleteButton(self.controller2.id, true);
+        // Restore old color of landscape
+        this.unhighlightLandscape(self.controller2.id);
+        // Restore old color of application3D
+        this.unhighlightApplication3D(self.controller2.id);
+      } else {
+        old_checkIntersectionRightController.apply(this);
+      }
+    };
+
 
     let host, port;
     Ember.$.getJSON("config/config_multiuser.json").then(json => {
@@ -152,6 +170,7 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
+
   checkIntersectionRightController(objects) {
     let controller = this.get('controller2');
 
@@ -171,14 +190,78 @@ export default VRRendering.extend(Ember.Evented, {
       null, objects);
     
     if(intersectedViewObj) {
+      controller.getObjectByName('controllerLine').scale.z = intersectedViewObj.distance;
       let name = intersectedViewObj.object.name;
       if(name.startsWith('menu_')) {
         let menu = this.menues.get(name);
         if(menu) {
           menu.interact('rightIntersect', intersectedViewObj.uv);
+          return true;
         }
       }
     }
+  },
+  
+  /**
+  * Uses canvas.measureText to compute and return the width of the given text of given font in pixels.
+  * 
+  * @param {String} text The text to be rendered.
+  * @param {String} font The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
+  * 
+  * @see https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
+  */
+  getTextSize(text, font) {
+      // re-use canvas object for better performance
+      let canvas = document.createElement("canvas");
+      let context = canvas.getContext("2d");
+      context.font = font;
+      let metrics = context.measureText(text);
+      let height = context.measureText('M').width;
+      return { width: metrics.width, height: height };
+  },
+
+  createOptionsMenu() {
+    let menu = new Menu();
+    menu.set('title', 'menu_Options');
+    menu.set('width', 256);
+    menu.set('height', 256);
+    menu.set('opacity', 0.6);
+    menu.set('color', '#000000');
+    menu.addText('Options', 24, { x: 100, y: 0}, '#FFFFFF', 'left', false);
+    menu.addText('Change Color', 16, { x: 20, y: 40}, '#FFFFFF', 'left', true);
+    menu.addText('Change xxx', 16, { x: 20, y: 70}, '#FFFFFF', 'left', true);
+    menu.interact = (action, position) => {
+      if(action === 'rightIntersect' ) {
+        for(let i = 0; i < menu.items.length; i++) {
+          let item = menu.items[i];
+          if(item.type === 'text' && item.clickable) {
+            //console.log(position.y);
+            let x = menu.width * position.x;
+            let y = menu.height - (menu.height * position.y);
+
+            let size = this.getTextSize(item.text, `${item.size}px arial`);
+
+            if(x >= item.position.x && y >= item.position.y && x <= item.position.x + size.width && y <= item.position.y + size.height) {
+              console.log('hit');
+              if(!item.hover) {
+                item.hover = true;
+                menu.update();
+              }
+            } else if(item.hover) {
+              item.hover = false;
+              menu.update();
+            }
+          }
+        }
+      }
+      //console.log(position);
+    };
+
+    menu.createMesh();
+    menu.mesh.position.x += 0.2;
+    menu.mesh.geometry.rotateX(1.5707963267949 * 3);
+    this.controller1.add(menu.mesh);
+    this.menues.set(menu.title, menu);
   },
 
   createMessageBox(text) {
@@ -188,10 +271,33 @@ export default VRRendering.extend(Ember.Evented, {
     menu.set('height', 64);
     menu.set('opacity', 0.5);
     menu.set('color', new THREE.Color(0,0,0));
-    menu.addText(text, 20, { x: 256, y: 20}, '#FFFFFF', 'center');
+    menu.addText(text, 20, { x: 256, y: 0}, '#FFFFFF', 'left', false);
 
-    menu.interact = (interaction, position) => {
-      //TODO
+    menu.interact = (action, position) => {
+      if(action === 'rightIntersect' ) {
+        for(let i = 0; i < menu.items.length; i++) {
+          let item = menu.items[i];
+          if(item.type === 'text' && item.clickable) {
+            //console.log(position.y);
+            let x = menu.width * position.x;
+            let y = menu.height - (menu.height * position.y);
+
+            let size = this.getTextSize(item.text, `${item.size}px arial`);
+
+            if(x >= item.position.x && y >= item.position.y && x <= item.position.x + size.width && y <= item.position.y + size.height) {
+              console.log('hit');
+              if(!item.hover) {
+                menu.update();
+                item.hover = true;
+              }
+            } else if(item.hover) {
+              menu.update();
+              item.hover = false;
+            }
+          }
+        }
+      }
+      //console.log(position);
     };
 
     menu.createMesh();
@@ -640,6 +746,7 @@ export default VRRendering.extend(Ember.Evented, {
 
       this.get('users').set(userData.id, user);
     }
+    this.createOptionsMenu();
     this.state = "connected";
   },
 
