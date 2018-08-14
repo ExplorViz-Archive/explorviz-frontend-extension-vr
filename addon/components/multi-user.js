@@ -25,7 +25,6 @@ export default VRRendering.extend(Ember.Evented, {
   updateQueue: [],
   running: false,
   hmdObject: null,
-  canvas2: null,
   messageQueue: [],
   menues: new EmberMap(),
 
@@ -350,7 +349,7 @@ export default VRRendering.extend(Ember.Evented, {
 
   sendLandscapeUpdate(){
     let position = new THREE.Vector3();
-    this.get('vrEnvironment').getWorldPosition(position);
+    this.get('vrEnvironment').localToWorld(position);
 
     let quaternion = new THREE.Quaternion();
     this.get('vrEnvironment').getWorldQuaternion(quaternion);
@@ -678,6 +677,7 @@ export default VRRendering.extend(Ember.Evented, {
             data.isBoundToController1, data.controllerPosition, data.controllerQuaternion);
           break;
         case 'receive_app_released':
+          console.log(data);
           this.get('boundApps').delete(data.id);
           this.updateAppPosition(data.id, data.position, data.quaternion);
           break;
@@ -745,6 +745,9 @@ export default VRRendering.extend(Ember.Evented, {
       this.get('scene').add(user.get('camera.model'));
 
       this.get('users').set(userData.id, user);
+
+      //set name for user on top of his hmd 
+      this.addUsername(userData.id);
     }
     this.createOptionsMenu();
     this.state = "connected";
@@ -762,6 +765,8 @@ export default VRRendering.extend(Ember.Evented, {
 
     //add model for new user
     this.get('scene').add(user.get('camera.model'));
+
+    this.addUsername(data.user.id);
 
     this.enqueueMessage(`${user.get('name')} just connected.`);
 
@@ -889,7 +894,6 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   onLandscapePosition(position, quaternion){
-    console.log("Position: " + quaternion);
     this.get('vrEnvironment').position.fromArray(position);
     this.get('vrEnvironment').quaternion.fromArray(quaternion);
     if(this.get('vrEnvironment')){
@@ -998,6 +1002,41 @@ export default VRRendering.extend(Ember.Evented, {
     });
   },
 
+  addUsername(userID){
+    console.log("addUsername called");
+    let user = this.get('users').get(userID);
+    let camera = user.get('camera').model;
+    let username = user.get('name');
+    let width = 256;
+    let height = 256;
+
+
+    this.set('canvas2', document.createElement('canvas'));
+    this.get('canvas2').width = width;
+    this.get('canvas2').height = height;
+    let canvas2 = this.get('canvas2');
+    var ctx = canvas2.getContext('2d');
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.0)';
+    ctx.fillRect(0, 0, canvas2.width, canvas2.height);
+
+
+    ctx.font = `30px arial`;
+    ctx.fillStyle = '#000000';
+    ctx.textAlign = 'center';
+    ctx.fillText(username, canvas2.width / 2, 30);
+       
+    // create texture out of canvas
+    let texture = new THREE.Texture(canvas2);
+
+    // Update texture      
+    texture.needsUpdate = true;
+    // Update mesh material
+
+    var spriteMaterial = new THREE.SpriteMaterial( { map: texture, color: 0xffffff } );
+    var sprite = new THREE.Sprite( spriteMaterial );
+
+    camera.add(sprite);
+  },
 
   send(obj) {
     // console.log(`Sending: ${JSON.stringify(obj)}`);

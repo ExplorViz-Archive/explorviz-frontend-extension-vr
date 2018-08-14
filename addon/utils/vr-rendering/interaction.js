@@ -242,11 +242,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           this.get('vrEnvironment').rotation.x +=  0.05;
           this.updateObjectMatrix(this.get('vrEnvironment'));
           this.trigger('centerVREnvironment');
+          this.trigger('landscapeMoved');
           break;
         case 'w':
           this.get('vrEnvironment').rotation.x -=  0.05;
           this.updateObjectMatrix(this.get('vrEnvironment'));
           this.trigger('centerVREnvironment');
+          this.trigger('landscapeMoved');
           break;
       }
     };
@@ -843,7 +845,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             // Save selected entity and communication highlighting
             this.saveSelectedEntity(intersectedViewObj, emberModel);
 
-            this.trigger("entityHighlighted", true, appID, emberModel.id, intersectedViewObj.object.material.color.getHex());
+            this.trigger("entityHighlighted", true, appID, emberModel.id, this.get('selectedEntitysColor'));
 
             // Set new color
             let color = new THREE.Color("rgb(255,0,0)");
@@ -1264,7 +1266,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           // Save selected entity and communication highlighting
           this.saveSelectedEntity(intersectedViewObj, emberModel);
 
-          this.trigger("entityHighlighted", true, appID, emberModel.id, this.get('selectedEntitysColor'));
+          this.trigger('entityHighlighted"', true, appID, emberModel.id, this.get('selectedEntitysColor'));
           let color = new THREE.Color("rgb(255,0,0)");
           intersectedViewObj.object.material.color = color;
           this.get('appCommunicationHighlighted').set('highlighted', true);
@@ -1294,7 +1296,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         this.set('appCommunicationHighlighted', null);
         this.set('selectedEntitysMesh', null);
         this.trigger('redrawAppCommunication');
-        this.trigger("entityHighlighted", false);
+        this.trigger('entityHighlighted', false);
       }
 
       // Unhighlight delete button
