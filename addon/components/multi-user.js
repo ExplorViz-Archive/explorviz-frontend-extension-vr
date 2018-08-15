@@ -35,7 +35,7 @@ export default VRRendering.extend(Ember.Evented, {
   running: false, //tells if gameLoop is executing
   hmdObject: null, //object for other user's hmd
   messageQueue: [], //messages displayed on top edge of hmd (e.g. user x connected)
-  menues: new EmberMap(), //keeps track of menues for settings
+  menus: new EmberMap(), //keeps track of menus for settings
   optionsMenu: null,
 
 
@@ -93,11 +93,11 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('lastTime', new Date().getTime());
     let old_checkIntersectionRightController = this.get('interaction').checkIntersectionRightController;
     this.get('interaction').checkIntersectionRightController = function() {
-      let menues = [];
-      self.menues.forEach((menu) => {
-        menues.push(menu.mesh);
+      let menus = [];
+      self.menus.forEach((menu) => {
+        menus.push(menu.mesh);
       });
-      let menuHit = self.checkIntersectionRightController(menues);
+      let menuHit = self.checkIntersectionRightController(menus);
       if(menuHit) {
         // Unhighlight delete button
         this.unhighlightedDeleteButton(self.controller2.id, true);
@@ -112,11 +112,11 @@ export default VRRendering.extend(Ember.Evented, {
 
     let old_onTriggerDownController2 = this.get('interaction').onTriggerDownController2;
     this.get('interaction').onTriggerDownController2 = function(event) {
-      let menues = [];
-      self.menues.forEach((menu) => {
-        menues.push(menu.mesh);
+      let menus = [];
+      self.menus.forEach((menu) => {
+        menus.push(menu.mesh);
       });
-      let menuHit = self.onTriggerDownController2(menues);
+      let menuHit = self.onTriggerDownController2(menus);
       if(!menuHit) {
         old_onTriggerDownController2.apply(this, [event]);
       }
@@ -247,7 +247,7 @@ export default VRRendering.extend(Ember.Evented, {
     if(intersectedViewObj) {
       controllerLine.scale.z = intersectedViewObj.distance;
       let name = intersectedViewObj.object.name;
-      let menu = this.menues.get(name);
+      let menu = this.menus.get(name);
       if(menu) {
         menu.interact('rightIntersect', intersectedViewObj.uv);
         return true;
@@ -277,7 +277,7 @@ export default VRRendering.extend(Ember.Evented, {
     if(intersectedViewObj) {
       controllerLine.scale.z = intersectedViewObj.distance;
       let name = intersectedViewObj.object.name;
-      let menu = this.menues.get(name);
+      let menu = this.menus.get(name);
       if(menu) {
         menu.interact('rightTrigger', intersectedViewObj.uv);
         return true;
@@ -325,14 +325,14 @@ export default VRRendering.extend(Ember.Evented, {
     menu.mesh.position.x += 0.2;
     menu.mesh.geometry.rotateX(1.5707963267949 * 3);
     this.controller1.add(menu.mesh);
-    this.menues.set(menu.title, menu);
+    this.menus.set(menu.title, menu);
     this.optionsMenu = menu;
   },
 
   closeOptionsMenu() {
     this.controller1.remove(this.optionsMenu.mesh);
     this.optionsMenu.close();
-    this.menues.delete(this.optionsMenu.title);
+    this.menus.delete(this.optionsMenu.title);
     this.optionsMenu = null;
   },
 
@@ -374,7 +374,7 @@ export default VRRendering.extend(Ember.Evented, {
     menu.mesh.position.x += 0.2;
     menu.mesh.geometry.rotateX(1.5707963267949 * 3);
     this.controller1.add(menu.mesh);
-    this.menues.set(menu.title, menu);
+    this.menus.set(menu.title, menu);
     this.optionsMenu = menu;
   },
 
@@ -415,7 +415,7 @@ export default VRRendering.extend(Ember.Evented, {
     };
 
     menu.createMesh();
-    this.menues.set(menu.title, menu);
+    this.menus.set(menu.title, menu);
 
     let textBox = menu.mesh;
     textBox.position.y += 0.32;
@@ -441,7 +441,7 @@ export default VRRendering.extend(Ember.Evented, {
    */
   deleteMessageBox() {
     let messageBox = this.camera.getObjectByName('menu_messageBox');
-    this.menues.delete('menu_messageBox');
+    this.menus.delete('menu_messageBox');
     this.camera.remove(messageBox);
   },
 
