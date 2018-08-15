@@ -1678,8 +1678,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   },
 
     /*
-   *  The method is used to calculate a 35 percent 
-   *  darker color
+   * The method is used to reverse the effect of
+   * calculateDarkerColor()
    */
   calculateLighterColor(object){
     let actualColor = null;

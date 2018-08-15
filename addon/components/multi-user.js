@@ -65,6 +65,10 @@ export default VRRendering.extend(Ember.Evented, {
     requestAnimationFrame(this.gameLoop.bind(this));
   },
 
+  /**
+   * Main rendering method. Is called render2 to avoid name conflict with built-in 
+   * render() method
+   */
   render2() {
     this.get('threexStats').update(this.get('webglrenderer'));
     this.get('stats').begin();
@@ -159,6 +163,9 @@ export default VRRendering.extend(Ember.Evented, {
     });
   },
 
+  /**
+   * Check wether there are messages in the queue and send those to backend
+   */
   sendUpdates() {
     //there are updates to send
     if(this.updateQueue.length > 0) {
@@ -167,6 +174,10 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
+  /**
+   * Add text to messageQueue which should be displayed on top edge of hmd
+   * @param {String} text Text which should be displayed
+   */
   enqueueMessage(text) {
     this.messageQueue.unshift(text);
     if(this.messageQueue.length === 1) {
@@ -174,6 +185,9 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
+  /**
+   * Displays text messages on the top edge of the hmd for 3 seconds
+   */
   showMessage() {
     if(this.messageQueue.length <= 0)
       return;
@@ -345,12 +359,18 @@ export default VRRendering.extend(Ember.Evented, {
     animate();
   },
 
+  /**
+   * Remove text message on top edge of user's view
+   */
   deleteMessageBox() {
     let messageBox = this.camera.getObjectByName('menu_messageBox');
     this.menues.delete('menu_messageBox');
     this.camera.remove(messageBox);
   },
 
+  /**
+   * Load the Texture for the hmds of other users
+   */
   loadHMDModel() {
     let OBJLoader = createOBJLoader(THREE);
     let loader = new OBJLoader(THREE.DefaultLoadingManager);
@@ -366,11 +386,18 @@ export default VRRendering.extend(Ember.Evented, {
     });
   },
 
+  /**
+   * Update position data and data on controller connections
+   */
   update() {
     this.updateAndSendPositions();
     this.sendControllerUpdate();
   },
 
+  /**
+   * Send update of position + quaternion of the
+   * landscape (vrEnvironment)
+   */
   sendLandscapeUpdate(){
     let position = new THREE.Vector3();
     this.get('vrEnvironment').localToWorld(position);
@@ -387,6 +414,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(landscapeObj);
   },
 
+  /**
+   * Send the backend the information that a system was
+   * closed or opened by this user
+   * @param {Long} id ID of system which was opened/closed
+   * @param {boolean} isOpen State of the system
+   */
   sendSystemUpdate(id, isOpen){
     console.log("Sending system update");
     let systemObj = {
@@ -398,6 +431,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(systemObj);
   },
 
+  /**
+   * Send the backend the information that a nodegroup was
+   * closed or opened by this user
+   * @param {Long} id ID of nodegroup which was opened/closed
+   * @param {boolean} isOpen State of the nodegroup
+   */
   sendNodegroupUpdate(id, isOpen){
     let nodeGroupObj = {
       "event": "receive_nodegroup_update",
@@ -408,6 +447,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(nodeGroupObj);
   },
 
+  /**
+   * Inform the backend that an app was opened by this
+   * user
+   * @param {Long} id ID of nodegroup which was opened/closed
+   * @param {boolean} isOpen State of the nodegroup
+   */
   sendAppOpened(id, app){
     let position = new THREE.Vector3();
     app.getWorldPosition(position);
@@ -425,6 +470,11 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(appObj);
   },
 
+  /**
+   * Inform the backend that an application was closed
+   * by this user
+   * @param {Long} appID ID of the closed application
+   */
   sendAppClosed(appID){
     let appObj = {
       "event": "receive_app_closed",
@@ -434,6 +484,15 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(appObj);
   },
 
+  /**
+   * Informs the backend that this user holds/moves an application
+   * @param {Long} appID ID of the bound app
+   * @param {Vector3} appPosition Position of the app (x, y, z)
+   * @param {Quaternion} appQuaternion Quaternion of the app (x, y, z, w)
+   * @param {boolean} isBoundToController1 Tells if app is hold by left controller
+   * @param {Vector3} controllerPosition Position of the controller which holds the application
+   * @param {Quaternion} controllerQuaternion Quaternion of the controller which holds the application
+   */
   sendAppBinded(appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion){
     let appObj = {
       "event": "receive_app_binded",
@@ -448,6 +507,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(appObj);
   },
 
+  /**
+   * Informs the backend that an application is no longer bound but released
+   * @param {Long} appID ID of the bound app
+   * @param {Vector3} position Position of the app (x, y, z)
+   * @param {Quaternion} quaternion Quaternion of the app (x, y, z, w)
+   */
   sendAppReleased(appID, position, quaternion){
     let appObj = {
       "event": "receive_app_released",
@@ -459,6 +524,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(appObj);
   },
 
+  /**
+   * Informs the backend that a component was opened or closed by this user
+   * @param {Long} appID ID of the app which is a parent to the component
+   * @param {Long} componentID ID of the component which was opened or closed
+   * @param {boolean} isOpened Tells whether the component is now open or closed (current state)
+   */
   sendComponentUpdate(appID, componentID, isOpened){
     let appObj = {
       "event": "receive_component_update",
@@ -470,6 +541,14 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(appObj);
   },
 
+  /**
+   * Informs the backend that an entity (clazz or component) was highlighted
+   * or unhighlighted
+   * @param {boolean} isHighlighted Tells whether the entity has been highlighted or not
+   * @param {Long} appID ID of the parent application of the entity
+   * @param {Long} entityID ID of the highlighted/unhighlighted component/clazz
+   * @param {Color} color Original color of the entity as hex value
+   */
   sendHighlightingUpdate(isHighlighted, appID, entityID, color){
     let hightlightObj = {
       "event": "receive_hightlight_update",
@@ -483,6 +562,9 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(hightlightObj);
   },
 
+  /**
+   * Informs the backend if a controller was connected/disconnected
+   */
   sendControllerUpdate() {
     let controllerObj = {
       "event": "receive_user_controllers",
@@ -494,28 +576,34 @@ export default VRRendering.extend(Ember.Evented, {
 
     let hasChanged = false;
 
+    //handle that controller 1 has disconnected
     if(this.controllersConnected.controller1 && this.controller1.getGamepad() === undefined) {
       disconnect.push("controller1");
       this.controllersConnected.controller1 = false;
       hasChanged = true;
     }
+    //handle that controller 1 has connected
     else if(!this.controllersConnected.controller1 && this.controller1.getGamepad() !== undefined) {
       connect.controller1 = this.controller1.getGamepad().id;
       this.controllersConnected.controller1 = true;
       hasChanged = true;
     }
 
+    //handle that controller 2 has disconnected
     if(this.controllersConnected.controller2 && this.controller2.getGamepad() === undefined) {
       disconnect.push("controller2");
       this.controllersConnected.controller2 = false;
       hasChanged = true;
     }
+    //handle that controller 2 has connected
     else if(!this.controllersConnected.controller2 && this.controller2.getGamepad() !== undefined) {
       connect.controller2 = this.controller2.getGamepad().id;
       this.controllersConnected.controller2 = true;
       hasChanged = true;
     }
 
+
+    //handle the case that either controller was connected/disconnected
     if(hasChanged) {
       if(Array.isArray(disconnect) && disconnect.length) {
         controllerObj.disconnect = disconnect;
@@ -524,6 +612,7 @@ export default VRRendering.extend(Ember.Evented, {
         controllerObj.connect = connect;
       }
 
+      //if status of at least one controller has changed, inform backend
       if(controllerObj.disconnect || controllerObj.connect) {
         this.updateQueue.push(controllerObj);
       }
@@ -603,6 +692,9 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
+  /**
+   * Inform the backend that we leave the session
+   */
   disconnect() {
     const disconnectMessage = [{
       "event": "receive_disconnect_request"
@@ -610,8 +702,15 @@ export default VRRendering.extend(Ember.Evented, {
     this.send(disconnectMessage);
   },
 
+
+  /**
+   * Handles all incoming messages of the backend and delegates data to
+   * the corresponding function
+   * @param {JSON} event Event of websocket containing all messages of backend
+   */
   messageHandler(event) {
-    const messages = JSON.parse(event.data);
+    //backend could have sent multiple messages at a time
+    const messages = JSON.parse(event.data); 
     for(let i = 0; i < messages.length; i++) {
       let data = messages[i];
       switch(data.event) {
@@ -688,6 +787,11 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
+  /**
+   * After socket has opened to backend client is told his/her userID. 
+   * Respond by asking for "connected" status.
+   * @param {JSON} data Message containing own userID
+   */
   onSelfConnecting(data) {
     this.set('userID', data.id);
     let JSONObj = {
@@ -794,24 +898,6 @@ export default VRRendering.extend(Ember.Evented, {
       if(camera)
         user.updateCamera(camera);
     }
-  },
-
-  addLineToControllerModel(controller, color) {
-    // Ray for Controller
-    this.set('geometry', new THREE.Geometry());
-    this.get('geometry').vertices.push(new THREE.Vector3(0, 0, 0));
-    this.get('geometry').vertices.push(new THREE.Vector3(0, 0, -1));
-
-    // Create black ray for left controller
-    let line = new THREE.Line(this.get('geometry'));
-    line.name = 'controllerLine';
-    line.scale.z = 5;
-    line.material.color = new THREE.Color(0,0,0);
-    line.material.color.fromArray([color[0]/255.0,color[1]/255.0,color[2]/255.0]);
-    line.material.opacity = 0.25;
-    line.position.y -= 0.005;
-    line.position.z -= 0.02;
-    controller.model.add(line);
   },
 
   onUserControllers(data) {
@@ -996,6 +1082,24 @@ export default VRRendering.extend(Ember.Evented, {
         return;
       }
     });
+  },
+
+  addLineToControllerModel(controller, color) {
+    // Ray for Controller
+    this.set('geometry', new THREE.Geometry());
+    this.get('geometry').vertices.push(new THREE.Vector3(0, 0, 0));
+    this.get('geometry').vertices.push(new THREE.Vector3(0, 0, -1));
+
+    // Create black ray for left controller
+    let line = new THREE.Line(this.get('geometry'));
+    line.name = 'controllerLine';
+    line.scale.z = 5;
+    line.material.color = new THREE.Color(0,0,0);
+    line.material.color.fromArray([color[0]/255.0,color[1]/255.0,color[2]/255.0]);
+    line.material.opacity = 0.25;
+    line.position.y -= 0.005;
+    line.position.z -= 0.02;
+    controller.model.add(line);
   },
 
   /**
