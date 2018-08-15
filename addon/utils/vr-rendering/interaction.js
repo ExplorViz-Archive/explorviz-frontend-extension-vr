@@ -735,23 +735,20 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           if (this.get('boundApps').has(appID)){
             return;
           }
-
+  
           // Toggle state and redraw app
           emberModel.setOpenedStatus(!emberModel.get('opened'));
           this.trigger('redrawApp', appID);
-
+  
           this.trigger('componentUpdate', appID , emberModel.id, emberModel.get('opened'));
-
+  
           // Restore selection
-          
-
-          
           if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened'))
           
           {
             this.get('selector').highlightAppCommunication(this.get('appCommunicationHighlighted'), this.get('highlightedAppModel'));
             this.trigger('redrawAppCommunication');
-
+  
             let color = new THREE.Color("rgb(255,0,0)");
             this.get('selectedEntitysMesh').material.color = color;
           }
@@ -1508,13 +1505,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     
     // Handle packages
     if(condition1 && condition3){
-       this.get('highlightedEntitiesApp')[id].material.color =  
-         new THREE.Color(this.get('highlightedEntitiesApp')[id].userData.model.get('color'));
+      let originalColor = this.calculateLighterColor(this.get('highlightedEntitiesApp')[id]);
+      this.get('highlightedEntitiesApp')[id].material.color = new THREE.Color(originalColor);
      }
      // Handle clazzes
      if(condition2 && condition3){  
-       this.get('highlightedEntitiesApp')[id].material.color =  
-         new THREE.Color(this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.type]);
+      let originalColor = this.calculateLighterColor(this.get('highlightedEntitiesApp')[id]);
+      this.get('highlightedEntitiesApp')[id].material.color = new THREE.Color(originalColor);
      }
      this.get('highlightedEntitiesApp')[id] = null;
    },
@@ -1673,9 +1670,30 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       actualColor = object.material.color;
     }
 
-    let r = Math.floor(actualColor.r * 0.65 * 255);
-    let g = Math.floor(actualColor.g * 0.65 * 255);
-    let b = Math.floor(actualColor.b * 0.65 * 255);
+    let r = Math.floor(actualColor.r * 0.625 * 255);
+    let g = Math.floor(actualColor.g * 0.625 * 255);
+    let b = Math.floor(actualColor.b * 0.625 * 255);
+
+    return "rgb("+r+", "+g+", "+b+")";
+  },
+
+    /*
+   *  The method is used to calculate a 35 percent 
+   *  darker color
+   */
+  calculateLighterColor(object){
+    let actualColor = null;
+
+    if(object.material.length){
+      actualColor = object.material[0].color;
+    }
+    else{
+      actualColor = object.material.color;
+    }
+
+    let r = Math.floor(actualColor.r * 1.6 * 255);
+    let g = Math.floor(actualColor.g * 1.6 * 255);
+    let b = Math.floor(actualColor.b * 1.6 * 255);
 
     return "rgb("+r+", "+g+", "+b+")";
   }

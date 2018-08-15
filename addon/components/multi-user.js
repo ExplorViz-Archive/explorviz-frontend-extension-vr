@@ -970,10 +970,12 @@ export default VRRendering.extend(Ember.Evented, {
 
     let app = this.get('openApps').get(appID);
 
+    //return if app is not opened
     if(!app){
       return;
     }
 
+    //find component/clazz which shall be highlighted
     app.children.forEach( child => {
       if (child.userData.model && child.userData.model.id === entityID){
 
