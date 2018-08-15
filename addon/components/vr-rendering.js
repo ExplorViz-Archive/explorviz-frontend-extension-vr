@@ -31,72 +31,71 @@ import EmberMap from '@ember/map';
  */
 export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
-  layout: layout,
+  store: Ember.inject.service('store'), //store to access model information
 
-  state: null,
-
-  store: Ember.inject.service('store'),
-
-  // Declare url-builder service 
+  // services imported from the frontend (further documentation there)
   urlBuilder: Ember.inject.service("url-builder"),
-  // Declare view-importer service 
   viewImporter: Ember.inject.service("view-importer"),
   reloadHandler: Ember.inject.service("reload-handler"),
   landscapeRepo: Ember.inject.service("repos/landscape-repository"),
   renderingService: Ember.inject.service(),
-
-  classNames: ['viz'],
-
-  scene: null,
-  webglrenderer: null,
-  camera: null,
-  canvas: null,
-  font: null,
-  initDone: false,
-
-  user: null,
-
   configuration: Ember.inject.service("configuration"),
   configurationApplication: Ember.inject.service("configuration"),
-  hammerManager: null,
 
-  raycaster: null,
-  interaction: null,
-  labeler: null,
-  labelerApp: null,
-  imageLoader: null,
-  centerAndZoomCalculator: null,
-  initialRendering: true,
-  requestMaterial: null,
-  foundationBuilder: null,
-  zeroValue: 0.0000000000000001 * 0.0000000000000001,
+  
+  scene: null, //root element of Object3d's - contains all visble objects
+  webglrenderer: null, //renders the scene
+  camera: null, //PerspectiveCamera
+  canvas: null, //canvas of webglrenderer
+  font: null, //font used for text
+  initDone: false, //tells if initRendering() already terminated 
+
+  user: null, //THREEGROUP containing camera and controller(s) of user
+
+  raycaster: null, //raycaster for intersection checking (used in interaction)
+  interaction: null, //class which handles mouse/keyboard/controller interaction
+  labeler: null, //for labeling landscape (-> frontend)
+  labelerApp: null, //for labeling applications (-> frontend)
+  imageLoader: null, //for loading images e.g. of "world system"
+  centerAndZoomCalculator: null, //frontend: CalcCenterAndZoom
+  initialRendering: true, //handle initial rendering in populateScene()
+  requestMaterial: null, //material for e.g. "earth"
+  foundationBuilder: null, //imported from frontend
+  zeroValue: 0.0000000000000001 * 0.0000000000000001, //tiny number e.g. to emulate a plane
 
   // VR
-  vrEnvironment: null,
-  vrLandscape: null,
-  vrCommunications: null,
-  controller1: null,
-  controller2: null,
-  geometry: null,
-  depth: 0.2,
-  vrAvailable: false,
-  room: null,
-  initialPositions: {},
-  deleteButton: null,
-  textBox: null,
+  vrEnvironment: null, //contains vrLandscape and vrCommunications
+  vrLandscape: null, //contains systems and their children
+  vrCommunications: null, //contains communication between elements of landscape
+  controller1: null, //left controller
+  controller2: null, //right controller
+  geometry: null, //ray for controller
+  depth: 0.2, //depth value for systems/nodegroups etc. (2D rectangles -> 3D cubes)
+  room: null, //virtual room to which a flooar is added, important for raycasting
+  initialPositions: {}, //initial positions of systems/nodegroups/..
+  deleteButton: null, //delete Button of 3d application
+  textBox: null, //textbox(canvas) which can show additional information next to right controller
+
   // Storage for mesh data
-  app3DMeshes: null,
   teleportArea: null,
 
   // Application
-  openApps : null, //Object3d
-  foundations: null, //keep track of foundations for foundationBuilder
+  openApps : null, //Object3d's of opened applications
+  foundations: null, //keep track of foundations (in openApps) for foundationBuilder
   boundApps: null, //applications which other users currently move/hold
 
+  //controller objects
   oculusLeftControllerObject: null,
   oculusRightControllerObject: null,
   viveControllerObject: null,
-  
+
+  //still necessary?
+  app3DMeshes: null,
+  state: null,
+  layout: layout,
+  classNames: ['viz'],
+  hammerManager: null,
+  vrAvailable: false,
 
 
   didRender() {
@@ -1950,6 +1949,26 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
 
   }, // END add 3D application to the landscape(3D)
+
+  
+  redrawApplication(appID){
+    //only redraw if app is opened
+    if (!this.get('openApps').has(appID)){
+      return;
+    }
+    // Store app3D Data because application3D is removed in the next step
+    var appPosition = this.get('openApps').get(appID).position;
+    var appQuaternion = this.get('openApps').get(appID).quaternion;
+    let app3DModel = this.get('openApps').get(appID).userData.model;
+
+    // Empty application 3D (remove app3D)
+    this.removeChildren(this.get('openApps').get(appID));
+
+    //self.get('openApps').delete(app3DModel.id);
+    // Add application3D to scene
+    this.add3DApplicationToLandscape(app3DModel, appPosition, appQuaternion);
+    this.get('openApps').get(appID).updateMatrix();
+  },
 
   // ONLY FOR DEBUGGIN
   debugPlane(x, y, z, width, height, color1, parent) {

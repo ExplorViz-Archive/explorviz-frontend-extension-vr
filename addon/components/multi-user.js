@@ -6,45 +6,58 @@ import VRRendering from './vr-rendering';
 import Ember from 'ember';
 import THREE from 'three';
 
+//Declare globals
 /*global createOBJLoader*/
 
+/**
+ * This component extends the functionalities of vr-rendering so that multiple users
+ * can use the vr-mode of ExplorViz. In its core a websocket with a tcp connection 
+ * to the backend is used to send and receive updates about the landscape, applications and
+ * other users.
+ *
+ * @class MULTI-USER
+ * @extends vr-rendering
+ */
 export default VRRendering.extend(Ember.Evented, {
-  websockets: service(),
-  socketRef: null,
+  websockets: service(), //service needed to use websockets
+  socketRef: null, //websocket to send/receive messages to/from backend
   
-  //Map: UserID -> User
-  users: null,
-  userID: null,
-  state: null,
-  lastPositions: null,
-  controllersConnected: null,
-  fps: 90,
-  lastTime: null,
-  currentTime: 0,
-  deltaTime: 0,
-  updateQueue: [],
-  running: false,
-  hmdObject: null,
-  messageQueue: [],
-  menues: new EmberMap(),
+  users: null, //Map: UserID -> User
+  userID: null, //own userID
+  state: null, //own connection status
+  lastPositions: null, //last positions of camera and controllers
+  controllersConnected: null, //tells which controller(s) are connected
+  fps: 90, //tells how often a picture is rendered per second (refresh rate of Vive/Rift is 90)
+  lastTime: null, //last time an image was rendered
+  currentTime: 0, //tells the current time in ms
+  deltaTime: 0, //time between two frames
+  updateQueue: [], //messages which are ready to be sent to backend
+  running: false, //tells if gameLoop is executing
+  hmdObject: null, //object for other user's hmd
+  messageQueue: [], //messages displayed on top edge of hmd (e.g. user x connected)
+  menues: new EmberMap(), //keeps track of menues for settings
 
 
   gameLoop() {
-    if(!this.running)
+    if(!this.running){
       return;
-
-    //this.enqueueMessage('Testg123');
+    }
 
     this.currentTime = new Date().getTime();
 
+    //time difference between now and the last time updates were sent
     this.deltaTime = this.currentTime - this.lastTime;
 
+    //if time difference is large enough, update and send messages to backend
     if(this.deltaTime > 1000/this.fps) {
+      //if not connected yet controllers need not to be considered
       if(this.userID && this.state === 'connected') {
         this.updateControllers();
         this.update();
         this.render2();
       }
+
+      //send messages like connecting request, position updates etc.
       this.sendUpdates();
 
       this.lastTime = this.currentTime;
@@ -52,14 +65,17 @@ export default VRRendering.extend(Ember.Evented, {
     requestAnimationFrame(this.gameLoop.bind(this));
   },
 
-  sendUpdates() {
-    //there are updates to send
-    if(this.updateQueue.length > 0) {
-      this.send(this.updateQueue);
-      this.set('updateQueue', []);
-    }
+  render2() {
+    this.get('threexStats').update(this.get('webglrenderer'));
+    this.get('stats').begin();
+    this.get('webglrenderer').render(this.get('scene'), this.get('camera'));
+    this.get('stats').end();
   },
 
+  /**
+   * This function is the entry point for this component. 
+   * It is called once when the site has loaded.
+   */
   didRender() {
     this._super(...arguments);
     this.loadHMDModel();
@@ -113,7 +129,7 @@ export default VRRendering.extend(Ember.Evented, {
       this.gameLoop();
     });
 
-    //initialize interaction events
+    //initialize interaction events and delegate them to the corresponding functions
     this.get('interaction').on('systemStateChanged', (id, isOpen) => {
       this.sendSystemUpdate(id, isOpen);
     });
@@ -141,6 +157,14 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('interaction').on('entityHighlighted', (isHighlighted, appID, entityID, color) => {
       this.sendHighlightingUpdate(isHighlighted, appID, entityID, color);
     });
+  },
+
+  sendUpdates() {
+    //there are updates to send
+    if(this.updateQueue.length > 0) {
+      this.send(this.updateQueue);
+      this.set('updateQueue', []);
+    }
   },
 
   enqueueMessage(text) {
@@ -575,8 +599,6 @@ export default VRRendering.extend(Ember.Evented, {
 
     if(hasChanged) {
       this.lastPositions = currentPositions;
-      //console.log(currentPositions.camera[0]);
-
       this.updateQueue.push(positionObj);
     }
   },
@@ -586,34 +608,6 @@ export default VRRendering.extend(Ember.Evented, {
       "event": "receive_disconnect_request"
     }];
     this.send(disconnectMessage);
-  },
-
-  willDestroyElement() {
-    console.log("Destroy");
-    this._super(...arguments);
-
-    this.running = false;
-    this.disconnect();
-    const socket = this.socketRef;
-    if(socket) {
-      socket.off('open', this.myOpenHandler);
-      socket.off('message', this.myMessageHandler);
-      socket.off('close', this.myCloseHandler);
-    }
-    this.socketRef = null,
-    this.users = null;
-    this.userID = null;
-    this.state = null;
-    this.lastPositions = null;
-    this.controllersConnected = null;
-    this.lastTime = null;
-    this.currentTime = 0;
-    this.deltaTime = 0;
-    this.updateQueue = [];
-  },
-
-  openHandler(event) {
-    console.log(`On open event has been called: ${event}`);
   },
 
   messageHandler(event) {
@@ -1002,11 +996,16 @@ export default VRRendering.extend(Ember.Evented, {
     });
   },
 
+  /**
+   * Adds a username on top of another user's hmd
+   * 
+   * @param {Long} userID : user to which a username shall be added 
+   */
   addUsername(userID){
-    console.log("addUsername called");
     let user = this.get('users').get(userID);
     let camera = user.get('camera').model;
     let username = user.get('name');
+    //note: sprites are always same width + height
     let width = 256;
     let height = 256;
 
@@ -1030,7 +1029,6 @@ export default VRRendering.extend(Ember.Evented, {
 
     // Update texture      
     texture.needsUpdate = true;
-    // Update mesh material
 
     var spriteMaterial = new THREE.SpriteMaterial( { map: texture, color: 0xffffff } );
     var sprite = new THREE.Sprite( spriteMaterial );
@@ -1040,8 +1038,10 @@ export default VRRendering.extend(Ember.Evented, {
     sprite.position.y = camera.position.y + 0.4;
     sprite.position.z = camera.position.z;
 
+    //let sprite rotate around middle of top edge
     sprite.center.y = 1;
 
+    //sprite moves with hmd of user
     camera.add(sprite);
   },
 
@@ -1053,7 +1053,6 @@ export default VRRendering.extend(Ember.Evented, {
         self.populateScene();
         return;
       }
-
     });
   },
 
@@ -1085,57 +1084,69 @@ export default VRRendering.extend(Ember.Evented, {
     
   },
 
+
   showApplication(id, posArray, quatArray){
-    const self = this;
+    this.set('viewImporter.importedURL', null);
 
-    self.set('viewImporter.importedURL', null);
-
-    console.log("getAppModel");
-    let emberModel = self.get('store').peekRecord('application', id);
+    //get model of application of the store
+    let emberModel = this.get('store').peekRecord('application', id);
    
-    console.log("ID: " + emberModel.id);
-    //dont allow to open the same two apps
-    if (self.get('openApps').has(emberModel.id)){
+    //dont allow to have the same app opened twice
+    if (this.get('openApps').has(emberModel.id)){
       return;
     }
 
-    // Add 3D Application to scene (also if one exists already)
-    self.set('landscapeRepo.latestApplication', emberModel);
-    let position = new THREE.Vector3(posArray[0], posArray[1], posArray[2]);
-    let quaternion = new THREE.Quaternion(quatArray[0], quatArray[1], quatArray[2], quatArray[3]);
-    self.add3DApplicationToLandscape(emberModel, position, quaternion);
+    //note that this property is still only working for one app at a time
+    this.set('landscapeRepo.latestApplication', emberModel); 
+    //position and quaternion where the application shall be displayed
+    let position = new THREE.Vector3().fromArray(posArray);
+    let quaternion = new THREE.Quaternion().fromArray(quatArray);
+    // Add 3D Application to scene (also if another one exists already)
+    this.add3DApplicationToLandscape(emberModel, position, quaternion);
 
-    self.get('openApps').get(emberModel.id).updateMatrix();
+    //update matrix to display application correctly in the world
+    this.get('openApps').get(emberModel.id).updateMatrix();
   },
 
-  redrawApplication(appID){
-    //only redraw if app is opened
-    if (!this.get('openApps').has(appID)){
-      return;
-    }
-    // Store app3D Data because application3D is removed in the next step
-    var appPosition = this.get('openApps').get(appID).position;
-    var appQuaternion = this.get('openApps').get(appID).quaternion;
-    let app3DModel = this.get('openApps').get(appID).userData.model;
-
-    console.log(this.get('openApps').get(appID).children);
-
-    // Empty application 3D (remove app3D)
-    this.removeChildren(this.get('openApps').get(appID));
-
-    //self.get('openApps').delete(app3DModel.id);
-    // Add application3D to scene
-    this.add3DApplicationToLandscape(app3DModel, appPosition, appQuaternion);
-    this.get('openApps').get(appID).updateMatrix();
+  //called when the websocket is opened for the first time
+  openHandler(event) {
+    console.log(`On open event has been called: ${event}`);
   },
 
+  //used to send messages to the backend
   send(obj) {
     // console.log(`Sending: ${JSON.stringify(obj)}`);
     this.socketRef.send(JSON.stringify(obj));
   },
 
+  //called when the websocket is closed
   closeHandler(event) {
     console.log(`On close event has been called: ${event}`);
+  },
+
+  //called when user closes the site
+  willDestroyElement() {
+    console.log("Destroy");
+    this._super(...arguments);
+
+    this.running = false;
+    this.disconnect();
+    const socket = this.socketRef;
+    if(socket) {
+      socket.off('open', this.myOpenHandler);
+      socket.off('message', this.myMessageHandler);
+      socket.off('close', this.myCloseHandler);
+    }
+    this.socketRef = null,
+    this.users = null;
+    this.userID = null;
+    this.state = null;
+    this.lastPositions = null;
+    this.controllersConnected = null;
+    this.lastTime = null;
+    this.currentTime = 0;
+    this.deltaTime = 0;
+    this.updateQueue = [];
   },
 
 });
