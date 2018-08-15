@@ -1016,14 +1016,14 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('canvas2').height = height;
     let canvas2 = this.get('canvas2');
     var ctx = canvas2.getContext('2d');
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.0)';
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.0)';
     ctx.fillRect(0, 0, canvas2.width, canvas2.height);
 
 
     ctx.font = `30px arial`;
     ctx.fillStyle = '#000000';
     ctx.textAlign = 'center';
-    ctx.fillText(username, canvas2.width / 2, 30);
+    ctx.fillText(username, canvas2.width / 2, 35);
        
     // create texture out of canvas
     let texture = new THREE.Texture(canvas2);
@@ -1035,7 +1035,98 @@ export default VRRendering.extend(Ember.Evented, {
     var spriteMaterial = new THREE.SpriteMaterial( { map: texture, color: 0xffffff } );
     var sprite = new THREE.Sprite( spriteMaterial );
 
+    //align sprite with camera
+    sprite.position.x = camera.position.x;
+    sprite.position.y = camera.position.y + 0.4;
+    sprite.position.z = camera.position.z;
+
+    sprite.center.y = 1;
+
     camera.add(sprite);
+  },
+
+  setEntityState(id, isOpen){
+    const self = this;
+    this.get('vrLandscape').children.forEach(function (system) {
+      if (system.userData.model && system.userData.model.id == id) {
+        system.userData.model.setOpened(isOpen);
+        self.populateScene();
+        return;
+      }
+
+    });
+  },
+
+  setLandscapeState(systems, nodegroups){
+    let vrLandscape = this.get('vrLandscape').children;
+    systems.forEach(system => {
+      let emberModel = this.get('store').peekRecord('system', system.id);
+      emberModel.setOpened(system.opened);
+    });
+    this.populateScene();
+
+    nodegroups.forEach(function (nodegroup){
+      let id = nodegroup.id;
+      let isOpen = nodegroup.opened;
+      vrLandscape.forEach(entity => {
+        if (entity.userData.model && entity.userData.model.id == id) {
+          entity.userData.model.setOpened(isOpen);
+        }
+      });
+    });
+
+        /*
+    nodegroups.forEach(nodegroup => {
+      let emberModel = this.get('store').peekRecord('nodegroup', nodegroup.id);
+      emberModel.setOpened(nodegroup.opened);
+    });*/
+
+    this.populateScene();
+    
+  },
+
+  showApplication(id, posArray, quatArray){
+    const self = this;
+
+    self.set('viewImporter.importedURL', null);
+
+    console.log("getAppModel");
+    let emberModel = self.get('store').peekRecord('application', id);
+   
+    console.log("ID: " + emberModel.id);
+    //dont allow to open the same two apps
+    if (self.get('openApps').has(emberModel.id)){
+      return;
+    }
+
+    // Add 3D Application to scene (also if one exists already)
+    self.set('landscapeRepo.latestApplication', emberModel);
+    let position = new THREE.Vector3(posArray[0], posArray[1], posArray[2]);
+    let quaternion = new THREE.Quaternion(quatArray[0], quatArray[1], quatArray[2], quatArray[3]);
+    self.add3DApplicationToLandscape(emberModel, position, quaternion);
+
+    self.get('openApps').get(emberModel.id).updateMatrix();
+  },
+
+  redrawApplication(appID){
+    //only redraw if app is opened
+    if (!this.get('openApps').has(appID)){
+      return;
+    }
+    // Store app3D Data because application3D is removed in the next step
+    var appPosition = this.get('openApps').get(appID).position;
+    var appQuaternion = this.get('openApps').get(appID).quaternion;
+    let app3DModel = this.get('openApps').get(appID).userData.model;
+
+    console.log(this.get('openApps').get(appID).children);
+
+    // Empty application 3D (remove app3D)
+    this.removeChildren(this.get('openApps').get(appID));
+
+    //self.get('openApps').delete(app3DModel.id);
+    // Add application3D to scene
+    this.add3DApplicationToLandscape(app3DModel, appPosition, appQuaternion);
+    this.get('openApps').get(appID).updateMatrix();
   },
 
   send(obj) {
