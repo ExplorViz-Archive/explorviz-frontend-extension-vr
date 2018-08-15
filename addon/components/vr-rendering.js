@@ -480,13 +480,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }
   },
 
-  render2() {
-    this.get('threexStats').update(this.get('webglrenderer'));
-    this.get('stats').begin();
-    this.get('webglrenderer').render(this.get('scene'), this.get('camera'));
-    this.get('stats').end();
-  },
-
   loadController(controller) {
     if(controller.getGamepad() !== undefined && controller.getGamepad().pose !== undefined
       && !controller.getObjectByName("controllerTexture")) {
@@ -1590,21 +1583,27 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         intersectionPoint, new THREE.Quaternion());
 
         
-      //let bboxApp3D = new THREE.Box3().setFromObject(self.get('openApps').get(emberModel.id));
-      //let app3DSize = new THREE.Vector3();
-      //bboxApp3D.getSize(app3DSize);
-      //app3DSize.multiplyScalar(0.5);
+      let app = self.get('openApps').get(emberModel.id);
+      let bboxApp3D = new THREE.Box3().setFromObject(app);
+      let app3DSize = new THREE.Vector3();
+      bboxApp3D.getSize(app3DSize);
+      app3DSize.multiplyScalar(0.5);
+
       let newPosition = new THREE.Vector3();
 
-      //console.log("x: " + app3DSize.x + ",y:" + app3DSize.y + ",z:" + app3DSize.z);*/
-      // Center x and z
-      newPosition.x = intersectionPoint.x;//  - app3DSize.x;
-      newPosition.z = intersectionPoint.z;//  - app3DSize.z;
-      // Uncenter y for better overview
-      newPosition.y = intersectionPoint.y;//  + app3DSize.y*2;
-      self.get('openApps').get(emberModel.id).position.set(newPosition.x, newPosition.y + 0.3, newPosition.z);
-      self.get('openApps').get(emberModel.id).updateMatrix();
-      self.trigger('applicationOpened', emberModel.id, self.get('openApps').get(emberModel.id));
+      // Center x and z around hit application
+      newPosition.x = intersectionPoint.x  - app3DSize.x;
+      newPosition.z = intersectionPoint.z  + app3DSize.z;
+      newPosition.y = intersectionPoint.y + 0.3;
+      app.position.set(newPosition.x, newPosition.y, newPosition.z);
+
+      //rotate app so that it is aligned with landscape
+      app.setRotationFromQuaternion(this.get('vrEnvironment.quaternion'));
+      app.rotateX(1.5707963267949);
+      app.rotateY(1.5707963267949);
+      app.updateMatrix();
+      
+      self.trigger('applicationOpened', emberModel.id, app);
     });
     /*
      * This interaction listener is used to delete an existing application3D 
@@ -1964,7 +1963,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // Empty application 3D (remove app3D)
     this.removeChildren(this.get('openApps').get(appID));
 
-    //self.get('openApps').delete(app3DModel.id);
     // Add application3D to scene
     this.add3DApplicationToLandscape(app3DModel, appPosition, appQuaternion);
     this.get('openApps').get(appID).updateMatrix();
