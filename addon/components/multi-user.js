@@ -6,46 +6,59 @@ import VRRendering from './vr-rendering';
 import Ember from 'ember';
 import THREE from 'three';
 
+//Declare globals
 /*global createOBJLoader*/
 
+/**
+ * This component extends the functionalities of vr-rendering so that multiple users
+ * can use the vr-mode of ExplorViz. In its core a websocket with a tcp connection 
+ * to the backend is used to send and receive updates about the landscape, applications and
+ * other users.
+ *
+ * @class MULTI-USER
+ * @extends vr-rendering
+ */
 export default VRRendering.extend(Ember.Evented, {
-  websockets: service(),
-  socketRef: null,
+  websockets: service(), //service needed to use websockets
+  socketRef: null, //websocket to send/receive messages to/from backend
   
-  //Map: UserID -> User
-  users: null,
-  userID: null,
-  state: null,
-  lastPositions: null,
-  controllersConnected: null,
-  fps: 90,
-  lastTime: null,
-  currentTime: 0,
-  deltaTime: 0,
-  updateQueue: [],
-  running: false,
-  hmdObject: null,
-  messageQueue: [],
-  menues: new EmberMap(),
+  users: null, //Map: UserID -> User
+  userID: null, //own userID
+  state: null, //own connection status
+  lastPositions: null, //last positions of camera and controllers
+  controllersConnected: null, //tells which controller(s) are connected
+  fps: 90, //tells how often a picture is rendered per second (refresh rate of Vive/Rift is 90)
+  lastTime: null, //last time an image was rendered
+  currentTime: 0, //tells the current time in ms
+  deltaTime: 0, //time between two frames
+  updateQueue: [], //messages which are ready to be sent to backend
+  running: false, //tells if gameLoop is executing
+  hmdObject: null, //object for other user's hmd
+  messageQueue: [], //messages displayed on top edge of hmd (e.g. user x connected)
+  menues: new EmberMap(), //keeps track of menues for settings
   optionsMenu: null,
 
 
   gameLoop() {
-    if(!this.running)
+    if(!this.running){
       return;
-
-    //this.enqueueMessage('Testg123');
+    }
 
     this.currentTime = new Date().getTime();
 
+    //time difference between now and the last time updates were sent
     this.deltaTime = this.currentTime - this.lastTime;
 
+    //if time difference is large enough, update and send messages to backend
     if(this.deltaTime > 1000/this.fps) {
+      //if not connected yet controllers need not to be considered
       if(this.userID && this.state === 'connected') {
         this.updateControllers();
         this.update();
         this.render2();
       }
+
+      //send messages like connecting request, position updates etc.
       this.sendUpdates();
 
       this.lastTime = this.currentTime;
@@ -53,14 +66,21 @@ export default VRRendering.extend(Ember.Evented, {
     requestAnimationFrame(this.gameLoop.bind(this));
   },
 
-  sendUpdates() {
-    //there are updates to send
-    if(this.updateQueue.length > 0) {
-      this.send(this.updateQueue);
-      this.set('updateQueue', []);
-    }
+  /**
+   * Main rendering method. Is called render2 to avoid name conflict with built-in 
+   * render() method
+   */
+  render2() {
+    this.get('threexStats').update(this.get('webglrenderer'));
+    this.get('stats').begin();
+    this.get('webglrenderer').render(this.get('scene'), this.get('camera'));
+    this.get('stats').end();
   },
 
+  /**
+   * This function is the entry point for this component. 
+   * It is called once when the site has loaded.
+   */
   didRender() {
     this._super(...arguments);
     this.loadHMDModel();
@@ -131,7 +151,7 @@ export default VRRendering.extend(Ember.Evented, {
       this.gameLoop();
     });
 
-    //initialize interaction events
+    //initialize interaction events and delegate them to the corresponding functions
     this.get('interaction').on('systemStateChanged', (id, isOpen) => {
       this.sendSystemUpdate(id, isOpen);
     });
@@ -161,6 +181,21 @@ export default VRRendering.extend(Ember.Evented, {
     });
   },
 
+  /**
+   * Check wether there are messages in the queue and send those to backend
+   */
+  sendUpdates() {
+    //there are updates to send
+    if(this.updateQueue.length > 0) {
+      this.send(this.updateQueue);
+      this.set('updateQueue', []);
+    }
+  },
+
+  /**
+   * Add text to messageQueue which should be displayed on top edge of hmd
+   * @param {String} text Text which should be displayed
+   */
   enqueueMessage(text) {
     this.messageQueue.unshift(text);
     if(this.messageQueue.length === 1) {
@@ -168,6 +203,9 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
+  /**
+   * Displays text messages on the top edge of the hmd for 3 seconds
+   */
   showMessage() {
     if(this.messageQueue.length <= 0)
       return;
@@ -398,12 +436,18 @@ export default VRRendering.extend(Ember.Evented, {
     animate(); */
   },
 
+  /**
+   * Remove text message on top edge of user's view
+   */
   deleteMessageBox() {
     let messageBox = this.camera.getObjectByName('menu_messageBox');
     this.menues.delete('menu_messageBox');
     this.camera.remove(messageBox);
   },
 
+  /**
+   * Load the Texture for the hmds of other users
+   */
   loadHMDModel() {
     let OBJLoader = createOBJLoader(THREE);
     let loader = new OBJLoader(THREE.DefaultLoadingManager);
@@ -419,11 +463,18 @@ export default VRRendering.extend(Ember.Evented, {
     });
   },
 
+  /**
+   * Update position data and data on controller connections
+   */
   update() {
     this.updateAndSendPositions();
     this.sendControllerUpdate();
   },
 
+  /**
+   * Send update of position + quaternion of the
+   * landscape (vrEnvironment)
+   */
   sendLandscapeUpdate(){
     let position = new THREE.Vector3();
     this.get('vrEnvironment').localToWorld(position);
@@ -440,6 +491,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(landscapeObj);
   },
 
+  /**
+   * Send the backend the information that a system was
+   * closed or opened by this user
+   * @param {Long} id ID of system which was opened/closed
+   * @param {boolean} isOpen State of the system
+   */
   sendSystemUpdate(id, isOpen){
     console.log("Sending system update");
     let systemObj = {
@@ -451,6 +508,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(systemObj);
   },
 
+  /**
+   * Send the backend the information that a nodegroup was
+   * closed or opened by this user
+   * @param {Long} id ID of nodegroup which was opened/closed
+   * @param {boolean} isOpen State of the nodegroup
+   */
   sendNodegroupUpdate(id, isOpen){
     let nodeGroupObj = {
       "event": "receive_nodegroup_update",
@@ -461,6 +524,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(nodeGroupObj);
   },
 
+  /**
+   * Inform the backend that an app was opened by this
+   * user
+   * @param {Long} id ID of nodegroup which was opened/closed
+   * @param {boolean} isOpen State of the nodegroup
+   */
   sendAppOpened(id, app){
     let position = new THREE.Vector3();
     app.getWorldPosition(position);
@@ -478,6 +547,11 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(appObj);
   },
 
+  /**
+   * Inform the backend that an application was closed
+   * by this user
+   * @param {Long} appID ID of the closed application
+   */
   sendAppClosed(appID){
     let appObj = {
       "event": "receive_app_closed",
@@ -487,6 +561,15 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(appObj);
   },
 
+  /**
+   * Informs the backend that this user holds/moves an application
+   * @param {Long} appID ID of the bound app
+   * @param {Vector3} appPosition Position of the app (x, y, z)
+   * @param {Quaternion} appQuaternion Quaternion of the app (x, y, z, w)
+   * @param {boolean} isBoundToController1 Tells if app is hold by left controller
+   * @param {Vector3} controllerPosition Position of the controller which holds the application
+   * @param {Quaternion} controllerQuaternion Quaternion of the controller which holds the application
+   */
   sendAppBinded(appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion){
     let appObj = {
       "event": "receive_app_binded",
@@ -501,6 +584,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(appObj);
   },
 
+  /**
+   * Informs the backend that an application is no longer bound but released
+   * @param {Long} appID ID of the bound app
+   * @param {Vector3} position Position of the app (x, y, z)
+   * @param {Quaternion} quaternion Quaternion of the app (x, y, z, w)
+   */
   sendAppReleased(appID, position, quaternion){
     let appObj = {
       "event": "receive_app_released",
@@ -512,6 +601,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(appObj);
   },
 
+  /**
+   * Informs the backend that a component was opened or closed by this user
+   * @param {Long} appID ID of the app which is a parent to the component
+   * @param {Long} componentID ID of the component which was opened or closed
+   * @param {boolean} isOpened Tells whether the component is now open or closed (current state)
+   */
   sendComponentUpdate(appID, componentID, isOpened){
     let appObj = {
       "event": "receive_component_update",
@@ -523,6 +618,14 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(appObj);
   },
 
+  /**
+   * Informs the backend that an entity (clazz or component) was highlighted
+   * or unhighlighted
+   * @param {boolean} isHighlighted Tells whether the entity has been highlighted or not
+   * @param {Long} appID ID of the parent application of the entity
+   * @param {Long} entityID ID of the highlighted/unhighlighted component/clazz
+   * @param {Color} color Original color of the entity as hex value
+   */
   sendHighlightingUpdate(isHighlighted, appID, entityID, color){
     let hightlightObj = {
       "event": "receive_hightlight_update",
@@ -536,6 +639,9 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(hightlightObj);
   },
 
+  /**
+   * Informs the backend if a controller was connected/disconnected
+   */
   sendControllerUpdate() {
     let controllerObj = {
       "event": "receive_user_controllers",
@@ -547,28 +653,34 @@ export default VRRendering.extend(Ember.Evented, {
 
     let hasChanged = false;
 
+    //handle that controller 1 has disconnected
     if(this.controllersConnected.controller1 && this.controller1.getGamepad() === undefined) {
       disconnect.push("controller1");
       this.controllersConnected.controller1 = false;
       hasChanged = true;
     }
+    //handle that controller 1 has connected
     else if(!this.controllersConnected.controller1 && this.controller1.getGamepad() !== undefined) {
       connect.controller1 = this.controller1.getGamepad().id;
       this.controllersConnected.controller1 = true;
       hasChanged = true;
     }
 
+    //handle that controller 2 has disconnected
     if(this.controllersConnected.controller2 && this.controller2.getGamepad() === undefined) {
       disconnect.push("controller2");
       this.controllersConnected.controller2 = false;
       hasChanged = true;
     }
+    //handle that controller 2 has connected
     else if(!this.controllersConnected.controller2 && this.controller2.getGamepad() !== undefined) {
       connect.controller2 = this.controller2.getGamepad().id;
       this.controllersConnected.controller2 = true;
       hasChanged = true;
     }
 
+
+    //handle the case that either controller was connected/disconnected
     if(hasChanged) {
       if(Array.isArray(disconnect) && disconnect.length) {
         controllerObj.disconnect = disconnect;
@@ -577,6 +689,7 @@ export default VRRendering.extend(Ember.Evented, {
         controllerObj.connect = connect;
       }
 
+      //if status of at least one controller has changed, inform backend
       if(controllerObj.disconnect || controllerObj.connect) {
         this.updateQueue.push(controllerObj);
       }
@@ -652,12 +765,13 @@ export default VRRendering.extend(Ember.Evented, {
 
     if(hasChanged) {
       this.lastPositions = currentPositions;
-      //console.log(currentPositions.camera[0]);
-
       this.updateQueue.push(positionObj);
     }
   },
 
+  /**
+   * Inform the backend that we leave the session
+   */
   disconnect() {
     const disconnectMessage = [{
       "event": "receive_disconnect_request"
@@ -665,36 +779,15 @@ export default VRRendering.extend(Ember.Evented, {
     this.send(disconnectMessage);
   },
 
-  willDestroyElement() {
-    console.log("Destroy");
-    this._super(...arguments);
 
-    this.running = false;
-    this.disconnect();
-    const socket = this.socketRef;
-    if(socket) {
-      socket.off('open', this.myOpenHandler);
-      socket.off('message', this.myMessageHandler);
-      socket.off('close', this.myCloseHandler);
-    }
-    this.socketRef = null,
-    this.users = null;
-    this.userID = null;
-    this.state = null;
-    this.lastPositions = null;
-    this.controllersConnected = null;
-    this.lastTime = null;
-    this.currentTime = 0;
-    this.deltaTime = 0;
-    this.updateQueue = [];
-  },
-
-  openHandler(event) {
-    console.log(`On open event has been called: ${event}`);
-  },
-
+  /**
+   * Handles all incoming messages of the backend and delegates data to
+   * the corresponding function
+   * @param {JSON} event Event of websocket containing all messages of backend
+   */
   messageHandler(event) {
-    const messages = JSON.parse(event.data);
+    //backend could have sent multiple messages at a time
+    const messages = JSON.parse(event.data); 
     for(let i = 0; i < messages.length; i++) {
       let data = messages[i];
       switch(data.event) {
@@ -771,6 +864,11 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
+  /**
+   * After socket has opened to backend client is told his/her userID. 
+   * Respond by asking for "connected" status.
+   * @param {JSON} data Message containing own userID
+   */
   onSelfConnecting(data) {
     this.set('userID', data.id);
     let JSONObj = {
@@ -876,24 +974,6 @@ export default VRRendering.extend(Ember.Evented, {
       if(camera)
         user.updateCamera(camera);
     }
-  },
-
-  addLineToControllerModel(controller, color) {
-    // Ray for Controller
-    this.set('geometry', new THREE.Geometry());
-    this.get('geometry').vertices.push(new THREE.Vector3(0, 0, 0));
-    this.get('geometry').vertices.push(new THREE.Vector3(0, 0, -1));
-
-    // Create black ray for left controller
-    let line = new THREE.Line(this.get('geometry'));
-    line.name = 'controllerLine';
-    line.scale.z = 5;
-    line.material.color = new THREE.Color(0,0,0);
-    line.material.color.fromArray([color[0]/255.0,color[1]/255.0,color[2]/255.0]);
-    line.material.opacity = 0.25;
-    line.position.y -= 0.005;
-    line.position.z -= 0.02;
-    controller.model.add(line);
   },
 
   onUserControllers(data) {
@@ -1052,10 +1132,12 @@ export default VRRendering.extend(Ember.Evented, {
 
     let app = this.get('openApps').get(appID);
 
+    //return if app is not opened
     if(!app){
       return;
     }
 
+    //find component/clazz which shall be highlighted
     app.children.forEach( child => {
       if (child.userData.model && child.userData.model.id === entityID){
 
@@ -1078,11 +1160,34 @@ export default VRRendering.extend(Ember.Evented, {
     });
   },
 
+  addLineToControllerModel(controller, color) {
+    // Ray for Controller
+    this.set('geometry', new THREE.Geometry());
+    this.get('geometry').vertices.push(new THREE.Vector3(0, 0, 0));
+    this.get('geometry').vertices.push(new THREE.Vector3(0, 0, -1));
+
+    // Create black ray for left controller
+    let line = new THREE.Line(this.get('geometry'));
+    line.name = 'controllerLine';
+    line.scale.z = 5;
+    line.material.color = new THREE.Color(0,0,0);
+    line.material.color.fromArray([color[0]/255.0,color[1]/255.0,color[2]/255.0]);
+    line.material.opacity = 0.25;
+    line.position.y -= 0.005;
+    line.position.z -= 0.02;
+    controller.model.add(line);
+  },
+
+  /**
+   * Adds a username on top of another user's hmd
+   * 
+   * @param {Long} userID : user to which a username shall be added 
+   */
   addUsername(userID){
-    console.log("addUsername called");
     let user = this.get('users').get(userID);
     let camera = user.get('camera').model;
     let username = user.get('name');
+    //note: sprites are always same width + height
     let width = 256;
     let height = 256;
 
@@ -1092,35 +1197,138 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('canvas2').height = height;
     let canvas2 = this.get('canvas2');
     var ctx = canvas2.getContext('2d');
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.0)';
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.0)';
     ctx.fillRect(0, 0, canvas2.width, canvas2.height);
 
 
     ctx.font = `30px arial`;
     ctx.fillStyle = '#000000';
     ctx.textAlign = 'center';
-    ctx.fillText(username, canvas2.width / 2, 30);
+    ctx.fillText(username, canvas2.width / 2, 35);
        
     // create texture out of canvas
     let texture = new THREE.Texture(canvas2);
 
     // Update texture      
     texture.needsUpdate = true;
-    // Update mesh material
 
     var spriteMaterial = new THREE.SpriteMaterial( { map: texture, color: 0xffffff } );
     var sprite = new THREE.Sprite( spriteMaterial );
 
+    //align sprite with camera
+    sprite.position.x = camera.position.x;
+    sprite.position.y = camera.position.y + 0.4;
+    sprite.position.z = camera.position.z;
+
+    //let sprite rotate around middle of top edge
+    sprite.center.y = 1;
+
+    //sprite moves with hmd of user
     camera.add(sprite);
   },
 
+  setEntityState(id, isOpen){
+    const self = this;
+    this.get('vrLandscape').children.forEach(function (system) {
+      if (system.userData.model && system.userData.model.id == id) {
+        system.userData.model.setOpened(isOpen);
+        self.populateScene();
+        return;
+      }
+    });
+  },
+
+  setLandscapeState(systems, nodegroups){
+    let vrLandscape = this.get('vrLandscape').children;
+    systems.forEach(system => {
+      let emberModel = this.get('store').peekRecord('system', system.id);
+      emberModel.setOpened(system.opened);
+    });
+    this.populateScene();
+
+    nodegroups.forEach(function (nodegroup){
+      let id = nodegroup.id;
+      let isOpen = nodegroup.opened;
+      vrLandscape.forEach(entity => {
+        if (entity.userData.model && entity.userData.model.id == id) {
+          entity.userData.model.setOpened(isOpen);
+        }
+      });
+    });
+
+        /*
+    nodegroups.forEach(nodegroup => {
+      let emberModel = this.get('store').peekRecord('nodegroup', nodegroup.id);
+      emberModel.setOpened(nodegroup.opened);
+    });*/
+
+    this.populateScene();
+    
+  },
+
+
+  showApplication(id, posArray, quatArray){
+    this.set('viewImporter.importedURL', null);
+
+    //get model of application of the store
+    let emberModel = this.get('store').peekRecord('application', id);
+   
+    //dont allow to have the same app opened twice
+    if (this.get('openApps').has(emberModel.id)){
+      return;
+    }
+
+    //note that this property is still only working for one app at a time
+    this.set('landscapeRepo.latestApplication', emberModel); 
+    //position and quaternion where the application shall be displayed
+    let position = new THREE.Vector3().fromArray(posArray);
+    let quaternion = new THREE.Quaternion().fromArray(quatArray);
+    // Add 3D Application to scene (also if another one exists already)
+    this.add3DApplicationToLandscape(emberModel, position, quaternion);
+
+    //update matrix to display application correctly in the world
+    this.get('openApps').get(emberModel.id).updateMatrix();
+  },
+
+  //called when the websocket is opened for the first time
+  openHandler(event) {
+    console.log(`On open event has been called: ${event}`);
+  },
+
+  //used to send messages to the backend
   send(obj) {
     // console.log(`Sending: ${JSON.stringify(obj)}`);
     this.socketRef.send(JSON.stringify(obj));
   },
 
+  //called when the websocket is closed
   closeHandler(event) {
     console.log(`On close event has been called: ${event}`);
+  },
+
+  //called when user closes the site
+  willDestroyElement() {
+    console.log("Destroy");
+    this._super(...arguments);
+
+    this.running = false;
+    this.disconnect();
+    const socket = this.socketRef;
+    if(socket) {
+      socket.off('open', this.myOpenHandler);
+      socket.off('message', this.myMessageHandler);
+      socket.off('close', this.myCloseHandler);
+    }
+    this.socketRef = null,
+    this.users = null;
+    this.userID = null;
+    this.state = null;
+    this.lastPositions = null;
+    this.controllersConnected = null;
+    this.lastTime = null;
+    this.currentTime = 0;
+    this.deltaTime = 0;
+    this.updateQueue = [];
   },
 
 });
