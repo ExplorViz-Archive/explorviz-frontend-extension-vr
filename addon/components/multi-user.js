@@ -1,5 +1,4 @@
 import { inject as service } from '@ember/service';
-import EmberMap from '@ember/map';
 import User from '../utils/multi-user/user';
 import Menu from '../utils/multi-user/menu';
 import VRRendering from './vr-rendering';
@@ -37,7 +36,7 @@ export default VRRendering.extend(Ember.Evented, {
   messageQueue: [], //messages displayed on top edge of hmd (e.g. user x connected)
   isSpectating: false,
   spectatedUser: null,
-  menus: new EmberMap(), //keeps track of menus for settings
+  menus: new Map(), //keeps track of menus for settings
   optionsMenu: null,
 
 
@@ -130,7 +129,7 @@ export default VRRendering.extend(Ember.Evented, {
 
     const self = this;
 
-    this.set('users', EmberMap.create());
+    this.set('users', new Map());
     this.set('lastPositions', { camera: null, controller1: null, controller2: null });
     this.set('controllersConnected', { controller1: false, controller2: false });
     this.set('lastTime', new Date().getTime());
@@ -346,6 +345,7 @@ export default VRRendering.extend(Ember.Evented, {
     menu.addText('Options', 'title', 20, { x: 128, y: 10}, '#ffffff', 'center', false);
     menu.addText('Change Height', 'change_height', 14, { x: 128, y: 70}, '#FFFFFF', 'center', true);
     menu.addText('Change Landscape Position', 'change_landscape_position', 14, { x: 128, y: 100}, '#FFFFFF', 'center', true);
+    menu.addText('Spectate', 'spectate', 14, { x: 128, y: 130}, '#FFFFFF', 'center', true);
     menu.addText('Exit', 'exit', 14, { x: 128, y: 220}, '	#ff3030', 'center', true);
     menu.interact = (action, position) => {
       let item = menu.getItem(position);
@@ -362,6 +362,9 @@ export default VRRendering.extend(Ember.Evented, {
           } else if(item.name === 'change_landscape_position') {
             this.closeOptionsMenu();
             this.openChangeLandscapePosition(this.openOptionsMenu);
+          } else if(item.name === 'spectate') {
+            this.closeOptionsMenu();
+            this.openSpectateMenu(this.openOptionsMenu);
           }
         }
       } else {
@@ -471,6 +474,9 @@ export default VRRendering.extend(Ember.Evented, {
     this.controller1.add(menu.mesh);
     this.menus.set(menu.title, menu);
     this.optionsMenu = menu;
+  },
+
+  openSpectateMenu(lastMenu) {
   },
 
   createMessageBox(title, text) {
@@ -1028,7 +1034,7 @@ export default VRRendering.extend(Ember.Evented, {
 
     this.addUsername(data.user.id);
 
-    this.enqueueMessage('User connected', user.get('name'));
+    this.enqueueMessage({title: 'User connected', text: user.get('name')});
 
     this.activateSpectating(data.user.id);
 
@@ -1054,7 +1060,7 @@ export default VRRendering.extend(Ember.Evented, {
       this.get('scene').remove(user.get('camera.model'));
       user.removeCamera();
       this.get('users').delete(id);
-      this.enqueueMessage('User disconnected', user.get('name'));
+      this.enqueueMessage({title: 'User disconnected', text: user.get('name')});
     }
   },
 
