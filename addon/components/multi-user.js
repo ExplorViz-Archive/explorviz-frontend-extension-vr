@@ -34,10 +34,10 @@ export default VRRendering.extend(Ember.Evented, {
   running: false, //tells if gameLoop is executing
   hmdObject: null, //object for other user's hmd
   messageQueue: [], //messages displayed on top edge of hmd (e.g. user x connected)
-  isSpectating: false,
-  spectatedUser: null,
+  isSpectating: false, //tells whether this user is spectating
+  spectatedUser: null, //tells which userID (if any) is being spectated
   menus: new Map(), //keeps track of menus for settings
-  optionsMenu: null,
+  optionsMenu: null, 
 
 
   gameLoop() {
@@ -655,11 +655,8 @@ export default VRRendering.extend(Ember.Evented, {
    * landscape (vrEnvironment)
    */
   sendLandscapeUpdate(){
-    let position = new THREE.Vector3();
-    this.get('vrEnvironment').localToWorld(position);
-
-    let quaternion = new THREE.Quaternion();
-    this.get('vrEnvironment').getWorldQuaternion(quaternion);
+    let position = this.get('vrEnvironment').position;
+    let quaternion =  this.get('vrEnvironment').quaternion;
 
     let landscapeObj = {
       "event": "receive_landscape_position",
