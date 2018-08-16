@@ -94,6 +94,26 @@ export default EmberObject.extend({
     this.highlightedEntity.appID = appID;
     this.highlightedEntity.entityID = entityID;
     this.highlightedEntity.originalColor = originalColor;
+  },
+
+  setVisible(){
+    this.camera.model.visible = true;
+    if (this.controller1){
+      this.controller1.model.visible = true;
+    }
+    if (this.controller2){
+      this.controller2.model.visible = true;
+    }
+  },
+
+  setInvisible(){
+    this.camera.model.visible = false;
+    if (this.controller1){
+      this.controller1.model.visible = false;
+    }
+    if (this.controller2){
+      this.controller2.model.visible = false;
+    }
   }
 
 });

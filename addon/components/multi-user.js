@@ -35,7 +35,9 @@ export default VRRendering.extend(Ember.Evented, {
   running: false, //tells if gameLoop is executing
   hmdObject: null, //object for other user's hmd
   messageQueue: [], //messages displayed on top edge of hmd (e.g. user x connected)
-  menues: new EmberMap(), //keeps track of menues for settings
+  menues: new EmberMap(), //keeps track of menues for settings#
+  isSpectating: false,
+  spectatedUser: null,
 
 
   gameLoop() {
@@ -54,6 +56,10 @@ export default VRRendering.extend(Ember.Evented, {
       if(this.userID && this.state === 'connected') {
         this.updateControllers();
         this.update();
+        let position = new THREE.Vector3(0, 0, 0);
+        if (this.get('isSpectating')){
+          this.spectateUser();
+        }
         this.render2();
       }
 
@@ -64,6 +70,43 @@ export default VRRendering.extend(Ember.Evented, {
     }
     requestAnimationFrame(this.gameLoop.bind(this));
   },
+
+  spectateUser(){
+    if (this.get('spectatedUser') === null || !this.get('users').get(this.get('spectatedUser'))){
+      this.deactivateSpectating();
+      return;
+    }
+
+    let spectatedUser = this.get('users').get(this.get('spectatedUser'));
+    let position = spectatedUser.camera.position;
+
+    const cameraOffset = new THREE.Vector3();
+
+    cameraOffset.copy(this.camera.position);
+    this.user.position.subVectors(new THREE.Vector3(position.x, position.y, position.z), cameraOffset); 
+  },
+
+  activateSpectating(userID){
+    console.log("Spectating user: " + userID);
+    this.set('spectatedUser', userID);
+    let spectatedUser = this.get('users').get(userID);
+
+    //other user's hmd should be invisible
+    spectatedUser.camera.model.visible = false;
+    this.set('isSpectating', true);
+    this.sendSpectatingUpdate();
+  },
+
+  deactivateSpectating(){
+    console.log("No long spectating");
+    let spectatedUser = this.get('users').get(this.get('spectatedUser'));
+    spectatedUser.camera.model.visible = true;
+    this.set('isSpectating', false);
+    this.set('spectatedUser', null);
+    this.sendSpectatingUpdate();
+  },
+
+
 
   /**
    * Main rendering method. Is called render2 to avoid name conflict with built-in 
@@ -562,6 +605,17 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(hightlightObj);
   },
 
+  sendSpectatingUpdate(){
+    let spectateObj = {
+      "event": "receive_spectating_update",
+      "userID": this.get('userID'),
+      "isSpectating": this.get('isSpectating'),
+      "spectatedUser": this.get('spectatedUser'),
+      "time": Date.now()
+    }
+    this.updateQueue.push(spectateObj);
+  },
+
   /**
    * Informs the backend if a controller was connected/disconnected
    */
@@ -783,6 +837,10 @@ export default VRRendering.extend(Ember.Evented, {
           console.log(data);
           this.onHighlightingUpdate(data.userID, data.isHighlighted, data.appID, data.entityID, data.color);
           break;
+        case 'receive_spectating_update':
+          console.log(data);
+          this.onSpectatingUpdate(data.userID, data.isSpectating, data.spectatedUser);
+          break;
       }
     }
   },
@@ -868,10 +926,19 @@ export default VRRendering.extend(Ember.Evented, {
 
     this.enqueueMessage(`${user.get('name')} just connected.`);
 
+    this.activateSpectating(data.user.id);
+
   },
 
   onUserDisconnect(data) {
     let { id } = data;
+
+    //do not spectate a disconnected user
+    if (this.get('spectatedUser') == id){
+      this.deactivateSpectating();
+    }
+
+
     if(this.get('users') && this.get('users').has(id)) {
       //unhighlight possible objects of disconnected user
       this.onHighlightingUpdate(id, false);
@@ -1023,6 +1090,13 @@ export default VRRendering.extend(Ember.Evented, {
     // Store object 
     controller.userData.selected = app; 
 
+  },
+
+  onSpectatingUpdate(userID, isSpectating, spectatedUser){
+    if (isSpectating){
+      let user = this.get('users').get(userID);
+      user.setInvisible();
+    }
   },
 
   updateAppPosition(appID, position, quatArray){
