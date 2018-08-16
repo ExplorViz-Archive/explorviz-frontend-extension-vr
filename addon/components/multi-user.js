@@ -34,15 +34,9 @@ export default VRRendering.extend(Ember.Evented, {
   running: false, //tells if gameLoop is executing
   hmdObject: null, //object for other user's hmd
   messageQueue: [], //messages displayed on top edge of hmd (e.g. user x connected)
-<<<<<<< HEAD
-  isSpectating: false, //tells whether this user is spectating
-  spectatedUser: null, //tells which (if any) user is being spectated by this user
-  menus: new EmberMap(), //keeps track of menus for settings
-=======
   isSpectating: false,
   spectatedUser: null,
   menus: new Map(), //keeps track of menus for settings
->>>>>>> a8705d359c1460bba285bb8e03997f63635e4fa2
   optionsMenu: null,
 
 
@@ -87,16 +81,18 @@ export default VRRendering.extend(Ember.Evented, {
     let position = spectatedUser.camera.position;
 
     const cameraOffset = new THREE.Vector3();
-
+    
     cameraOffset.copy(this.camera.position);
     this.user.position.subVectors(new THREE.Vector3(position.x, position.y, position.z), cameraOffset); 
   },
 
   activateSpectating(userID){
-    //
     if(this.get('isSpectating')){
       this.deactivateSpectating();
-      this.activateSpectating(userID);
+    }
+
+    if(!this.get('users').has(userID)){
+      return;
     }
     console.log("Spectating user: " + userID);
     this.set('spectatedUser', userID);
@@ -109,11 +105,13 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   deactivateSpectating(){
+    if(!this.spectatedUser)
+      return;
     console.log("No long spectating");
     let spectatedUser = this.get('users').get(this.get('spectatedUser'));
     spectatedUser.camera.model.visible = true;
     this.set('isSpectating', false);
-    this.set('spectatedUser', 'undefined');
+    this.set('spectatedUser', null);
     this.sendSpectatingUpdate();
   },
 
@@ -488,6 +486,99 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   openSpectateMenu(lastMenu) {
+    let menu = new Menu({
+      title: 'spectateMenu',
+      resolution: { width: 256, height: 256 },
+      size: { height: 0.3, width: 0.3},
+      opacity: 0.8,
+      color: '#000000',
+    });
+    menu.addText('Spectate', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
+    menu.addArrowButton('previous_user', {x: 30, y: 103}, {x: 50, y: 133}, 'arrow_left', '#FFFFFF');
+    menu.addArrowButton('next_user', {x: 206, y: 103}, {x: 226, y: 133}, 'arrow_right', '#FFFFFF');
+    menu.addText('Spectating no-one', 'spectating_user', 14, { x: 128, y: 113}, '#FFFFFF', 'center', false);
+    menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ff3030', 'center', true);
+    menu.interact = (action, position) => {
+      let item = menu.getItem(position);
+      if(item) {
+        if(action === 'rightIntersect') {
+          menu.setHover(item);
+        }
+        if(action === 'rightTrigger') {
+          if(item.name === 'next_user') {
+            if(this.users.length < 1)
+              return;
+
+            let users = this.users.keys();
+            let userArray = []
+            for(let id of users) {
+              userArray.push(id);
+            }
+
+            userArray.sort();
+
+            if(!this.spectatedUser) {
+              this.activateSpectating(userArray[0]);
+              menu.updateText('spectating_user', this.users.get(userArray[0]).name);
+              return;
+            }
+            
+            let index = this.binaryIndexOf(userArray, this.spectatedUser);
+
+            if(index !== -1) {
+              if(index === userArray.length - 1) {
+                this.activateSpectating(userArray[0]);
+                menu.updateText('spectating_user', this.users.get(userArray[0]).name);
+              } else {
+                this.activateSpectating(userArray[index+1]);
+                menu.updateText('spectating_user', this.users.get(userArray[index+1]).name);
+              }
+            }
+          } else if(item.name === 'previous_user') {
+            if(this.users.length < 1)
+              return;
+
+              let users = this.users.keys();
+              let userArray = []
+              for(let id of users) {
+                userArray.push(id);
+              }
+  
+              userArray.sort();
+  
+              if(!this.spectatedUser) {
+                this.activateSpectating(userArray[userArray.length-1]);
+                menu.updateText('spectating_user', this.users.get(userArray[userArray.length-1]).name);
+                return;
+              }
+            
+              let index = this.binaryIndexOf(userArray, this.spectatedUser);
+  
+              if(index !== -1) {
+                if(index === 0) {
+                  this.activateSpectating(userArray[userArray.length-1]);
+                  menu.updateText('spectating_user', this.users.get(userArray[userArray.length-1]).name);
+                } else {
+                  this.activateSpectating(userArray[index-1]);
+                  menu.updateText('spectating_user', this.users.get(userArray[index-1]).name);
+                }
+              }
+          } else if(item.name === 'back') {
+            this.deactivateSpectating();
+            this.closeOptionsMenu();
+            lastMenu.bind(this)();
+          }
+        }
+      } else {
+        menu.setHover(null);
+      }
+    };
+    menu.createMesh();
+    menu.mesh.position.x += 0.2;
+    menu.mesh.geometry.rotateX(-1.5707963267949);
+    this.controller1.add(menu.mesh);
+    this.menus.set(menu.title, menu);
+    this.optionsMenu = menu;
   },
 
   createMessageBox(title, text) {
@@ -1047,8 +1138,6 @@ export default VRRendering.extend(Ember.Evented, {
 
     this.enqueueMessage({title: 'User connected', text: user.get('name')});
 
-    this.activateSpectating(data.user.id);
-
   },
 
   onUserDisconnect(data) {
@@ -1470,5 +1559,37 @@ export default VRRendering.extend(Ember.Evented, {
     this.deltaTime = 0;
     this.updateQueue = [];
   },
+
+    /**
+   * Performs a binary search on the host array. This method can either be
+   * injected into Array.prototype or called with a specified scope like this:
+   * binaryIndexOf.call(someArray, searchElement);
+   *
+   * @param {*} searchElement The item to search for within the array.
+   * @return {Number} The index of the element which defaults to -1 when not found.
+   */
+  binaryIndexOf(array, searchElement) {
+    var minIndex = 0;
+    var maxIndex = array.length - 1;
+    var currentIndex;
+    var currentElement;
+
+    while (minIndex <= maxIndex) {
+        currentIndex = (minIndex + maxIndex) / 2 | 0;
+        currentElement = array[currentIndex];
+
+        if (currentElement < searchElement) {
+            minIndex = currentIndex + 1;
+        }
+        else if (currentElement > searchElement) {
+            maxIndex = currentIndex - 1;
+        }
+        else {
+            return currentIndex;
+        }
+    }
+
+    return -1;
+  }
 
 });
