@@ -1468,9 +1468,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const centerLandscape = new THREE.Vector3();
     bboxLandscape.getCenter(centerLandscape);
 
-    // Set new position of vrEnvironment
+    // Set new position of vrEnvironment (disabled)
+    /*
     vrEnvironment.position.x += centerFloor.x - centerLandscape.x;
     vrEnvironment.position.z += centerFloor.z - centerLandscape.z;
+    */
 
     // Check distance between floor and landscape
     if(bboxLandscape.min.y > bboxFloor.max.y){

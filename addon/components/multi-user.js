@@ -35,8 +35,8 @@ export default VRRendering.extend(Ember.Evented, {
   running: false, //tells if gameLoop is executing
   hmdObject: null, //object for other user's hmd
   messageQueue: [], //messages displayed on top edge of hmd (e.g. user x connected)
-  isSpectating: false,
-  spectatedUser: null,
+  isSpectating: false, //tells whether this user is spectating
+  spectatedUser: null, //tells which (if any) user is being spectated by this user
   menus: new EmberMap(), //keeps track of menus for settings
   optionsMenu: null,
 
@@ -88,6 +88,11 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   activateSpectating(userID){
+    //
+    if(this.get('isSpectating')){
+      this.deactivateSpectating();
+      this.activateSpectating(userID);
+    }
     console.log("Spectating user: " + userID);
     this.set('spectatedUser', userID);
     let spectatedUser = this.get('users').get(userID);
@@ -103,7 +108,7 @@ export default VRRendering.extend(Ember.Evented, {
     let spectatedUser = this.get('users').get(this.get('spectatedUser'));
     spectatedUser.camera.model.visible = true;
     this.set('isSpectating', false);
-    this.set('spectatedUser', null);
+    this.set('spectatedUser', 'undefined');
     this.sendSpectatingUpdate();
   },
 
