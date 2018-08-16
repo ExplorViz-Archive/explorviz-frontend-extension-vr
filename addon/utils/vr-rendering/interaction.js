@@ -126,7 +126,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('controller2').addEventListener('gripdown', registerGripDownController2);
     // this.get('controller1').addEventListener('gripup', this.emptyFunction);
     this.get('controller2').addEventListener('gripup', registerGripUpController2);
-    // this.get('controller1').addEventListener('menudown', this.emptyFunction);
+    this.get('controller1').addEventListener('menudown', registerMenuDownController1);
     // this.get('controller2').addEventListener('menudown', this.emptyFunction);
     // this.get('controller1').addEventListener('menuup', this.emptyFunction);
     // this.get('controller2').addEventListener('menuup', this.emptyFunction);
@@ -196,6 +196,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     }
     function registerThumbpadDownController2(evt){
       self.onThumbpadDownController1(evt, true);
+    } 
+
+    function registerMenuDownController1(evt){
+      self.onMenuDownController1(evt);
     } 
 
     // mouseout handler for disabling notifications
@@ -303,6 +307,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    */
   checkIntersectionRightController() {
     let controller = this.get('controller2');
+    let controllerLine = controller.getObjectByName('controllerLine');
 
     var tempMatrix = new THREE.Matrix4();
 
@@ -310,10 +315,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     let id = controller.id;
 
     // Calculate controller direction and origin
-    tempMatrix.identity().extractRotation( controller.matrixWorld );
+    tempMatrix.identity().extractRotation( controllerLine.matrixWorld );
     
     const origin = new THREE.Vector3();
-    origin.setFromMatrixPosition(controller.matrixWorld);
+    origin.setFromMatrixPosition(controllerLine.matrixWorld);
 
     const direction = new THREE.Vector3(0,0,-1);
     direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
@@ -386,7 +391,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.unhighlightedDeleteButton(id, true);
 
       // Resize ray 
-      controller.getObjectByName('controllerLine').scale.z = 5;
+      controllerLine.scale.z = 5;
     }
   },
   /*
@@ -396,6 +401,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    */
   checkIntersectionLeftController(){
     let controller = this.get('controller1');
+    let controllerLine = controller.getObjectByName('controllerLine');
 
     var tempMatrix = new THREE.Matrix4();
 
@@ -403,10 +409,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     let id = controller.id;
 
     // Calculate controller direction and origin
-    tempMatrix.identity().extractRotation( controller.matrixWorld );
+    tempMatrix.identity().extractRotation( controllerLine.matrixWorld );
     
     const origin = new THREE.Vector3();
-    origin.setFromMatrixPosition(controller.matrixWorld);
+    origin.setFromMatrixPosition(controllerLine.matrixWorld);
 
     const direction = new THREE.Vector3(0,0,-1);
     direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
@@ -490,7 +496,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.unhighlightedDeleteButton(id, true);
 
       // Resize ray 
-      controller.getObjectByName('controllerLine').scale.z = 5;
+      controllerLine.scale.z = 5;
     }
   },
   //////// END checkIntersection
@@ -506,6 +512,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   onThumbpadDownController1(event, rightHand){
 
     const controller = event.target;
+    let controllerLine = controller.getObjectByName('controllerLine');
 
     var tempMatrix = new THREE.Matrix4();
 
@@ -513,10 +520,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     let id = controller.id;
 
     // Calculate controller direction and origin
-    tempMatrix.identity().extractRotation( controller.matrixWorld );
+    tempMatrix.identity().extractRotation( controllerLine.matrixWorld );
     
     const origin = new THREE.Vector3();
-    origin.setFromMatrixPosition(controller.matrixWorld);
+    origin.setFromMatrixPosition(controllerLine.matrixWorld);
 
     const direction = new THREE.Vector3(0,0,-1);
     direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
@@ -670,6 +677,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   onTriggerDownController2(event){
 
     const controller = event.target;
+    let controllerLine = controller.getObjectByName('controllerLine');
 
     /* Refuse trigger functionality if the controller which triggered
      * the event already binds the app3D 
@@ -678,10 +686,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Calculate controller direction and origin
       var tempMatrix = new THREE.Matrix4();
 
-      tempMatrix.identity().extractRotation( controller.matrixWorld );
+      tempMatrix.identity().extractRotation( controllerLine.matrixWorld );
       
       const origin = new THREE.Vector3();
-      origin.setFromMatrixPosition(controller.matrixWorld);
+      origin.setFromMatrixPosition(controllerLine.matrixWorld);
 
       const direction = new THREE.Vector3(0,0,-1);
       direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
@@ -773,6 +781,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   onTriggerDownController1(event){
 
     const controller = event.target;
+    let controllerLine = controller.getObjectByName('controllerLine');
 
     /* Refuse trigger functionality if the controller which triggered
      * the event already binds the app3D 
@@ -781,10 +790,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Calculate controller direction and origin
       var tempMatrix = new THREE.Matrix4();
 
-      tempMatrix.identity().extractRotation( controller.matrixWorld );
+      tempMatrix.identity().extractRotation( controllerLine.matrixWorld );
       
       const origin = new THREE.Vector3();
-      origin.setFromMatrixPosition(controller.matrixWorld);
+      origin.setFromMatrixPosition(controllerLine.matrixWorld);
 
       const direction = new THREE.Vector3(0,0,-1);
       direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
@@ -881,14 +890,15 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    */
   onGripDownController2(event){
     const controller = event.target;
+    let controllerLine = controller.getObjectByName('controllerLine');
 
      // Calculate controller direction and origin
     var tempMatrix = new THREE.Matrix4();
 
-    tempMatrix.identity().extractRotation( controller.matrixWorld );
+    tempMatrix.identity().extractRotation( controllerLine.matrixWorld );
     
     const origin = new THREE.Vector3();
-    origin.setFromMatrixPosition(controller.matrixWorld);
+    origin.setFromMatrixPosition(controllerLine.matrixWorld);
 
     const direction = new THREE.Vector3(0,0,-1);
     direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
@@ -942,6 +952,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       }
     }
   },
+
+  onMenuDownController1(event) {},
 
 ////////// Mouse interaction ////////// 
 
@@ -1055,7 +1067,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('controller2').removeEventListener('gripdown', this.onGripDownController2);
     // this.get('controller1').removeEventListener('gripup', this.emptyFunction);
     this.get('controller2').removeEventListener('gripup', this.onGripUpController2);
-    // this.get('controller1').removeEventListener('menudown', this.emptyFunction);
+    this.get('controller1').removeEventListener('menudown', this.onMenuDownController1);
     // this.get('controller2').removeEventListener('menudown', this.emptyFunction);
     // this.get('controller1').removeEventListener('menuup', this.emptyFunction);
     // this.get('controller2').removeEventListener('menuup', this.emptyFunction);
@@ -1309,6 +1321,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   handlePanning(delta, event) {
 
     if(event.button === 1){
+      console.log(delta);
       // Translate camera
       let distanceXInPercent = (delta.x /
         parseFloat(this.get('renderer').domElement.clientWidth)) * ( -10.0);

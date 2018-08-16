@@ -35,9 +35,10 @@ export default VRRendering.extend(Ember.Evented, {
   running: false, //tells if gameLoop is executing
   hmdObject: null, //object for other user's hmd
   messageQueue: [], //messages displayed on top edge of hmd (e.g. user x connected)
-  menues: new EmberMap(), //keeps track of menues for settings#
   isSpectating: false,
   spectatedUser: null,
+  menus: new EmberMap(), //keeps track of menus for settings
+  optionsMenu: null,
 
 
   gameLoop() {
@@ -135,11 +136,11 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('lastTime', new Date().getTime());
     let old_checkIntersectionRightController = this.get('interaction').checkIntersectionRightController;
     this.get('interaction').checkIntersectionRightController = function() {
-      let menues = [];
-      self.menues.forEach((menu) => {
-        menues.push(menu.mesh);
+      let menus = [];
+      self.menus.forEach((menu) => {
+        menus.push(menu.mesh);
       });
-      let menuHit = self.checkIntersectionRightController(menues);
+      let menuHit = self.checkIntersectionRightController(menus);
       if(menuHit) {
         // Unhighlight delete button
         this.unhighlightedDeleteButton(self.controller2.id, true);
@@ -152,6 +153,23 @@ export default VRRendering.extend(Ember.Evented, {
       }
     };
 
+    let old_onTriggerDownController2 = this.get('interaction').onTriggerDownController2;
+    this.get('interaction').onTriggerDownController2 = function(event) {
+      let menus = [];
+      self.menus.forEach((menu) => {
+        menus.push(menu.mesh);
+      });
+      let menuHit = self.onTriggerDownController2(menus);
+      if(!menuHit) {
+        old_onTriggerDownController2.apply(this, [event]);
+      }
+    };
+
+    let old_onMenuDownController1 = this.get('interaction').onMenuDownController1;
+    this.get('interaction').onMenuDownController1 = function(event) {
+      self.onMenuDownController1();
+      old_onMenuDownController1.apply(this, [event]);
+    };
 
     let host, port;
     Ember.$.getJSON("config/config_multiuser.json").then(json => {
@@ -219,10 +237,10 @@ export default VRRendering.extend(Ember.Evented, {
 
   /**
    * Add text to messageQueue which should be displayed on top edge of hmd
-   * @param {String} text Text which should be displayed
+   * @param {{title: string, text: string}} message Title and text which should be displayed
    */
-  enqueueMessage(text) {
-    this.messageQueue.unshift(text);
+  enqueueMessage(message) {
+    this.messageQueue.unshift(message);
     if(this.messageQueue.length === 1) {
       this.showMessage();
     }
@@ -236,7 +254,7 @@ export default VRRendering.extend(Ember.Evented, {
       return;
     
     let message = this.messageQueue[this.messageQueue.length-1];
-    this.createMessageBox(message);
+    this.createMessageBox(message.title, message.text);
     setTimeout(closeAfterTime.bind(this), 3000);
 
     function closeAfterTime() {
@@ -250,17 +268,17 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
-
   checkIntersectionRightController(objects) {
     let controller = this.get('controller2');
+    let controllerLine = controller.getObjectByName('controllerLine');
 
     var tempMatrix = new THREE.Matrix4();
 
     // Calculate controller direction and origin
-    tempMatrix.identity().extractRotation( controller.matrixWorld );
+    tempMatrix.identity().extractRotation( controllerLine.matrixWorld );
     
     const origin = new THREE.Vector3();
-    origin.setFromMatrixPosition(controller.matrixWorld);
+    origin.setFromMatrixPosition(controllerLine.matrixWorld);
 
     const direction = new THREE.Vector3(0,0,-1);
     direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
@@ -270,122 +288,209 @@ export default VRRendering.extend(Ember.Evented, {
       null, objects);
     
     if(intersectedViewObj) {
-      controller.getObjectByName('controllerLine').scale.z = intersectedViewObj.distance;
+      controllerLine.scale.z = intersectedViewObj.distance;
       let name = intersectedViewObj.object.name;
-      if(name.startsWith('menu_')) {
-        let menu = this.menues.get(name);
-        if(menu) {
-          menu.interact('rightIntersect', intersectedViewObj.uv);
-          return true;
-        }
+      let menu = this.menus.get(name);
+      if(menu) {
+        menu.interact('rightIntersect', intersectedViewObj.uv);
+        return true;
       }
     }
   },
-  
-  /**
-  * Uses canvas.measureText to compute and return the width of the given text of given font in pixels.
-  * 
-  * @param {String} text The text to be rendered.
-  * @param {String} font The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
-  * 
-  * @see https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
-  */
-  getTextSize(text, font) {
-      // re-use canvas object for better performance
-      let canvas = document.createElement("canvas");
-      let context = canvas.getContext("2d");
-      context.font = font;
-      let metrics = context.measureText(text);
-      let height = context.measureText('M').width;
-      return { width: metrics.width, height: height };
+
+  onTriggerDownController2(objects) {
+    let controller = this.get('controller2');
+    let controllerLine = controller.getObjectByName('controllerLine');
+
+    var tempMatrix = new THREE.Matrix4();
+
+    // Calculate controller direction and origin
+    tempMatrix.identity().extractRotation( controllerLine.matrixWorld );
+    
+    const origin = new THREE.Vector3();
+    origin.setFromMatrixPosition(controllerLine.matrixWorld);
+
+    const direction = new THREE.Vector3(0,0,-1);
+    direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
+
+    // Calculate hit object
+    const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
+      null, objects);
+    
+    if(intersectedViewObj) {
+      controllerLine.scale.z = intersectedViewObj.distance;
+      let name = intersectedViewObj.object.name;
+      let menu = this.menus.get(name);
+      if(menu) {
+        menu.interact('rightTrigger', intersectedViewObj.uv);
+        return true;
+      }
+    }
   },
 
-  createOptionsMenu() {
-    let menu = new Menu();
-    menu.set('title', 'menu_Options');
-    menu.set('width', 256);
-    menu.set('height', 256);
-    menu.set('opacity', 0.6);
-    menu.set('color', '#000000');
-    menu.addText('Options', 24, { x: 100, y: 0}, '#FFFFFF', 'left', false);
-    menu.addText('Change Color', 16, { x: 20, y: 40}, '#FFFFFF', 'left', true);
-    menu.addText('Change xxx', 16, { x: 20, y: 70}, '#FFFFFF', 'left', true);
+  onMenuDownController1() {
+    if(!this.optionsMenu)
+      this.openOptionsMenu();
+    else
+      this.closeOptionsMenu();
+  },
+
+  openOptionsMenu() {
+    let menu = new Menu({
+      title: 'optionsMenu',
+      resolution: { width: 256, height: 256 },
+      size: { height: 0.3, width: 0.3},
+      opacity: 0.8,
+      color: '#000000',
+    });
+    menu.addText('Options', 'title', 20, { x: 128, y: 10}, '#ffffff', 'center', false);
+    menu.addText('Change Height', 'change_height', 14, { x: 128, y: 70}, '#FFFFFF', 'center', true);
+    menu.addText('Change Landscape Position', 'change_landscape_position', 14, { x: 128, y: 100}, '#FFFFFF', 'center', true);
+    menu.addText('Exit', 'exit', 14, { x: 128, y: 220}, '	#ff3030', 'center', true);
     menu.interact = (action, position) => {
-      if(action === 'rightIntersect' ) {
-        for(let i = 0; i < menu.items.length; i++) {
-          let item = menu.items[i];
-          if(item.type === 'text' && item.clickable) {
-            //console.log(position.y);
-            let x = menu.width * position.x;
-            let y = menu.height - (menu.height * position.y);
-
-            let size = this.getTextSize(item.text, `${item.size}px arial`);
-
-            if(x >= item.position.x && y >= item.position.y && x <= item.position.x + size.width && y <= item.position.y + size.height) {
-              console.log('hit');
-              if(!item.hover) {
-                item.hover = true;
-                menu.update();
-              }
-            } else if(item.hover) {
-              item.hover = false;
-              menu.update();
-            }
+      let item = menu.getItem(position);
+      if(item) {
+        if(action === 'rightIntersect') {
+          menu.setHover(item);
+        }
+        if(action === 'rightTrigger') {
+          if(item.name === 'exit') {
+            this.closeOptionsMenu();
+          } else if(item.name === 'change_height') {
+            this.closeOptionsMenu();
+            this.openChangeCameraHeightMenu(this.openOptionsMenu);
+          } else if(item.name === 'change_landscape_position') {
+            this.closeOptionsMenu();
+            this.openChangeLandscapePosition(this.openOptionsMenu);
           }
         }
+      } else {
+        menu.setHover(null);
       }
-      //console.log(position);
     };
 
     menu.createMesh();
     menu.mesh.position.x += 0.2;
     menu.mesh.geometry.rotateX(1.5707963267949 * 3);
     this.controller1.add(menu.mesh);
-    this.menues.set(menu.title, menu);
+    this.menus.set(menu.title, menu);
+    this.optionsMenu = menu;
   },
 
-  createMessageBox(text) {
-    let menu = new Menu();
-    menu.set('title', 'menu_messageBox');
-    menu.set('width', 512);
-    menu.set('height', 64);
-    menu.set('opacity', 0.5);
-    menu.set('color', new THREE.Color(0,0,0));
-    menu.addText(text, 20, { x: 256, y: 0}, '#FFFFFF', 'left', false);
+  closeOptionsMenu() {
+    this.controller1.remove(this.optionsMenu.mesh);
+    this.optionsMenu.close();
+    this.menus.delete(this.optionsMenu.title);
+    this.optionsMenu = null;
+  },
 
+  openChangeCameraHeightMenu(lastMenu) {
+    let menu = new Menu({
+      title: 'changeCameraHeightMenu',
+      resolution: { width: 256, height: 256 },
+      size: { height: 0.3, width: 0.3},
+      opacity: 0.8,
+      color: '#000000',
+    });
+    menu.addText('Change Height', 'title', 20, { x: 128, y: 10}, '#ffffff', 'center', false);
+    menu.addText(this.user.position.y.toFixed(2), 'camera_height', 14, { x: 128, y: 70}, '#FFFFFF', 'center', false);
+    menu.addArrowButton('height_down', {x: 50, y: 65}, {x: 70, y: 85}, 'arrow_down', '#FFFFFF');
+    menu.addArrowButton('height_up', {x: 176, y: 65}, {x: 196, y: 85}, 'arrow_up', '#FFFFFF');
+    menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ff3030', 'center', true);
     menu.interact = (action, position) => {
-      if(action === 'rightIntersect' ) {
-        for(let i = 0; i < menu.items.length; i++) {
-          let item = menu.items[i];
-          if(item.type === 'text' && item.clickable) {
-            //console.log(position.y);
-            let x = menu.width * position.x;
-            let y = menu.height - (menu.height * position.y);
-
-            let size = this.getTextSize(item.text, `${item.size}px arial`);
-
-            if(x >= item.position.x && y >= item.position.y && x <= item.position.x + size.width && y <= item.position.y + size.height) {
-              console.log('hit');
-              if(!item.hover) {
-                menu.update();
-                item.hover = true;
-              }
-            } else if(item.hover) {
-              menu.update();
-              item.hover = false;
-            }
+      let item = menu.getItem(position);
+      if(item) {
+        if(action === 'rightIntersect') {
+          menu.setHover(item);
+        }
+        if(action === 'rightTrigger') {
+          if(item.name === 'height_down') {
+            this.get('user').position.y -= 0.05;
+            menu.updateText('camera_height', this.get('user').position.y.toFixed(2));
+          } else if(item.name === 'height_up') {
+            this.get('user').position.y += 0.05;
+            menu.updateText('camera_height', this.get('user').position.y.toFixed(2));
+          } else if(item.name === 'back') {
+            this.closeOptionsMenu();
+            lastMenu.bind(this)();
           }
         }
+      } else {
+        menu.setHover(null);
       }
-      //console.log(position);
     };
+    menu.createMesh();
+    menu.mesh.position.x += 0.2;
+    menu.mesh.geometry.rotateX(-1.5707963267949);
+    this.controller1.add(menu.mesh);
+    this.menus.set(menu.title, menu);
+    this.optionsMenu = menu;
+  },
+
+  openChangeLandscapePosition(lastMenu) {
+    let menu = new Menu({
+      title: 'changeLandscapePositionMenu',
+      resolution: { width: 256, height: 256 },
+      size: { height: 0.3, width: 0.3},
+      opacity: 0.8,
+      color: '#000000',
+    });
+    menu.addText('Change Landscape Position', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
+    menu.addArrowButton('move_left', {x: 70, y: 103}, {x: 90, y: 133}, 'arrow_left', '#FFFFFF');
+    menu.addArrowButton('move_right', {x: 166, y: 103}, {x: 186, y: 133}, 'arrow_right', '#FFFFFF');
+    menu.addArrowButton('move_forward', {x: 113, y: 60}, {x: 143, y: 80}, 'arrow_up', '#FFFFFF');
+    menu.addArrowButton('move_backward', {x: 113, y: 156}, {x: 143, y: 176}, 'arrow_down', '#FFFFFF');
+    menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ff3030', 'center', true);
+    menu.interact = (action, position) => {
+      let item = menu.getItem(position);
+      if(item) {
+        if(action === 'rightIntersect') {
+          menu.setHover(item);
+        }
+        if(action === 'rightTrigger') {
+          if(item.name === 'move_left') {
+            this.moveLandscape({x: 20, y: 0});
+          } else if(item.name === 'move_right') {
+            this.moveLandscape({x: -20, y: 0});
+          } else if(item.name === 'move_forward') {
+            this.moveLandscape({x: 0, y: 20});
+          } else if(item.name === 'move_backward') {
+            this.moveLandscape({x: 0, y: -20});
+          } else if(item.name === 'back') {
+            this.closeOptionsMenu();
+            lastMenu.bind(this)();
+          }
+        }
+      } else {
+        menu.setHover(null);
+      }
+    };
+    menu.createMesh();
+    menu.mesh.position.x += 0.2;
+    menu.mesh.geometry.rotateX(-1.5707963267949);
+    this.controller1.add(menu.mesh);
+    this.menus.set(menu.title, menu);
+    this.optionsMenu = menu;
+  },
+
+  createMessageBox(title, text) {
+    let menu = new Menu({
+      title: 'messageBox',
+      resolution: { width: 256, height: 64 },
+      size: { width: 0.2, height: 0.05 },
+      opacity: 0.7,
+      color: '#000000',
+    });
+    menu.addText(title, 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
+    menu.addText(text, 'text', 14, { x: 128, y: 40}, 'lightgreen', 'center', false);
+    menu.interact = (action, position) => {};
 
     menu.createMesh();
-    this.menues.set(menu.title, menu);
+    this.menus.set(menu.title, menu);
 
     let textBox = menu.mesh;
-    textBox.position.y += 0.32;
-    textBox.position.z -= 0.4;
+    textBox.position.y += 0.3;
+    textBox.position.z -= 0.3;
     textBox.rotateX(0.45);
 
     this.camera.add(textBox);
@@ -406,8 +511,8 @@ export default VRRendering.extend(Ember.Evented, {
    * Remove text message on top edge of user's view
    */
   deleteMessageBox() {
-    let messageBox = this.camera.getObjectByName('menu_messageBox');
-    this.menues.delete('menu_messageBox');
+    let messageBox = this.camera.getObjectByName('messageBox');
+    this.menus.delete('messageBox');
     this.camera.remove(messageBox);
   },
 
@@ -846,7 +951,7 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   /**
-   * After socket has opened to backend client is told his/her userID. 
+   * After socket has opened to backend client is told his/her userID.
    * Respond by asking for "connected" status.
    * @param {JSON} data Message containing own userID
    */
@@ -905,7 +1010,6 @@ export default VRRendering.extend(Ember.Evented, {
       //set name for user on top of his hmd 
       this.addUsername(userData.id);
     }
-    this.createOptionsMenu();
     this.state = "connected";
   },
 
@@ -924,7 +1028,7 @@ export default VRRendering.extend(Ember.Evented, {
 
     this.addUsername(data.user.id);
 
-    this.enqueueMessage(`${user.get('name')} just connected.`);
+    this.enqueueMessage('User connected', user.get('name'));
 
     this.activateSpectating(data.user.id);
 
@@ -950,7 +1054,7 @@ export default VRRendering.extend(Ember.Evented, {
       this.get('scene').remove(user.get('camera.model'));
       user.removeCamera();
       this.get('users').delete(id);
-      this.enqueueMessage(`${user.get('name')} disconnected.`);
+      this.enqueueMessage('User disconnected', user.get('name'));
     }
   },
 
@@ -1286,6 +1390,27 @@ export default VRRendering.extend(Ember.Evented, {
 
     //update matrix to display application correctly in the world
     this.get('openApps').get(emberModel.id).updateMatrix();
+  },
+
+  moveLandscape(delta) {
+    let distanceXInPercent = (delta.x / -100.0);
+    let distanceYInPercent = (delta.y / 100.0);
+
+    this.get('vrEnvironment').position.x +=  distanceXInPercent;
+    this.get('vrEnvironment').position.z -= distanceYInPercent;
+    this.updateObjectMatrix(this.get('vrEnvironment'));
+
+    this.get('interaction').trigger('landscapeMoved');
+  },
+
+  /*
+   *  This method is used to update the matrix of
+   *  a given Object3D
+   */
+  updateObjectMatrix(object){
+    if(object){
+      object.updateMatrix();
+    }
   },
 
   //called when the websocket is opened for the first time
