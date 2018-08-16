@@ -285,9 +285,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     });
     this.set('requestMaterial',requestMaterial);
     
-    this.set('openApps', EmberMap.create());
-    this.set('foundations', EmberMap.create());
-    this.set('app3DMeshes', EmberMap.create());
+    this.set('openApps', new Map());
+    this.set('foundations', new Map());
+    this.set('app3DMeshes', new Map());
     this.set('boundApps', new Set());
 
     // Load image for delete button
