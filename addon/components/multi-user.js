@@ -34,16 +34,10 @@ export default VRRendering.extend(Ember.Evented, {
   running: false, //tells if gameLoop is executing
   hmdObject: null, //object for other user's hmd
   messageQueue: [], //messages displayed on top edge of hmd (e.g. user x connected)
-<<<<<<< HEAD
   isSpectating: false, //tells whether this user is spectating
-  spectatedUser: null, //tells which (if any) user is being spectated by this user
-  menus: new EmberMap(), //keeps track of menus for settings
-=======
-  isSpectating: false,
-  spectatedUser: null,
+  spectatedUser: null, //tells which userID (if any) is being spectated
   menus: new Map(), //keeps track of menus for settings
->>>>>>> a8705d359c1460bba285bb8e03997f63635e4fa2
-  optionsMenu: null,
+  optionsMenu: null, 
 
 
   gameLoop() {
@@ -564,11 +558,8 @@ export default VRRendering.extend(Ember.Evented, {
    * landscape (vrEnvironment)
    */
   sendLandscapeUpdate(){
-    let position = new THREE.Vector3();
-    this.get('vrEnvironment').localToWorld(position);
-
-    let quaternion = new THREE.Quaternion();
-    this.get('vrEnvironment').getWorldQuaternion(quaternion);
+    let position = this.get('vrEnvironment').position;
+    let quaternion =  this.get('vrEnvironment').quaternion;
 
     let landscapeObj = {
       "event": "receive_landscape_position",
@@ -1046,8 +1037,6 @@ export default VRRendering.extend(Ember.Evented, {
     this.addUsername(data.user.id);
 
     this.enqueueMessage({title: 'User connected', text: user.get('name')});
-
-    this.activateSpectating(data.user.id);
 
   },
 
