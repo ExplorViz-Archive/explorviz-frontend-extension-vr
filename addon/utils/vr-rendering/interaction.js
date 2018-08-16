@@ -1321,6 +1321,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   handlePanning(delta, event) {
 
     if(event.button === 1){
+      console.log(delta);
       // Translate camera
       let distanceXInPercent = (delta.x /
         parseFloat(this.get('renderer').domElement.clientWidth)) * ( -10.0);

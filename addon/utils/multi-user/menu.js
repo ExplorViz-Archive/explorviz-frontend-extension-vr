@@ -120,6 +120,20 @@ export default EmberObject.extend({
         ctx.lineTo(from.x + ((to.x - from.x) / 2), to.y);
         ctx.fill();
         break;
+      case 'arrow_left':
+        ctx.beginPath();
+        ctx.moveTo(to.x, from.y);
+        ctx.lineTo(to.x, to.y);
+        ctx.lineTo(from.x, from.y + ((to.y - from.y) / 2));
+        ctx.fill();
+        break;
+      case 'arrow_right':
+        ctx.beginPath();
+        ctx.moveTo(from.x, from.y);
+        ctx.lineTo(from.x, to.y);
+        ctx.lineTo(to.x, from.y + ((to.y - from.y) / 2));
+        ctx.fill();
+        break;
     }
   },
 

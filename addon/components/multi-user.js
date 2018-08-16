@@ -302,6 +302,7 @@ export default VRRendering.extend(Ember.Evented, {
     });
     menu.addText('Options', 'title', 20, { x: 128, y: 10}, '#ffffff', 'center', false);
     menu.addText('Change Height', 'change_height', 14, { x: 128, y: 70}, '#FFFFFF', 'center', true);
+    menu.addText('Change Landscape Position', 'change_landscape_position', 14, { x: 128, y: 100}, '#FFFFFF', 'center', true);
     menu.addText('Exit', 'exit', 14, { x: 128, y: 220}, '	#ff3030', 'center', true);
     menu.interact = (action, position) => {
       let item = menu.getItem(position);
@@ -315,6 +316,9 @@ export default VRRendering.extend(Ember.Evented, {
           } else if(item.name === 'change_height') {
             this.closeOptionsMenu();
             this.openChangeCameraHeightMenu(this.openOptionsMenu);
+          } else if(item.name === 'change_landscape_position') {
+            this.closeOptionsMenu();
+            this.openChangeLandscapePosition(this.openOptionsMenu);
           }
         }
       } else {
@@ -363,6 +367,52 @@ export default VRRendering.extend(Ember.Evented, {
           } else if(item.name === 'height_up') {
             this.get('user').position.y += 0.05;
             menu.updateText('camera_height', this.get('user').position.y.toFixed(2));
+          } else if(item.name === 'back') {
+            this.closeOptionsMenu();
+            lastMenu.bind(this)();
+          }
+        }
+      } else {
+        menu.setHover(null);
+      }
+    };
+    menu.createMesh();
+    menu.mesh.position.x += 0.2;
+    menu.mesh.geometry.rotateX(-1.5707963267949);
+    this.controller1.add(menu.mesh);
+    this.menus.set(menu.title, menu);
+    this.optionsMenu = menu;
+  },
+
+  openChangeLandscapePosition(lastMenu) {
+    let menu = new Menu({
+      title: 'changeLandscapePositionMenu',
+      resolution: { width: 256, height: 256 },
+      size: { height: 0.3, width: 0.3},
+      opacity: 0.8,
+      color: '#000000',
+    });
+    menu.addText('Change Landscape Position', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
+    menu.addArrowButton('move_left', {x: 70, y: 103}, {x: 90, y: 133}, 'arrow_left', '#FFFFFF');
+    menu.addArrowButton('move_right', {x: 166, y: 103}, {x: 186, y: 133}, 'arrow_right', '#FFFFFF');
+    menu.addArrowButton('move_forward', {x: 113, y: 60}, {x: 143, y: 80}, 'arrow_up', '#FFFFFF');
+    menu.addArrowButton('move_backward', {x: 113, y: 156}, {x: 143, y: 176}, 'arrow_down', '#FFFFFF');
+    menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ff3030', 'center', true);
+    menu.interact = (action, position) => {
+      let item = menu.getItem(position);
+      if(item) {
+        if(action === 'rightIntersect') {
+          menu.setHover(item);
+        }
+        if(action === 'rightTrigger') {
+          if(item.name === 'move_left') {
+            this.moveLandscape({x: 20, y: 0});
+          } else if(item.name === 'move_right') {
+            this.moveLandscape({x: -20, y: 0});
+          } else if(item.name === 'move_forward') {
+            this.moveLandscape({x: 0, y: 20});
+          } else if(item.name === 'move_backward') {
+            this.moveLandscape({x: 0, y: -20});
           } else if(item.name === 'back') {
             this.closeOptionsMenu();
             lastMenu.bind(this)();
@@ -1266,6 +1316,27 @@ export default VRRendering.extend(Ember.Evented, {
 
     //update matrix to display application correctly in the world
     this.get('openApps').get(emberModel.id).updateMatrix();
+  },
+
+  moveLandscape(delta) {
+    let distanceXInPercent = (delta.x / -100.0);
+    let distanceYInPercent = (delta.y / 100.0);
+
+    this.get('vrEnvironment').position.x +=  distanceXInPercent;
+    this.get('vrEnvironment').position.z -= distanceYInPercent;
+    this.updateObjectMatrix(this.get('vrEnvironment'));
+
+    this.get('interaction').trigger('landscapeMoved');
+  },
+
+  /*
+   *  This method is used to update the matrix of
+   *  a given Object3D
+   */
+  updateObjectMatrix(object){
+    if(object){
+      object.updateMatrix();
+    }
   },
 
   //called when the websocket is opened for the first time
