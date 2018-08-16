@@ -66,7 +66,8 @@ export default EmberObject.extend({
           ctx.fillStyle = item.color;
         }
         ctx.textAlign = item.align;
-        ctx.fillText(item.text, item.position.x, item.position.y + item.size);
+        let textSize = this.getTextSize(item.text, ctx.font);
+        ctx.fillText(item.text, item.position.x, item.position.y + textSize.sublineHeight);
       } else if(item.type === 'button') {
         if(item.style.startsWith('arrow')) {
           if(item.hover) {
@@ -135,7 +136,7 @@ export default EmberObject.extend({
       let y = this.resolution.height - (this.resolution.height * position.y);
       if(item.type === 'text') {
 
-        let size = getTextSize(item.text, `${item.size}px arial`);
+        let size = this.getTextSize(item.text, `${item.size}px arial`);
 
         let itemX = item.position.x;
         let itemY = item.position.y;
@@ -160,24 +161,25 @@ export default EmberObject.extend({
         }
       }
     }
+  },
   
-    /**
-    * Uses canvas.measureText to compute and return the width of the given text of given font in pixels.
-    * 
-    * @param {String} text The text to be rendered.
-    * @param {String} font The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
-    * 
-    * @see https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
-    */
-    function getTextSize(text, font) {
-        // re-use canvas object for better performance
-        let canvas = document.createElement("canvas");
-        let context = canvas.getContext("2d");
-        context.font = font;
-        let metrics = context.measureText(text);
-        let height = context.measureText('M').width;
-        return { width: metrics.width, height: height };
-    }
+  /**
+  * Uses canvas.measureText to compute and return the width of the given text of given font in pixels.
+  * 
+  * @param {String} text The text to be rendered.
+  * @param {String} font The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
+  * 
+  * @see https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
+  */
+  getTextSize(text, font) {
+    // re-use canvas object for better performance
+    let canvas = document.createElement("canvas");
+    let context = canvas.getContext("2d");
+    context.font = font;
+    let width = context.measureText(text).width;
+    let height = context.measureText("W").width;
+    var sublineHeight = context.measureText("H").width;
+    return { width, height, sublineHeight };
   },
 
   setHover(item) {    
@@ -234,7 +236,8 @@ export default EmberObject.extend({
           ctx.fillStyle = item.color;
         }
         ctx.textAlign = item.align;
-        ctx.fillText(item.text, item.position.x, item.position.y + item.size);
+        let textSize = this.getTextSize(item.text, ctx.font);
+        ctx.fillText(item.text, item.position.x, item.position.y + textSize.sublineHeight);
       } else if(item.type === 'button') {
         if(item.style.startsWith('arrow')) {
           if(item.hover) {

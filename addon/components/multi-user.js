@@ -194,10 +194,10 @@ export default VRRendering.extend(Ember.Evented, {
 
   /**
    * Add text to messageQueue which should be displayed on top edge of hmd
-   * @param {String} text Text which should be displayed
+   * @param {{title: string, text: string}} message Title and text which should be displayed
    */
-  enqueueMessage(text) {
-    this.messageQueue.unshift(text);
+  enqueueMessage(message) {
+    this.messageQueue.unshift(message);
     if(this.messageQueue.length === 1) {
       this.showMessage();
     }
@@ -211,7 +211,7 @@ export default VRRendering.extend(Ember.Evented, {
       return;
     
     let message = this.messageQueue[this.messageQueue.length-1];
-    this.createMessageBox(message);
+    this.createMessageBox(message.title, message.text);
     setTimeout(closeAfterTime.bind(this), 3000);
 
     function closeAfterTime() {
@@ -294,13 +294,14 @@ export default VRRendering.extend(Ember.Evented, {
 
   openOptionsMenu() {
     let menu = new Menu({
+      title: 'optionsMenu',
       resolution: { width: 256, height: 256 },
       size: { height: 0.3, width: 0.3},
-      opacity: 0.7,
+      opacity: 0.8,
       color: '#000000',
     });
     menu.addText('Options', 'title', 20, { x: 128, y: 10}, '#ffffff', 'center', false);
-    menu.addText('Change Camera Height', 'change_camera_height', 14, { x: 128, y: 70}, '#FFFFFF', 'center', true);
+    menu.addText('Change Height', 'change_height', 14, { x: 128, y: 70}, '#FFFFFF', 'center', true);
     menu.addText('Exit', 'exit', 14, { x: 128, y: 220}, '	#ff3030', 'center', true);
     menu.interact = (action, position) => {
       let item = menu.getItem(position);
@@ -311,7 +312,7 @@ export default VRRendering.extend(Ember.Evented, {
         if(action === 'rightTrigger') {
           if(item.name === 'exit') {
             this.closeOptionsMenu();
-          } else if(item.name === 'change_camera_height') {
+          } else if(item.name === 'change_height') {
             this.closeOptionsMenu();
             this.openChangeCameraHeightMenu(this.openOptionsMenu);
           }
@@ -338,15 +339,16 @@ export default VRRendering.extend(Ember.Evented, {
 
   openChangeCameraHeightMenu(lastMenu) {
     let menu = new Menu({
+      title: 'changeCameraHeightMenu',
       resolution: { width: 256, height: 256 },
       size: { height: 0.3, width: 0.3},
-      opacity: 0.7,
+      opacity: 0.8,
       color: '#000000',
     });
-    menu.addText('Change Camera Height', 'title', 20, { x: 128, y: 10}, '#ffffff', 'center', false);
+    menu.addText('Change Height', 'title', 20, { x: 128, y: 10}, '#ffffff', 'center', false);
     menu.addText(this.user.position.y.toFixed(2), 'camera_height', 14, { x: 128, y: 70}, '#FFFFFF', 'center', false);
-    menu.addArrowButton('height_down', {x: 50, y: 70}, {x: 70, y: 90}, 'arrow_down', '#FFFFFF');
-    menu.addArrowButton('height_up', {x: 176, y: 70}, {x: 196, y: 90}, 'arrow_up', '#FFFFFF');
+    menu.addArrowButton('height_down', {x: 50, y: 65}, {x: 70, y: 85}, 'arrow_down', '#FFFFFF');
+    menu.addArrowButton('height_up', {x: 176, y: 65}, {x: 196, y: 85}, 'arrow_up', '#FFFFFF');
     menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ff3030', 'center', true);
     menu.interact = (action, position) => {
       let item = menu.getItem(position);
@@ -372,54 +374,30 @@ export default VRRendering.extend(Ember.Evented, {
     };
     menu.createMesh();
     menu.mesh.position.x += 0.2;
-    menu.mesh.geometry.rotateX(1.5707963267949 * 3);
+    menu.mesh.geometry.rotateX(-1.5707963267949);
     this.controller1.add(menu.mesh);
     this.menus.set(menu.title, menu);
     this.optionsMenu = menu;
   },
 
-  createMessageBox(text) {
-    /*let menu = new Menu();
-    menu.set('title', 'menu_messageBox');
-    menu.set('width', 512);
-    menu.set('height', 64);
-    menu.set('opacity', 0.5);
-    menu.set('color', new THREE.Color(0,0,0));
-    menu.addText(text, 20, { x: 256, y: 0}, '#FFFFFF', 'left', false);
-
-    menu.interact = (action, position) => {
-      if(action === 'rightIntersect' ) {
-        for(let i = 0; i < menu.items.length; i++) {
-          let item = menu.items[i];
-          if(item.type === 'text' && item.clickable) {
-            //console.log(position.y);
-            let x = menu.width * position.x;
-            let y = menu.height - (menu.height * position.y);
-
-            let size = this.getTextSize(item.text, `${item.size}px arial`);
-
-            if(x >= item.position.x && y >= item.position.y && x <= item.position.x + size.width && y <= item.position.y + size.height) {
-              console.log('hit');
-              if(!item.hover) {
-                menu.update();
-                item.hover = true;
-              }
-            } else if(item.hover) {
-              menu.update();
-              item.hover = false;
-            }
-          }
-        }
-      }
-      //console.log(position);
-    };
+  createMessageBox(title, text) {
+    let menu = new Menu({
+      title: 'messageBox',
+      resolution: { width: 256, height: 64 },
+      size: { width: 0.2, height: 0.05 },
+      opacity: 0.7,
+      color: '#000000',
+    });
+    menu.addText(title, 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
+    menu.addText(text, 'text', 14, { x: 128, y: 40}, 'lightgreen', 'center', false);
+    menu.interact = (action, position) => {};
 
     menu.createMesh();
     this.menus.set(menu.title, menu);
 
     let textBox = menu.mesh;
-    textBox.position.y += 0.32;
-    textBox.position.z -= 0.4;
+    textBox.position.y += 0.3;
+    textBox.position.z -= 0.3;
     textBox.rotateX(0.45);
 
     this.camera.add(textBox);
@@ -433,15 +411,15 @@ export default VRRendering.extend(Ember.Evented, {
       }
       requestAnimationFrame(animate);
     }
-    animate(); */
+    animate();
   },
 
   /**
    * Remove text message on top edge of user's view
    */
   deleteMessageBox() {
-    let messageBox = this.camera.getObjectByName('menu_messageBox');
-    this.menus.delete('menu_messageBox');
+    let messageBox = this.camera.getObjectByName('messageBox');
+    this.menus.delete('messageBox');
     this.camera.remove(messageBox);
   },
 
@@ -865,7 +843,7 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   /**
-   * After socket has opened to backend client is told his/her userID. 
+   * After socket has opened to backend client is told his/her userID.
    * Respond by asking for "connected" status.
    * @param {JSON} data Message containing own userID
    */
@@ -942,7 +920,7 @@ export default VRRendering.extend(Ember.Evented, {
 
     this.addUsername(data.user.id);
 
-    this.enqueueMessage(`${user.get('name')} just connected.`);
+    this.enqueueMessage('User connected', user.get('name'));
 
   },
 
@@ -959,7 +937,7 @@ export default VRRendering.extend(Ember.Evented, {
       this.get('scene').remove(user.get('camera.model'));
       user.removeCamera();
       this.get('users').delete(id);
-      this.enqueueMessage(`${user.get('name')} disconnected.`);
+      this.enqueueMessage('User disconnected', user.get('name'));
     }
   },
 
