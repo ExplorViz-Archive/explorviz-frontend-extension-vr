@@ -90,7 +90,10 @@ export default VRRendering.extend(Ember.Evented, {
     //
     if(this.get('isSpectating')){
       this.deactivateSpectating();
-      this.activateSpectating(userID);
+    }
+
+    if(!this.get('users').had(userID)){
+      return;
     }
     console.log("Spectating user: " + userID);
     this.set('spectatedUser', userID);
