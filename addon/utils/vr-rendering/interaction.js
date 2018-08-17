@@ -1298,7 +1298,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && this.get('selectedEntitysColor')){
 
         // Reset communication lines
-        this.get('selector').highlightAppCommunication(null, this.get('highlightedAppModel'));
+        this.get('selector').highlightAppCommunication(null, this.get('highlightedAppModel').userData.model);
 
         // Restore selected entity and communication lines
         this.restoreSelectedEntity(id);

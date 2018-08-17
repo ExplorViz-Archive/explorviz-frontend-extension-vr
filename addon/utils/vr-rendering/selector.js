@@ -17,8 +17,7 @@ export default Ember.Object.extend({
    *  TODO: Complete adaptation to latest changes of model in backend
    */
   highlightAppCommunication(entity, app) {
-    /*
-    //DISABLED because property state is getter-only property and thus can't be set.
+
     const outgoingClazzCommunications = app.get('cumulatedClazzCommunications');
 
     if(outgoingClazzCommunications != null){
@@ -26,21 +25,20 @@ export default Ember.Object.extend({
       outgoingClazzCommunications.forEach((clazzCommunication) => {
 
         if(entity === null || entity === undefined){
-          outgoingClazzCommunications.state = "TRANSPARENT";
+          outgoingClazzCommunications.set("state", "TRANSPARENT");
           
         }
         else{
           if ((clazzCommunication.sourceClazz != null && clazzCommunication.get('sourceClazz').get('fullQualifiedName') === entity.get('fullQualifiedName')) ||
           (clazzCommunication.targetClazz != null && clazzCommunication.get('targetClazz').get('fullQualifiedName') === entity.get('fullQualifiedName'))) {
-            clazzCommunication.state = "NORMAL";
-
+            clazzCommunication.set("state", "NORMAL");
           } 
           else {
-            clazzCommunication.state = "TRANSPARENT";
+             clazzCommunication.set("state", "TRANSPARENT");
           }
         }
       });
-    } */
+    } 
     
   }
   
