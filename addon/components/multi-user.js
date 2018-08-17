@@ -56,7 +56,6 @@ export default VRRendering.extend(Ember.Evented, {
       if(this.userID && this.state === 'connected') {
         this.updateControllers();
         this.update();
-        let position = new THREE.Vector3(0, 0, 0);
         if (this.get('isSpectating')){
           this.spectateUser();
         }
@@ -142,6 +141,7 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('lastPositions', { camera: null, controller1: null, controller2: null });
     this.set('controllersConnected', { controller1: false, controller2: false });
     this.set('lastTime', new Date().getTime());
+
     let old_checkIntersectionRightController = this.get('interaction').checkIntersectionRightController;
     this.get('interaction').checkIntersectionRightController = function() {
       let menus = [];
@@ -157,8 +157,19 @@ export default VRRendering.extend(Ember.Evented, {
         // Restore old color of application3D
         this.unhighlightApplication3D(self.controller2.id);
       } else {
-        old_checkIntersectionRightController.apply(this);
+        if(!self.isSpectating)
+          old_checkIntersectionRightController.apply(this);
+        else
+          self.get('controller2').getObjectByName('controllerLine').scale.z = self.zeroValue;
       }
+    };
+    
+    let old_checkIntersectionLeftController = this.get('interaction').checkIntersectionLeftController;
+    this.get('interaction').checkIntersectionLeftController = function() {
+      if(!self.isSpectating)
+        old_checkIntersectionLeftController.apply(this);
+      else
+        self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
     };
 
     let old_onTriggerDownController2 = this.get('interaction').onTriggerDownController2;
@@ -169,8 +180,15 @@ export default VRRendering.extend(Ember.Evented, {
       });
       let menuHit = self.onTriggerDownController2(menus);
       if(!menuHit) {
-        old_onTriggerDownController2.apply(this, [event]);
+        if(!self.isSpectating)
+          old_onTriggerDownController2.apply(this, [event]);
       }
+    };
+
+    let old_onTriggerDownController1 = this.get('interaction').onTriggerDownController1;
+    this.get('interaction').onTriggerDownController1 = function(event) {
+      if(!self.isSpectating)
+        old_onTriggerDownController1.apply(this, [event]);
     };
 
     let old_onMenuDownController1 = this.get('interaction').onMenuDownController1;
@@ -337,10 +355,15 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   onMenuDownController1() {
-    if(!this.optionsMenu)
-      this.openOptionsMenu();
-    else
+    if(!this.isSpectating) {
+      if(!this.optionsMenu)
+        this.openOptionsMenu();
+      else
+        this.closeOptionsMenu();
+    } else {
+      this.deactivateSpectating();
       this.closeOptionsMenu();
+    }
   },
 
   openOptionsMenu() {
