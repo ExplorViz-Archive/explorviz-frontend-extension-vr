@@ -9,7 +9,7 @@ export default EmberObject.extend({
   color: '#FFFFFF',
   opacity: 1.0,
   mesh: null,
-  hoverColor: '#00FFFF',
+  hoverColor: '#00e5ff',
   hoveredItem: null,
 
   Menu(options) {
@@ -66,6 +66,10 @@ export default EmberObject.extend({
           ctx.fillStyle = item.color;
         }
         ctx.textAlign = item.align;
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
         let textSize = this.getTextSize(item.text, ctx.font);
         ctx.fillText(item.text, item.position.x, item.position.y + textSize.sublineHeight);
       } else if(item.type === 'button') {
@@ -250,6 +254,10 @@ export default EmberObject.extend({
           ctx.fillStyle = item.color;
         }
         ctx.textAlign = item.align;
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
         let textSize = this.getTextSize(item.text, ctx.font);
         ctx.fillText(item.text, item.position.x, item.position.y + textSize.sublineHeight);
       } else if(item.type === 'button') {
