@@ -224,8 +224,8 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('interaction').on('componentUpdate', (appID , componentID, isOpened) => {
       this.sendComponentUpdate(appID, componentID, isOpened);
     });
-    this.get('interaction').on('landscapeMoved', () => {
-      this.sendLandscapeUpdate();
+    this.get('interaction').on('landscapeMoved', (deltaPosition) => {
+      this.sendLandscapeUpdate(deltaPosition);
     });
     this.get('interaction').on('entityHighlighted', (isHighlighted, appID, entityID, color) => {
       this.sendHighlightingUpdate(isHighlighted, appID, entityID, color);
@@ -654,14 +654,13 @@ export default VRRendering.extend(Ember.Evented, {
    * Send update of position + quaternion of the
    * landscape (vrEnvironment)
    */
-  sendLandscapeUpdate(){
-    let position = this.get('vrEnvironment').position;
+  sendLandscapeUpdate(deltaPosition){
     let quaternion =  this.get('vrEnvironment').quaternion;
 
     let landscapeObj = {
       "event": "receive_landscape_position",
       "time": Date.now(),
-      "position" : position.toArray(),
+      "deltaPosition" : deltaPosition.toArray(),
       "quaternion" : quaternion.toArray()
     }
     this.updateQueue.push(landscapeObj);
@@ -1013,7 +1012,8 @@ export default VRRendering.extend(Ember.Evented, {
           this.onInitialLandscape(data);
           break;
           case 'receive_landscape_position':
-          this.onLandscapePosition(data.position, data.quaternion);
+          console.log(data);
+          this.onLandscapePosition(data.deltaPosition, data.quaternion);
           break;
         case 'receive_system_update':
           console.log(data);
@@ -1240,19 +1240,28 @@ export default VRRendering.extend(Ember.Evented, {
       this.showApplication(app.id, app.position, app.quaternion);
     });
 
+    
     if(data.hasOwnProperty('landscape')){
       let position = data.landscape.position;
+      console.log("Initial position offset: " + position);
       let quaternion = data.landscape.quaternion;
+      console.log("Initial quaternion: " + quaternion);
       this.onLandscapePosition(position, quaternion);
     }
   },
 
-  onLandscapePosition(position, quaternion){
-    this.get('vrEnvironment').position.fromArray(position);
+  onLandscapePosition(deltaPosition, quaternion){
+    this.get('environmentOffset').x += deltaPosition[0];
+    this.get('environmentOffset').z += deltaPosition[2];
+
+    this.get('vrEnvironment').position.x += deltaPosition[0];
+    this.get('vrEnvironment').position.y += deltaPosition[1];
+    this.get('vrEnvironment').position.z += deltaPosition[2];
+
     this.get('vrEnvironment').quaternion.fromArray(quaternion);
-    if(this.get('vrEnvironment')){
-      this.get('vrEnvironment').updateMatrix();
-    }
+
+    this.updateObjectMatrix(this.get('vrEnvironment'));
+    this.centerVREnvironment(this.get('vrEnvironment'), this.get('room'));
   },
 
   onLandscapeUpdate(id, isOpen){
@@ -1300,9 +1309,11 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   onSpectatingUpdate(userID, isSpectating){
+    let user = this.get('users').get(userID);
     if (isSpectating){
-      let user = this.get('users').get(userID);
       user.setVisible(false);
+    } else {
+      user.setVisible(true);
     }
   },
 
@@ -1506,7 +1517,8 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('vrEnvironment').position.z -= distanceYInPercent;
     this.updateObjectMatrix(this.get('vrEnvironment'));
 
-    this.get('interaction').trigger('landscapeMoved');
+    let deltaPosition = new THREE.Vector3(distanceXInPercent, 0, distanceYInPercent);
+    this.get('interaction').trigger('landscapeMoved', deltaPosition);
   },
 
   /*

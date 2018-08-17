@@ -60,7 +60,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   initialRendering: true, //handle initial rendering in populateScene()
   requestMaterial: null, //material for e.g. "earth"
   foundationBuilder: null, //imported from frontend
-  zeroValue: 0.0000000000000001 * 0.0000000000000001, //tiny number e.g. to emulate a plane
+  zeroValue: 0.0000000000000001 * 0.0000000000000001, //tiny number e.g. to emulate a plane with depth zeroValue
 
   // VR
   vrEnvironment: null, //contains vrLandscape and vrCommunications
@@ -1509,7 +1509,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       raycaster, this.get('vrLandscape').children, controller1, controller2, 
       vrEnvironment, this.get('configuration.landscapeColors'), 
       this.get('configurationApplication.applicationColors'), this.get('textBox'), 
-      this.get('labeler'), this.get('room'), user, this.get('boundApps'));
+      this.get('labeler'), this.get('room'), user, this.get('boundApps'), this.get('environmentOffset'));
 
     // Set listeners
     this.get('interaction').on('redrawScene', function() {
