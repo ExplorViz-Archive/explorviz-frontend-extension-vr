@@ -1522,6 +1522,9 @@ export default VRRendering.extend(Ember.Evented, {
     let distanceXInPercent = (delta.x / -100.0);
     let distanceYInPercent = (delta.y / 100.0);
 
+    this.get('environmentOffset').x += distanceXInPercent;
+    this.get('environmentOffset').z -= distanceYInPercent;
+
     this.get('vrEnvironment').position.x +=  distanceXInPercent;
     this.get('vrEnvironment').position.z -= distanceYInPercent;
     this.updateObjectMatrix(this.get('vrEnvironment'));

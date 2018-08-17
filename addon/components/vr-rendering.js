@@ -11,7 +11,6 @@ import ImageLoader from 'explorviz-frontend/utils/three-image-loader';
 import applyCityLayout from 'explorviz-frontend/utils/application-rendering/city-layouter';
 import FoundationBuilder from 'explorviz-frontend/utils/application-rendering/foundation-builder';
 import layout from "../templates/components/vr-rendering";
-import EmberMap from '@ember/map';
 
 // Declare globals
 /*global WEBVR*/
@@ -65,6 +64,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   // VR
   vrEnvironment: null, //contains vrLandscape and vrCommunications
+  environmentOffset : null, //tells how much the environment position should differ from the floor center point
   vrLandscape: null, //contains systems and their children
   vrCommunications: null, //contains communication between elements of landscape
   controller1: null, //left controller
@@ -179,6 +179,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('vrEnvironment').name = 'landscape';
     this.get('vrEnvironment').add(this.get('vrCommunications'));
     this.get('vrEnvironment').add(this.get('vrLandscape'));
+
+    this.set('environmentOffset', new THREE.Vector3(0, 0, 0));
 
     this.get('vrEnvironment').matrixAutoUpdate = false;
     this.get('vrLandscape').matrixAutoUpdate = false;
@@ -1468,11 +1470,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const centerLandscape = new THREE.Vector3();
     bboxLandscape.getCenter(centerLandscape);
 
-    // Set new position of vrEnvironment (disabled)
-    /*
-    vrEnvironment.position.x += centerFloor.x - centerLandscape.x;
-    vrEnvironment.position.z += centerFloor.z - centerLandscape.z;
-    */
+    // Set new position of vrEnvironment
+    vrEnvironment.position.x += centerFloor.x - centerLandscape.x + this.get('environmentOffset.x');
+    vrEnvironment.position.z += centerFloor.z - centerLandscape.z + this.get('environmentOffset.z');
+    
 
     // Check distance between floor and landscape
     if(bboxLandscape.min.y > bboxFloor.max.y){
