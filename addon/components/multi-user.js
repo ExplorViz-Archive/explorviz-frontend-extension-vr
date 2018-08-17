@@ -349,13 +349,13 @@ export default VRRendering.extend(Ember.Evented, {
       resolution: { width: 256, height: 256 },
       size: { height: 0.3, width: 0.3},
       opacity: 0.8,
-      color: '#000000',
+      color: '#444444',
     });
-    menu.addText('Options', 'title', 20, { x: 128, y: 10}, '#ffffff', 'center', false);
-    menu.addText('Change Height', 'change_height', 14, { x: 128, y: 70}, '#FFFFFF', 'center', true);
-    menu.addText('Change Landscape Position', 'change_landscape_position', 14, { x: 128, y: 100}, '#FFFFFF', 'center', true);
-    menu.addText('Spectate', 'spectate', 14, { x: 128, y: 130}, '#FFFFFF', 'center', true);
-    menu.addText('Exit', 'exit', 14, { x: 128, y: 220}, '	#ff3030', 'center', true);
+    menu.addText('Options', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
+    menu.addText('Change Height', 'change_height', 14, { x: 128, y: 70}, '#ffc338', 'center', true);
+    menu.addText('Change Landscape Position', 'change_landscape_position', 14, { x: 128, y: 100}, '#ffc338', 'center', true);
+    menu.addText('Spectate', 'spectate', 14, { x: 128, y: 130}, '#ffc338', 'center', true);
+    menu.addText('Exit', 'exit', 14, { x: 128, y: 220}, '	#ffffff', 'center', true);
     menu.interact = (action, position) => {
       let item = menu.getItem(position);
       if(item) {
@@ -402,13 +402,13 @@ export default VRRendering.extend(Ember.Evented, {
       resolution: { width: 256, height: 256 },
       size: { height: 0.3, width: 0.3},
       opacity: 0.8,
-      color: '#000000',
+      color: '#444444',
     });
-    menu.addText('Change Height', 'title', 20, { x: 128, y: 10}, '#ffffff', 'center', false);
-    menu.addText(this.user.position.y.toFixed(2), 'camera_height', 14, { x: 128, y: 70}, '#FFFFFF', 'center', false);
-    menu.addArrowButton('height_down', {x: 50, y: 65}, {x: 70, y: 85}, 'arrow_down', '#FFFFFF');
-    menu.addArrowButton('height_up', {x: 176, y: 65}, {x: 196, y: 85}, 'arrow_up', '#FFFFFF');
-    menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ff3030', 'center', true);
+    menu.addText('Change Height', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
+    menu.addArrowButton('height_down', {x: 30, y: 103}, {x: 60, y: 133}, 'arrow_down', '#ffc338');
+    menu.addArrowButton('height_up', {x: 196, y: 103}, {x: 226, y: 133}, 'arrow_up', '#ffc338');
+    menu.addText(this.user.position.y.toFixed(2), 'camera_height', 14, { x: 128, y: 113}, '#ffffff', 'center', false);
+    menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ffffff', 'center', true);
     menu.interact = (action, position) => {
       let item = menu.getItem(position);
       if(item) {
@@ -445,14 +445,14 @@ export default VRRendering.extend(Ember.Evented, {
       resolution: { width: 256, height: 256 },
       size: { height: 0.3, width: 0.3},
       opacity: 0.8,
-      color: '#000000',
+      color: '#444444',
     });
     menu.addText('Change Landscape Position', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
-    menu.addArrowButton('move_left', {x: 70, y: 103}, {x: 90, y: 133}, 'arrow_left', '#FFFFFF');
-    menu.addArrowButton('move_right', {x: 166, y: 103}, {x: 186, y: 133}, 'arrow_right', '#FFFFFF');
-    menu.addArrowButton('move_forward', {x: 113, y: 60}, {x: 143, y: 80}, 'arrow_up', '#FFFFFF');
-    menu.addArrowButton('move_backward', {x: 113, y: 156}, {x: 143, y: 176}, 'arrow_down', '#FFFFFF');
-    menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ff3030', 'center', true);
+    menu.addArrowButton('move_left', {x: 70, y: 103}, {x: 90, y: 133}, 'arrow_left', '#ffc338');
+    menu.addArrowButton('move_right', {x: 166, y: 103}, {x: 186, y: 133}, 'arrow_right', '#ffc338');
+    menu.addArrowButton('move_forward', {x: 113, y: 60}, {x: 143, y: 80}, 'arrow_up', '#ffc338');
+    menu.addArrowButton('move_backward', {x: 113, y: 156}, {x: 143, y: 176}, 'arrow_down', '#ffc338');
+    menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ffffff', 'center', true);
     menu.interact = (action, position) => {
       let item = menu.getItem(position);
       if(item) {
@@ -491,13 +491,13 @@ export default VRRendering.extend(Ember.Evented, {
       resolution: { width: 256, height: 256 },
       size: { height: 0.3, width: 0.3},
       opacity: 0.8,
-      color: '#000000',
+      color: '#444444',
     });
     menu.addText('Spectate', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
-    menu.addArrowButton('previous_user', {x: 30, y: 103}, {x: 50, y: 133}, 'arrow_left', '#FFFFFF');
-    menu.addArrowButton('next_user', {x: 206, y: 103}, {x: 226, y: 133}, 'arrow_right', '#FFFFFF');
-    menu.addText('Spectating no-one', 'spectating_user', 14, { x: 128, y: 113}, '#FFFFFF', 'center', false);
-    menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ff3030', 'center', true);
+    menu.addArrowButton('previous_user', {x: 30, y: 103}, {x: 50, y: 133}, 'arrow_left', '#ffc338');
+    menu.addArrowButton('next_user', {x: 206, y: 103}, {x: 226, y: 133}, 'arrow_right', '#ffc338');
+    menu.addText('Spectating no-one', 'spectating_user', 14, { x: 128, y: 113}, '#ffffff', 'center', false);
+    menu.addText('Go Back and Stop Spectating', 'back', 14, { x: 128, y: 220}, '	#ffffff', 'center', true);
     menu.interact = (action, position) => {
       let item = menu.getItem(position);
       if(item) {
@@ -506,7 +506,7 @@ export default VRRendering.extend(Ember.Evented, {
         }
         if(action === 'rightTrigger') {
           if(item.name === 'next_user') {
-            if(this.users.length < 1)
+            if(this.users.size < 1)
               return;
 
             let users = this.users.keys();
@@ -535,7 +535,7 @@ export default VRRendering.extend(Ember.Evented, {
               }
             }
           } else if(item.name === 'previous_user') {
-            if(this.users.length < 1)
+            if(this.users.size < 1)
               return;
 
               let users = this.users.keys();
@@ -1049,7 +1049,7 @@ export default VRRendering.extend(Ember.Evented, {
           break;
         case 'receive_spectating_update':
           console.log(data);
-          this.onSpectatingUpdate(data.userID, data.isSpectating, data.spectatedUser);
+          this.onSpectatingUpdate(data.userID, data.isSpectating);
           break;
       }
     }
@@ -1299,10 +1299,10 @@ export default VRRendering.extend(Ember.Evented, {
 
   },
 
-  onSpectatingUpdate(userID, isSpectating, spectatedUser){
+  onSpectatingUpdate(userID, isSpectating){
     if (isSpectating){
       let user = this.get('users').get(userID);
-      user.setInvisible();
+      user.setVisible(false);
     }
   },
 
