@@ -716,6 +716,12 @@ export default VRRendering.extend(Ember.Evented, {
     let yOffset = 20;
     let yPos = 50 + yOffset;
 
+    if(this.state === 'connected') {
+      menu.addText('>> You <<', 'connected', 12, { x: 50, y: yPos}, '#a7adba', 'left', false);
+      yPos += yOffset;
+    }
+
+
     for(let i = 0; i < playingUsers.length; i++) {
       let userColor = playingUsers[i].color;
       menu.addText(playingUsers[i].name, 'connected', 12, { x: 50, y: yPos + i*yOffset}, rgbToHex(userColor), 'left', false);
@@ -726,6 +732,11 @@ export default VRRendering.extend(Ember.Evented, {
     menu.addText('Spectating', 'spectating', 14, { x: 40, y: yPos}, '#ffffff', 'left', false);
 
     yPos += yOffset;
+
+    if(this.state === 'spectating') {
+      menu.addText('>> You <<', 'connected', 12, { x: 50, y: yPos}, '#a7adba', 'left', false);
+      yPos += yOffset;
+    }
     
     for(let i = 0; i < spectatingUsers.length; i++) {
       let userColor = spectatingUsers[i].color;
