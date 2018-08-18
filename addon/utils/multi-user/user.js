@@ -15,6 +15,7 @@ export default EmberObject.extend({
   controller2: null,
   camera: null,
   color: null,
+  namePlane: null, //PlaneGeometry containing username
 
   initCamera(obj) {
     this.camera = {

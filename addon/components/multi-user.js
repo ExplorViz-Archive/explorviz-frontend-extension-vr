@@ -1426,9 +1426,13 @@ export default VRRendering.extend(Ember.Evented, {
     let user = this.get('users').get(userID);
     let camera = user.get('camera').model;
     let username = user.get('name');
+
+    let textSize = this.getTextSize(username);
+    console.log("Size: " + textSize.width + ", " + textSize.height);
+
     //note: sprites are always same width + height
-    let width = 256;
-    let height = 256;
+    let width = textSize.width * 3;
+    let height = textSize.height * 5;
 
 
     this.set('canvas2', document.createElement('canvas'));
@@ -1436,7 +1440,7 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('canvas2').height = height;
     let canvas2 = this.get('canvas2');
     var ctx = canvas2.getContext('2d');
-    ctx.fillStyle = 'rgba(255, 0, 0, 0.0)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 1)';
     ctx.fillRect(0, 0, canvas2.width, canvas2.height);
 
 
@@ -1451,19 +1455,20 @@ export default VRRendering.extend(Ember.Evented, {
     // Update texture      
     texture.needsUpdate = true;
 
-    var spriteMaterial = new THREE.SpriteMaterial( { map: texture, color: 0xffffff } );
-    var sprite = new THREE.Sprite( spriteMaterial );
+    let geometry = new THREE.PlaneGeometry(width / 500, height / 500, 32 );
+    let material = new THREE.MeshBasicMaterial( {map: texture, color: 0xffffff, side: THREE.DoubleSide} );
+    material.transparent = true;
+    material.opacity = 0.8;
+    let plane = new THREE.Mesh( geometry, material );
 
-    //align sprite with camera
-    sprite.position.x = camera.position.x;
-    sprite.position.y = camera.position.y + 0.4;
-    sprite.position.z = camera.position.z;
+    plane.position.x = camera.position.x;
+    plane.position.y = camera.position.y + 0.3;
+    plane.position.z = camera.position.z;
 
-    //let sprite rotate around middle of top edge
-    sprite.center.y = 1;
+    user.namePlane = plane;
 
     //sprite moves with hmd of user
-    camera.add(sprite);
+    camera.add(plane);
   },
 
   setEntityState(id, isOpen){
@@ -1625,6 +1630,17 @@ export default VRRendering.extend(Ember.Evented, {
     }
 
     return -1;
-  }
+  },
+
+  getTextSize(text, font) {
+    // re-use canvas object for better performance
+    let canvas = document.createElement("canvas");
+    let context = canvas.getContext("2d");
+    context.font = font;
+    let width = context.measureText(text).width;
+    let height = context.measureText("W").width;
+    var sublineHeight = context.measureText("H").width;
+    return { width, height, sublineHeight };
+  },
 
 });
