@@ -38,6 +38,7 @@ export default VRRendering.extend(Ember.Evented, {
   spectatedUser: null, //tells which userID (if any) is being spectated
   menus: new Map(), //keeps track of menus for settings
   optionsMenu: null, 
+  startPosition: null, //position before this user starts spectating
 
 
   gameLoop() {
@@ -94,6 +95,7 @@ export default VRRendering.extend(Ember.Evented, {
       return;
     }
     console.log("Spectating user: " + userID);
+    this.set('startPosition', this.user.position.clone());
     this.set('spectatedUser', userID);
     let spectatedUser = this.get('users').get(userID);
 
@@ -106,11 +108,15 @@ export default VRRendering.extend(Ember.Evented, {
   deactivateSpectating(){
     if(!this.spectatedUser)
       return;
-    console.log("No long spectating");
+
     let spectatedUser = this.get('users').get(this.get('spectatedUser'));
     spectatedUser.camera.model.visible = true;
     this.set('isSpectating', false);
     this.set('spectatedUser', null);
+
+    let position = this.get('startPosition');
+    this.get('user.position').fromArray(position.toArray());
+
     this.sendSpectatingUpdate();
   },
 
