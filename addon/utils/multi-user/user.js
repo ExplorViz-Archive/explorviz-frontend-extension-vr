@@ -22,10 +22,6 @@ export default EmberObject.extend({
       quaternion: new THREE.Quaternion(),
       model: new THREE.Object3D()
     };
-    let hsl = new Object();
-    obj.children[0].material.emissive.setRGB(this.color[0]/255.0,this.color[1]/255.0,this.color[2]/255.0);
-    obj.children[0].material.emissive.getHSL(hsl);
-    obj.children[0].material.emissive.setHSL(hsl.h, hsl.s, 0.1);
     this.get('camera.model').add(obj);
   },
 
