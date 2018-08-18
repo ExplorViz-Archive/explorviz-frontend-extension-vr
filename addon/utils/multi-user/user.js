@@ -14,7 +14,7 @@ export default EmberObject.extend({
   controller1: null,
   controller2: null,
   camera: null,
-  color: null,
+  color: null, // [r,g,b], r,g,b = 0,...,255
 
   initCamera(obj) {
     this.camera = {

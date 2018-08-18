@@ -122,9 +122,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('controller2').addEventListener('thumbpaddown', registerThumbpadDownController2);
     // this.get('controller1').addEventListener('thumbpadup', this.emptyFunction);
     // this.get('controller2').addEventListener('thumbpadup', this.emptyFunction);
-    // this.get('controller1').addEventListener('gripdown', this.emptyFunction);
+    this.get('controller1').addEventListener('gripdown', registerGripDownController1);
     this.get('controller2').addEventListener('gripdown', registerGripDownController2);
-    // this.get('controller1').addEventListener('gripup', this.emptyFunction);
+    this.get('controller1').addEventListener('gripup', registerGripUpController1);
     this.get('controller2').addEventListener('gripup', registerGripUpController2);
     this.get('controller1').addEventListener('menudown', registerMenuDownController1);
     // this.get('controller2').addEventListener('menudown', this.emptyFunction);
@@ -180,6 +180,14 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     }
     function registerTriggerDownController1(event){
       self.onTriggerDownController1(event);
+    }
+
+    function registerGripDownController1(event){
+      self.onGripDownController1(event);
+    }
+     
+    function registerGripUpController1(event){
+      self.onGripUpController1(event);
     }
 
     function registerGripDownController2(event){
@@ -953,6 +961,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     }
   },
 
+  onGripDownController1(event) {},
+  onGripUpController1(event) {},
   onMenuDownController1(event) {},
 
 ////////// Mouse interaction ////////// 
