@@ -39,6 +39,7 @@ export default VRRendering.extend(Ember.Evented, {
   menus: new Map(), //keeps track of menus for settings
   optionsMenu: null,
   userListMenu: null,
+  startPosition: null, //position before this user starts spectating
 
 
   gameLoop() {
@@ -95,6 +96,7 @@ export default VRRendering.extend(Ember.Evented, {
       return;
     }
     console.log("Spectating user: " + userID);
+    this.set('startPosition', this.user.position.clone());
     this.set('spectatedUser', userID);
     let spectatedUser = this.get('users').get(userID);
 
@@ -107,12 +109,14 @@ export default VRRendering.extend(Ember.Evented, {
   deactivateSpectating(){
     if(!this.spectatedUser)
       return;
-    
-    console.log("No long spectating");
     let spectatedUser = this.get('users').get(this.get('spectatedUser'));
     spectatedUser.camera.model.visible = true;
     this.set('isSpectating', false);
     this.set('spectatedUser', null);
+
+    let position = this.get('startPosition');
+    this.get('user.position').fromArray(position.toArray());
+
     this.sendSpectatingUpdate();
   },
 
@@ -256,8 +260,8 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('interaction').on('componentUpdate', (appID , componentID, isOpened) => {
       this.sendComponentUpdate(appID, componentID, isOpened);
     });
-    this.get('interaction').on('landscapeMoved', () => {
-      this.sendLandscapeUpdate();
+    this.get('interaction').on('landscapeMoved', (deltaPosition) => {
+      this.sendLandscapeUpdate(deltaPosition);
     });
     this.get('interaction').on('entityHighlighted', (isHighlighted, appID, entityID, color) => {
       this.sendHighlightingUpdate(isHighlighted, appID, entityID, color);
@@ -772,14 +776,13 @@ export default VRRendering.extend(Ember.Evented, {
    * Send update of position + quaternion of the
    * landscape (vrEnvironment)
    */
-  sendLandscapeUpdate(){
-    let position = this.get('vrEnvironment').position;
+  sendLandscapeUpdate(deltaPosition){
     let quaternion =  this.get('vrEnvironment').quaternion;
 
     let landscapeObj = {
       "event": "receive_landscape_position",
       "time": Date.now(),
-      "position" : position.toArray(),
+      "deltaPosition" : deltaPosition.toArray(),
       "quaternion" : quaternion.toArray()
     }
     this.updateQueue.push(landscapeObj);
@@ -1131,7 +1134,8 @@ export default VRRendering.extend(Ember.Evented, {
           this.onInitialLandscape(data);
           break;
           case 'receive_landscape_position':
-          this.onLandscapePosition(data.position, data.quaternion);
+          console.log(data);
+          this.onLandscapePosition(data.deltaPosition, data.quaternion);
           break;
         case 'receive_system_update':
           console.log(data);
@@ -1358,19 +1362,28 @@ export default VRRendering.extend(Ember.Evented, {
       this.showApplication(app.id, app.position, app.quaternion);
     });
 
+    
     if(data.hasOwnProperty('landscape')){
       let position = data.landscape.position;
+      console.log("Initial position offset: " + position);
       let quaternion = data.landscape.quaternion;
+      console.log("Initial quaternion: " + quaternion);
       this.onLandscapePosition(position, quaternion);
     }
   },
 
-  onLandscapePosition(position, quaternion){
-    this.get('vrEnvironment').position.fromArray(position);
+  onLandscapePosition(deltaPosition, quaternion){
+    this.get('environmentOffset').x += deltaPosition[0];
+    this.get('environmentOffset').z += deltaPosition[2];
+
+    this.get('vrEnvironment').position.x += deltaPosition[0];
+    this.get('vrEnvironment').position.y += deltaPosition[1];
+    this.get('vrEnvironment').position.z += deltaPosition[2];
+
     this.get('vrEnvironment').quaternion.fromArray(quaternion);
-    if(this.get('vrEnvironment')){
-      this.get('vrEnvironment').updateMatrix();
-    }
+
+    this.updateObjectMatrix(this.get('vrEnvironment'));
+    this.centerVREnvironment(this.get('vrEnvironment'), this.get('room'));
   },
 
   onLandscapeUpdate(id, isOpen){
@@ -1418,9 +1431,11 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   onSpectatingUpdate(userID, isSpectating){
+    let user = this.get('users').get(userID);
     if (isSpectating){
-      let user = this.get('users').get(userID);
       user.setVisible(false);
+    } else {
+      user.setVisible(true);
     }
   },
 
@@ -1510,9 +1525,13 @@ export default VRRendering.extend(Ember.Evented, {
     let user = this.get('users').get(userID);
     let camera = user.get('camera').model;
     let username = user.get('name');
+
+    let textSize = this.getTextSize(username);
+    console.log("Size: " + textSize.width + ", " + textSize.height);
+
     //note: sprites are always same width + height
-    let width = 256;
-    let height = 256;
+    let width = textSize.width * 3;
+    let height = textSize.height * 5;
 
 
     this.set('canvas2', document.createElement('canvas'));
@@ -1520,7 +1539,7 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('canvas2').height = height;
     let canvas2 = this.get('canvas2');
     var ctx = canvas2.getContext('2d');
-    ctx.fillStyle = 'rgba(255, 0, 0, 0.0)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 1)';
     ctx.fillRect(0, 0, canvas2.width, canvas2.height);
 
 
@@ -1535,19 +1554,20 @@ export default VRRendering.extend(Ember.Evented, {
     // Update texture      
     texture.needsUpdate = true;
 
-    var spriteMaterial = new THREE.SpriteMaterial( { map: texture, color: 0xffffff } );
-    var sprite = new THREE.Sprite( spriteMaterial );
+    let geometry = new THREE.PlaneGeometry(width / 500, height / 500, 32 );
+    let material = new THREE.MeshBasicMaterial( {map: texture, color: 0xffffff, side: THREE.DoubleSide} );
+    material.transparent = true;
+    material.opacity = 0.8;
+    let plane = new THREE.Mesh( geometry, material );
 
-    //align sprite with camera
-    sprite.position.x = camera.position.x;
-    sprite.position.y = camera.position.y + 0.4;
-    sprite.position.z = camera.position.z;
+    plane.position.x = camera.position.x;
+    plane.position.y = camera.position.y + 0.3;
+    plane.position.z = camera.position.z;
 
-    //let sprite rotate around middle of top edge
-    sprite.center.y = 1;
+    user.namePlane = plane;
 
     //sprite moves with hmd of user
-    camera.add(sprite);
+    camera.add(plane);
   },
 
   setEntityState(id, isOpen){
@@ -1624,7 +1644,8 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('vrEnvironment').position.z -= distanceYInPercent;
     this.updateObjectMatrix(this.get('vrEnvironment'));
 
-    this.get('interaction').trigger('landscapeMoved');
+    let deltaPosition = new THREE.Vector3(distanceXInPercent, 0, distanceYInPercent);
+    this.get('interaction').trigger('landscapeMoved', deltaPosition);
   },
 
   /*
@@ -1708,6 +1729,17 @@ export default VRRendering.extend(Ember.Evented, {
     }
 
     return -1;
-  }
+  },
+
+  getTextSize(text, font) {
+    // re-use canvas object for better performance
+    let canvas = document.createElement("canvas");
+    let context = canvas.getContext("2d");
+    context.font = font;
+    let width = context.measureText(text).width;
+    let height = context.measureText("W").width;
+    var sublineHeight = context.measureText("H").width;
+    return { width, height, sublineHeight };
+  },
 
 });

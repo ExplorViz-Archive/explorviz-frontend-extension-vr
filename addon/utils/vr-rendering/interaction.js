@@ -65,6 +65,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   selector: null,
 
   boundApps : null,
+  environmentOffset : null,
 
   emptyFunction: () => {},
 
@@ -87,7 +88,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   // Import information from component vr-rendering to manipulate objects global
   setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, 
-    controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, room, user, boundApps) {
+    controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, room, user, boundApps, environmentOffset) {
 
     this.set('scene', scene);
     this.set('canvas', canvas);
@@ -105,6 +106,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('room', room);
     this.set('user', user);
     this.set('boundApps', boundApps);
+    this.set('environmentOffset', environmentOffset);
 
     const self = this;
 
@@ -255,13 +257,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           this.get('vrEnvironment').rotation.x +=  0.05;
           this.updateObjectMatrix(this.get('vrEnvironment'));
           this.trigger('centerVREnvironment');
-          this.trigger('landscapeMoved');
+          this.trigger('landscapeMoved', new THREE.Vector3(0, 0, 0)); //no position change, only quaternion
           break;
         case 'w':
           this.get('vrEnvironment').rotation.x -=  0.05;
           this.updateObjectMatrix(this.get('vrEnvironment'));
           this.trigger('centerVREnvironment');
-          this.trigger('landscapeMoved');
+          this.trigger('landscapeMoved', new THREE.Vector3(0, 0, 0)); //no position change, only quaternion
           break;
       }
     };
@@ -1331,7 +1333,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   handlePanning(delta, event) {
 
     if(event.button === 1){
-      console.log(delta);
       // Translate camera
       let distanceXInPercent = (delta.x /
         parseFloat(this.get('renderer').domElement.clientWidth)) * ( -10.0);
@@ -1341,7 +1342,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       this.get('vrEnvironment').position.x +=  distanceXInPercent;
       this.get('vrEnvironment').position.z -= distanceYInPercent;
+
+      this.get('environmentOffset').x += distanceXInPercent;
+      this.get('environmentOffset').z -= distanceYInPercent;
+
       this.updateObjectMatrix(this.get('vrEnvironment'));
+      let deltaPosition = new THREE.Vector3(distanceXInPercent, 0, -distanceYInPercent);
+      this.trigger('landscapeMoved', deltaPosition);
     } else if(event.button === 3){
       // Translate camera
       let distanceYInPercent = (delta.y /
@@ -1349,9 +1356,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       this.get('vrEnvironment').position.y = this.get('vrEnvironment').position.y - distanceYInPercent;
       this.updateObjectMatrix(this.get('vrEnvironment'));
+      let deltaPosition = new THREE.Vector3(0, -distanceYInPercent, 0);
+      this.trigger('landscapeMoved', deltaPosition);
     }
-
-    this.trigger('landscapeMoved');
     
   },
 
