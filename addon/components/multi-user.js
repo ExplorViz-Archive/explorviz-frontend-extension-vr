@@ -133,6 +133,10 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('state', 'connected');
     this.set('spectatedUser', null);
 
+    if(this.optionsMenu.title === 'spectateMenu') {
+      this.optionsMenu.updateText('spectating_user', 'Spectating no-one');
+    }
+
     let position = this.get('startPosition');
     this.get('user.position').fromArray(position.toArray());
 
@@ -1295,9 +1299,6 @@ export default VRRendering.extend(Ember.Evented, {
 
     //do not spectate a disconnected user
     if (this.get('state') === 'spectating' && this.get('spectatedUser') === id) {
-      if(this.optionsMenu.title === 'spectateMenu') {
-        this.optionsMenu.updateText('spectating_user', 'Spectating no-one');
-      }
       this.deactivateSpectating();
     }
 
@@ -1466,11 +1467,14 @@ export default VRRendering.extend(Ember.Evented, {
 
   },
 
-  onSpectatingUpdate(userID, isSpectating){
+  onSpectatingUpdate(userID, isSpectating) {
     let user = this.get('users').get(userID);
-    if (isSpectating){
+    if (isSpectating) {
       user.state = 'spectating';
       user.setVisible(false);
+      if(this.state === 'spectating' && this.spectatedUser === userID) {
+        this.deactivateSpectating();
+      }
     } else {
       user.state = 'connected';
       user.setVisible(true);
