@@ -40,6 +40,7 @@ export default VRRendering.extend(Ember.Evented, {
   optionsMenu: null,
   userListMenu: null,
   startPosition: null, //position before this user starts spectating
+  session: Ember.inject.service('session'),
 
 
   gameLoop() {
@@ -1196,7 +1197,7 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('userID', data.id);
     let JSONObj = {
       "event": "receive_connect_request",
-      "name": "" + data.id
+      "name": this.get('session.data.authenticated.username')
     };
     this.updateQueue.push(JSONObj);
   },
