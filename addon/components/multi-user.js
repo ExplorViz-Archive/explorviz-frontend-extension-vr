@@ -1080,6 +1080,9 @@ export default VRRendering.extend(Ember.Evented, {
           console.log(data);
           this.onSpectatingUpdate(data.userID, data.isSpectating);
           break;
+        case 'receive_ping':
+          this.updateQueue.push(data);
+          break;
       }
     }
   },
