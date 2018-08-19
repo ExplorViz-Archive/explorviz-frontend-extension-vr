@@ -97,11 +97,14 @@ export default EmberObject.extend({
     if(this.camera) {
       this.camera.model.visible = bool;
     }
-    if (this.controller1){
+    if(this.controller1) {
       this.controller1.model.visible = bool;
     }
-    if (this.controller2){
+    if(this.controller2) {
       this.controller2.model.visible = bool;
+    }
+    if(this.namePlane) {
+      this.namePlane.visible = bool;
     }
   }
 

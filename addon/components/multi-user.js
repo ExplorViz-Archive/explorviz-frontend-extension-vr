@@ -23,7 +23,7 @@ export default VRRendering.extend(Ember.Evented, {
   
   users: null, //Map: UserID -> User
   userID: null, //own userID
-  state: null, //own connection status
+  state: null, //own connection status, state in {'connecting', 'connected', 'spectating'}
   lastPositions: null, //last positions of camera and controllers
   controllersConnected: null, //tells which controller(s) are connected
   fps: 90, //tells how often a picture is rendered per second (refresh rate of Vive/Rift is 90)
@@ -34,7 +34,6 @@ export default VRRendering.extend(Ember.Evented, {
   running: false, //tells if gameLoop is executing
   hmdObject: null, //object for other user's hmd
   messageQueue: [], //messages displayed on top edge of hmd (e.g. user x connected)
-  isSpectating: false, //tells whether this user is spectating
   spectatedUser: null, //tells which userID (if any) is being spectated
   menus: new Map(), //keeps track of menus for settings
   optionsMenu: null,
@@ -43,7 +42,7 @@ export default VRRendering.extend(Ember.Evented, {
 
 
   gameLoop() {
-    if(!this.running){
+    if(!this.running) {
       return;
     }
 
@@ -58,9 +57,12 @@ export default VRRendering.extend(Ember.Evented, {
       if(this.userID && this.state === 'connected') {
         this.updateControllers();
         this.update();
-        if (this.get('isSpectating')){
-          this.spectateUser();
-        }
+        this.updateUserNameTags();
+        this.render2();
+      } else if(this.userID && this.state === 'spectating') {
+        this.updateControllers();
+        this.updateUserNameTags();
+        this.spectateUser();
         this.render2();
       }
 
@@ -70,6 +72,19 @@ export default VRRendering.extend(Ember.Evented, {
       this.lastTime = this.currentTime;
     }
     requestAnimationFrame(this.gameLoop.bind(this));
+  },
+
+  updateUserNameTags() {
+    let users = this.users.values();
+    let pos = new THREE.Vector3();
+    this.camera.getWorldPosition(pos);
+    for(let user of users) {
+      if(user.state === 'connected') {
+        user.namePlane.position.setFromMatrixPosition( user.camera.model.getObjectByName('dummyPlaneName').matrixWorld );
+        user.namePlane.lookAt(pos);
+        user.namePlane.updateMatrix();
+      }
+    }
   },
 
   spectateUser(){
@@ -88,7 +103,7 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   activateSpectating(userID){
-    if(this.get('isSpectating')){
+    if(this.get('state') === 'spectating'){
       this.deactivateSpectating();
     }
 
@@ -102,16 +117,19 @@ export default VRRendering.extend(Ember.Evented, {
 
     //other user's hmd should be invisible
     spectatedUser.camera.model.visible = false;
-    this.set('isSpectating', true);
+    spectatedUser.namePlane.visible = false;
+    this.set('state', 'spectating');
     this.sendSpectatingUpdate();
   },
 
   deactivateSpectating(){
     if(!this.spectatedUser)
       return;
+    
     let spectatedUser = this.get('users').get(this.get('spectatedUser'));
     spectatedUser.camera.model.visible = true;
-    this.set('isSpectating', false);
+    spectatedUser.namePlane.visible = true;
+    this.set('state', 'connected');
     this.set('spectatedUser', null);
 
     let position = this.get('startPosition');
@@ -163,7 +181,7 @@ export default VRRendering.extend(Ember.Evented, {
         // Restore old color of application3D
         this.unhighlightApplication3D(self.controller2.id);
       } else {
-        if(!self.isSpectating)
+        if(self.state !== 'spectating')
           old_checkIntersectionRightController.apply(this);
         else
           self.get('controller2').getObjectByName('controllerLine').scale.z = self.zeroValue;
@@ -172,7 +190,7 @@ export default VRRendering.extend(Ember.Evented, {
     
     let old_checkIntersectionLeftController = this.get('interaction').checkIntersectionLeftController;
     this.get('interaction').checkIntersectionLeftController = function() {
-      if(!self.isSpectating)
+      if(self.state !== 'spectating')
         old_checkIntersectionLeftController.apply(this);
       else
         self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
@@ -186,14 +204,14 @@ export default VRRendering.extend(Ember.Evented, {
       });
       let menuHit = self.onTriggerDownController2(menus);
       if(!menuHit) {
-        if(!self.isSpectating)
+        if(self.state !== 'spectating')
           old_onTriggerDownController2.apply(this, [event]);
       }
     };
 
     let old_onTriggerDownController1 = this.get('interaction').onTriggerDownController1;
     this.get('interaction').onTriggerDownController1 = function(event) {
-      if(!self.isSpectating)
+      if(self.state !== 'spectating')
         old_onTriggerDownController1.apply(this, [event]);
     };
 
@@ -373,7 +391,7 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   onMenuDownController1() {
-    if(!this.isSpectating) {
+    if(this.state !== 'spectating') {
       if(!this.optionsMenu)
         this.openOptionsMenu();
       else
@@ -553,7 +571,8 @@ export default VRRendering.extend(Ember.Evented, {
             let users = this.users.keys();
             let userArray = []
             for(let id of users) {
-              userArray.push(id);
+              if(this.users.get(id).state === 'connected')
+                userArray.push(id);
             }
 
             userArray.sort();
@@ -582,7 +601,8 @@ export default VRRendering.extend(Ember.Evented, {
               let users = this.users.keys();
               let userArray = []
               for(let id of users) {
-                userArray.push(id);
+                if(this.users.get(id).state === 'connected')
+                  userArray.push(id);
               }
   
               userArray.sort();
@@ -951,7 +971,7 @@ export default VRRendering.extend(Ember.Evented, {
     let spectateObj = {
       "event": "receive_spectating_update",
       "userID": this.get('userID'),
-      "isSpectating": this.get('isSpectating'),
+      "isSpectating": this.state === 'spectating',
       "spectatedUser": this.get('spectatedUser'),
       "time": Date.now()
     }
@@ -1444,8 +1464,10 @@ export default VRRendering.extend(Ember.Evented, {
   onSpectatingUpdate(userID, isSpectating){
     let user = this.get('users').get(userID);
     if (isSpectating){
+      user.state = 'spectating';
       user.setVisible(false);
     } else {
+      user.state = 'connected';
       user.setVisible(true);
     }
   },
@@ -1570,15 +1592,18 @@ export default VRRendering.extend(Ember.Evented, {
     material.transparent = true;
     material.opacity = 0.8;
     let plane = new THREE.Mesh( geometry, material );
+    let dummy = new THREE.Object3D();
+    dummy.name = 'dummyPlaneName';
 
-    plane.position.x = camera.position.x;
-    plane.position.y = camera.position.y + 0.3;
-    plane.position.z = camera.position.z;
+    dummy.position.x = camera.position.x;
+    dummy.position.y = camera.position.y + 0.3;
+    dummy.position.z = camera.position.z;
 
     user.namePlane = plane;
 
     //sprite moves with hmd of user
-    camera.add(plane);
+    camera.add(dummy);
+    this.scene.add(plane);
   },
 
   setEntityState(id, isOpen){
