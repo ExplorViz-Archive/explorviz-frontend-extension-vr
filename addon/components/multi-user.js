@@ -724,7 +724,7 @@ export default VRRendering.extend(Ember.Evented, {
 
     for(let i = 0; i < playingUsers.length; i++) {
       let userColor = playingUsers[i].color;
-      menu.addText(playingUsers[i].name, 'connected', 12, { x: 50, y: yPos + i*yOffset}, rgbToHex(userColor), 'left', false);
+      menu.addText(playingUsers[i].name, 'connected', 12, { x: 50, y: yPos + i*yOffset}, this.rgbToHex(userColor), 'left', false);
     }
 
     yPos = yPos + yOffset*(playingUsers.length);
@@ -740,7 +740,7 @@ export default VRRendering.extend(Ember.Evented, {
     
     for(let i = 0; i < spectatingUsers.length; i++) {
       let userColor = spectatingUsers[i].color;
-      menu.addText(spectatingUsers[i].name, 'spectating', 12, { x: 50, y: yPos + i*yOffset}, rgbToHex(userColor), 'left', false);
+      menu.addText(spectatingUsers[i].name, 'spectating', 12, { x: 50, y: yPos + i*yOffset}, this.rgbToHex(userColor), 'left', false);
     }
 
     menu.interact = (action, position) => {};
@@ -751,10 +751,6 @@ export default VRRendering.extend(Ember.Evented, {
     this.camera.add(menu.mesh);
     this.menus.set(menu.title, menu);
     this.userListMenu = menu;
-
-    function rgbToHex(rgbArray) {
-      return "#" + ((1 << 24) + (rgbArray[0] << 16) + (rgbArray[1] << 8) + rgbArray[2]).toString(16).slice(1);
-    }
   },
 
   /**
@@ -1544,7 +1540,7 @@ export default VRRendering.extend(Ember.Evented, {
     console.log("Size: " + textSize.width + ", " + textSize.height);
 
     //note: sprites are always same width + height
-    let width = textSize.width * 3;
+    let width = textSize.width * 3 + 20;
     let height = textSize.height * 5;
 
 
@@ -1553,12 +1549,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('canvas2').height = height;
     let canvas2 = this.get('canvas2');
     var ctx = canvas2.getContext('2d');
-    ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+    ctx.fillStyle = 'rgba(200, 200, 216, 0.5)';
     ctx.fillRect(0, 0, canvas2.width, canvas2.height);
 
 
     ctx.font = `30px arial`;
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = this.rgbToHex(user.get('color'));
     ctx.textAlign = 'center';
     ctx.fillText(username, canvas2.width / 2, 35);
        
@@ -1755,5 +1751,9 @@ export default VRRendering.extend(Ember.Evented, {
     var sublineHeight = context.measureText("H").width;
     return { width, height, sublineHeight };
   },
+
+  rgbToHex(rgbArray) {
+    return "#" + ((1 << 24) + (rgbArray[0] << 16) + (rgbArray[1] << 8) + rgbArray[2]).toString(16).slice(1);
+  }
 
 });
