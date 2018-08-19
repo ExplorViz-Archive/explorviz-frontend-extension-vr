@@ -1294,7 +1294,10 @@ export default VRRendering.extend(Ember.Evented, {
     let { id } = data;
 
     //do not spectate a disconnected user
-    if (this.get('spectatedUser') == id){
+    if (this.get('state') === 'spectating' && this.get('spectatedUser') === id) {
+      if(this.optionsMenu.title === 'spectateMenu') {
+        this.optionsMenu.updateText('spectating_user', 'Spectating no-one');
+      }
       this.deactivateSpectating();
     }
 
@@ -1309,6 +1312,8 @@ export default VRRendering.extend(Ember.Evented, {
       user.removeController2();
       this.get('scene').remove(user.get('camera.model'));
       user.removeCamera();
+      this.get('scene').remove(user.get('namePlane'));
+      user.removeNamePlane();
       this.get('users').delete(id);
       this.enqueueMessage({title: 'User disconnected', text: user.get('name')});
     }
@@ -1609,7 +1614,7 @@ export default VRRendering.extend(Ember.Evented, {
   setEntityState(id, isOpen){
     const self = this;
     this.get('vrLandscape').children.forEach(function (system) {
-      if (system.userData.model && system.userData.model.id == id) {
+      if (system.userData.model && system.userData.model.id === id) {
         system.userData.model.setOpened(isOpen);
         self.populateScene();
         return;
@@ -1629,7 +1634,7 @@ export default VRRendering.extend(Ember.Evented, {
       let id = nodegroup.id;
       let isOpen = nodegroup.opened;
       vrLandscape.forEach(entity => {
-        if (entity.userData.model && entity.userData.model.id == id) {
+        if (entity.userData.model && entity.userData.model.id === id) {
           entity.userData.model.setOpened(isOpen);
         }
       });

@@ -59,10 +59,14 @@ export default EmberObject.extend({
   removeCamera() {
     this.camera = null;
   },
+
+  removeNamePlane() {
+    this.namePlane = null;
+  },
   
   updateCamera(camera) {
     if(this.camera) {
-      this.camera.position.fromArray(camera.position);
+      this.camera.position.fromArray([camera.position[0], camera.position[1] - 0.01, camera.position[2]]);
       this.camera.quaternion.fromArray(camera.quaternion);
       this.camera.model.position.copy(this.camera.position);
       this.camera.model.quaternion.copy(this.camera.quaternion);
