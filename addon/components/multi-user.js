@@ -580,6 +580,9 @@ export default VRRendering.extend(Ember.Evented, {
                 userArray.push(id);
             }
 
+            if(userArray.length < 1)
+              return;
+
             userArray.sort();
 
             if(!this.spectatedUser) {
@@ -609,6 +612,9 @@ export default VRRendering.extend(Ember.Evented, {
                 if(this.users.get(id).state === 'connected')
                   userArray.push(id);
               }
+
+              if(userArray.length < 1)
+                return;
   
               userArray.sort();
   
