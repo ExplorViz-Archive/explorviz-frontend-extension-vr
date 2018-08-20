@@ -1233,10 +1233,12 @@ export default VRRendering.extend(Ember.Evented, {
    * @param {JSON} data Message containing own userID
    */
   onSelfConnecting(data) {
+    //if name is not found, use id as default name
+    let name = this.get('session.data.authenticated.username') ? this.get('session.data.authenticated.username') : data.id;
     this.set('userID', data.id);
     let JSONObj = {
       "event": "receive_connect_request",
-      "name": this.get('session.data.authenticated.username')
+      "name": name
     };
     this.updateQueue.push(JSONObj);
   },
