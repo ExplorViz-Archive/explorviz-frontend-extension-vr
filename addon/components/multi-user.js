@@ -821,6 +821,7 @@ export default VRRendering.extend(Ember.Evented, {
       "event": "receive_landscape_position",
       "time": Date.now(),
       "deltaPosition" : deltaPosition.toArray(),
+      "offset" : this.get('environmentOffset').toArray(),
       "quaternion" : quaternion.toArray()
     }
     this.updateQueue.push(landscapeObj);
