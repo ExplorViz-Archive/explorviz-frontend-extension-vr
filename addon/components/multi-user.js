@@ -21,23 +21,23 @@ export default VRRendering.extend(Ember.Evented, {
   websockets: service(), //service needed to use websockets
   socketRef: null, //websocket to send/receive messages to/from backend
   
-  users: null, //Map: UserID -> User
-  userID: null, //own userID
-  state: null, //own connection status, state in {'connecting', 'connected', 'spectating'}
-  lastPositions: null, //last positions of camera and controllers
-  controllersConnected: null, //tells which controller(s) are connected
-  fps: 90, //tells how often a picture is rendered per second (refresh rate of Vive/Rift is 90)
-  lastTime: null, //last time an image was rendered
-  currentTime: 0, //tells the current time in ms
-  deltaTime: 0, //time between two frames
-  updateQueue: [], //messages which are ready to be sent to backend
-  running: false, //tells if gameLoop is executing
-  hmdObject: null, //object for other user's hmd
-  messageQueue: [], //messages displayed on top edge of hmd (e.g. user x connected)
-  spectatedUser: null, //tells which userID (if any) is being spectated
-  menus: new Map(), //keeps track of menus for settings
-  optionsMenu: null,
-  userListMenu: null,
+  users: null, // Map: UserID -> User
+  userID: null, // own userID
+  state: null, // own connection status, state in {'connecting', 'connected', 'spectating'}
+  lastPositions: null, // last positions of camera and controllers
+  controllersConnected: null, // tells which controller(s) are connected
+  fps: 90, // tells how often a picture is rendered per second (refresh rate of Vive/Rift is 90)
+  lastTime: null, // last time an image was rendered
+  currentTime: 0, // tells the current time in ms
+  deltaTime: 0, // time between two frames
+  updateQueue: [], // messages which are ready to be sent to backend
+  running: false, // tells if gameLoop is executing
+  hmdObject: null, // object for other user's hmd
+  messageQueue: [], // messages displayed on top edge of hmd (e.g. user x connected)
+  spectatedUser: null, // tells which userID (if any) is being spectated
+  menus: new Map(), // keeps track of menus for settings
+  optionsMenu: null, // current options menu, null if all closed
+  userListMenu: null, // keep track of the user list menu
   startPosition: null, //position before this user starts spectating
   session: Ember.inject.service('session'),
 
@@ -103,6 +103,10 @@ export default VRRendering.extend(Ember.Evented, {
     this.user.position.subVectors(new THREE.Vector3(position.x, position.y, position.z), cameraOffset); 
   },
 
+  /**
+   * Switches user into spectator mode
+   * @param {Number} userID The id of the user to be spectated
+   */
   activateSpectating(userID){
     if(this.get('state') === 'spectating'){
       this.deactivateSpectating();
@@ -321,7 +325,7 @@ export default VRRendering.extend(Ember.Evented, {
       return;
     
     let message = this.messageQueue[this.messageQueue.length-1];
-    this.createMessageBox(message.title, message.text);
+    this.createMessageBox(message.title, message.text, message.color);
     setTimeout(closeAfterTime.bind(this), 3000);
 
     function closeAfterTime() {
@@ -653,7 +657,7 @@ export default VRRendering.extend(Ember.Evented, {
     this.optionsMenu = menu;
   },
 
-  createMessageBox(title, text) {
+  createMessageBox(title, text, color) {
     let menu = new Menu({
       title: 'messageBox',
       resolution: { width: 256, height: 64 },
@@ -661,8 +665,12 @@ export default VRRendering.extend(Ember.Evented, {
       opacity: 0.7,
       color: '#000000',
     });
+
+    if(!color)
+      color = 'lightgreen';
+
     menu.addText(title, 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
-    menu.addText(text, 'text', 14, { x: 128, y: 40}, 'lightgreen', 'center', false);
+    menu.addText(text, 'text', 14, { x: 128, y: 40}, color, 'center', false);
     menu.interact = (action, position) => {};
 
     menu.createMesh();
@@ -1296,7 +1304,7 @@ export default VRRendering.extend(Ember.Evented, {
 
     this.addUsername(data.user.id);
 
-    this.enqueueMessage({title: 'User connected', text: user.get('name')});
+    this.enqueueMessage({title: 'User connected', text: user.get('name'), color: this.rgbToHex(user.get('color'))});
 
   },
 
@@ -1322,7 +1330,7 @@ export default VRRendering.extend(Ember.Evented, {
       this.get('scene').remove(user.get('namePlane'));
       user.removeNamePlane();
       this.get('users').delete(id);
-      this.enqueueMessage({title: 'User disconnected', text: user.get('name')});
+      this.enqueueMessage({title: 'User disconnected', text: user.get('name'), color: this.rgbToHex(user.get('color'))});
     }
   },
 
@@ -1751,10 +1759,9 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
     /**
-   * Performs a binary search on the host array. This method can either be
-   * injected into Array.prototype or called with a specified scope like this:
-   * binaryIndexOf.call(someArray, searchElement);
-   *
+   * Performs a binary search on the given array.
+   * 
+   * @param {Array} array The array to search through.
    * @param {*} searchElement The item to search for within the array.
    * @return {Number} The index of the element which defaults to -1 when not found.
    */
@@ -1782,6 +1789,12 @@ export default VRRendering.extend(Ember.Evented, {
     return -1;
   },
 
+  /**
+   * 
+   * @param {string} text The text to measure the width, height and subline height of.
+   * @param {string} font The font to measure the size in.
+   * @return {{width: Number, height: Number, sublineHeight: Number}} The sizes of the text.
+   */
   getTextSize(text, font) {
     // re-use canvas object for better performance
     let canvas = document.createElement("canvas");
