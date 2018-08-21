@@ -3,13 +3,14 @@ import Menu from '../menu';
 let menu = null;
 let prevMenu = null;
 
+/**
+ * Creates and opens the Landscape Position Menu.
+ * 
+ * @param {Object} lastMenu - The menu to go back to on back button pressed.
+ */
 export function open(lastMenu) {
   menu = new Menu({
-    title: 'changeLandscapePositionMenu',
-    resolution: { width: 256, height: 256 },
-    size: { height: 0.3, width: 0.3},
-    opacity: 0.8,
-    color: '#444444',
+    title: 'changeLandscapePositionMenu'
   });
   menu.addText('Change Landscape Position', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
   menu.addArrowButton('move_left', {x: 70, y: 103}, {x: 90, y: 133}, 'arrow_left', '#ffc338');
@@ -42,31 +43,37 @@ export function open(lastMenu) {
     }
   };
   menu.createMesh();
-  menu.mesh.position.x += 0.2;
-  menu.mesh.geometry.rotateX(-1.5707963267949);
-  this.controller1.add(menu.mesh);
-  this.menus.set(menu.title, menu);
+  const mesh = menu.getMesh();
+  mesh.position.x += 0.2;
+  mesh.geometry.rotateX(-1.5707963267949);
+  this.controller1.add(mesh);
+  this.menus.set(menu.getTitle(), menu);
 }
 
+/**
+ * Closes and removes the Landscape Position Menu.
+ */
 export function close() {
   if(menu) {
-    this.controller1.remove(menu.mesh);
-    menu.close();
-    this.menus.delete(menu.title);
+    this.controller1.remove(menu.getMesh());
+    menu.removeMesh();
+    this.menus.delete(menu.getTitle());
     menu = null;
   }
 }
 
+/**
+ * Go back to the previous menu.
+ */
 export function back() {
   close.call(this);
   if(prevMenu)
     prevMenu.call(this);
 }
 
+/**
+ * Return whether the menu is opened or not.
+ */
 export function isOpen() {
   return menu ? true : false;
-}
-
-export function hasBackButton() {
-  return prevMenu ? true : false;
 }

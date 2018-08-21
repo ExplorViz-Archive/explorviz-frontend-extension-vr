@@ -1,59 +1,81 @@
 import EmberObject from '@ember/object';
 import THREE from 'three';
+import Helper from './helper';
 
 export default EmberObject.extend({
   title: null,
-  resolution: null,
-  size: null,
+  resolution: { width: 256, height: 256 },
+  size: { height: 0.3, width: 0.3},
   items: null,
-  color: '#FFFFFF',
-  opacity: 1.0,
+  color: '#444444',
+  opacity: 0.8,
   mesh: null,
   hoverColor: '#00e5ff',
   hoveredItem: null,
-
-  Menu(options) {
-    if(options.title)
-      this.title = options.title;
-    if(options.resolution)
-      this.resolution = options.resolution;
-    if(options.size)
-      this.size = options.size;
-    if(options.opacity)
-      this.opacity = options.opacity;
-    if(options.color)
-      this.color = options.color;
-  },
+  canvas: null,
   
+  /**
+   * Adds a new text to the menu.
+   * @example
+   * let menu = new Menu();
+   * 
+   * menu.addText('Hello World', 'title', 18, {x: 50m y: 10}, '#a412b6', 'center');
+   * 
+   * @param {string} text - The text to display in the menu.
+   * @param {string} name - A unique identifier, ecspecially used for interactions.
+   * @param {number} size - Font size.
+   * @param {{x: number, y: number}} position - The upper left corner position of text.
+   * @param {string} [color='#ffffff'] - The text's color in hexadecimal.
+   * @param {string} [align='left'] - Specifies whether the text is aligned to the left, center or right.
+   * @param {boolean} [clickable=false] - If true, the text can the used for interactions and changes color on hover.
+   */
   addText(text, name, size, position, color, align, clickable) {
     if(!this.items)
       this.items = new Array();
 
+    color = color || '#ffffff';
+    align = align || 'left';
+    clickable = clickable || false;
+
     this.items.push({ type: 'text', name, text, size, position, color, align, clickable, hover: false });
   },
-
-  addButton(width, height, position, color) {
-    if(!this.items)
-      this.items = new Array();
-
-    this.items.push({ type: 'button', width, height, position, color });
-  },
   
+  /**
+   * Add a clickable arrow button to the menu.
+   * @example
+   * let menu = new Menu();
+   * 
+   * menu.addArrowButton('next_user', {x: 10, y: 10}, {x: 20, y: 20}, 'arrow_right', '#d3f4aa');
+   * 
+   * @param {string} name  - A unique identifier, ecspecially used for interactions.
+   * @param {{x: number, y: number}} position - The upper left corner position of button.
+   * @param {{x: number, y: number}} to - The lower right corner position of button.
+   * @param {string} [style='arrow_right'] - The style of the arrow.
+   * @param {string} [color='#ffffff'] - The text's color in hexadecimal.
+   */
   addArrowButton(name, position, to, style, color) {
     if(!this.items)
       this.items = new Array();
 
+    style = style || 'arrow_right';
+    color = color || '#ffffff';
+
     this.items.push({ type: 'button', style, name, position, to, color });
   },
 
+  /**
+   * Completely redraws the menu and creates a new and updates THREE.Mesh.
+   */
   update() {
-    this.set('canvas2', document.createElement('canvas'));
-    this.get('canvas2').width = this.resolution.width;
-    this.get('canvas2').height = this.resolution.height;
-    let canvas2 = this.get('canvas2');
-    var ctx = canvas2.getContext('2d');
+    if(!this.get('canvas')) {
+      this.set('canvas', document.createElement('canvas'));
+    }
+    this.get('canvas').width = this.resolution.width;
+    this.get('canvas').height = this.resolution.height;
+    let canvas = this.get('canvas');
+    let ctx = canvas.getContext('2d');
     ctx.fillStyle = this.color;
-    ctx.fillRect(0, 0, canvas2.width, canvas2.height);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     for(let i = 0; i < this.items.length; i++) {
       let item = this.items[i];
@@ -69,8 +91,8 @@ export default EmberObject.extend({
         ctx.shadowBlur = 4;
         ctx.shadowOffsetX = 2;
         ctx.shadowOffsetY = 2;
-        ctx.shadowColor = "rgba(0,0,0,0.5)";
-        let textSize = this.getTextSize(item.text, ctx.font);
+        ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+        let textSize = Helper.getTextSize(item.text, ctx.font);
         ctx.fillText(item.text, item.position.x, item.position.y + textSize.sublineHeight);
       } else if(item.type === 'button') {
         if(item.style.startsWith('arrow')) {
@@ -85,7 +107,7 @@ export default EmberObject.extend({
     }
        
     // create texture out of canvas
-    let texture = new THREE.CanvasTexture(canvas2);
+    let texture = new THREE.CanvasTexture(canvas);
     // Map texture
     let material = new THREE.MeshBasicMaterial({map: texture, depthTest: true});
     material.transparent = true;
@@ -97,6 +119,12 @@ export default EmberObject.extend({
     this.mesh.material = material;
   },
 
+  /**
+   * Changes the text of a text item and updates the mesh.
+   * 
+   * @param {string} itemName - The unique identifier of the item.
+   * @param {string} text - The new text of the item.
+   */
   updateText(itemName, text) {
     for(let i = 0; i < this.items.length; i++) {
       const item = this.items[i];
@@ -108,6 +136,19 @@ export default EmberObject.extend({
     }
   },
 
+  /**
+   * Draw an arrow to a canvas.
+   * @example
+   * let canvas = document.createElement('canvas');
+   * let ctx = canvas.getContext('2d');
+   * 
+   * drawArrowHead(ctx, {x: 30, y: 50}, {x: 40, y: 65}, 'arrow_up');
+   * 
+   * @param {Object} ctx - The context of a canvas.
+   * @param {{x: number, y: number}} from - The upper left position of the arrow.
+   * @param {{x: number, y: number}} to - The lower right position  of the arrow.
+   * @param {string} style - The style of the arrow.
+   */
   drawArrowhead(ctx, from, to, style) {
     switch(style) {
       case 'arrow_up':
@@ -141,12 +182,22 @@ export default EmberObject.extend({
     }
   },
 
-  close() {
+  /**
+   * Remove the menu mesh.
+   */
+  removeMesh() {
     this.mesh.geometry.dispose();
     this.mesh.material.dispose();
     this.mesh = null;
   },
 
+  /**
+   * Finds the menu item at given uv position.
+   * 
+   * @param {{x: number, y: number}} position - The uv position.
+   * 
+   * @returns Item at given position if there is one, else undefined.
+   */
   getItem(position) {
     for(let i = 0; i < this.items.length; i++) {
       let item = this.items[i];
@@ -154,7 +205,7 @@ export default EmberObject.extend({
       let y = this.resolution.height - (this.resolution.height * position.y);
       if(item.type === 'text') {
 
-        let size = this.getTextSize(item.text, `${item.size}px arial`);
+        let size = Helper.getTextSize(item.text, `${item.size}px arial`);
 
         let itemX = item.position.x;
         let itemY = item.position.y;
@@ -180,26 +231,12 @@ export default EmberObject.extend({
       }
     }
   },
-  
-  /**
-  * Uses canvas.measureText to compute and return the width of the given text of given font in pixels.
-  * 
-  * @param {String} text The text to be rendered.
-  * @param {String} font The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
-  * 
-  * @see https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
-  */
-  getTextSize(text, font) {
-    // re-use canvas object for better performance
-    let canvas = document.createElement("canvas");
-    let context = canvas.getContext("2d");
-    context.font = font;
-    let width = context.measureText(text).width;
-    let height = context.measureText("W").width;
-    var sublineHeight = context.measureText("H").width;
-    return { width, height, sublineHeight };
-  },
 
+  /**
+   * Enables hover effect for given item and disabled it for the formerly hovered item.
+   * 
+   * @param {Object} item - Menu item that shall the hovered.
+   */
   setHover(item) {    
     if(item === null && this.hoveredItem) {
       this.hoveredItem.hover = false;
@@ -208,7 +245,7 @@ export default EmberObject.extend({
       return;
     }
 
-    if(item === this.hoveredItem )
+    if(item === this.hoveredItem)
       return;
 
     if(this.hoveredItem) {
@@ -221,11 +258,12 @@ export default EmberObject.extend({
 
   },
 
+  /**
+   * Creates THREE.Mesh of the menu.
+   */
   createMesh() {
     if(this.mesh) {
-      this.mesh.geometry.dispose();
-      this.mesh.material.dispose();
-      this.mesh = null;
+      return;
     }
 
     let material = new THREE.MeshBasicMaterial({
@@ -233,57 +271,24 @@ export default EmberObject.extend({
     });
     let textBox = new THREE.Mesh(new THREE.PlaneGeometry(this.size.width, this.size.height), material);
     textBox.name = this.title;
-
-    this.set('canvas2', document.createElement('canvas'));
-    this.get('canvas2').width = this.resolution.width;
-    this.get('canvas2').height = this.resolution.height;
-    let canvas2 = this.get('canvas2');
-    var ctx = canvas2.getContext('2d');
-    ctx.fillStyle = this.color;
-    ctx.fillRect(0, 0, canvas2.width, canvas2.height);
-
-
-    for(let i = 0; i < this.items.length; i++) {
-      let item = this.items[i];
-      if(item.type === 'text') {
-        // Draw Text
-        ctx.font = `${item.size}px arial`;
-        if(item.clickable && item.hover) {
-          ctx.fillStyle = this.hoverColor;
-        } else {
-          ctx.fillStyle = item.color;
-        }
-        ctx.textAlign = item.align;
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetX = 2;
-        ctx.shadowOffsetY = 2;
-        ctx.shadowColor = "rgba(0,0,0,0.5)";
-        let textSize = this.getTextSize(item.text, ctx.font);
-        ctx.fillText(item.text, item.position.x, item.position.y + textSize.sublineHeight);
-      } else if(item.type === 'button') {
-        if(item.style.startsWith('arrow')) {
-          if(item.hover) {
-            ctx.fillStyle = this.hoverColor;
-          } else {
-            ctx.fillStyle = item.color;
-          }
-          this.drawArrowhead(ctx, item.position, item.to, item.style);
-        }
-      }
-    }
-       
-    // create texture out of canvas
-    let texture = new THREE.CanvasTexture(canvas2);
-    // Map texture
-    material = new THREE.MeshBasicMaterial({map: texture, depthTest: true});
-    material.transparent = true;
-    material.opacity = this.opacity;
-
-    // Update texture      
-    texture.needsUpdate = true;
-    // Update mesh material
-    textBox.material = material;
     this.mesh = textBox;
+
+    this.update();
+  },
+
+
+  /**
+   * Returns menu mesh.
+   */
+  getMesh() {
+    return this.mesh;
+  },
+
+  /**
+   * Returns the menu title.
+   */
+  getTitle() {
+    return this.title;
   }
 
 });

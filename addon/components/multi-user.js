@@ -707,7 +707,7 @@ export default VRRendering.extend(Ember.Evented, {
       this.get('scene').remove(user.get('namePlane'));
       user.removeNamePlane();
       this.get('users').delete(id);
-      MessageBox.enqueueMessage.call(this, {title: 'User disconnected', text: user.get('name'), color: this.rgbToHex(user.get('color'))}, 3000);
+      MessageBox.enqueueMessage.call(this, {title: 'User disconnected', text: user.get('name'), color: Helper.rgbToHex(user.get('color'))}, 3000);
     }
   },
 
