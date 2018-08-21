@@ -894,7 +894,7 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   /**
-   * Inform the backend that we leave the session
+   * Inform the backend that user leaves the session
    */
   disconnect() {
     const disconnectMessage = [{
@@ -1355,24 +1355,23 @@ export default VRRendering.extend(Ember.Evented, {
     let username = user.get('name');
 
     let textSize = Helper.getTextSize(username);
-    console.log("Size: " + textSize.width + ", " + textSize.height);
 
-    //note: sprites are always same width + height
+    //width according to textsize, will be automatically resized to a power of two
     let width = textSize.width * 3 + 20;
     let height = textSize.height * 5;
 
-
+    // use canvas to display text
     this.set('canvas2', document.createElement('canvas'));
     this.get('canvas2').width = width;
     this.get('canvas2').height = height;
     let canvas2 = this.get('canvas2');
     var ctx = canvas2.getContext('2d');
-    ctx.fillStyle = 'rgba(200, 200, 216, 0.5)';
+    ctx.fillStyle = 'rgba(200, 200, 216, 0.5)'; // light grey
     ctx.fillRect(0, 0, canvas2.width, canvas2.height);
 
 
     ctx.font = `30px arial`;
-    ctx.fillStyle = Helper.rgbToHex(user.get('color'));
+    ctx.fillStyle = Helper.rgbToHex(user.get('color')); // username is colored in corresponding color
     ctx.textAlign = 'center';
     ctx.fillText(username, canvas2.width / 2, 35);
        
@@ -1385,18 +1384,20 @@ export default VRRendering.extend(Ember.Evented, {
     let geometry = new THREE.PlaneGeometry(width / 500, height / 500, 32 );
     let material = new THREE.MeshBasicMaterial( {map: texture, color: 0xffffff, side: THREE.DoubleSide} );
     material.transparent = true;
-    material.opacity = 0.8;
+    material.opacity = 0.8; //make username tag slightly transparent
     let plane = new THREE.Mesh( geometry, material );
+
+    //use dummy object to let username always face camera with lookAt() function
     let dummy = new THREE.Object3D();
     dummy.name = 'dummyPlaneName';
 
     dummy.position.x = camera.position.x;
-    dummy.position.y = camera.position.y + 0.3;
+    dummy.position.y = camera.position.y + 0.3; //display username above hmd
     dummy.position.z = camera.position.z;
 
     user.namePlane = plane;
 
-    //sprite moves with hmd of user
+    //username moves with user
     camera.add(dummy);
     this.scene.add(plane);
   },
@@ -1413,6 +1414,7 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   setLandscapeState(systems, nodegroups){
+    // set system status to opened / closed
     let vrLandscape = this.get('vrLandscape').children;
     systems.forEach(system => {
       let emberModel = this.get('store').peekRecord('system', system.id);
@@ -1420,6 +1422,7 @@ export default VRRendering.extend(Ember.Evented, {
     });
     this.populateScene();
 
+    // use of store like above currently not possible, due to problems with klay
     nodegroups.forEach(function (nodegroup){
       let id = nodegroup.id;
       let isOpen = nodegroup.opened;
@@ -1429,12 +1432,6 @@ export default VRRendering.extend(Ember.Evented, {
         }
       });
     });
-
-        /*
-    nodegroups.forEach(nodegroup => {
-      let emberModel = this.get('store').peekRecord('nodegroup', nodegroup.id);
-      emberModel.setOpened(nodegroup.opened);
-    });*/
 
     this.populateScene();
     
@@ -1464,18 +1461,21 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('openApps').get(emberModel.id).updateMatrix();
   },
 
+  /**
+   * Move landscape in x or z direction
+   */
   moveLandscape(delta) {
-    let distanceXInPercent = (delta.x / -100.0);
-    let distanceYInPercent = (delta.y / 100.0);
+    let scaledDeltaX = (delta.x / -100.0);
+    let scaledDeltaY = (delta.y / 100.0);
 
-    this.get('environmentOffset').x += distanceXInPercent;
-    this.get('environmentOffset').z -= distanceYInPercent;
+    this.get('environmentOffset').x += scaledDeltaX;
+    this.get('environmentOffset').z -= scaledDeltaY;
 
-    this.get('vrEnvironment').position.x +=  distanceXInPercent;
-    this.get('vrEnvironment').position.z -= distanceYInPercent;
+    this.get('vrEnvironment').position.x +=  scaledDeltaX;
+    this.get('vrEnvironment').position.z -= scaledDeltaY;
     this.updateObjectMatrix(this.get('vrEnvironment'));
 
-    let deltaPosition = new THREE.Vector3(distanceXInPercent, 0, distanceYInPercent);
+    let deltaPosition = new THREE.Vector3(scaledDeltaX, 0, scaledDeltaY);
     this.get('interaction').trigger('landscapeMoved', deltaPosition);
   },
 
@@ -1505,7 +1505,7 @@ export default VRRendering.extend(Ember.Evented, {
     console.log(`On close event has been called: ${event}`);
   },
 
-  //called when user closes the site
+  //called when user closes the site / tab
   willDestroyElement() {
     console.log("Destroy");
     this._super(...arguments);
