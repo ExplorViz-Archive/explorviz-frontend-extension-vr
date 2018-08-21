@@ -1,4 +1,5 @@
 import Menu from '../menu';
+import Helper from '../helper';
 
 let menu = null;
 
@@ -38,7 +39,7 @@ export function open() {
 
   for(let i = 0; i < playingUsers.length; i++) {
     let userColor = playingUsers[i].color;
-    menu.addText(playingUsers[i].name, 'connected', 12, { x: 50, y: yPos + i*yOffset}, this.rgbToHex(userColor), 'left', false);
+    menu.addText(playingUsers[i].name, 'connected', 12, { x: 50, y: yPos + i*yOffset}, Helper.rgbToHex(userColor), 'left', false);
   }
 
   yPos = yPos + yOffset*(playingUsers.length);
@@ -54,7 +55,7 @@ export function open() {
   
   for(let i = 0; i < spectatingUsers.length; i++) {
     let userColor = spectatingUsers[i].color;
-    menu.addText(spectatingUsers[i].name, 'spectating', 12, { x: 50, y: yPos + i*yOffset}, this.rgbToHex(userColor), 'left', false);
+    menu.addText(spectatingUsers[i].name, 'spectating', 12, { x: 50, y: yPos + i*yOffset}, Helper.rgbToHex(userColor), 'left', false);
   }
 
   menu.interact = (action, position) => {};
