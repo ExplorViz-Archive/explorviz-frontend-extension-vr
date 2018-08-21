@@ -1,0 +1,136 @@
+import Menu from '../menu';
+
+let menu = null;
+let prevMenu = null;
+
+export function open(lastMenu) {
+  close.call(this);
+  menu = new Menu({
+    title: 'spectateMenu',
+    resolution: { width: 256, height: 256 },
+    size: { height: 0.3, width: 0.3},
+    opacity: 0.8,
+    color: '#444444',
+  });
+  menu.addText('Spectate', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
+  menu.addArrowButton('previous_user', {x: 30, y: 103}, {x: 50, y: 133}, 'arrow_left', '#ffc338');
+  menu.addArrowButton('next_user', {x: 206, y: 103}, {x: 226, y: 133}, 'arrow_right', '#ffc338');
+  menu.addText('Spectating no-one', 'spectating_user', 14, { x: 128, y: 113}, '#ffffff', 'center', false);
+  menu.addText('Go Back and Stop Spectating', 'back', 14, { x: 128, y: 220}, '#ffffff', 'center', true);
+  prevMenu = lastMenu;
+  menu.interact = (action, position) => {
+    let item = menu.getItem(position);
+    if(item) {
+      if(action === 'rightIntersect') {
+        menu.setHover(item);
+      }
+      if(action === 'rightTrigger') {
+        if(item.name === 'next_user') {
+          if(this.users.size < 1)
+            return;
+
+          let users = this.users.keys();
+          let userArray = []
+          for(let id of users) {
+            if(this.users.get(id).state === 'connected')
+              userArray.push(id);
+          }
+
+          if(userArray.length < 1)
+            return;
+
+          userArray.sort();
+
+          if(!this.spectatedUser) {
+            this.activateSpectating(userArray[0]);
+            menu.updateText('spectating_user', this.users.get(userArray[0]).name);
+            return;
+          }
+          
+          let index = this.binaryIndexOf(userArray, this.spectatedUser);
+
+          if(index !== -1) {
+            if(index === userArray.length - 1) {
+              this.activateSpectating(userArray[0]);
+              menu.updateText('spectating_user', this.users.get(userArray[0]).name);
+            } else {
+              this.activateSpectating(userArray[index+1]);
+              menu.updateText('spectating_user', this.users.get(userArray[index+1]).name);
+            }
+          }
+        } else if(item.name === 'previous_user') {
+          if(this.users.size < 1)
+            return;
+
+            let users = this.users.keys();
+            let userArray = []
+            for(let id of users) {
+              if(this.users.get(id).state === 'connected')
+                userArray.push(id);
+            }
+
+            if(userArray.length < 1)
+              return;
+
+            userArray.sort();
+
+            if(!this.spectatedUser) {
+              this.activateSpectating(userArray[userArray.length-1]);
+              menu.updateText('spectating_user', this.users.get(userArray[userArray.length-1]).name);
+              return;
+            }
+          
+            let index = this.binaryIndexOf(userArray, this.spectatedUser);
+
+            if(index !== -1) {
+              if(index === 0) {
+                this.activateSpectating(userArray[userArray.length-1]);
+                menu.updateText('spectating_user', this.users.get(userArray[userArray.length-1]).name);
+              } else {
+                this.activateSpectating(userArray[index-1]);
+                menu.updateText('spectating_user', this.users.get(userArray[index-1]).name);
+              }
+            }
+        } else if(item.name === 'back') {
+          this.deactivateSpectating();
+          back.call(this);
+        }
+      }
+    } else {
+      menu.setHover(null);
+    }
+  };
+  menu.createMesh();
+  menu.mesh.position.x += 0.2;
+  menu.mesh.geometry.rotateX(-1.5707963267949);
+  this.controller1.add(menu.mesh);
+  this.menus.set(menu.title, menu);
+}
+
+export function close() {
+  if(menu) {
+    this.controller1.remove(menu.mesh);
+    menu.close();
+    this.menus.delete(menu.title);
+    menu = null;
+  }
+}
+
+export function back() {
+  close.call(this);
+  if(prevMenu)
+    prevMenu.call(this);
+}
+
+export function isOpen() {
+  return menu ? true : false;
+}
+
+export function hasBackButton() {
+  return prevMenu ? true : false;
+}
+
+export function updateText(itemName, text) {
+  if(menu)
+    menu.updateText(itemName, text);
+}
