@@ -170,7 +170,6 @@ export default VRRendering.extend(Ember.Evented, {
 
     const self = this;
 
-    this.set('fps', 90);
     this.set('currentTime', 0);
     this.set('deltaTime', 0);
     this.set('updateQueue', []);
