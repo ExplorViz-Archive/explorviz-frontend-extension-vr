@@ -1,4 +1,5 @@
   /**
+   * Returns measurements in pixels for a given text
    * 
    * @param {string} text The text to measure the width, height and subline height of.
    * @param {string} font The font to measure the size in.
@@ -15,6 +16,11 @@
     return { width, height, sublineHeight };
   }
 
+  /**
+   * Converts an rgb color into an string representing a hex color
+   * 
+   * @param {Array} rgbArray [r, g, b] where 0 <= {r,g,b} <= 255
+   */
   export function rgbToHex(rgbArray) {
     return "#" + ((1 << 24) + (rgbArray[0] << 16) + (rgbArray[1] << 8) + rgbArray[2]).toString(16).slice(1);
   }

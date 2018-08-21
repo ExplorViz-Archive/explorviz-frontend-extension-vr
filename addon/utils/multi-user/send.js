@@ -24,7 +24,6 @@ import THREE from 'three';
      * @param {boolean} isOpen State of the system
      */
     export function sendSystemUpdate(id, isOpen){
-    console.log("Sending system update");
     let systemObj = {
         "event": "receive_system_update",
         "time": Date.now(),
@@ -142,6 +141,10 @@ import THREE from 'three';
     this.updateQueue.push(hightlightObj);
     }
 
+    /**
+     * Informs backend that this user entered or left spectating mode
+     * and additionally adds who is spectating who
+     */
     export function sendSpectatingUpdate(){
     let spectateObj = {
         "event": "receive_spectating_update",
