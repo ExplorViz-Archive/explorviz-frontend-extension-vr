@@ -56,18 +56,15 @@ export default VRRendering.extend(Ember.Evented, {
 
     //if time difference is large enough, update and send messages to backend
     if(this.deltaTime > 1000/this.fps) {
-      //if not connected yet controllers need not to be considered
       if(this.userID && this.state === 'connected') {
-        this.updateControllers();
         this.update();
-        this.updateUserNameTags();
-        this.render2();
       } else if(this.userID && this.state === 'spectating') {
-        this.updateControllers();
-        this.updateUserNameTags();
-        this.spectateUser();
-        this.render2();
+        this.spectateUser(); // follow view of spectated user
       }
+
+      this.updateControllers();
+      this.updateUserNameTags();
+      this.render2();
 
       //send messages like connecting request, position updates etc.
       this.sendUpdates();
@@ -991,6 +988,8 @@ export default VRRendering.extend(Ember.Evented, {
           break;
         case 'receive_ping':
           this.updateQueue.push(data);
+          break;
+        case 'receive_bad_connection':
           break;
       }
     }
