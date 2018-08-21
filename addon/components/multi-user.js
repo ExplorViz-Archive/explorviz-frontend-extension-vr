@@ -1,11 +1,17 @@
 import { inject as service } from '@ember/service';
 import User from '../utils/multi-user/user';
-import Menu from '../utils/multi-user/menu';
 import Helper from '../utils/multi-user/helper';
 import Sender from '../utils/multi-user/send';
 import VRRendering from './vr-rendering';
 import Ember from 'ember';
 import THREE from 'three';
+import UserListMenu from '../utils/multi-user/menus/user-list-menu';
+import OptionsMenu from '../utils/multi-user/menus/options-menu';
+import SpectateMenu from '../utils/multi-user/menus/spectate-menu';
+import LandscapePositionMenu from '../utils/multi-user/menus/landscape-position-menu';
+import CameraHeightMenu from '../utils/multi-user/menus/camera-height-menu';
+import MessageBox from '../utils/multi-user/menus/message-box-menu';
+
 
 //Declare globals
 /*global createOBJLoader*/
@@ -35,11 +41,8 @@ export default VRRendering.extend(Ember.Evented, {
   updateQueue: [], // messages which are ready to be sent to backend
   running: false, // tells if gameLoop is executing
   hmdObject: null, // object for other user's hmd
-  messageQueue: [], // messages displayed on top edge of hmd (e.g. user x connected)
   spectatedUser: null, // tells which userID (if any) is being spectated
   menus: new Map(), // keeps track of menus for settings
-  optionsMenu: null, // current options menu, null if all closed
-  userListMenu: null, // keep track of the user list menu
   startPosition: null, //position before this user starts spectating
   session: Ember.inject.service('session'), //session used to retrieve username
 
@@ -136,9 +139,7 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('state', 'connected');
     this.set('spectatedUser', null);
 
-    if(this.optionsMenu.title === 'spectateMenu') {
-      this.optionsMenu.updateText('spectating_user', 'Spectating no-one');
-    }
+    SpectateMenu.updateText('spectating_user', 'Spectating no-one');
 
     let position = this.get('startPosition');
     this.get('user.position').fromArray(position.toArray());
@@ -305,39 +306,6 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
-  /**
-   * Add text to messageQueue which should be displayed on top edge of hmd
-   * @param {{title: string, text: string}} message Title and text which should be displayed
-   */
-  enqueueMessage(message) {
-    this.messageQueue.unshift(message);
-    if(this.messageQueue.length === 1) {
-      this.showMessage();
-    }
-  },
-
-  /**
-   * Displays text messages on the top edge of the hmd for 3 seconds
-   */
-  showMessage() {
-    if(this.messageQueue.length <= 0)
-      return;
-    
-    let message = this.messageQueue[this.messageQueue.length-1];
-    this.createMessageBox(message.title, message.text, message.color);
-    setTimeout(closeAfterTime.bind(this), 3000);
-
-    function closeAfterTime() {
-      this.deleteMessageBox();
-      setTimeout(() => {
-        if(this.messageQueue.length > 0) {
-          this.messageQueue.pop();
-          this.showMessage();
-        }
-      }, 800);
-    }
-  },
-
   checkIntersectionRightController(objects) {
     let controller = this.get('controller2');
     let controllerLine = controller.getObjectByName('controllerLine');
@@ -400,395 +368,28 @@ export default VRRendering.extend(Ember.Evented, {
 
   onMenuDownController1() {
     if(this.state !== 'spectating') {
-      if(!this.optionsMenu)
-        this.openOptionsMenu();
+      if(OptionsMenu.isOpen())
+        OptionsMenu.close.call(this);
+      else if(CameraHeightMenu.isOpen())
+        CameraHeightMenu.back.call(this);
+      else if(LandscapePositionMenu.isOpen())
+        LandscapePositionMenu.back.call(this);
+      else if(SpectateMenu.isOpen())
+        SpectateMenu.back.call(this);
       else
-        this.closeOptionsMenu();
+        OptionsMenu.open.call(this);
     } else {
       this.deactivateSpectating();
-      this.closeOptionsMenu();
+      SpectateMenu.back.call(this);
     }
-  },
-
-  openOptionsMenu() {
-    let menu = new Menu({
-      title: 'optionsMenu',
-      resolution: { width: 256, height: 256 },
-      size: { height: 0.3, width: 0.3},
-      opacity: 0.8,
-      color: '#444444',
-    });
-    menu.addText('Options', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
-    menu.addText('Change Height', 'change_height', 14, { x: 128, y: 70}, '#ffc338', 'center', true);
-    menu.addText('Change Landscape Position', 'change_landscape_position', 14, { x: 128, y: 100}, '#ffc338', 'center', true);
-    menu.addText('Spectate', 'spectate', 14, { x: 128, y: 130}, '#ffc338', 'center', true);
-    menu.addText('Exit', 'exit', 14, { x: 128, y: 220}, '	#ffffff', 'center', true);
-    menu.interact = (action, position) => {
-      let item = menu.getItem(position);
-      if(item) {
-        if(action === 'rightIntersect') {
-          menu.setHover(item);
-        }
-        if(action === 'rightTrigger') {
-          if(item.name === 'exit') {
-            this.closeOptionsMenu();
-          } else if(item.name === 'change_height') {
-            this.closeOptionsMenu();
-            this.openChangeCameraHeightMenu(this.openOptionsMenu);
-          } else if(item.name === 'change_landscape_position') {
-            this.closeOptionsMenu();
-            this.openChangeLandscapePosition(this.openOptionsMenu);
-          } else if(item.name === 'spectate') {
-            this.closeOptionsMenu();
-            this.openSpectateMenu(this.openOptionsMenu);
-          }
-        }
-      } else {
-        menu.setHover(null);
-      }
-    };
-
-    menu.createMesh();
-    menu.mesh.position.x += 0.2;
-    menu.mesh.geometry.rotateX(1.5707963267949 * 3);
-    this.controller1.add(menu.mesh);
-    this.menus.set(menu.title, menu);
-    this.optionsMenu = menu;
-  },
-
-  closeOptionsMenu() {
-    this.controller1.remove(this.optionsMenu.mesh);
-    this.optionsMenu.close();
-    this.menus.delete(this.optionsMenu.title);
-    this.optionsMenu = null;
-  },
-
-  openChangeCameraHeightMenu(lastMenu) {
-    let menu = new Menu({
-      title: 'changeCameraHeightMenu',
-      resolution: { width: 256, height: 256 },
-      size: { height: 0.3, width: 0.3},
-      opacity: 0.8,
-      color: '#444444',
-    });
-    menu.addText('Change Height', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
-    menu.addArrowButton('height_down', {x: 30, y: 103}, {x: 60, y: 133}, 'arrow_down', '#ffc338');
-    menu.addArrowButton('height_up', {x: 196, y: 103}, {x: 226, y: 133}, 'arrow_up', '#ffc338');
-    menu.addText(this.user.position.y.toFixed(2), 'camera_height', 14, { x: 128, y: 113}, '#ffffff', 'center', false);
-    menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ffffff', 'center', true);
-    menu.interact = (action, position) => {
-      let item = menu.getItem(position);
-      if(item) {
-        if(action === 'rightIntersect') {
-          menu.setHover(item);
-        }
-        if(action === 'rightTrigger') {
-          if(item.name === 'height_down') {
-            this.get('user').position.y -= 0.05;
-            menu.updateText('camera_height', this.get('user').position.y.toFixed(2));
-          } else if(item.name === 'height_up') {
-            this.get('user').position.y += 0.05;
-            menu.updateText('camera_height', this.get('user').position.y.toFixed(2));
-          } else if(item.name === 'back') {
-            this.closeOptionsMenu();
-            lastMenu.bind(this)();
-          }
-        }
-      } else {
-        menu.setHover(null);
-      }
-    };
-    menu.createMesh();
-    menu.mesh.position.x += 0.2;
-    menu.mesh.geometry.rotateX(-1.5707963267949);
-    this.controller1.add(menu.mesh);
-    this.menus.set(menu.title, menu);
-    this.optionsMenu = menu;
-  },
-
-  openChangeLandscapePosition(lastMenu) {
-    let menu = new Menu({
-      title: 'changeLandscapePositionMenu',
-      resolution: { width: 256, height: 256 },
-      size: { height: 0.3, width: 0.3},
-      opacity: 0.8,
-      color: '#444444',
-    });
-    menu.addText('Change Landscape Position', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
-    menu.addArrowButton('move_left', {x: 70, y: 103}, {x: 90, y: 133}, 'arrow_left', '#ffc338');
-    menu.addArrowButton('move_right', {x: 166, y: 103}, {x: 186, y: 133}, 'arrow_right', '#ffc338');
-    menu.addArrowButton('move_forward', {x: 113, y: 60}, {x: 143, y: 80}, 'arrow_up', '#ffc338');
-    menu.addArrowButton('move_backward', {x: 113, y: 156}, {x: 143, y: 176}, 'arrow_down', '#ffc338');
-    menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ffffff', 'center', true);
-    menu.interact = (action, position) => {
-      let item = menu.getItem(position);
-      if(item) {
-        if(action === 'rightIntersect') {
-          menu.setHover(item);
-        }
-        if(action === 'rightTrigger') {
-          if(item.name === 'move_left') {
-            this.moveLandscape({x: 20, y: 0});
-          } else if(item.name === 'move_right') {
-            this.moveLandscape({x: -20, y: 0});
-          } else if(item.name === 'move_forward') {
-            this.moveLandscape({x: 0, y: 20});
-          } else if(item.name === 'move_backward') {
-            this.moveLandscape({x: 0, y: -20});
-          } else if(item.name === 'back') {
-            this.closeOptionsMenu();
-            lastMenu.bind(this)();
-          }
-        }
-      } else {
-        menu.setHover(null);
-      }
-    };
-    menu.createMesh();
-    menu.mesh.position.x += 0.2;
-    menu.mesh.geometry.rotateX(-1.5707963267949);
-    this.controller1.add(menu.mesh);
-    this.menus.set(menu.title, menu);
-    this.optionsMenu = menu;
-  },
-
-  openSpectateMenu(lastMenu) {
-    let menu = new Menu({
-      title: 'spectateMenu',
-      resolution: { width: 256, height: 256 },
-      size: { height: 0.3, width: 0.3},
-      opacity: 0.8,
-      color: '#444444',
-    });
-    menu.addText('Spectate', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
-    menu.addArrowButton('previous_user', {x: 30, y: 103}, {x: 50, y: 133}, 'arrow_left', '#ffc338');
-    menu.addArrowButton('next_user', {x: 206, y: 103}, {x: 226, y: 133}, 'arrow_right', '#ffc338');
-    menu.addText('Spectating no-one', 'spectating_user', 14, { x: 128, y: 113}, '#ffffff', 'center', false);
-    menu.addText('Go Back and Stop Spectating', 'back', 14, { x: 128, y: 220}, '	#ffffff', 'center', true);
-    menu.interact = (action, position) => {
-      let item = menu.getItem(position);
-      if(item) {
-        if(action === 'rightIntersect') {
-          menu.setHover(item);
-        }
-        if(action === 'rightTrigger') {
-          if(item.name === 'next_user') {
-            if(this.users.size < 1)
-              return;
-
-            let users = this.users.keys();
-            let userArray = []
-            for(let id of users) {
-              if(this.users.get(id).state === 'connected')
-                userArray.push(id);
-            }
-
-            if(userArray.length < 1)
-              return;
-
-            userArray.sort();
-
-            if(!this.spectatedUser) {
-              this.activateSpectating(userArray[0]);
-              menu.updateText('spectating_user', this.users.get(userArray[0]).name);
-              return;
-            }
-            
-            let index = Helper.binaryIndexOf(userArray, this.spectatedUser);
-
-            if(index !== -1) {
-              if(index === userArray.length - 1) {
-                this.activateSpectating(userArray[0]);
-                menu.updateText('spectating_user', this.users.get(userArray[0]).name);
-              } else {
-                this.activateSpectating(userArray[index+1]);
-                menu.updateText('spectating_user', this.users.get(userArray[index+1]).name);
-              }
-            }
-          } else if(item.name === 'previous_user') {
-            if(this.users.size < 1)
-              return;
-
-              let users = this.users.keys();
-              let userArray = []
-              for(let id of users) {
-                if(this.users.get(id).state === 'connected')
-                  userArray.push(id);
-              }
-
-              if(userArray.length < 1)
-                return;
-  
-              userArray.sort();
-  
-              if(!this.spectatedUser) {
-                this.activateSpectating(userArray[userArray.length-1]);
-                menu.updateText('spectating_user', this.users.get(userArray[userArray.length-1]).name);
-                return;
-              }
-            
-              let index = Helper.binaryIndexOf(userArray, this.spectatedUser);
-  
-              if(index !== -1) {
-                if(index === 0) {
-                  this.activateSpectating(userArray[userArray.length-1]);
-                  menu.updateText('spectating_user', this.users.get(userArray[userArray.length-1]).name);
-                } else {
-                  this.activateSpectating(userArray[index-1]);
-                  menu.updateText('spectating_user', this.users.get(userArray[index-1]).name);
-                }
-              }
-          } else if(item.name === 'back') {
-            this.deactivateSpectating();
-            this.closeOptionsMenu();
-            lastMenu.bind(this)();
-          }
-        }
-      } else {
-        menu.setHover(null);
-      }
-    };
-    menu.createMesh();
-    menu.mesh.position.x += 0.2;
-    menu.mesh.geometry.rotateX(-1.5707963267949);
-    this.controller1.add(menu.mesh);
-    this.menus.set(menu.title, menu);
-    this.optionsMenu = menu;
-  },
-
-  createMessageBox(title, text, color) {
-    let menu = new Menu({
-      title: 'messageBox',
-      resolution: { width: 256, height: 64 },
-      size: { width: 0.2, height: 0.05 },
-      opacity: 0.7,
-      color: '#000000',
-    });
-
-    if(!color)
-      color = 'lightgreen';
-
-    menu.addText(title, 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
-    menu.addText(text, 'text', 14, { x: 128, y: 40}, color, 'center', false);
-    menu.interact = (action, position) => {};
-
-    menu.createMesh();
-    this.menus.set(menu.title, menu);
-
-    let textBox = menu.mesh;
-    textBox.position.y += 0.3;
-    textBox.position.z -= 0.3;
-    textBox.rotateX(0.45);
-
-    this.camera.add(textBox);
-    let y = 0;
-    function animate() {
-      y -= 0.01;
-      if (y > -0.16) {
-        textBox.position.y -=0.01;
-      } else {
-        return;
-      }
-      requestAnimationFrame(animate);
-    }
-    animate();
-  },
-
-  /**
-   * Remove text message on top edge of user's view
-   */
-  deleteMessageBox() {
-    let messageBox = this.camera.getObjectByName('messageBox');
-    this.menus.delete('messageBox');
-    this.camera.remove(messageBox);
   },
 
   onGripDownController1() {
-    this.openUserListMenu();
+    UserListMenu.open.call(this);
   },
 
   onGripUpController1() {
-    this.deleteUserListMenu();
-  },
-
-  /**
-   * Remove user list menu in the middle of the screen
-   */
-  deleteUserListMenu() {
-    if(!this.userListMenu)
-      return;
-
-    let menu = this.camera.getObjectByName(this.userListMenu.title);
-    this.menus.delete(this.userListMenu.title);
-    this.camera.remove(menu);
-    this.userListMenu = null;
-  },
-
-  openUserListMenu() {
-    if(this.userListMenu)
-      return;
-    
-    let menu = new Menu({
-      title: 'userListMenu',
-      resolution: { width: 256, height: 256 },
-      size: { width: 0.3, height: 0.3 },
-      opacity: 0.8,
-      color: '#444444',
-    });
-
-    menu.addText('Users', 'title', 18, { x: 20, y: 20}, '#ffffff', 'left', false);
-
-    let users = this.users.values();
-    let playingUsers = [];
-    let spectatingUsers = [];
-    for(let user of users) {
-      if(user.state === 'connected') {
-        playingUsers.push(user);
-      } else if(user.state === 'spectating') {
-        spectatingUsers.push(user);
-      }
-    }
-
-    menu.addText('Connected', 'connected', 14, { x: 40, y: 50}, '#ffffff', 'left', false);
-
-    let yOffset = 20;
-    let yPos = 50 + yOffset;
-
-    if(this.state === 'connected') {
-      menu.addText('>> You <<', 'connected', 12, { x: 50, y: yPos}, '#a7adba', 'left', false);
-      yPos += yOffset;
-    }
-
-
-    for(let i = 0; i < playingUsers.length; i++) {
-      let userColor = playingUsers[i].color;
-      menu.addText(playingUsers[i].name, 'connected', 12, { x: 50, y: yPos + i*yOffset}, Helper.rgbToHex(userColor), 'left', false);
-    }
-
-    yPos = yPos + yOffset*(playingUsers.length);
-
-    menu.addText('Spectating', 'spectating', 14, { x: 40, y: yPos}, '#ffffff', 'left', false);
-
-    yPos += yOffset;
-
-    if(this.state === 'spectating') {
-      menu.addText('>> You <<', 'connected', 12, { x: 50, y: yPos}, '#a7adba', 'left', false);
-      yPos += yOffset;
-    }
-    
-    for(let i = 0; i < spectatingUsers.length; i++) {
-      let userColor = spectatingUsers[i].color;
-      menu.addText(spectatingUsers[i].name, 'spectating', 12, { x: 50, y: yPos + i*yOffset}, Helper.rgbToHex(userColor), 'left', false);
-    }
-
-    menu.interact = (action, position) => {};
-
-    menu.createMesh();
-    menu.mesh.position.y += 0.0;
-    menu.mesh.position.z -= 0.5;
-    this.camera.add(menu.mesh);
-    this.menus.set(menu.title, menu);
-    this.userListMenu = menu;
+    UserListMenu.close.call(this);
   },
 
   /**
@@ -1075,7 +676,7 @@ export default VRRendering.extend(Ember.Evented, {
 
     this.addUsername(data.user.id);
 
-    this.enqueueMessage({title: 'User connected', text: user.get('name'), color: Helper.rgbToHex(user.get('color'))});
+    MessageBox.enqueueMessage.call(this, {title: 'User connected', text: user.get('name'), color: Helper.rgbToHex(user.get('color'))}, 3000);
 
   },
 
@@ -1101,7 +702,7 @@ export default VRRendering.extend(Ember.Evented, {
       this.get('scene').remove(user.get('namePlane'));
       user.removeNamePlane();
       this.get('users').delete(id);
-      this.enqueueMessage({title: 'User disconnected', text: user.get('name'), color: this.rgbToHex(user.get('color'))});
+      MessageBox.enqueueMessage.call(this, {title: 'User disconnected', text: user.get('name'), color: this.rgbToHex(user.get('color'))}, 3000);
     }
   },
 
