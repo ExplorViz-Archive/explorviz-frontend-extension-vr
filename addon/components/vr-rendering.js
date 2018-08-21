@@ -1,5 +1,5 @@
 import Ember from 'ember';
-import THREE from "three";
+import THREE from "../../../AppData/Local/Microsoft/TypeScript/2.9/node_modules/@types/three";
 import THREEPerformance from 'explorviz-frontend/mixins/threejs-performance';
 import Raycaster from '../utils/vr-rendering/raycaster';
 import applyKlayLayout from 'explorviz-frontend/utils/landscape-rendering/klay-layouter';
@@ -1969,23 +1969,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // Add application3D to scene
     this.add3DApplicationToLandscape(app3DModel, appPosition, appQuaternion);
     this.get('openApps').get(appID).updateMatrix();
-  },
-
-  // ONLY FOR DEBUGGIN
-  debugPlane(x, y, z, width, height, color1, parent) {
-
-    const material = new THREE.MeshBasicMaterial({
-      color: color1,
-      opacity: 0.4,
-      transparent: true
-    });
-
-    const plane = new THREE.Mesh(new THREE.PlaneGeometry(width, height),
-      material);
-
-    plane.position.set(x, y, z);
-    parent.add(plane);
-
   }
 
 });
