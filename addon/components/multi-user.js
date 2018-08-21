@@ -36,15 +36,15 @@ export default VRRendering.extend(Ember.Evented, {
   controllersConnected: null, // tells which controller(s) are connected
   fps: 90, // tells how many pictures are max. rendered per second (refresh rate of Vive/Rift is 90)
   lastTime: null, // last time an image was rendered
-  currentTime: 0, // tells the current time in ms
-  deltaTime: 0, // time between two frames
-  updateQueue: [], // messages which are ready to be sent to backend
-  running: false, // tells if gameLoop is executing
+  currentTime: null, // tells the current time in ms
+  deltaTime: null, // time between two frames
+  updateQueue: null, // messages which are ready to be sent to backend
+  running: null, // tells if gameLoop is executing
   hmdObject: null, // object for other user's hmd
   spectatedUser: null, // tells which userID (if any) is being spectated
-  menus: new Map(), // keeps track of menus for settings
+  menus: null, // keeps track of menus for settings
   startPosition: null, //position before this user starts spectating
-  session: Ember.inject.service('session'), //session used to retrieve username
+  session: service(), //session used to retrieve username
 
 
   gameLoop() {
@@ -170,6 +170,12 @@ export default VRRendering.extend(Ember.Evented, {
 
     const self = this;
 
+    this.set('fps', 90);
+    this.set('currentTime', 0);
+    this.set('deltaTime', 0);
+    this.set('updateQueue', []);
+    this.set('running', false);
+    this.set('menus', new Map());
     this.set('users', new Map());
     this.set('lastPositions', { camera: null, controller1: null, controller2: null });
     this.set('controllersConnected', { controller1: false, controller2: false });
@@ -1125,9 +1131,16 @@ export default VRRendering.extend(Ember.Evented, {
     this.lastPositions = null;
     this.controllersConnected = null;
     this.lastTime = null;
-    this.currentTime = 0;
-    this.deltaTime = 0;
-    this.updateQueue = [];
+    this.currentTime = null;
+    this.deltaTime = null;
+    this.running = null;
+    this.updateQueue = null;
+    this.hmdObject = null;
+    this.spectatedUser = null;
+    this.menus = null;
+    this.startPosition = null;
+    this.websockets = null;
+    this.session = null;
   },
 
 });
