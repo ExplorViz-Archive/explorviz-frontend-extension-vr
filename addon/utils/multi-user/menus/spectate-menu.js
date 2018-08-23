@@ -16,7 +16,7 @@ export function open(lastMenu) {
   menu.addText('Spectate', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
   menu.addArrowButton('previous_user', {x: 30, y: 103}, {x: 50, y: 133}, 'arrow_left', '#ffc338');
   menu.addArrowButton('next_user', {x: 206, y: 103}, {x: 226, y: 133}, 'arrow_right', '#ffc338');
-  menu.addText('Spectating no-one', 'spectating_user', 14, { x: 128, y: 113}, '#ffffff', 'center', false);
+  menu.addText('Spectating off', 'spectating_user', 14, { x: 128, y: 113}, '#ffffff', 'center', false);
   menu.addText('Go Back and Stop Spectating', 'back', 14, { x: 128, y: 220}, '#ffffff', 'center', true);
   prevMenu = lastMenu;
   menu.interact = (action, position) => {
@@ -31,7 +31,8 @@ export function open(lastMenu) {
             return;
 
           let users = this.users.keys();
-          let userArray = []
+          let userArray = [];
+
           for(let id of users) {
             if(this.users.get(id).state === 'connected')
               userArray.push(id);
@@ -52,8 +53,8 @@ export function open(lastMenu) {
 
           if(index !== -1) {
             if(index === userArray.length - 1) {
-              this.activateSpectating(userArray[0]);
-              menu.updateText('spectating_user', this.users.get(userArray[0]).name);
+              this.deactivateSpectating();
+              menu.updateText('spectating_user', 'Spectating no-one');
             } else {
               this.activateSpectating(userArray[index+1]);
               menu.updateText('spectating_user', this.users.get(userArray[index+1]).name);
@@ -85,15 +86,14 @@ export function open(lastMenu) {
 
             if(index !== -1) {
               if(index === 0) {
-                this.activateSpectating(userArray[userArray.length-1]);
-                menu.updateText('spectating_user', this.users.get(userArray[userArray.length-1]).name);
+                this.deactivateSpectating();
+                menu.updateText('spectating_user', 'Spectating off');
               } else {
                 this.activateSpectating(userArray[index-1]);
                 menu.updateText('spectating_user', this.users.get(userArray[index-1]).name);
               }
             }
         } else if(item.name === 'back') {
-          this.deactivateSpectating();
           back.call(this);
         }
       }
@@ -113,6 +113,7 @@ export function open(lastMenu) {
  */
 export function close() {
   if(menu) {
+    this.deactivateSpectating();
     this.controller1.remove(menu.getMesh());
     menu.close();
     menu = null;

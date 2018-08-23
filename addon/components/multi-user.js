@@ -1044,7 +1044,6 @@ export default VRRendering.extend(Ember.Evented, {
     });
 
     this.populateScene();
-    
   },
 
 
