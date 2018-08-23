@@ -1140,6 +1140,8 @@ export default VRRendering.extend(Ember.Evented, {
 
   //called when the websocket is closed
   closeHandler(event) {
+    // stop game loop
+    this.running = false;
     console.log(`On close event has been called: ${event}`);
   },
 
