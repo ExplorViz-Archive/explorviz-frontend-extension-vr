@@ -65,8 +65,10 @@ export function close() {
  */
 export function back() {
   close.call(this);
-  if(prevMenu)
+  if(prevMenu) {
     prevMenu.call(this);
+    prevMenu = null;
+  }
 }
 
 /**

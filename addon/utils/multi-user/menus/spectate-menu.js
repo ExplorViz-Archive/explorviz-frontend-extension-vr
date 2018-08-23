@@ -54,7 +54,7 @@ export function open(lastMenu) {
           if(index !== -1) {
             if(index === userArray.length - 1) {
               this.deactivateSpectating();
-              menu.updateText('spectating_user', 'Spectating no-one');
+              menu.updateText('spectating_user', 'Spectating off');
             } else {
               this.activateSpectating(userArray[index+1]);
               menu.updateText('spectating_user', this.users.get(userArray[index+1]).name);
@@ -64,35 +64,36 @@ export function open(lastMenu) {
           if(this.users.size < 1)
             return;
 
-            let users = this.users.keys();
-            let userArray = []
-            for(let id of users) {
-              if(this.users.get(id).state === 'connected')
-                userArray.push(id);
-            }
-
-            if(userArray.length < 1)
-              return;
-
-            userArray.sort();
-
-            if(!this.spectatedUser) {
-              this.activateSpectating(userArray[userArray.length-1]);
-              menu.updateText('spectating_user', this.users.get(userArray[userArray.length-1]).name);
-              return;
-            }
+          let users = this.users.keys();
+          let userArray = [];
           
-            let index = this.binaryIndexOf(userArray, this.spectatedUser);
+          for(let id of users) {
+            if(this.users.get(id).state === 'connected')
+              userArray.push(id);
+          }
 
-            if(index !== -1) {
-              if(index === 0) {
-                this.deactivateSpectating();
-                menu.updateText('spectating_user', 'Spectating off');
-              } else {
-                this.activateSpectating(userArray[index-1]);
-                menu.updateText('spectating_user', this.users.get(userArray[index-1]).name);
-              }
+          if(userArray.length < 1)
+            return;
+
+          userArray.sort();
+
+          if(!this.spectatedUser) {
+            this.activateSpectating(userArray[userArray.length-1]);
+            menu.updateText('spectating_user', this.users.get(userArray[userArray.length-1]).name);
+            return;
+          }
+        
+          let index = this.binaryIndexOf(userArray, this.spectatedUser);
+
+          if(index !== -1) {
+            if(index === 0) {
+              this.deactivateSpectating();
+              menu.updateText('spectating_user', 'Spectating off');
+            } else {
+              this.activateSpectating(userArray[index-1]);
+              menu.updateText('spectating_user', this.users.get(userArray[index-1]).name);
             }
+          }
         } else if(item.name === 'back') {
           back.call(this);
         }
@@ -125,8 +126,10 @@ export function close() {
  */
 export function back() {
   close.call(this);
-  if(prevMenu)
+  if(prevMenu) {
     prevMenu.call(this);
+    prevMenu = null;
+  }
 }
 
 /**

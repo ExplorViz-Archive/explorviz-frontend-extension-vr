@@ -5,12 +5,9 @@ import Sender from '../utils/multi-user/send';
 import VRRendering from './vr-rendering';
 import Ember from 'ember';
 import THREE from 'three';
+import Models from '../utils/models';
 import Menus, { UserListMenu, OptionsMenu, SpectateMenu,
   LandscapePositionMenu, CameraHeightMenu, MessageBox }  from '../utils/multi-user/menus';
-
-
-//Declare globals
-/*global createOBJLoader*/
 
 /**
  * This component extends the functionalities of vr-rendering so that multiple users
@@ -36,7 +33,6 @@ export default VRRendering.extend(Ember.Evented, {
   deltaTime: null, // time between two frames
   updateQueue: null, // messages which are ready to be sent to backend
   running: null, // tells if gameLoop is executing
-  hmdObject: null, // object for other user's hmd
   spectatedUser: null, // tells which userID (if any) is being spectated
   startPosition: null, //position before this user starts spectating
   session: service(), //session used to retrieve username
@@ -72,6 +68,10 @@ export default VRRendering.extend(Ember.Evented, {
     requestAnimationFrame(this.gameLoop.bind(this));
   },
 
+  /**
+   * Set user name tag to be directly above their head
+   * and set rotation such that it look toward our camera.
+   */
   updateUserNameTags() {
     let users = this.users.values();
     let pos = new THREE.Vector3();
@@ -85,6 +85,9 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
+  /**
+   * If spectating, set our camera to spectatee's position.
+   */
   spectateUser(){
     if (this.get('spectatedUser') === null || !this.get('users').get(this.get('spectatedUser'))){
       this.deactivateSpectating();
@@ -101,8 +104,8 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   /**
-   * Switches user into spectator mode
-   * @param {Number} userID The id of the user to be spectated
+   * Switches our user into spectator mode
+   * @param {number} userID The id of the user to be spectated
    */
   activateSpectating(userID){
     if(this.get('state') === 'spectating'){
@@ -124,6 +127,9 @@ export default VRRendering.extend(Ember.Evented, {
     Sender.sendSpectatingUpdate.call(this);
   },
 
+  /**
+   * Deactives spectator mode for our user
+   */
   deactivateSpectating(){
     if(!this.spectatedUser)
       return;
@@ -161,7 +167,6 @@ export default VRRendering.extend(Ember.Evented, {
    */
   didRender() {
     this._super(...arguments);
-    this.loadHMDModel();
 
     this.initVariables();
     this.initInteractions();
@@ -197,6 +202,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('lastTime', new Date().getTime());
   },
 
+  /**
+   * Establish a websocket connection and initialize needed handlers.
+   * 
+   * @param {string} host The host address.
+   * @param {number} port The socket's port.
+   */
   initSocket(host, port) {
     const socket = this.websockets.socketFor(`ws://${host}:${port}/`);
     socket.on('open', this.openHandler, this);
@@ -306,7 +317,7 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   /**
-   * Check wether there are messages in the queue and send those to backend
+   * Check wether there are messages in the update queue and send them to the backend.
    */
   sendUpdates() {
     //there are updates to send
@@ -403,24 +414,6 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   /**
-   * Load the Texture for the hmds of other users
-   */
-  loadHMDModel() {
-    let OBJLoader = createOBJLoader(THREE);
-    let loader = new OBJLoader(THREE.DefaultLoadingManager);
-    // Load HMD Model
-    loader.setPath('generic_hmd/');
-    loader.load('generic_hmd.obj', object => {
-      const obj = object;
-      obj.name = "hmdTexture";
-      let loader = new THREE.TextureLoader();
-      loader.setPath('generic_hmd/');
-      obj.children[0].material.map = loader.load('generic_hmd.tga');
-      this.set('hmdObject', obj);
-    });
-  },
-
-  /**
    * Update position data and data on controller connections
    */
   update() {
@@ -428,6 +421,9 @@ export default VRRendering.extend(Ember.Evented, {
     Sender.sendControllerUpdate.call(this);
   },
 
+  /**
+   * If changed, sends a message of new camera and controller positions and quaternions.
+   */
   updateAndSendPositions() {
     if(this.camera && this.user && !this.lastPositions.camera) {
       const pos = new THREE.Vector3();
@@ -609,11 +605,12 @@ export default VRRendering.extend(Ember.Evented, {
   /**
    * After socket has opened to backend client is told his/her userID.
    * Respond by asking for "connected" status.
+   * 
    * @param {JSON} data Message containing own userID
    */
   onSelfConnecting(data) {
     //if name is not found, use id as default name
-    let name = this.get('session.data.authenticated.username') ? this.get('session.data.authenticated.username') : "ID: " + data.id;
+    let name = this.get('session.data.authenticated.username') || "ID: " + data.id;
     this.set('userID', data.id);
     let JSONObj = {
       "event": "receive_connect_request",
@@ -622,6 +619,11 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue.push(JSONObj);
   },
 
+  /**
+   * After succesfully connecting to the backend, create and spawn other users.
+   * 
+   * @param {JSON} data Message containing data on other users.
+   */
   onSelfConnected(data) {
     // create User model for all users and add them to the users map
     for (let i = 0; i < data.users.length; i++) {
@@ -631,46 +633,73 @@ export default VRRendering.extend(Ember.Evented, {
       user.set('id', userData.id);
       user.set('color', userData.color);
       user.set('state', 'connected');
-      console.log(user);
+      this.get('users').set(user.id, user);
 
-      if(userData.controllers.controller1) {
-        if(userData.controllers.controller1 === 'Oculus Touch (Left)') {
-          user.initController1(userData.controllers.controller1, this.get('oculusLeftControllerObject').clone());
-        } else if(userData.controllers.controller1 === 'Oculus Touch (Right)') {
-          user.initController1(userData.controllers.controller1, this.get('oculusRightControllerObject').clone());
-        } else {
-          user.initController1(userData.controllers.controller1, this.get('viveControllerObject').clone());
-        }
+      if(userData.controllers.controller1)
+        this.loadController1(userData.controllers.controller1, user.id);
+      if(userData.controllers.controller2)
+        this.loadController2(userData.controllers.controller2, user.id);
 
-        this.get('scene').add(user.get('controller1.model'));
-        this.addLineToControllerModel(user.controller1, user.color);
-      }
-
-      if(userData.controllers.controller2) {
-        if(userData.controllers.controller2 === 'Oculus Touch (Right)') {
-          user.initController2(userData.controllers.controller2, this.get('oculusRightControllerObject').clone());
-        } else if (userData.controllers.controller2 === 'Oculus Touch (Left)') {
-          user.initController2(userData.controllers.controller2, this.get('oculusLeftControllerObject').clone());
-        } else {
-          user.initController2(userData.controllers.controller2, this.get('viveControllerObject').clone());
-        }
-
-        this.get('scene').add(user.get('controller2.model'));
-        this.addLineToControllerModel(user.controller2, user.color);
-      }
-
-      user.initCamera(this.get('hmdObject').clone());
+      user.initCamera(Models.getHMDModel());
       //add models for other users
       this.get('scene').add(user.get('camera.model'));
 
-      this.get('users').set(userData.id, user);
-
       //set name for user on top of his hmd 
-      this.addUsername(userData.id);
+      this.addUsername(user.id);
     }
     this.state = "connected";
   },
 
+  /**
+   * Loads specified controller 1 model for given user and add it to scene.
+   * 
+   * @param {string} controllerName 
+   * @param {number} userID 
+   */
+  loadController1(controllerName, userID) {
+    const user = this.users.get(userID);
+
+    if(!user)
+      return;
+
+    user.initController1(controllerName, this.getControllerModelByName(controllerName));
+
+    this.get('scene').add(user.get('controller1.model'));
+    this.addLineToControllerModel(user.controller1, user.color);
+  },
+
+  /**
+   * Loads specified controller 2 model for given user and add it to scene.
+   * 
+   * @param {string} controllerName 
+   * @param {number} userID 
+   */
+  loadController2(controllerName, userID) {
+    const user = this.users.get(userID);
+
+    if(!user)
+      return;
+
+    user.initController2(controllerName, this.getControllerModelByName(controllerName));
+
+    this.get('scene').add(user.get('controller2.model'));
+    this.addLineToControllerModel(user.controller2, user.color);
+  },
+
+  getControllerModelByName(name) {
+    if(name === 'Oculus Touch (Left)')
+      return this.get('oculusLeftControllerObject').clone();
+    else if(name === 'Oculus Touch (Right)')
+      return this.get('oculusRightControllerObject').clone();
+    else
+      return this.get('viveControllerObject').clone();
+  },
+
+  /**
+   * Adds the connecting user and informs our user about their connect.
+   * 
+   * @param {JSON} data - The initial data of the user connecting.
+   */
   onUserConnected(data) {
     let user = new User();
     user.set('name', data.user.name);
@@ -678,7 +707,7 @@ export default VRRendering.extend(Ember.Evented, {
     user.set('color', data.user.color);
     user.set('state', 'connected');
     console.log(user);
-    user.initCamera(this.get('hmdObject').clone());
+    user.initCamera(Models.getHMDModel());
     this.get('users').set(data.user.id, user);
 
     //add model for new user
@@ -687,9 +716,13 @@ export default VRRendering.extend(Ember.Evented, {
     this.addUsername(data.user.id);
 
     MessageBox.enqueueMessage.call(this, {title: 'User connected', text: user.get('name'), color: Helper.rgbToHex(user.get('color'))}, 3000);
-
   },
 
+  /**
+   * Removes the user that disconnected and informs our user about it.
+   * 
+   * @param {JSON} data - Contains the id of the user that disconnected.
+   */
   onUserDisconnect(data) {
     let { id } = data;
 
@@ -716,6 +749,11 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
+  /**
+   * Updates the specified user's camera and controller positions.
+   * 
+   * @param {JSON} data - Data needed to update positions.
+   */
   onUserPositions(data) {
     let { camera, id, controller1, controller2 } = data;
     if(this.get('users').has(id)) {
@@ -729,6 +767,11 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
+  /**
+   * Handles the (dis-)connect of the specified user's controller(s).
+   * 
+   * @param {JSON} data - Contains id and controller information.
+   */
   onUserControllers(data) {
     let { id, disconnect, connect } = data;
 
@@ -737,44 +780,18 @@ export default VRRendering.extend(Ember.Evented, {
 
     let user = this.get('users').get(id);
     if(connect) {
-      if(connect.controller1) {
-        if(connect.controller1 === 'Oculus Touch (Left)') {
-            user.initController1(connect.controller1, this.get('oculusLeftControllerObject').clone());
-        } else if(connect.controller1 === 'Oculus Touch (Right)') {
-            user.initController1(connect.controller1, this.get('oculusRightControllerObject').clone());
-        } else {
-            user.initController1(connect.controller1, this.get('viveControllerObject').clone());
-        }
-        this.addLineToControllerModel(user.controller1, user.color);
-        console.log("Controller1 line added");
-        this.get('scene').add(user.get('controller1.model'));
-        console.log("Controller1 connected");
-
-      }
-      if(connect.controller2) {
-        if(connect.controller2 === 'Oculus Touch (Right)') {
-            user.initController2(connect.controller2, this.get('oculusRightControllerObject').clone());
-        } else if(connect.controller2 === 'Oculus Touch (Left)') {
-            user.initController2(connect.controller2, this.get('oculusLeftControllerObject').clone());
-        } else {
-            user.initController2(connect.controller2, this.get('viveControllerObject').clone());
-        }
-        this.addLineToControllerModel(user.controller2, user.color);
-        console.log("Controller2 line added");
-        this.get('scene').add(user.get('controller2.model'));
-        console.log("Controller2 connected");
-      }
+      if(connect.controller1)
+        this.loadController1(connect.controller1, user.id)
+      if(connect.controller2)
+        this.loadController1(connect.controller2, user.id)
     }
     if(disconnect) {
       for (let i = 0; i < disconnect.length; i++) {
         const controller = disconnect[i];
         if(controller === 'controller1') {
-          console.log("Controller1 disconnected");
           this.get('scene').remove(user.get('controller1.model'));
           user.removeController1();
-        }
-        if(controller === 'controller2') {
-          console.log("Controller2 disconnected");
+        } else if(controller === 'controller2') {
           this.get('scene').remove(user.get('controller2.model'));
           user.removeController2();
         }
@@ -863,6 +880,13 @@ export default VRRendering.extend(Ember.Evented, {
 
   },
 
+  /**
+   * Updates the state of given user to spectating or connected.
+   * Hides them if spectating.
+   * 
+   * @param {number} userID - The user's id.
+   * @param {boolean} isSpectating - True, if the user is now spectating, else false.
+   */
   onSpectatingUpdate(userID, isSpectating) {
     let user = this.get('users').get(userID);
     if (isSpectating) {
@@ -936,6 +960,12 @@ export default VRRendering.extend(Ember.Evented, {
     });
   },
 
+  /**
+   * Adds a controller ray to another user's controller.
+   * 
+   * @param {Object} controller - The user's controller object.
+   * @param {int[]} color - The color of the new ray as 3-element RGB array.
+   */
   addLineToControllerModel(controller, color) {
     // Ray for Controller
     this.set('geometry', new THREE.Geometry());
@@ -1046,7 +1076,6 @@ export default VRRendering.extend(Ember.Evented, {
     this.populateScene();
   },
 
-
   showApplication(id, posArray, quatArray){
     this.set('viewImporter.importedURL', null);
 
@@ -1138,7 +1167,6 @@ export default VRRendering.extend(Ember.Evented, {
     this.deltaTime = null;
     this.running = null;
     this.updateQueue = null;
-    this.hmdObject = null;
     this.spectatedUser = null;
     this.startPosition = null;
     this.websockets = null;
