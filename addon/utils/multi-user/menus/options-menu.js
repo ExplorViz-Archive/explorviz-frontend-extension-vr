@@ -4,7 +4,6 @@ import LandscapePositionMenu from './landscape-position-menu';
 import CameraHeightMenu from './camera-height-menu';
 
 let menu = null;
-let prevMenu = null;
 
 /**
  * Creates and opens the Options Menu.
@@ -48,7 +47,6 @@ export function open() {
   mesh.position.x += 0.2;
   mesh.geometry.rotateX(-1.5707963267949);
   this.controller1.add(mesh);
-  this.menus.set(menu.getTitle(), menu);
 }
 
 /**
@@ -57,8 +55,7 @@ export function open() {
 export function close() {
   if(menu) {
     this.controller1.remove(menu.getMesh());
-    menu.removeMesh();
-    this.menus.delete(menu.getTitle());
+    menu.close();
     menu = null;
   }
 }

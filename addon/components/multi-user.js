@@ -5,12 +5,8 @@ import Sender from '../utils/multi-user/send';
 import VRRendering from './vr-rendering';
 import Ember from 'ember';
 import THREE from 'three';
-import UserListMenu from '../utils/multi-user/menus/user-list-menu';
-import OptionsMenu from '../utils/multi-user/menus/options-menu';
-import SpectateMenu from '../utils/multi-user/menus/spectate-menu';
-import LandscapePositionMenu from '../utils/multi-user/menus/landscape-position-menu';
-import CameraHeightMenu from '../utils/multi-user/menus/camera-height-menu';
-import MessageBox from '../utils/multi-user/menus/message-box-menu';
+import Menus, { UserListMenu, OptionsMenu, SpectateMenu,
+  LandscapePositionMenu, CameraHeightMenu, MessageBox }  from '../utils/multi-user/menus';
 
 
 //Declare globals
@@ -42,7 +38,6 @@ export default VRRendering.extend(Ember.Evented, {
   running: null, // tells if gameLoop is executing
   hmdObject: null, // object for other user's hmd
   spectatedUser: null, // tells which userID (if any) is being spectated
-  menus: null, // keeps track of menus for settings
   startPosition: null, //position before this user starts spectating
   session: service(), //session used to retrieve username
 
@@ -168,24 +163,57 @@ export default VRRendering.extend(Ember.Evented, {
     this._super(...arguments);
     this.loadHMDModel();
 
-    const self = this;
+    this.initVariables();
+    this.initInteractions();
 
+    let host, port;
+    Ember.$.getJSON("config/config_multiuser.json").then(json => {
+      console.log("Read JSON");
+      host = json.host;
+      port = json.port;
+
+      if(!host || !port) {
+        console.log('Config not found');
+        return;
+      }
+
+      console.log("Open Socket");
+      this.initSocket(host, port);
+
+      console.log("Start gameLoop");
+      this.running = true;
+      this.gameLoop();
+    });
+  },
+
+  initVariables() {
     this.set('currentTime', 0);
     this.set('deltaTime', 0);
     this.set('updateQueue', []);
     this.set('running', false);
-    this.set('menus', new Map());
     this.set('users', new Map());
     this.set('lastPositions', { camera: null, controller1: null, controller2: null });
     this.set('controllersConnected', { controller1: false, controller2: false });
     this.set('lastTime', new Date().getTime());
+  },
+
+  initSocket(host, port) {
+    const socket = this.websockets.socketFor(`ws://${host}:${port}/`);
+    socket.on('open', this.openHandler, this);
+    socket.on('message', this.messageHandler, this);
+    socket.on('close', this.closeHandler, this);
+    this.set('socketRef', socket);
+  },
+
+  initInteractions() {
+    const self = this;
 
     let old_checkIntersectionRightController = this.get('interaction').checkIntersectionRightController;
     this.get('interaction').checkIntersectionRightController = function() {
       let menus = [];
-      self.menus.forEach((menu) => {
+      for(let menu of Menus.getMenus()) {
         menus.push(menu.mesh);
-      });
+      }
       let menuHit = self.checkIntersectionRightController(menus);
       if(menuHit) {
         // Unhighlight delete button
@@ -213,9 +241,9 @@ export default VRRendering.extend(Ember.Evented, {
     let old_onTriggerDownController2 = this.get('interaction').onTriggerDownController2;
     this.get('interaction').onTriggerDownController2 = function(event) {
       let menus = [];
-      self.menus.forEach((menu) => {
+      for(let menu of Menus.getMenus()) {
         menus.push(menu.mesh);
-      });
+      }
       let menuHit = self.onTriggerDownController2(menus);
       if(!menuHit) {
         if(self.state !== 'spectating')
@@ -246,29 +274,6 @@ export default VRRendering.extend(Ember.Evented, {
       self.onGripUpController1();
       old_onGripUpController1.apply(this, [event]);
     };
-
-    let host, port;
-    Ember.$.getJSON("config/config_multiuser.json").then(json => {
-      console.log("Read JSON");
-      host = json.host;
-      port = json.port;
-
-      if(!host || !port) {
-        console.log('Config not found');
-        return;
-      }
-
-      console.log("Open Socket");
-      const socket = this.websockets.socketFor(`ws://${host}:${port}/`);
-      socket.on('open', this.openHandler, this);
-      socket.on('message', this.messageHandler, this);
-      socket.on('close', this.closeHandler, this);
-
-      this.set('socketRef', socket);
-      console.log("Start gameLoop");
-      this.running = true;
-      this.gameLoop();
-    });
 
     //initialize interaction events and delegate them to the corresponding functions
     this.get('interaction').on('systemStateChanged', (id, isOpen) => {
@@ -333,7 +338,7 @@ export default VRRendering.extend(Ember.Evented, {
     if(intersectedViewObj) {
       controllerLine.scale.z = intersectedViewObj.distance;
       let name = intersectedViewObj.object.name;
-      let menu = this.menus.get(name);
+      let menu = Menus.get(name);
       if(menu) {
         menu.interact('rightIntersect', intersectedViewObj.uv);
         return true;
@@ -363,7 +368,7 @@ export default VRRendering.extend(Ember.Evented, {
     if(intersectedViewObj) {
       controllerLine.scale.z = intersectedViewObj.distance;
       let name = intersectedViewObj.object.name;
-      let menu = this.menus.get(name);
+      let menu = Menus.get(name);
       if(menu) {
         menu.interact('rightTrigger', intersectedViewObj.uv);
         return true;
@@ -1136,7 +1141,6 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue = null;
     this.hmdObject = null;
     this.spectatedUser = null;
-    this.menus = null;
     this.startPosition = null;
     this.websockets = null;
     this.session = null;

@@ -1,6 +1,7 @@
 import EmberObject from '@ember/object';
 import THREE from 'three';
 import Helper from './helper';
+import Menus from './menus';
 
 export default EmberObject.extend({
   title: null,
@@ -19,7 +20,7 @@ export default EmberObject.extend({
    * @example
    * let menu = new Menu();
    * 
-   * menu.addText('Hello World', 'title', 18, {x: 50m y: 10}, '#a412b6', 'center');
+   * menu.addText('Hello World', 'title', 18, {x: 50 y: 10}, '#a412b6', 'center');
    * 
    * @param {string} text - The text to display in the menu.
    * @param {string} name - A unique identifier, ecspecially used for interactions.
@@ -185,10 +186,11 @@ export default EmberObject.extend({
   /**
    * Remove the menu mesh.
    */
-  removeMesh() {
+  close() {
     this.mesh.geometry.dispose();
     this.mesh.material.dispose();
     this.mesh = null;
+    Menus.remove(this.getTitle());
   },
 
   /**
@@ -274,6 +276,7 @@ export default EmberObject.extend({
     this.mesh = textBox;
 
     this.update();
+    Menus.add(this);
   },
 
 

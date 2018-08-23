@@ -63,7 +63,6 @@ export function open() {
   const mesh = menu.getMesh();
   mesh.position.z -= 0.5;
   this.camera.add(mesh);
-  this.menus.set(menu.getTitle(), menu);
 }
 
 /**
@@ -73,7 +72,6 @@ export function close() {
   if(menu) {
     this.camera.remove(menu.getMesh());
     menu.removeMesh();
-    this.menus.delete(menu.getTitle());
     menu = null;
   }
 }

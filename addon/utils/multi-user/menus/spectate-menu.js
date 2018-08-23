@@ -106,7 +106,6 @@ export function open(lastMenu) {
   mesh.position.x += 0.2;
   mesh.geometry.rotateX(-1.5707963267949);
   this.controller1.add(mesh);
-  this.menus.set(menu.getTitle(), menu);
 }
 
 /**
@@ -115,8 +114,7 @@ export function open(lastMenu) {
 export function close() {
   if(menu) {
     this.controller1.remove(menu.getMesh());
-    menu.removeMesh();
-    this.menus.delete(menu.getTitle());
+    menu.close();
     menu = null;
   }
 }

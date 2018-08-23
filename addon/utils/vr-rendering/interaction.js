@@ -6,7 +6,6 @@ import HoverHandlerLandscape from 'explorviz-frontend/utils/landscape-rendering/
 import AlertifyHandler from 'explorviz-frontend/mixins/alertify-handler';
 import Selector from './selector';
 import THREE from "three";
-import ObjectProxy from '@ember/object/proxy';
 
 /*
  *  This util is used to realize the interaction by handeling
@@ -133,46 +132,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     // this.get('controller1').addEventListener('menuup', this.emptyFunction);
     // this.get('controller2').addEventListener('menuup', this.emptyFunction);
     // this.get('controller1').addEventListener('axischanged', this.emptyFunction);
-    this.get('controller2').addEventListener('axischanged', evt => {
-      let controller = this.get('controller2');
-      let object = controller.userData.selected;
-      console.log(object);
-      if(object) {
-        let rotation = controller.getButtonState('axes');
-        console.log(`X:${object.rotation.x}, Y:${object.rotation.y}`);
-        //console.log(`${object.parent.isMesh()}`);
-        let foundation = object.getObjectByName('app3DFoundation');
-        let center = getCenterPoint(foundation);
-        /*console.log(`${center.x}, ${center.y}, ${center.z}`)
-        //foundation.position.set( center.x, center.y, center.z );
-        foundation.geometry.applyMatrix(new THREE.Matrix4().makeTranslation( -center.x, -center.y, -center.z ) );
-        foundation.updateMatrix();
-        foundation.rotateX(rotation[0]/20);
-        foundation.rotateY(rotation[1]/20);
-        foundation.geometry.applyMatrix(new THREE.Matrix4().makeTranslation( center.x, center.y, center.z ) );
-        foundation.updateMatrix();*/
-        /*var dummy = new THREE.Object3D();
-        dummy.position.x = center.x;
-        dummy.position.z = center.z;
-        dummy.position.y = center.y;
-
-        dummy.add(object);
-        dummy.rotateX(rotation[0]/20);
-        dummy.rotateY(rotation[1]/20);
-
-        dummy.remove(object);*/
-
-        
-      }
-
-      function getCenterPoint(mesh) {
-        var geometry = mesh.geometry;
-        geometry.computeBoundingBox();   
-        let center = geometry.boundingBox.getCenter();
-        mesh.localToWorld( center );
-        return center;
-    }
-    });
+    // this.get('controller2').addEventListener('axischanged', this.emptyFunction);
 
     /* The following functions handle the events by
      * calling the corresponding method
@@ -1077,7 +1037,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     // this.get('controller2').removeEventListener('thumbpadup', this.emptyFunction);
     // this.get('controller1').removeEventListener('gripdown', this.emptyFunction);
     this.get('controller2').removeEventListener('gripdown', this.onGripDownController2);
-    // this.get('controller1').removeEventListener('gripup', this.emptyFunction);
+    this.get('controller1').removeEventListener('gripup', this.onGripUpController1);
     this.get('controller2').removeEventListener('gripup', this.onGripUpController2);
     this.get('controller1').removeEventListener('menudown', this.onMenuDownController1);
     // this.get('controller2').removeEventListener('menudown', this.emptyFunction);
@@ -1275,7 +1235,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
               this.restoreSelectedEntity(id);
               this.set('selectedEntitysMesh', null);
 
-              let color = intersectedViewObj.object.material.color;
               this.trigger("entityHighlighted", false);
               return;
             }

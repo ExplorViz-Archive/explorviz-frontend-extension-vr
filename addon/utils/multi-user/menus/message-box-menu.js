@@ -44,7 +44,6 @@ export function enqueueMessage(message, time) {
       messageBox.interact = (action, position) => {};
 
       messageBox.createMesh();
-      this.menus.set(messageBox.getTitle(), messageBox);
 
       const mesh = messageBox.getMesh();
       mesh.position.y += 0.3;
@@ -79,8 +78,7 @@ export function enqueueMessage(message, time) {
        */
       function deleteMessageBox() {
         this.camera.remove(messageBox.getMesh());
-        messageBox.removeMesh();
-        this.menus.delete(messageBox.getTitle());
+        messageBox.close();
         messageBox = null;
       }
     }
