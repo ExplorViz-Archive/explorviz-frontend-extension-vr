@@ -158,7 +158,6 @@ export default VRRendering.extend(Ember.Evented, {
     if(!this.get('users').has(userID)){
       return;
     }
-    console.log("Spectating user: " + userID);
     this.set('startPosition', this.user.position.clone());
     this.set('spectatedUser', userID);
     let spectatedUser = this.get('users').get(userID);
@@ -216,7 +215,6 @@ export default VRRendering.extend(Ember.Evented, {
 
     let host, port;
     Ember.$.getJSON("config/config_multiuser.json").then(json => {
-      console.log("Read JSON");
       host = json.host;
       port = json.port;
 
@@ -489,8 +487,6 @@ export default VRRendering.extend(Ember.Evented, {
     this.state = 'offline';
     ConnectMenu.updateText('status', 'Status: offline');
     ConnectMenu.updateText('connect', 'Connect');
-
-    console.log('disconnect called');
     
     let users = this.users.values();
     for(let user of users) {
@@ -1173,7 +1169,6 @@ export default VRRendering.extend(Ember.Evented, {
 
   //called when user closes the site / tab
   willDestroyElement() {
-    console.log("Destroy");
     this._super(...arguments);
 
     this.running = false;

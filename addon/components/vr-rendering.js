@@ -153,8 +153,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
    * @method initRendering
    */
   initRendering() {
-    console.log("Init Rendering Start");
-
     const self = this;
 
     // Dummy object for raycasting
@@ -394,7 +392,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         self.set('initDone', true);
         self.populateScene();
       });
-    console.log("Init Rendering End");
   },
 
   updateControllers() {
@@ -403,7 +400,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // remove controller 1 model if controller disconnected
     if((this.get('controller1').getGamepad() === undefined || this.get('controller1').getGamepad().pose === undefined)) {
-      console.log(this.get('controller1'));
       let model = this.get('controller1').getObjectByName("controllerTexture");
       if(model) {
         this.get('controller1').remove(model);
@@ -455,7 +451,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
    * But they can used as templates in the future.
    */
   initListener() {
-    console.log("Init Listener Start");
     const self = this;
 
     this.get('viewImporter').on('transmitView', function(newState) {
@@ -491,7 +486,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('landscapeRepo').on("updated", function() {
       self.onUpdated();
     });
-    console.log("Init Listener End");
   },
 
   /**
