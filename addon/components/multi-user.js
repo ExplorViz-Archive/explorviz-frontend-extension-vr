@@ -516,6 +516,7 @@ export default VRRendering.extend(Ember.Evented, {
     this.socketRef = null,
     this.userID = null;
     this.updateQueue = [];
+    this.controllersConnected = null;
   },
 
 
@@ -628,7 +629,7 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('interaction').set('highlightingColor', Helper.colorToString(data.color));
     let JSONObj = {
       "event": "receive_connect_request",
-      "name": name
+      name
     };
     this.updateQueue.push(JSONObj);
     this.state = 'connecting';
@@ -663,7 +664,8 @@ export default VRRendering.extend(Ember.Evented, {
       //set name for user on top of his hmd 
       this.addUsername(user.id);
     }
-    this.state = "connected";
+    this.state = 'connected';
+    this.set('controllersConnected', { controller1: false, controller2: false });
     ConnectMenu.updateText('status', 'Status: connected');
     ConnectMenu.updateText('connect', 'Disconnect');
   },
