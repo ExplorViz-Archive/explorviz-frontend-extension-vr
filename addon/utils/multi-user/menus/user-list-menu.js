@@ -71,7 +71,7 @@ export function open() {
 export function close() {
   if(menu) {
     this.camera.remove(menu.getMesh());
-    menu.removeMesh();
+    menu.close();
     menu = null;
   }
 }

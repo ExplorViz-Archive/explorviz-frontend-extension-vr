@@ -140,7 +140,7 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('state', 'connected');
     this.set('spectatedUser', null);
 
-    SpectateMenu.updateText('spectating_user', 'Spectating no-one');
+    SpectateMenu.updateText('spectating_user', 'Spectating off');
 
     let position = this.get('startPosition');
     this.get('user.position').fromArray(position.toArray());
@@ -688,11 +688,11 @@ export default VRRendering.extend(Ember.Evented, {
 
   getControllerModelByName(name) {
     if(name === 'Oculus Touch (Left)')
-      return this.get('oculusLeftControllerObject').clone();
+      return Models.getOculusLeftControllerModel();
     else if(name === 'Oculus Touch (Right)')
-      return this.get('oculusRightControllerObject').clone();
+      return Models.getOculusRightControllerModel();
     else
-      return this.get('viveControllerObject').clone();
+      return Models.getViveControllerModel();
   },
 
   /**
@@ -783,7 +783,7 @@ export default VRRendering.extend(Ember.Evented, {
       if(connect.controller1)
         this.loadController1(connect.controller1, user.id)
       if(connect.controller2)
-        this.loadController1(connect.controller2, user.id)
+        this.loadController2(connect.controller2, user.id)
     }
     if(disconnect) {
       for (let i = 0; i < disconnect.length; i++) {

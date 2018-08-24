@@ -1,4 +1,5 @@
 import Menu from '../menu';
+import Helper from '../helper';
 
 let menu = null;
 let prevMenu = null;
@@ -49,7 +50,7 @@ export function open(lastMenu) {
             return;
           }
           
-          let index = this.binaryIndexOf(userArray, this.spectatedUser);
+          let index = Helper.binaryIndexOf(userArray, this.spectatedUser);
 
           if(index !== -1) {
             if(index === userArray.length - 1) {
@@ -83,7 +84,7 @@ export function open(lastMenu) {
             return;
           }
         
-          let index = this.binaryIndexOf(userArray, this.spectatedUser);
+          let index = Helper.binaryIndexOf(userArray, this.spectatedUser);
 
           if(index !== -1) {
             if(index === 0) {
