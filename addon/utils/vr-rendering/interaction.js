@@ -446,6 +446,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       }
 
       const emberModel = intersectedViewObj.object.userData.model;
+
+      if(!emberModel)
+        return;
+
       const emberModelName = emberModel.constructor.modelName;
 
       // Calculate darker color

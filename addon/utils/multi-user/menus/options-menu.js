@@ -2,6 +2,7 @@ import Menu from '../menu';
 import SpectateMenu from './spectate-menu';
 import LandscapePositionMenu from './landscape-position-menu';
 import CameraHeightMenu from './camera-height-menu';
+import ConnectMenu from './connect-menu';
 
 let menu = null;
 
@@ -16,6 +17,7 @@ export function open() {
   menu.addText('Change Height', 'change_height', 14, { x: 128, y: 70}, '#ffc338', 'center', true);
   menu.addText('Change Landscape Position', 'change_landscape_position', 14, { x: 128, y: 100}, '#ffc338', 'center', true);
   menu.addText('Spectate', 'spectate', 14, { x: 128, y: 130}, '#ffc338', 'center', true);
+  menu.addText('Connection', 'connection', 14, { x: 128, y: 160}, '#ffc338', 'center', true);
   menu.addText('Exit', 'exit', 14, { x: 128, y: 220}, '	#ffffff', 'center', true);
   menu.interact = (action, position) => {
     let item = menu.getItem(position);
@@ -35,6 +37,9 @@ export function open() {
         } else if(item.name === 'spectate') {
           close.call(this);
           SpectateMenu.open.call(this, open);
+        } else if(item.name === 'connection') {
+          close.call(this);
+          ConnectMenu.open.call(this, open);
         }
       }
     } else {

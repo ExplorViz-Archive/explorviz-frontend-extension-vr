@@ -7,7 +7,7 @@ import Ember from 'ember';
 import THREE from 'three';
 import Models from '../utils/models';
 import Menus, { UserListMenu, OptionsMenu, SpectateMenu,
-  LandscapePositionMenu, CameraHeightMenu, MessageBox }  from '../utils/multi-user/menus';
+  LandscapePositionMenu, CameraHeightMenu, MessageBox, ConnectMenu }  from '../utils/multi-user/menus';
 
 /**
  * This component extends the functionalities of vr-rendering so that multiple users
@@ -64,7 +64,10 @@ export default VRRendering.extend(Ember.Evented, {
       }
 
       this.updateControllers();
-      this.updateUserNameTags();
+
+      if(this.userID && this.state === 'connected' || this.state === 'spectating')
+        this.updateUserNameTags();
+
       this.render2();
 
       this.lastViewTime = this.currentTime;
@@ -77,11 +80,13 @@ export default VRRendering.extend(Ember.Evented, {
       } 
 
       //send messages like connecting request, position updates etc.
-      this.sendUpdates();
+      if(this.state !== 'offline')
+        this.sendUpdates();
 
       this.lastUpdateTime = this.currentTime;
 
-      this.checkForBadConnection();
+      if(this.state === 'connected' || this.state === 'spectating')
+        this.checkForBadConnection();
     }
     requestAnimationFrame(this.gameLoop.bind(this));
   },
@@ -220,13 +225,21 @@ export default VRRendering.extend(Ember.Evented, {
         return;
       }
 
-      console.log("Open Socket");
-      this.initSocket(host, port);
+      this.host = host;
+      this.port = port;
+
+      ConnectMenu.open.call(this, OptionsMenu.open);
 
       console.log("Start gameLoop");
       this.running = true;
       this.gameLoop();
     });
+  },
+
+  connect() {
+    ConnectMenu.updateText('status', 'Status: connecting');
+    this.updateQueue = [];
+    this.initSocket(this.host, this.port);
   },
 
   initVariables() {
@@ -240,6 +253,7 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('controllersConnected', { controller1: false, controller2: false });
     this.set('lastViewTime', new Date().getTime());
     this.set('lastUpdateTime', new Date().getTime());
+    this.set('state', 'offline');
   },
 
   /**
@@ -361,6 +375,8 @@ export default VRRendering.extend(Ember.Evented, {
         LandscapePositionMenu.back.call(this);
       else if(SpectateMenu.isOpen())
         SpectateMenu.back.call(this);
+      else if(ConnectMenu.isOpen())
+        ConnectMenu.back.call(this);
       else
         OptionsMenu.open.call(this);
     } else {
@@ -469,6 +485,37 @@ export default VRRendering.extend(Ember.Evented, {
       "event": "receive_disconnect_request"
     }];
     this.send(disconnectMessage);
+
+    this.state = 'offline';
+    ConnectMenu.updateText('status', 'Status: offline');
+    ConnectMenu.updateText('connect', 'Connect');
+
+    console.log('disconnect called');
+    
+    let users = this.users.values();
+    for(let user of users) {
+      this.get('scene').remove(user.get('controller1.model'));
+      user.removeController1();
+      this.get('scene').remove(user.get('controller2.model'));
+      user.removeController2();
+      this.get('scene').remove(user.get('camera.model'));
+      user.removeCamera();
+      this.get('scene').remove(user.get('namePlane'));
+      user.removeNamePlane();
+      this.get('users').delete(user.id);
+    }
+
+    this.websockets.closeSocketFor(`ws://${this.host}:${this.port}/`);
+
+    const socket = this.socketRef;
+    if(socket) {
+      socket.off('open', this.openHandler);
+      socket.off('message', this.messageHandler);
+      socket.off('close', this.closeHandler);
+    }
+    this.socketRef = null,
+    this.userID = null;
+    this.updateQueue = [];
   },
 
 
@@ -584,6 +631,8 @@ export default VRRendering.extend(Ember.Evented, {
       "name": name
     };
     this.updateQueue.push(JSONObj);
+    this.state = 'connecting';
+    ConnectMenu.updateText('connect', '...');
   },
 
   /**
@@ -615,6 +664,8 @@ export default VRRendering.extend(Ember.Evented, {
       this.addUsername(user.id);
     }
     this.state = "connected";
+    ConnectMenu.updateText('status', 'Status: connected');
+    ConnectMenu.updateText('connect', 'Disconnect');
   },
 
   /**
@@ -1114,9 +1165,8 @@ export default VRRendering.extend(Ember.Evented, {
 
   //called when the websocket is closed
   closeHandler(event) {
-    // stop game loop
-    this.running = false;
     console.log(`On close event has been called: ${event}`);
+    ConnectMenu.open.call(this, OptionsMenu.open);
   },
 
   //called when user closes the site / tab
@@ -1128,9 +1178,9 @@ export default VRRendering.extend(Ember.Evented, {
     this.disconnect();
     const socket = this.socketRef;
     if(socket) {
-      socket.off('open', this.myOpenHandler);
-      socket.off('message', this.myMessageHandler);
-      socket.off('close', this.myCloseHandler);
+      socket.off('open', this.openHandler);
+      socket.off('message', this.messageHandler);
+      socket.off('close', this.closeHandler);
     }
     this.socketRef = null,
     this.users = null;
