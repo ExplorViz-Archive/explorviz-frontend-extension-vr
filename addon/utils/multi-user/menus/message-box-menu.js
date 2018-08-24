@@ -5,9 +5,10 @@ let messageBox = null;
 const timeBetweenMessages = 800;
 
 /**
- * Add text to messageQueue which should be displayed on top edge of hmd
- * @param {{title: string, text: string, color: string}} message Title and text which should be displayed
- * @param {Number} time The number of milliseconds the message is displayed
+ * Add text to messageQueue which should be displayed on top edge of hmd.
+ * 
+ * @param {{title: string, text: string, color: string}} message Title and text which should be displayed.
+ * @param {Number} time The number of milliseconds the message is displayed.
  */
 export function enqueueMessage(message, time) {
   messageQueue.unshift({message, time});
@@ -32,7 +33,7 @@ export function enqueueMessage(message, time) {
         resolution: { width: 256, height: 64 },
         size: { width: 0.2, height: 0.05 },
         opacity: 0.7,
-        color: '#000000',
+        color: '#000000'
       });
 
       if(!color)
@@ -43,19 +44,18 @@ export function enqueueMessage(message, time) {
       messageBox.interact = (action, position) => {};
 
       messageBox.createMesh();
-      this.menus.set(messageBox.title, messageBox);
 
-      let textBox = messageBox.mesh;
-      textBox.position.y += 0.3;
-      textBox.position.z -= 0.3;
-      textBox.rotateX(0.45);
+      const mesh = messageBox.getMesh();
+      mesh.position.y += 0.3;
+      mesh.position.z -= 0.3;
+      mesh.rotateX(0.45);
 
-      this.camera.add(textBox);
+      this.camera.add(mesh);
       let y = 0;
       function animate() {
         y -= 0.01;
         if (y > -0.16) {
-          textBox.position.y -= 0.01;
+          mesh.position.y -= 0.01;
         } else {
           return;
         }
@@ -77,9 +77,8 @@ export function enqueueMessage(message, time) {
        * Remove text message on top edge of user's view
        */
       function deleteMessageBox() {
-        this.camera.remove(messageBox.mesh);
+        this.camera.remove(messageBox.getMesh());
         messageBox.close();
-        this.menus.delete('messageBox');
         messageBox = null;
       }
     }

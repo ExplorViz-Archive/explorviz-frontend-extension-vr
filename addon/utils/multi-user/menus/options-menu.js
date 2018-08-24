@@ -4,15 +4,13 @@ import LandscapePositionMenu from './landscape-position-menu';
 import CameraHeightMenu from './camera-height-menu';
 
 let menu = null;
-let prevMenu = null;
 
+/**
+ * Creates and opens the Options Menu.
+ */
 export function open() {
   menu = new Menu({
-      title: 'optionsMenu',
-      resolution: { width: 256, height: 256 },
-      size: { height: 0.3, width: 0.3},
-      opacity: 0.8,
-      color: '#444444',
+      title: 'optionsMenu'
   });
   menu.addText('Options', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
   menu.addText('Change Height', 'change_height', 14, { x: 128, y: 70}, '#ffc338', 'center', true);
@@ -45,25 +43,26 @@ export function open() {
   };
 
   menu.createMesh();
-  menu.mesh.position.x += 0.2;
-  menu.mesh.geometry.rotateX(-1.5707963267949);
-  this.controller1.add(menu.mesh);
-  this.menus.set(menu.title, menu);
+  const mesh = menu.getMesh();
+  mesh.position.x += 0.2;
+  mesh.geometry.rotateX(-1.5707963267949);
+  this.controller1.add(mesh);
 }
 
+/**
+ * Closes and removes the Options Menu.
+ */
 export function close() {
   if(menu) {
-    this.controller1.remove(menu.mesh);
+    this.controller1.remove(menu.getMesh());
     menu.close();
-    this.menus.delete(menu.title);
     menu = null;
   }
 }
 
+/**
+ * Return whether the menu is opened or not.
+ */
 export function isOpen() {
   return menu ? true : false;
-}
-
-export function hasBackButton() {
-  return prevMenu ? true : false;
 }

@@ -11,11 +11,11 @@ import ImageLoader from 'explorviz-frontend/utils/three-image-loader';
 import applyCityLayout from 'explorviz-frontend/utils/application-rendering/city-layouter';
 import FoundationBuilder from 'explorviz-frontend/utils/application-rendering/foundation-builder';
 import layout from "../templates/components/vr-rendering";
+import Models from '../utils/models';
 
 // Declare globals
 /*global WEBVR*/
 /*global ViveController*/
-/*global createOBJLoader*/
 
 /**
  * This component unites landscape(adapted to 3D)-, application-rendering
@@ -83,11 +83,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   openApps : null, //Object3d's of opened applications
   foundations: null, //keep track of foundations (in openApps) for foundationBuilder
   boundApps: null, //applications which other users currently move/hold
-
-  //controller objects
-  oculusLeftControllerObject: null,
-  oculusRightControllerObject: null,
-  viveControllerObject: null,
 
   //still necessary?
   app3DMeshes: null,
@@ -388,7 +383,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('room').add(floorMesh);
     self.get('scene').add(this.get('room'));///// End floor
 
-    this.loadControllerModels();
+    Models.loadModels();
 
     // Stop data flow
     this.get('reloadHandler').stopExchange();
@@ -400,53 +395,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         self.populateScene();
       });
     console.log("Init Rendering End");
-  },
-
-  loadControllerModels() {
-    let OBJLoader = createOBJLoader(THREE);
-    let loader = new OBJLoader(THREE.DefaultLoadingManager);
-
-    loader.setPath('oculus_cv1_controller/');
-    loader.load('oculus_cv1_controller_left.obj', object => {
-      const obj = object;
-      obj.name = "controllerTexture";
-      let loader = new THREE.TextureLoader();
-      loader.setPath('oculus_cv1_controller/');
-      let controller = obj.children[0];
-      controller.material.map = loader.load('external_controller01_col.png');
-      controller.material.specularMap = loader.load('external_controller01_spec.png');
-      controller.rotateX(0.71);
-      controller.position.x -= 0.0071;
-      controller.position.y += 0.035;
-      controller.position.z -= 0.035;
-      this.set('oculusLeftControllerObject', obj.clone());
-    });
-    loader.setPath('oculus_cv1_controller/');
-    loader.load('oculus_cv1_controller_right.obj', object => {
-      const obj = object;
-      obj.name = "controllerTexture";
-      let loader = new THREE.TextureLoader();
-      loader.setPath('oculus_cv1_controller/');
-      let controller = obj.children[0];
-      controller.material.map = loader.load('external_controller01_col.png');
-      controller.material.specularMap = loader.load('external_controller01_spec.png');
-      controller.rotateX(0.71);
-      controller.position.x += 0.0071;
-      controller.position.y += 0.035;
-      controller.position.z -= 0.035;
-      this.set('oculusRightControllerObject', obj.clone());
-    });
-    loader.setPath('vive-controller/');
-    loader.load('vr_controller_vive_1_5.obj', object => {
-      const obj = object;
-      obj.name = "controllerTexture";
-      let loader = new THREE.TextureLoader();
-      loader.setPath('vive-controller/');
-      let controller = obj.children[0];
-      controller.material.map = loader.load('onepointfive_texture.png');
-      controller.material.specularMap = loader.load('onepointfive_spec.png');
-      this.set('viveControllerObject', obj.clone());
-    });
   },
 
   updateControllers() {
@@ -489,11 +437,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       let name = controller.getGamepad().id;
 
       if (name === "Oculus Touch (Left)") {
-        controller.add(this.oculusLeftControllerObject.clone());
+        controller.add(Models.getOculusLeftControllerModel());
       } else if (name === "Oculus Touch (Right)") {
-        controller.add(this.oculusRightControllerObject.clone());
+        controller.add(Models.getOculusRightControllerModel());
       } else {
-        controller.add(this.viveControllerObject.clone());
+        controller.add(Models.getViveControllerModel());
       }
     }
   },

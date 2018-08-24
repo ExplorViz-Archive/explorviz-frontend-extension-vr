@@ -3,14 +3,13 @@ import Helper from '../helper';
 
 let menu = null;
 
+/**
+ * Creates and opens the User List Menu.
+ */
 export function open() {
   close.call(this); 
   menu = new Menu({
-    title: 'userListMenu',
-    resolution: { width: 256, height: 256 },
-    size: { width: 0.3, height: 0.3 },
-    opacity: 0.8,
-    color: '#444444',
+    title: 'userListMenu'
   });
 
   menu.addText('Users', 'title', 18, { x: 20, y: 20}, '#ffffff', 'left', false);
@@ -61,20 +60,18 @@ export function open() {
   menu.interact = (action, position) => {};
 
   menu.createMesh();
-  menu.mesh.position.y += 0.0;
-  menu.mesh.position.z -= 0.5;
-  this.camera.add(menu.mesh);
-  this.menus.set(menu.title, menu);
+  const mesh = menu.getMesh();
+  mesh.position.z -= 0.5;
+  this.camera.add(mesh);
 }
 
 /**
- * Remove user list menu in the middle of the screen
+ * Closes and removes User List Menu in the middle of the screen.
  */
 export function close() {
   if(menu) {
-    this.camera.remove(menu.mesh);
-    menu.close();
-    this.menus.delete(menu.title);
+    this.camera.remove(menu.getMesh());
+    menu.removeMesh();
     menu = null;
   }
 }
