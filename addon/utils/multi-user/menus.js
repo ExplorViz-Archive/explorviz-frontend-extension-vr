@@ -4,6 +4,7 @@ import SpectateMenu from './menus/spectate-menu';
 import LandscapePositionMenu from './menus/landscape-position-menu';
 import CameraHeightMenu from './menus/camera-height-menu';
 import MessageBox from './menus/message-box-menu';
+import ConnectMenu from './menus/connect-menu';
 
 let menus = new Map();
 
@@ -13,7 +14,8 @@ export {
   SpectateMenu,
   LandscapePositionMenu,
   CameraHeightMenu,
-  MessageBox
+  MessageBox,
+  ConnectMenu
 }
 
 export function getMenus() {
