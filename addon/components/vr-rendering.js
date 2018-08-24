@@ -403,16 +403,19 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // remove controller 1 model if controller disconnected
     if((this.get('controller1').getGamepad() === undefined || this.get('controller1').getGamepad().pose === undefined)) {
+      console.log(this.get('controller1'));
       let model = this.get('controller1').getObjectByName("controllerTexture");
-      if(model)
+      if(model) {
         this.get('controller1').remove(model);
+      }
     } else {
       this.loadController(this.get('controller1'));
     }
     if((this.get('controller2').getGamepad() === undefined || this.get('controller2').getGamepad().pose === undefined)) {
       let model = this.get('controller2').getObjectByName("controllerTexture");
-      if(model)
+      if(model) {
         this.get('controller2').remove(model);
+      }
     } else {
       this.loadController(this.get('controller2'));
     }

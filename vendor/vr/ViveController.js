@@ -27,12 +27,19 @@ ViveController = function ( id ) {
 
 			var gamepad = gamepads[ i ];
 
-			if ( gamepad && ( gamepad.id === 'OpenVR Gamepad' || gamepad.id.startsWith( 'Oculus Touch' ) || gamepad.id.startsWith( 'Spatial Controller' ) ) ) {
+			if ( gamepad && ( gamepad.id === 'OpenVR Gamepad' || gamepad.id.startsWith( 'Spatial Controller' ) ) ) {
 
 				if ( j === id ) return gamepad;
 
 				j ++;
 
+			} else if(gamepad.id.startsWith( 'Oculus Touch' )) {
+				if(id === 0 && gamepad.id === 'Oculus Touch (Left)') {
+					return gamepad;
+				} else if(id === 1 && gamepad.id === 'Oculus Touch (Right)') {
+					return gamepad;
+				}
+				j++;
 			}
 
 		}
