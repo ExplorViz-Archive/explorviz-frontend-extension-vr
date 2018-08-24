@@ -28,14 +28,21 @@ export default VRRendering.extend(Ember.Evented, {
   lastPositions: null, // last positions of camera and controllers
   controllersConnected: null, // tells which controller(s) are connected
   fps: 90, // tells how many pictures are max. rendered per second (refresh rate of Vive/Rift is 90)
-  lastTime: null, // last time an image was rendered
+  updatesPerSecond: 90, //tells how many times per seconds msg can be sent to backend
+  badConnectionUpdates: 15, // tells how many updates are sent per second in case of a bad connection
+  lastViewTime: null, // last time an image was rendered
   currentTime: null, // tells the current time in ms
-  deltaTime: null, // time between two frames
+  deltaViewTime: null, // time between two frames
+  deltaUpdateTime: null, // time between two update messages
+  lastUpdateTime: null, //last time an update was sent
   updateQueue: null, // messages which are ready to be sent to backend
   running: null, // tells if gameLoop is executing
   spectatedUser: null, // tells which userID (if any) is being spectated
   startPosition: null, //position before this user starts spectating
   session: service(), //session used to retrieve username
+  connectionIsGood: true, //tells whether or not backend has recently send a 'bad_connection' msg
+  badConnectionSince: null, // if there is a bad connection, contains timestamp of last 'bad_connection' msg
+
 
 
   gameLoop() {
@@ -46,13 +53,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.currentTime = new Date().getTime();
 
     //time difference between now and the last time updates were sent
-    this.deltaTime = this.currentTime - this.lastTime;
+    this.deltaViewTime = this.currentTime - this.lastViewTime;
+    this.deltaUpdateTime = this.currentTime - this.lastUpdateTime;
 
-    //if time difference is large enough, update and send messages to backend
-    if(this.deltaTime > 1000/this.fps) {
-      if(this.userID && this.state === 'connected') {
-        this.update();
-      } else if(this.userID && this.state === 'spectating') {
+    //if time difference is large enough, update user's view
+    if(this.deltaViewTime > 1000/this.fps) {
+      if(this.userID && this.state === 'spectating') {
         this.spectateUser(); // follow view of spectated user
       }
 
@@ -60,12 +66,43 @@ export default VRRendering.extend(Ember.Evented, {
       this.updateUserNameTags();
       this.render2();
 
+      this.lastViewTime = this.currentTime;
+    }
+
+    //if time difference is large enough, send updates to backend
+    if(this.deltaUpdateTime > 1000/this.updatesPerSecond) {
+      if(this.userID && this.state === 'connected') {
+        this.update();
+      } 
+
       //send messages like connecting request, position updates etc.
       this.sendUpdates();
 
-      this.lastTime = this.currentTime;
+      this.lastUpdateTime = this.currentTime;
+
+      this.checkForBadConnection();
     }
     requestAnimationFrame(this.gameLoop.bind(this));
+  },
+
+  handleBadConnection(){
+    this.set('connectionIsGood', false);
+    this.set('badConnectionSince', new Date().getTime());
+    this.set('updatesPerSecond', this.get('badConnectionUpdates'));
+  },
+
+  checkForBadConnection(){
+    if (this.get('connectionIsGood') || this.get('badConnectionSince') === null){
+      return;
+    }
+
+    // check if bad connection data is still up to date (30 seconds or newer)
+    if ((this.get('currentTime') - this.get('badConnectionSince')) / 1000 > 30){
+      this.get('badConnectionSince')
+      this.set('badConnectionSince', null);
+      this.set('updatesPerSecond', this.get('fps'));
+      return;
+    }
   },
 
   /**
@@ -193,13 +230,15 @@ export default VRRendering.extend(Ember.Evented, {
 
   initVariables() {
     this.set('currentTime', 0);
-    this.set('deltaTime', 0);
+    this.set('deltaViewTime', 0);
+    this.set('deltaUpdateTime', 0);
     this.set('updateQueue', []);
     this.set('running', false);
     this.set('users', new Map());
     this.set('lastPositions', { camera: null, controller1: null, controller2: null });
     this.set('controllersConnected', { controller1: false, controller2: false });
-    this.set('lastTime', new Date().getTime());
+    this.set('lastViewTime', new Date().getTime());
+    this.set('lastUpdateTime', new Date().getTime());
   },
 
   /**
@@ -597,6 +636,7 @@ export default VRRendering.extend(Ember.Evented, {
           this.updateQueue.push(data);
           break;
         case 'receive_bad_connection':
+        this.handleBadConnection();
           break;
       }
     }
