@@ -6,6 +6,7 @@ import HoverHandlerLandscape from 'explorviz-frontend/utils/landscape-rendering/
 import AlertifyHandler from 'explorviz-frontend/mixins/alertify-handler';
 import Selector from './selector';
 import THREE from "three";
+import Menus from '../multi-user/menus';
 
 /*
  *  This util is used to realize the interaction by handeling
@@ -164,6 +165,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     function registerThumbpadDownController1(evt) {
       self.onThumbpadDownController1(evt, false);
     }
+
     function registerThumbpadDownController2(evt){
       self.onThumbpadDownController1(evt, true);
     } 
@@ -275,7 +277,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and clazzes if the controller ray hits them.
    * Furthermore this method scales the ray relative to distance of intersection
    */
-  checkIntersectionRightController() {
+  checkIntersectionRightController(objects) {
     let controller = this.get('controller2');
     let controllerLine = controller.getObjectByName('controllerLine');
 
@@ -293,9 +295,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     const direction = new THREE.Vector3(0,0,-1);
     direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
+    if(!objects) {
+      objects = this.get('raycastObjectsLandscape');
+    }
+
     // Calculate hit object
     const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
-      null, this.get('raycastObjectsLandscape'));
+      null, objects);
 
     // Verify controllers
     let id2 = this.verifyControllers(id);
@@ -329,6 +335,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       if(intersectedViewObj.object.name === 'floor'){
         return;
       }
+
+      // Handle menus
+      let menu = Menus.get(intersectedViewObj.object.name);
+      if(menu) {
+        menu.interact('rightIntersect', intersectedViewObj.uv);
+        return;
+      }
   
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
@@ -356,7 +369,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.unhighlightedDeleteButton(id, additionalCondition);
     }
     // Reset highlighted enities if nothing was hit 
-    else{
+    else {
       // Unhighlight delete button 
       this.unhighlightedDeleteButton(id, true);
 
@@ -369,7 +382,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and clazzes if the controller ray hits them.
    * Furthermore this method scales the ray relative to distance of intersection
    */
-  checkIntersectionLeftController(){
+  checkIntersectionLeftController(objects){
     let controller = this.get('controller1');
     let controllerLine = controller.getObjectByName('controllerLine');
 
@@ -387,11 +400,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     const direction = new THREE.Vector3(0,0,-1);
     direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
-    var raycastingObjects = this.excludeLandscape();
+    if(!objects) {
+      objects = this.excludeLandscape();
+    }
 
     // Calculate hit object
     const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
-      null, raycastingObjects);
+      null, objects);
 
     // Verify controllers
     let id2 = this.verifyControllers(id);
@@ -479,7 +494,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and adapts the position of the text box. 
    * @method - onThumbpadDownController1
    */
-  onThumbpadDownController1(event, rightHand){
+  onThumbpadDownController1(event, rightHand, objects){
 
     const controller = event.target;
     let controllerLine = controller.getObjectByName('controllerLine');
@@ -498,15 +513,26 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     const direction = new THREE.Vector3(0,0,-1);
     direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
+    if(!objects) {
+      objects = this.get('raycastObjectsLandscape');
+    }
+
     // Calculate hit object
     const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
-      null, this.get('raycastObjectsLandscape'));
+      null, objects);
 
     // Check if an object is hit
     if(intersectedViewObj){
 
       // Handle delete button and floor exception
       if (intersectedViewObj.object.name === 'deleteButton' || intersectedViewObj.object.name === 'floor'){
+        return;
+      }
+
+      // Handle menus
+      let menu = Menus.get(intersectedViewObj.object.name);
+      if(menu) {
+        menu.interact('leftThumbpadDown', intersectedViewObj.uv);
         return;
       }
 
@@ -617,7 +643,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     const controller = event.target;
 
-    if(controller.userData.selected !== undefined && controller.userData.selected.name !=="textBox"){
+    if(controller.userData.selected !== undefined && controller.userData.selected.name !== "textBox"){
       // Set bool for application3D not binded
       this.set('app3DBinded',false);
       this.get('app3DBindedByController')[controller.id] = null;
@@ -644,7 +670,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and is used to open/close systems, nodegroups and 
    * components of 3D application. 
    */
-  onTriggerDownController2(event){
+  onTriggerDownController2(event, objects){
 
     const controller = event.target;
     let controllerLine = controller.getObjectByName('controllerLine');
@@ -664,9 +690,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       const direction = new THREE.Vector3(0,0,-1);
       direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
+      if(!objects) {
+        objects = this.get('raycastObjectsLandscape');
+      }
+
       // Calculate hit object
       const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
-        null, this.get('raycastObjectsLandscape'));
+        null, objects);
 
       // Check if an object is hit
       if(intersectedViewObj) {
@@ -680,6 +710,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         // Handle floor
         if(intersectedViewObj.object.name === 'floor'){
+          return;
+        }
+
+        // Handle menus
+        let menu = Menus.get(intersectedViewObj.object.name);
+        if(menu) {
+          menu.interact('rightTrigger', intersectedViewObj.uv);
           return;
         }
 
@@ -748,7 +785,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and is used 
    * select components/clazzes of application3D and teleport. 
    */
-  onTriggerDownController1(event){
+  onTriggerDownController1(event, objects){
 
     const controller = event.target;
     let controllerLine = controller.getObjectByName('controllerLine');
@@ -768,11 +805,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       const direction = new THREE.Vector3(0,0,-1);
       direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
-      var raycastingObjects = this.excludeLandscape();
+      if(!objects) {
+        objects = this.excludeLandscape();
+      }
 
       // Calculate hit object
       const intersectedViewObj = this.get('raycaster').raycasting(origin, direction,
-        null, raycastingObjects);
+        null, objects);
 
       // Check if an object is hit
       if(intersectedViewObj) {
@@ -858,7 +897,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * This method handles the controller event 'thumbpaddown'
    * and is used to move, zoom and rotate application3D
    */
-  onGripDownController2(event){
+  onGripDownController2(event, objects){
     const controller = event.target;
     let controllerLine = controller.getObjectByName('controllerLine');
 
@@ -873,15 +912,26 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     const direction = new THREE.Vector3(0,0,-1);
     direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
+    if(!objects) {
+      objects = this.get('raycastObjectsLandscape');
+    }
+
     // Calculate hit object
     const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
-      null, this.get('raycastObjectsLandscape'));
+      null, objects);
 
     // Check if an object is hit
     if(intersectedViewObj) {
 
       // Handle delete button and floor exception
       if (intersectedViewObj.object.name === 'deleteButton' || intersectedViewObj.object.name === 'floor'){
+        return;
+      }
+
+      // Handle menus
+      let menu = Menus.get(intersectedViewObj.object.name);
+      if(menu) {
+        menu.interact('rightGripDown', intersectedViewObj.uv);
         return;
       }
     
