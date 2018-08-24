@@ -874,6 +874,7 @@ export default VRRendering.extend(Ember.Evented, {
 
     this.updateObjectMatrix(this.get('vrEnvironment'));
     this.centerVREnvironment(this.get('vrEnvironment'), this.get('room'));
+    this.updateObjectMatrix(this.get('vrEnvironment'));
   },
 
   onLandscapeUpdate(id, isOpen){
