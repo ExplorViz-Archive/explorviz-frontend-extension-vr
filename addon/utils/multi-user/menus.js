@@ -20,6 +20,14 @@ export function getMenus() {
   return menus.values();
 }
 
+export function getMenuMeshesArray() {
+  let list = [];
+  for(let menu of menus.values()) {
+    list.push(menu.mesh);
+  }
+  return list;
+}
+
 export function get(menuTitle) {
   return menus.get(menuTitle);
 }

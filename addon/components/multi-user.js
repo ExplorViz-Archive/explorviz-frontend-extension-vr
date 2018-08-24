@@ -221,51 +221,35 @@ export default VRRendering.extend(Ember.Evented, {
 
     let old_checkIntersectionRightController = this.get('interaction').checkIntersectionRightController;
     this.get('interaction').checkIntersectionRightController = function() {
-      let menus = [];
-      for(let menu of Menus.getMenus()) {
-        menus.push(menu.mesh);
-      }
-      let menuHit = self.checkIntersectionRightController(menus);
-      if(menuHit) {
-        // Unhighlight delete button
-        this.unhighlightedDeleteButton(self.controller2.id, true);
-        // Restore old color of landscape
-        this.unhighlightLandscape(self.controller2.id);
-        // Restore old color of application3D
-        this.unhighlightApplication3D(self.controller2.id);
-      } else {
-        if(self.state !== 'spectating')
-          old_checkIntersectionRightController.apply(this);
-        else
-          self.get('controller2').getObjectByName('controllerLine').scale.z = self.zeroValue;
+      if(self.state !== 'spectating')
+        old_checkIntersectionRightController.apply(this, [this.get('raycastObjectsLandscape').concat(Menus.getMenuMeshesArray())]);
+      else {
+        old_checkIntersectionRightController.apply(this, [Menus.getMenuMeshesArray()]);
       }
     };
     
     let old_checkIntersectionLeftController = this.get('interaction').checkIntersectionLeftController;
     this.get('interaction').checkIntersectionLeftController = function() {
       if(self.state !== 'spectating')
-        old_checkIntersectionLeftController.apply(this);
+        old_checkIntersectionLeftController.apply(this, [this.excludeLandscape().concat(Menus.getMenuMeshesArray())]);
       else
         self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
     };
 
     let old_onTriggerDownController2 = this.get('interaction').onTriggerDownController2;
     this.get('interaction').onTriggerDownController2 = function(event) {
-      let menus = [];
-      for(let menu of Menus.getMenus()) {
-        menus.push(menu.mesh);
-      }
-      let menuHit = self.onTriggerDownController2(menus);
-      if(!menuHit) {
-        if(self.state !== 'spectating')
-          old_onTriggerDownController2.apply(this, [event]);
-      }
+      if(self.state !== 'spectating')
+        old_onTriggerDownController2.apply(this, [event, this.get('raycastObjectsLandscape').concat(Menus.getMenuMeshesArray())]);
+      else
+        old_onTriggerDownController2.apply(this, [event, Menus.getMenuMeshesArray()]);
     };
 
     let old_onTriggerDownController1 = this.get('interaction').onTriggerDownController1;
     this.get('interaction').onTriggerDownController1 = function(event) {
       if(self.state !== 'spectating')
-        old_onTriggerDownController1.apply(this, [event]);
+        old_onTriggerDownController1.apply(this, [event, this.excludeLandscape().concat(Menus.getMenuMeshesArray())]);
+      else
+        self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
     };
 
     let old_onMenuDownController1 = this.get('interaction').onMenuDownController1;
@@ -324,66 +308,6 @@ export default VRRendering.extend(Ember.Evented, {
     if(this.updateQueue.length > 0) {
       this.send(this.updateQueue);
       this.set('updateQueue', []);
-    }
-  },
-
-  checkIntersectionRightController(objects) {
-    let controller = this.get('controller2');
-    let controllerLine = controller.getObjectByName('controllerLine');
-
-    var tempMatrix = new THREE.Matrix4();
-
-    // Calculate controller direction and origin
-    tempMatrix.identity().extractRotation( controllerLine.matrixWorld );
-    
-    const origin = new THREE.Vector3();
-    origin.setFromMatrixPosition(controllerLine.matrixWorld);
-
-    const direction = new THREE.Vector3(0,0,-1);
-    direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
-
-    // Calculate hit object
-    const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
-      null, objects);
-    
-    if(intersectedViewObj) {
-      controllerLine.scale.z = intersectedViewObj.distance;
-      let name = intersectedViewObj.object.name;
-      let menu = Menus.get(name);
-      if(menu) {
-        menu.interact('rightIntersect', intersectedViewObj.uv);
-        return true;
-      }
-    }
-  },
-
-  onTriggerDownController2(objects) {
-    let controller = this.get('controller2');
-    let controllerLine = controller.getObjectByName('controllerLine');
-
-    var tempMatrix = new THREE.Matrix4();
-
-    // Calculate controller direction and origin
-    tempMatrix.identity().extractRotation( controllerLine.matrixWorld );
-    
-    const origin = new THREE.Vector3();
-    origin.setFromMatrixPosition(controllerLine.matrixWorld);
-
-    const direction = new THREE.Vector3(0,0,-1);
-    direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
-
-    // Calculate hit object
-    const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
-      null, objects);
-    
-    if(intersectedViewObj) {
-      controllerLine.scale.z = intersectedViewObj.distance;
-      let name = intersectedViewObj.object.name;
-      let menu = Menus.get(name);
-      if(menu) {
-        menu.interact('rightTrigger', intersectedViewObj.uv);
-        return true;
-      }
     }
   },
 
