@@ -782,9 +782,7 @@ export default VRRendering.extend(Ember.Evented, {
     
     if(data.hasOwnProperty('landscape')){
       let position = data.landscape.position;
-      console.log("Initial position offset: " + position);
       let quaternion = data.landscape.quaternion;
-      console.log("Initial quaternion: " + quaternion);
       this.onLandscapePosition(position, quaternion);
     }
   },
@@ -1085,6 +1083,14 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('interaction').trigger('landscapeMoved', deltaPosition);
   },
 
+  changeLandscapeHeight(delta){
+    this.get('environmentOffset').y += delta;
+    this.get('vrEnvironment').position.y +=  delta;
+
+    this.updateObjectMatrix(this.get('vrEnvironment'));
+    let deltaPosition = new THREE.Vector3(0, delta, 0);
+    this.get('interaction').trigger('landscapeMoved', deltaPosition);
+  },
   /*
    *  This method is used to update the matrix of
    *  a given Object3D
