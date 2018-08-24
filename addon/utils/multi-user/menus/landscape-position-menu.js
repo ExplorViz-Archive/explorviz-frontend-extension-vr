@@ -1,4 +1,5 @@
 import Menu from '../menu';
+import THREE from 'three';
 
 let menu = null;
 let prevMenu = null;
@@ -13,10 +14,21 @@ export function open(lastMenu) {
     title: 'changeLandscapePositionMenu'
   });
   menu.addText('Change Landscape Position', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
-  menu.addArrowButton('move_left', {x: 70, y: 103}, {x: 90, y: 133}, 'arrow_left', '#ffc338');
-  menu.addArrowButton('move_right', {x: 166, y: 103}, {x: 186, y: 133}, 'arrow_right', '#ffc338');
-  menu.addArrowButton('move_forward', {x: 113, y: 60}, {x: 143, y: 80}, 'arrow_up', '#ffc338');
-  menu.addArrowButton('move_backward', {x: 113, y: 156}, {x: 143, y: 176}, 'arrow_down', '#ffc338');
+
+  // buttons for moving landscape in plane
+  menu.addArrowButton('move_left', {x: 70, y: 123}, {x: 90, y: 153}, 'arrow_left', '#ffc338');
+  menu.addArrowButton('move_right', {x: 166, y: 123}, {x: 186, y: 153}, 'arrow_right', '#ffc338');
+  menu.addArrowButton('move_forward', {x: 113, y: 80}, {x: 143, y: 100}, 'arrow_up', '#ffc338');
+  menu.addArrowButton('move_backward', {x: 113, y: 176}, {x: 143, y: 196}, 'arrow_down', '#ffc338');
+
+  // buttons for changing landscape height
+  menu.addArrowButton('move_up', {x: 40, y: 60}, {x: 60, y: 80}, 'arrow_up', '#ffc338');
+  menu.addArrowButton('move_down', {x: 40, y: 100}, {x: 60, y: 120}, 'arrow_down', '#ffc338');
+
+    // buttons for rotating landscape
+    menu.addArrowButton('rotate_left', {x: 195, y: 60}, {x: 215, y: 80}, 'arrow_right', '#ffc338');
+    menu.addArrowButton('rotate_right', {x: 195, y: 100}, {x: 215, y: 120}, 'arrow_left', '#ffc338');
+
   menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ffffff', 'center', true);
   prevMenu = lastMenu;
   menu.interact = (action, position) => {
@@ -34,6 +46,20 @@ export function open(lastMenu) {
           this.moveLandscape({x: 0, y: 20});
         } else if(item.name === 'move_backward') {
           this.moveLandscape({x: 0, y: -20});
+        } else if(item.name === 'move_up') {
+          this.changeLandscapeHeight(0.1);
+        } else if(item.name === 'move_down') {
+          this.changeLandscapeHeight(- 0.1);
+        } else if(item.name === 'rotate_left') {
+          this.get('vrEnvironment').rotation.x +=  0.05;
+          this.updateObjectMatrix(this.get('vrEnvironment'));
+          this.get('interaction').trigger('centerVREnvironment');
+          this.get('interaction').trigger('landscapeMoved', new THREE.Vector3(0, 0, 0));
+        } else if(item.name === 'rotate_right') {
+          this.get('vrEnvironment').rotation.x -=  0.05;
+          this.updateObjectMatrix(this.get('vrEnvironment'));
+          this.get('interaction').trigger('centerVREnvironment');
+          this.get('interaction').trigger('landscapeMoved', new THREE.Vector3(0, 0, 0));
         } else if(item.name === 'back') {
           back.call(this);
         }

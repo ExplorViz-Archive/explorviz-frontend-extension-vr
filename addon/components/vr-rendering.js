@@ -1432,6 +1432,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     if (bboxLandscape.min.y < bboxFloor.min.y) {
       vrEnvironment.position.y += bboxFloor.max.y - bboxLandscape.min.y + 0.001;
     }
+
+    vrEnvironment.position.y += this.get('environmentOffset').y;
   },
 
   /*
