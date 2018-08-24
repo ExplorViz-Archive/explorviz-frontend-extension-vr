@@ -67,6 +67,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   boundApps : null,
   environmentOffset : null,
 
+  highlightingColor: "rgb(255,0,0)",
+
   emptyFunction: () => {},
 
 
@@ -764,7 +766,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             this.get('selector').highlightAppCommunication(this.get('appCommunicationHighlighted'), this.get('highlightedAppModel'));
             this.trigger('redrawAppCommunication');
   
-            let color = new THREE.Color("rgb(255,0,0)");
+            let color = new THREE.Color(this.get('highlightingColor'));
             this.get('selectedEntitysMesh').material.color = color;
           }
           // Open selected component
@@ -864,7 +866,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             this.trigger("entityHighlighted", true, appID, emberModel.id, this.get('selectedEntitysColor'));
 
             // Set new color
-            let color = new THREE.Color("rgb(255,0,0)");
+            let color = new THREE.Color(this.get('highlightingColor'));
             intersectedViewObj.object.material.color = color;
             // Highlight communication lines
             this.get('appCommunicationHighlighted').set('highlighted', true);
@@ -1196,7 +1198,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           this.get('selector').highlightAppCommunication(this.get('appCommunicationHighlighted'), this.get('highlightedAppModel'));
           this.trigger('redrawAppCommunication');
 
-          let color = new THREE.Color("rgb(255,0,0)");
+          let color = new THREE.Color(this.get('highlightingColor'));
           this.get('selectedEntitysMesh').material.color = color;
         }
         // Open selected component
@@ -1298,7 +1300,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           this.saveSelectedEntity(intersectedViewObj, emberModel);
 
           this.trigger('entityHighlighted', true, appID, emberModel.id, this.get('selectedEntitysColor'));
-          let color = new THREE.Color("rgb(255,0,0)");
+          let color = new THREE.Color(this.get('highlightingColor'));
           intersectedViewObj.object.material.color = color;
           this.get('appCommunicationHighlighted').set('highlighted', true);
           

@@ -24,6 +24,7 @@ export default VRRendering.extend(Ember.Evented, {
   
   users: null, // Map: UserID -> User
   userID: null, // own userID
+  color: null, // own color
   state: null, // own connection status, state in {'connecting', 'connected', 'spectating'}
   lastPositions: null, // last positions of camera and controllers
   controllersConnected: null, // tells which controller(s) are connected
@@ -576,6 +577,8 @@ export default VRRendering.extend(Ember.Evented, {
     //if name is not found, use id as default name
     let name = this.get('session.data.authenticated.username') || "ID: " + data.id;
     this.set('userID', data.id);
+    this.set('color', data.color);
+    this.get('interaction').set('highlightingColor', Helper.colorToString(data.color));
     let JSONObj = {
       "event": "receive_connect_request",
       "name": name
