@@ -52,6 +52,11 @@ export function open() {
   mesh.position.x += 0.2;
   mesh.geometry.rotateX(-1.5707963267949);
   this.controller1.add(mesh);
+
+  if(this.state === 'offline' || this.state === 'connecting') {
+    menu.setClickable('spectate', false);
+    menu.setColor('spectate', '#A8A8A8');
+  }
 }
 
 /**

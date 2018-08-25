@@ -180,6 +180,7 @@ export default VRRendering.extend(Ember.Evented, {
     spectatedUser.camera.model.visible = true;
     spectatedUser.namePlane.visible = true;
     this.set('state', 'connected');
+    ConnectMenu.setState.call(this, 'connected');
     this.set('spectatedUser', null);
 
     SpectateMenu.updateText('spectating_user', 'Spectating off');
@@ -227,7 +228,6 @@ export default VRRendering.extend(Ember.Evented, {
       this.port = port;
 
       ConnectMenu.open.call(this, OptionsMenu.open);
-      //this.connect();
 
       console.log("Start gameLoop");
       this.running = true;
@@ -236,7 +236,8 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   connect() {
-    ConnectMenu.updateText('status', 'Status: connecting');
+    this.state = 'connecting';
+    ConnectMenu.setState.call(this, 'connecting');
     this.updateQueue = [];
     this.initSocket(this.host, this.port);
   },
@@ -253,6 +254,7 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('lastViewTime', new Date().getTime());
     this.set('lastUpdateTime', new Date().getTime());
     this.set('state', 'offline');
+
   },
 
   /**
@@ -385,7 +387,8 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   onGripDownController1() {
-    UserListMenu.open.call(this);
+    if(this.state === 'connected' || this.state === 'spectating')
+      UserListMenu.open.call(this);
   },
 
   onGripUpController1() {
@@ -486,8 +489,7 @@ export default VRRendering.extend(Ember.Evented, {
     this.send(disconnectMessage);
 
     this.state = 'offline';
-    ConnectMenu.updateText('status', 'Status: offline');
-    ConnectMenu.updateText('connect', 'Connect');
+    ConnectMenu.setState.call(this, 'offline');
     
     let users = this.users.values();
     for(let user of users) {
@@ -629,8 +631,6 @@ export default VRRendering.extend(Ember.Evented, {
       name
     };
     this.updateQueue.push(JSONObj);
-    this.state = 'connecting';
-    ConnectMenu.updateText('connect', '...');
   },
 
   /**
@@ -662,9 +662,8 @@ export default VRRendering.extend(Ember.Evented, {
       this.addUsername(user.id);
     }
     this.state = 'connected';
+    ConnectMenu.setState('connected');
     this.set('controllersConnected', { controller1: false, controller2: false });
-    ConnectMenu.updateText('status', 'Status: connected');
-    ConnectMenu.updateText('connect', 'Disconnect');
   },
 
   /**
@@ -1173,7 +1172,10 @@ export default VRRendering.extend(Ember.Evented, {
   //called when the websocket is closed
   closeHandler(event) {
     console.log(`On close event has been called: ${event}`);
-    ConnectMenu.open.call(this, OptionsMenu.open);
+    // ConnectMenu.open.call(this, OptionsMenu.open);
+    this.state = 'offline';
+    ConnectMenu.setState.call(this, 'offline');
+
   },
 
   //called when user closes the site / tab

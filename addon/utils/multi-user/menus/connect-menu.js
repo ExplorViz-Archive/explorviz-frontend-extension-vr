@@ -43,13 +43,7 @@ export function open(lastMenu) {
   mesh.geometry.rotateX(-1.5707963267949);
   this.controller1.add(mesh);
 
-  if(this.state === 'offline') {
-    menu.updateText('status', 'Status: offline');
-    menu.updateText('connect', 'Connect');
-  } else if(this.state === 'connected') {
-    menu.updateText('status', 'Status: connected');
-    menu.updateText('connect', 'Disconnect');
-  }
+  setState(this.state);
 }
 
 /**
@@ -90,4 +84,20 @@ export function isOpen() {
 export function updateText(itemName, text) {
   if(menu)
     menu.updateText(itemName, text);
+}
+
+export function setState(state) {
+  if(state === 'offline') {
+    menu.updateText('status', 'Status: offline');
+    menu.updateText('connect', 'Connect');
+    menu.setClickable('connect', true);
+  } else if(state === 'connecting') {
+    menu.updateText('status', 'Status: connecting');
+    menu.updateText('connect', '...');
+    menu.setClickable('connect', false);
+  } else if(state === 'connected') {
+    menu.updateText('status', 'Status: connected');
+    menu.updateText('connect', 'Disconnect');
+    menu.setClickable('connect', true);
+  }
 }

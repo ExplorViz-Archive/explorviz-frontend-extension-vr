@@ -12,6 +12,7 @@ export default EmberObject.extend({
   opacity: 0.8,
   mesh: null,
   hoverColor: '#00e5ff',
+  color: '#444444',
   hoveredItem: null,
   canvas: null,
   
@@ -205,7 +206,7 @@ export default EmberObject.extend({
       let item = this.items[i];
       let x = this.resolution.width * position.x;
       let y = this.resolution.height - (this.resolution.height * position.y);
-      if(item.type === 'text') {
+      if(item.type === 'text' && item.clickable) {
 
         let size = Helper.getTextSize(item.text, `${item.size}px arial`);
 
@@ -258,6 +259,28 @@ export default EmberObject.extend({
 
     this.update();
 
+  },
+
+  setClickable(itemName, bool) {
+    for(let i = 0; i < this.items.length; i++) {
+      const item = this.items[i];
+      if(item.name === itemName && item.type === 'text') {
+        item.clickable = bool;
+        this.update();
+        break;
+      }
+    }
+  },
+
+  setColor(itemName, color) {
+    for(let i = 0; i < this.items.length; i++) {
+      const item = this.items[i];
+      if(item.name === itemName) {
+        item.color = color;
+        this.update();
+        break;
+      }
+    }
   },
 
   /**
