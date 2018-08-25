@@ -1165,7 +1165,8 @@ export default VRRendering.extend(Ember.Evented, {
   //used to send messages to the backend
   send(obj) {
     // console.log(`Sending: ${JSON.stringify(obj)}`);
-    this.socketRef.send(JSON.stringify(obj));
+    if(this.socketRef)
+      this.socketRef.send(JSON.stringify(obj));
   },
 
   //called when the websocket is closed
@@ -1180,13 +1181,6 @@ export default VRRendering.extend(Ember.Evented, {
 
     this.running = false;
     this.disconnect();
-    const socket = this.socketRef;
-    if(socket) {
-      socket.off('open', this.openHandler);
-      socket.off('message', this.messageHandler);
-      socket.off('close', this.closeHandler);
-    }
-    this.socketRef = null,
     this.users = null;
     this.userID = null;
     this.state = null;
@@ -1199,8 +1193,6 @@ export default VRRendering.extend(Ember.Evented, {
     this.updateQueue = null;
     this.spectatedUser = null;
     this.startPosition = null;
-    this.websockets = null;
-    this.session = null;
   },
 
 });

@@ -20,7 +20,7 @@ module.exports = {
     this._super.included.apply(this, arguments);
 
     app.import('vendor/vr/OBJLoader.js');
-    app.import('vendor/vr/ViveController.js');
+    app.import('vendor/vr/Controller.js');
     app.import('vendor/vr/WebVR.js');
   }
 
