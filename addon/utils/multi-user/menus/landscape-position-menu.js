@@ -39,27 +39,21 @@ export function open(lastMenu) {
       }
       if(action === 'rightTrigger') {
         if(item.name === 'move_left') {
-          this.moveLandscape({x: 20, y: 0});
+          this.moveLandscape({x: -0.1, y: 0, z: 0});
         } else if(item.name === 'move_right') {
-          this.moveLandscape({x: -20, y: 0});
+          this.moveLandscape({x: 0.1, y: 0, z: 0});
         } else if(item.name === 'move_forward') {
-          this.moveLandscape({x: 0, y: 20});
+          this.moveLandscape({x: 0, y: 0, z: -0.1});
         } else if(item.name === 'move_backward') {
-          this.moveLandscape({x: 0, y: -20});
+          this.moveLandscape({x: 0, y: 0, z: 0.1});
         } else if(item.name === 'move_up') {
-          this.changeLandscapeHeight(0.1);
+          this.moveLandscape({x: 0, y: 0.1, z: 0});
         } else if(item.name === 'move_down') {
-          this.changeLandscapeHeight(- 0.1);
+          this.moveLandscape({x: 0, y: -0.1, z: 0});
         } else if(item.name === 'rotate_left') {
-          this.get('vrEnvironment').rotation.x +=  0.05;
-          this.updateObjectMatrix(this.get('vrEnvironment'));
-          this.get('interaction').trigger('centerVREnvironment');
-          this.get('interaction').trigger('landscapeMoved', new THREE.Vector3(0, 0, 0));
+          this.rotateLandscape({x: 0.05, y: 0, z: 0});
         } else if(item.name === 'rotate_right') {
-          this.get('vrEnvironment').rotation.x -=  0.05;
-          this.updateObjectMatrix(this.get('vrEnvironment'));
-          this.get('interaction').trigger('centerVREnvironment');
-          this.get('interaction').trigger('landscapeMoved', new THREE.Vector3(0, 0, 0));
+          this.rotateLandscape({x: -0.05, y: 0, z: 0});
         } else if(item.name === 'back') {
           back.call(this);
         }

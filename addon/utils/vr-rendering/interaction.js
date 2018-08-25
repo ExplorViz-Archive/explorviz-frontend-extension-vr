@@ -1370,6 +1370,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         parseFloat(this.get('renderer').domElement.clientHeight)) * 10.0;
 
       this.get('vrEnvironment').position.y = this.get('vrEnvironment').position.y - distanceYInPercent;
+      this.get('environmentOffset').y -= distanceYInPercent;
+      
       this.updateObjectMatrix(this.get('vrEnvironment'));
       let deltaPosition = new THREE.Vector3(0, -distanceYInPercent, 0);
       this.trigger('landscapeMoved', deltaPosition);
