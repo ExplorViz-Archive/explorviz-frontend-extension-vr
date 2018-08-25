@@ -831,6 +831,7 @@ export default VRRendering.extend(Ember.Evented, {
 
     
     if(data.hasOwnProperty('landscape')){
+      this.set('environmentOffset', new THREE.Vector3(0, 0, 0));
       let position = data.landscape.position;
       let quaternion = data.landscape.quaternion;
       this.onLandscapePosition(position, quaternion);
