@@ -15,7 +15,7 @@ import Models from '../utils/models';
 
 // Declare globals
 /*global WEBVR*/
-/*global ViveController*/
+/*global Controller*/
 
 /**
  * This component unites landscape(adapted to 3D)-, application-rendering
@@ -215,12 +215,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     document.body.appendChild( WEBVR.createButton( this.get('webglrenderer') ));
 
     // Create left controller
-    this.set('controller1', new ViveController(0));
+    this.set('controller1', new Controller(0));
     this.get('controller1').name = "controller";
     this.get('scene').add(this.get('controller1'));
 
     // Create right controller
-    this.set('controller2', new ViveController(1));
+    this.set('controller2', new Controller(1));
     this.get('controller2').name = "controller";
     this.get('scene').add(this.get('controller2'));
 
@@ -399,7 +399,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('controller2').update();
 
     // remove controller 1 model if controller disconnected
-    if((this.get('controller1').getGamepad() === undefined || this.get('controller1').getGamepad().pose === undefined)) {
+    if(!this.get('controller1').getGamepad() || !this.get('controller1').getGamepad().pose) {
       let model = this.get('controller1').getObjectByName("controllerTexture");
       if(model) {
         this.get('controller1').remove(model);
@@ -407,7 +407,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     } else {
       this.loadController(this.get('controller1'));
     }
-    if((this.get('controller2').getGamepad() === undefined || this.get('controller2').getGamepad().pose === undefined)) {
+    if(!this.get('controller2').getGamepad() || !this.get('controller2').getGamepad().pose) {
       let model = this.get('controller2').getObjectByName("controllerTexture");
       if(model) {
         this.get('controller2').remove(model);
@@ -499,10 +499,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const self = this;
 
     // Stop rendering
-    self.get('webglrenderer').setAnimationLoop(null);
     this.get('webglrenderer').dispose();
     
     this.set('scene', null);
+    this.set('controller1', null);
+    this.set('controller2', null);
+    this.set('user', null);
     this.set('webglrenderer', null);
     this.set('camera', null);
     this.set('user', null);
@@ -566,6 +568,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // Clean up Webgl contexts
     var gl = this.get('canvas').getContext('webgl');
     gl.getExtension('WEBGL_lose_context').loseContext();
+
+    //remove enter vr button
+    var elem = document.getElementById("vr_button");
+    elem.remove();
 
   },
 
