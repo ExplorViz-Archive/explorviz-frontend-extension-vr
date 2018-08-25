@@ -129,7 +129,7 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   /**
-   * If spectating, set our camera to spectatee's position.
+   * Used in spectating mode to set user's camera position to the spectated user's position
    */
   spectateUser(){
     if (this.get('spectatedUser') === null || !this.get('users').get(this.get('spectatedUser'))){
@@ -227,6 +227,7 @@ export default VRRendering.extend(Ember.Evented, {
       this.port = port;
 
       ConnectMenu.open.call(this, OptionsMenu.open);
+      //this.connect();
 
       console.log("Start gameLoop");
       this.running = true;
@@ -838,6 +839,7 @@ export default VRRendering.extend(Ember.Evented, {
 
   onLandscapePosition(deltaPosition, quaternion){
     this.get('environmentOffset').x += deltaPosition[0];
+    this.get('environmentOffset').y += deltaPosition[1];
     this.get('environmentOffset').z += deltaPosition[2];
 
     this.get('vrEnvironment').position.x += deltaPosition[0];
@@ -1073,7 +1075,9 @@ export default VRRendering.extend(Ember.Evented, {
     let vrLandscape = this.get('vrLandscape').children;
     systems.forEach(system => {
       let emberModel = this.get('store').peekRecord('system', system.id);
-      emberModel.setOpened(system.opened);
+      if (emberModel !== null){
+        emberModel.setOpened(system.opened);
+      }
     });
     this.populateScene();
 
@@ -1118,28 +1122,31 @@ export default VRRendering.extend(Ember.Evented, {
    * Move landscape in x or z direction
    */
   moveLandscape(delta) {
-    let scaledDeltaX = (delta.x / -100.0);
-    let scaledDeltaY = (delta.y / 100.0);
+    this.get('environmentOffset').x += delta.x;
+    this.get('environmentOffset').y += delta.y;
+    this.get('environmentOffset').z += delta.z;
 
-    this.get('environmentOffset').x += scaledDeltaX;
-    this.get('environmentOffset').z -= scaledDeltaY;
-
-    this.get('vrEnvironment').position.x +=  scaledDeltaX;
-    this.get('vrEnvironment').position.z -= scaledDeltaY;
+    this.get('vrEnvironment').position.x +=  delta.x;
+    this.get('vrEnvironment').position.y +=  delta.y;
+    this.get('vrEnvironment').position.z += delta.z;
     this.updateObjectMatrix(this.get('vrEnvironment'));
 
-    let deltaPosition = new THREE.Vector3(scaledDeltaX, 0, scaledDeltaY);
+    let deltaPosition = new THREE.Vector3(delta.x, delta.y, delta.z);
     this.get('interaction').trigger('landscapeMoved', deltaPosition);
   },
 
-  changeLandscapeHeight(delta){
-    this.get('environmentOffset').y += delta;
-    this.get('vrEnvironment').position.y +=  delta;
-
+  rotateLandscape(delta){
+    //apply rotattion
+    this.get('vrEnvironment').rotation.x +=  delta.x;
+    this.get('vrEnvironment').rotation.y +=  delta.y;
+    this.get('vrEnvironment').rotation.z +=  delta.z;
     this.updateObjectMatrix(this.get('vrEnvironment'));
-    let deltaPosition = new THREE.Vector3(0, delta, 0);
-    this.get('interaction').trigger('landscapeMoved', deltaPosition);
+
+    //synchronize rotation with other users
+    this.get('interaction').trigger('centerVREnvironment');
+    this.get('interaction').trigger('landscapeMoved', new THREE.Vector3(0, 0, 0));
   },
+
   /*
    *  This method is used to update the matrix of
    *  a given Object3D
