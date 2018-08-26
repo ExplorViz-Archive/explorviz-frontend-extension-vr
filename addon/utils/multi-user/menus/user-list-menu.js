@@ -31,7 +31,8 @@ export function open() {
   let yPos = 50 + yOffset;
 
   if(this.state === 'connected') {
-    menu.addText('>> You <<', 'connected', 12, { x: 50, y: yPos}, '#a7adba', 'left', false);
+    menu.addText(this.get('session.data.authenticated.username') || "ID: " + this.userID, 'connected', 12,
+      { x: 50, y: yPos}, Helper.rgbToHex(this.color), 'left', false);
     yPos += yOffset;
   }
 
@@ -48,7 +49,8 @@ export function open() {
   yPos += yOffset;
 
   if(this.state === 'spectating') {
-    menu.addText('>> You <<', 'connected', 12, { x: 50, y: yPos}, '#a7adba', 'left', false);
+    menu.addText(this.get('session.data.authenticated.username') || "ID: " + this.userID, 'connected', 12,
+      { x: 50, y: yPos}, Helper.rgbToHex(this.color), 'left', false);
     yPos += yOffset;
   }
   

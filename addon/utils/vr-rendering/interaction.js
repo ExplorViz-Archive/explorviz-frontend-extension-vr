@@ -122,7 +122,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('controller2').addEventListener('triggerdown', registerTriggerDownController2);
     // this.get('controller1').addEventListener('triggerup', this.emptyFunction);
     // this.get('controller2').addEventListener('triggerup', this.emptyFunction);
-    this.get('controller1').addEventListener('thumbpaddown', registerThumbpadDownController1);
+    // this.get('controller1').addEventListener('thumbpaddown', registerThumbpadDownController1);
     this.get('controller2').addEventListener('thumbpaddown', registerThumbpadDownController2);
     // this.get('controller1').addEventListener('thumbpadup', this.emptyFunction);
     // this.get('controller2').addEventListener('thumbpadup', this.emptyFunction);
@@ -164,9 +164,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     }
   
     // Function for handling gripdown for left and right hand
-    function registerThumbpadDownController1(evt) {
+    /* function registerThumbpadDownController1(evt) {
       self.onThumbpadDownController1(evt, false);
-    }
+    } */
 
     function registerThumbpadDownController2(evt){
       self.onThumbpadDownController1(evt, true);
@@ -1087,7 +1087,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('controller2').removeEventListener('triggerdown', this.onTriggerDownController2);
     // this.get('controller1').removeEventListener('triggerup', this.emptyFunction);
     // this.get('controller2').removeEventListener('triggerup', this.emptyFunction);
-    this.get('controller1').removeEventListener('thumbpaddown', this.onThumbpadDownController1);
+    // this.get('controller1').removeEventListener('thumbpaddown', this.onThumbpadDownController1);
     this.get('controller2').removeEventListener('thumbpaddown', this.onThumbpadDownController1);
     // this.get('controller1').removeEventListener('thumbpadup', this.emptyFunction);
     // this.get('controller2').removeEventListener('thumbpadup', this.emptyFunction);

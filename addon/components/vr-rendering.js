@@ -194,7 +194,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('canvas', canvas);
 
     this.set('scene', new THREE.Scene());
-    this.set('scene.background', new THREE.Color(0xffffff));
+    this.set('scene.background', new THREE.Color(0xeaf4fc));
 
     this.set('camera', new THREE.PerspectiveCamera(70, width / height, 0.1, 10));
 
@@ -371,7 +371,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // Create floor
     var floorTexture = new THREE.TextureLoader().load('images/materials/floor.jpg');
-    var floorGeometry = new THREE.BoxGeometry(4, this.get('zeroValue'), 3);
+    floorTexture.wrapS = THREE.MirroredRepeatWrapping;
+    floorTexture.wrapT = THREE.MirroredRepeatWrapping;
+    floorTexture.repeat.set( 6, 5 );
+
+    var floorGeometry = new THREE.BoxGeometry(6, this.get('zeroValue'), 5);
     var floorMaterial = new THREE.MeshBasicMaterial({
       map: floorTexture
     });
@@ -1141,11 +1145,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       let requests = vrEnvironment.getObjectByName("earth");
 
       // Scale x
-      let scaleX = (floorSize.x - 1) / landscapeSize.x;
+      let scaleX = (floorSize.x - 2.2) / landscapeSize.x;
       vrEnvironment.scale.x *= scaleX;
 
       // Scale z
-      let scaleZ = (floorSize.z - 1.5) / landscapeSize.z;
+      let scaleZ = (floorSize.z - 3.2) / landscapeSize.z;
       vrEnvironment.scale.y *= scaleZ;
 
       // Undo scaling requests

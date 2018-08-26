@@ -389,6 +389,8 @@ export default VRRendering.extend(Ember.Evented, {
   onGripDownController1() {
     if(this.state === 'connected' || this.state === 'spectating')
       UserListMenu.open.call(this);
+    else
+      MessageBox.enqueueMessage.call(this, {title: 'You\'re offline', text: 'Can\'t open user list'}, 2000);
   },
 
   onGripUpController1() {
