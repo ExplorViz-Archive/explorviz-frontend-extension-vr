@@ -12,7 +12,6 @@ export default EmberObject.extend({
   opacity: 0.8,
   mesh: null,
   hoverColor: '#00e5ff',
-  color: '#444444',
   hoveredItem: null,
   canvas: null,
   
@@ -62,7 +61,30 @@ export default EmberObject.extend({
     style = style || 'arrow_right';
     color = color || '#ffffff';
 
-    this.items.push({ type: 'button', style, name, position, to, color });
+    this.items.push({ type: 'button', style, name, position, to, color, hover: false });
+  },
+  
+  /**
+   * Add a clickable arrow button to the menu.
+   * @example
+   * let menu = new Menu();
+   * 
+   * menu.addCurvedArrowButton('rotate_right', {x: 10, y: 10}, {x: 20, y: 20}, 'curved_arrow_right', '#d3f4aa');
+   * 
+   * @param {string} name  - A unique identifier, ecspecially used for interactions.
+   * @param {{x: number, y: number}} position - The diameter of the arrow.
+   * @param {{x: number, y: number}} size - The lower right corner position of button.
+   * @param {string} [style='curved_arrow_left'] - The style of the curved arrow.
+   * @param {string} [color='#ffffff'] - The text's color in hexadecimal.
+   */
+  addCurvedArrowButton(name, position, size, style, color) {
+    if(!this.items)
+      this.items = new Array();
+
+    style = style || 'curved_arrow_left';
+    color = color || '#ffffff';
+
+    this.items.push({ type: 'button', style, name, position, size, color, hover: false });
   },
 
   /**
@@ -97,7 +119,16 @@ export default EmberObject.extend({
         let textSize = Helper.getTextSize(item.text, ctx.font);
         ctx.fillText(item.text, item.position.x, item.position.y + textSize.sublineHeight);
       } else if(item.type === 'button') {
-        if(item.style.startsWith('arrow')) {
+        if(item.style.startsWith('curved_arrow_')) {
+          if(item.hover) {
+            ctx.fillStyle = this.hoverColor;
+            ctx.strokeStyle = this.hoverColor;
+          } else {
+            ctx.fillStyle = item.color;
+            ctx.strokeStyle = item.color;
+          }
+          this.drawCurvedArrow(ctx, item.position, item.size, item.style);
+        } else if(item.style.startsWith('arrow_')) {
           if(item.hover) {
             ctx.fillStyle = this.hoverColor;
           } else {
@@ -184,6 +215,38 @@ export default EmberObject.extend({
     }
   },
 
+  drawCurvedArrow(ctx, from, size, style) {
+    const x = (size / 2) + from.x;
+    const y = (size / 2) + from.y;
+    const radius = (size / 2) - (size / 8);
+    let startAngle;
+    let endAngle;
+    if(style === 'curved_arrow_left') {
+      startAngle = 0.0 * Math.PI;
+      endAngle = 1.3 * Math.PI;
+    } else if(style === 'curved_arrow_right') {
+      startAngle = 0.7 * Math.PI;
+      endAngle = 2.0 * Math.PI;
+    }
+
+    ctx.beginPath();
+    ctx.arc(x, y, radius, startAngle, endAngle, false);
+    ctx.lineWidth = radius / 2;
+
+    // line color
+    ctx.stroke();
+
+    if(style === 'curved_arrow_left') {
+      const arrowSize = size / 2.5;
+      const upperPos = {x: from.x + size - (radius / 3) - (arrowSize / 2), y: from.y + (size / 2) - (arrowSize / 1.2)};
+      this.drawArrowhead(ctx, upperPos, {x: upperPos.x + arrowSize, y: upperPos.y + arrowSize}, 'arrow_up');
+    } else if(style === 'curved_arrow_right') {
+      const arrowSize = size / 2.5;
+      const upperPos = {x: from.x + size - (radius / 3) - (arrowSize / 2), y: from.y + (size / 2) - (arrowSize * 0.2)};
+      this.drawArrowhead(ctx, upperPos, {x: upperPos.x + arrowSize, y: upperPos.y + arrowSize}, 'arrow_down');
+    }
+  },
+
   /**
    * Remove the menu mesh.
    */
@@ -223,11 +286,18 @@ export default EmberObject.extend({
           return item;
         }
       } else if(item.type === 'button') {
-        if(item.style.startsWith('arrow')) {
+        if(item.style.startsWith('arrow_')) {
           let itemX = item.position.x;
           let itemY = item.position.y;
 
           if(x >= itemX && y >= itemY && x <= itemX + (item.to.x - item.position.x) && y <= itemY  + (item.to.y - item.position.y)) {
+            return item;
+          }
+        } else if(item.style.startsWith('curved_arrow_')) {
+          let itemX = item.position.x;
+          let itemY = item.position.y;
+
+          if(x >= itemX && y >= itemY && x <= itemX + item.size && y <= itemY  + item.size) {
             return item;
           }
         }

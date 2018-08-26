@@ -25,9 +25,9 @@ export function open(lastMenu) {
   menu.addArrowButton('move_up', {x: 40, y: 60}, {x: 60, y: 80}, 'arrow_up', '#ffc338');
   menu.addArrowButton('move_down', {x: 40, y: 100}, {x: 60, y: 120}, 'arrow_down', '#ffc338');
 
-    // buttons for rotating landscape
-    menu.addArrowButton('rotate_left', {x: 195, y: 60}, {x: 215, y: 80}, 'arrow_right', '#ffc338');
-    menu.addArrowButton('rotate_right', {x: 195, y: 100}, {x: 215, y: 120}, 'arrow_left', '#ffc338');
+  // buttons for rotating landscape
+  menu.addCurvedArrowButton('rotate_right', {x: 195, y: 60}, 30, 'curved_arrow_right', '#ffc338');
+  menu.addCurvedArrowButton('rotate_left', {x: 195, y: 100}, 30, 'curved_arrow_left', '#ffc338');
 
   menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ffffff', 'center', true);
   prevMenu = lastMenu;
@@ -51,9 +51,9 @@ export function open(lastMenu) {
         } else if(item.name === 'move_down') {
           this.moveLandscape({x: 0, y: -0.1, z: 0});
         } else if(item.name === 'rotate_left') {
-          this.rotateLandscape({x: 0.05, y: 0, z: 0});
-        } else if(item.name === 'rotate_right') {
           this.rotateLandscape({x: -0.05, y: 0, z: 0});
+        } else if(item.name === 'rotate_right') {
+          this.rotateLandscape({x: 0.05, y: 0, z: 0});
         } else if(item.name === 'back') {
           back.call(this);
         }
