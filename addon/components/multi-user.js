@@ -410,20 +410,17 @@ export default VRRendering.extend(Ember.Evented, {
   updateAndSendPositions() {
     if(this.camera && this.user && !this.lastPositions.camera) {
       const pos = new THREE.Vector3();
-      pos.add(this.user.position);
-      pos.add(this.camera.position);
+      this.camera.getWorldPosition(pos);
       this.lastPositions.camera = pos.toArray();
     }
     if(this.controller1 && !this.lastPositions.controller1) {
       const pos = new THREE.Vector3();
-      pos.add(this.user.position);
-      pos.add(this.controller1.position);
+      this.controller1.getWorldPosition(pos);
       this.lastPositions.controller1 = pos.toArray();
     }
     if(this.controller2 && !this.lastPositions.controller2) {
       const pos = new THREE.Vector3();
-      pos.add(this.user.position);
-      pos.add(this.controller2.position);
+      this.controller2.getWorldPosition(pos);
       this.lastPositions.controller2 = pos.toArray();
     }
 
@@ -433,16 +430,13 @@ export default VRRendering.extend(Ember.Evented, {
     };
 
     const posCamera = new THREE.Vector3();
-    posCamera.add(this.user.position);
-    posCamera.add(this.camera.position);
+    this.camera.getWorldPosition(posCamera);
 
     const posController1 = new THREE.Vector3();
-    posController1.add(this.user.position);
-    posController1.add(this.controller1.position);
+    this.controller1.getWorldPosition(posController1);
 
     const posController2 = new THREE.Vector3();
-    posController2.add(this.user.position);
-    posController2.add(this.controller2.position);
+    this.controller2.getWorldPosition(posController2);
 
     let currentPositions = {
       controller1: posController1.toArray(),
@@ -470,7 +464,7 @@ export default VRRendering.extend(Ember.Evented, {
       hasChanged = true;
       positionObj.camera = {
         "position": currentPositions.camera,
-        "quaternion": this.camera.quaternion.toArray()
+        "quaternion": this.camera.quaternion.multiply(this.cameraGroup.quaternion).toArray()
       };
     }
 
