@@ -87,6 +87,9 @@ export function updateText(itemName, text) {
 }
 
 export function setState(state) {
+  if(!menu)
+    return;
+
   if(state === 'offline') {
     menu.updateText('status', 'Status: offline');
     menu.updateText('connect', 'Connect');

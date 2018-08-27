@@ -53,9 +53,9 @@ export function enqueueMessage(message, time) {
       this.camera.add(mesh);
       let y = 0;
       function animate() {
-        y -= 0.01;
-        if (y > -0.16) {
-          mesh.position.y -= 0.01;
+        y -= 0.015;
+        if (y > -0.195) {
+          mesh.position.y -= 0.015;
         } else {
           return;
         }

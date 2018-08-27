@@ -7,7 +7,7 @@ import Ember from 'ember';
 import THREE from 'three';
 import Models from '../utils/models';
 import Menus, { UserListMenu, OptionsMenu, SpectateMenu,
-  LandscapePositionMenu, CameraHeightMenu, MessageBox, ConnectMenu }  from '../utils/multi-user/menus';
+  LandscapePositionMenu, CameraHeightMenu, MessageBox, ConnectMenu, HintMenu }  from '../utils/multi-user/menus';
 
 /**
  * This component extends the functionalities of vr-rendering so that multiple users
@@ -390,7 +390,7 @@ export default VRRendering.extend(Ember.Evented, {
     if(this.state === 'connected' || this.state === 'spectating')
       UserListMenu.open.call(this);
     else
-      MessageBox.enqueueMessage.call(this, {title: 'You\'re offline', text: 'Can\'t open user list'}, 2000);
+      HintMenu.showHint.call(this, "You can't open the user list when offline!", 3);
   },
 
   onGripUpController1() {

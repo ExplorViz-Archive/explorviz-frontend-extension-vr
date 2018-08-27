@@ -5,6 +5,7 @@ import LandscapePositionMenu from './menus/landscape-position-menu';
 import CameraHeightMenu from './menus/camera-height-menu';
 import MessageBox from './menus/message-box-menu';
 import ConnectMenu from './menus/connect-menu';
+import HintMenu from './menus/hint-menu';
 
 let menus = new Map();
 
@@ -15,7 +16,8 @@ export {
   LandscapePositionMenu,
   CameraHeightMenu,
   MessageBox,
-  ConnectMenu
+  ConnectMenu,
+  HintMenu
 }
 
 export function getMenus() {
