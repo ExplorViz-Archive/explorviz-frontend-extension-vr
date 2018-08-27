@@ -444,20 +444,26 @@ export default VRRendering.extend(Ember.Evented, {
       camera: posCamera.toArray()
     }
 
+    let controller1Quaternion = new THREE.Quaternion();
+    this.controller1.getWorldQuaternion(controller1Quaternion);
+
+    let controller2Quaternion = new THREE.Quaternion();
+    this.controller2.getWorldQuaternion(controller2Quaternion);
+
     let hasChanged = false;
 
     if(JSON.stringify(currentPositions.controller1) !== JSON.stringify(this.lastPositions.controller1)) {
       hasChanged = true;
       positionObj.controller1 = {
         "position": currentPositions.controller1,
-        "quaternion": this.controller1.quaternion.multiply(this.controllerGroup.quaternion).toArray()
+        "quaternion": controller1Quaternion.toArray()
       };
     }
     if(JSON.stringify(currentPositions.controller2) !== JSON.stringify(this.lastPositions.controller2)) {
       hasChanged = true;
       positionObj.controller2 = {
         "position": currentPositions.controller2,
-        "quaternion": this.controller2.quaternion.multiply(this.controllerGroup.quaternion).toArray()
+        "quaternion": controller2Quaternion.toArray()
       };
     }
     if(JSON.stringify(currentPositions.camera) !== JSON.stringify(this.lastPositions.camera)) {
