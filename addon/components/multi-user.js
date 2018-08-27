@@ -228,7 +228,6 @@ export default VRRendering.extend(Ember.Evented, {
       this.port = port;
 
       ConnectMenu.open.call(this, OptionsMenu.open);
-
       console.log("Start gameLoop");
       this.running = true;
       this.gameLoop();

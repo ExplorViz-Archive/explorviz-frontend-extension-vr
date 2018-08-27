@@ -19,6 +19,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   canvas: null,
   canvas2: null,
   camera: null,
+  cameraGroup: null,
   user: null,
   room: null,
 
@@ -90,7 +91,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   // Import information from component vr-rendering to manipulate objects global
   setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, 
-    controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, room, user, boundApps, environmentOffset) {
+    controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, room, user, boundApps, environmentOffset, cameraGroup) {
 
     this.set('scene', scene);
     this.set('canvas', canvas);
@@ -109,6 +110,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('user', user);
     this.set('boundApps', boundApps);
     this.set('environmentOffset', environmentOffset);
+    this.set('cameraGroup', cameraGroup);
 
     const self = this;
 
@@ -228,6 +230,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           this.updateObjectMatrix(this.get('vrEnvironment'));
           this.trigger('centerVREnvironment');
           this.trigger('landscapeMoved', new THREE.Vector3(0, 0, 0)); //no position change, only quaternion
+          break;
+        case 'v':
+          //adjust camera position for vive
+          this.get('cameraGroup').translateX(-0.8);
+          this.get('cameraGroup').translateZ(1.94);
+          this.get('cameraGroup').rotateY(3.14159);
           break;
       }
     };
