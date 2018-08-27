@@ -1669,7 +1669,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     cameraOffset.copy(this.camera.position);
     cameraOffset.y = 0;
-    this.user.position.subVectors(new THREE.Vector3(position.x, this.user.position.y, position.z), cameraOffset);
+    let offset = new THREE.Vector3().subVectors(this.get('cameraGroup.position'), cameraOffset);
+    this.user.position.subVectors(new THREE.Vector3(position.x, this.user.position.y, position.z), offset);
     
   },
 

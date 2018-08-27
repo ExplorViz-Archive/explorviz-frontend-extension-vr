@@ -228,8 +228,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('user', new THREE.Group());
     this.set('cameraGroup', new THREE.Group());
     this.get('scene').add(this.get('user'));
+    this.get('user').add(this.get('cameraGroup'));
     this.get('cameraGroup').add(this.get('camera'));
-    this.get('user').add(this.get('cameraGroup'))
     this.get('user').add(this.get('controller1'));
     this.get('user').add(this.get('controller2'));
 
