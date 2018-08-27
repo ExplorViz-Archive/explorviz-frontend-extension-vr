@@ -19,7 +19,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   canvas: null,
   canvas2: null,
   camera: null,
-  cameraGroup: null,
+  controllerGroup: null,
   user: null,
   room: null,
 
@@ -91,7 +91,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   // Import information from component vr-rendering to manipulate objects global
   setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, 
-    controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, room, user, boundApps, environmentOffset, cameraGroup) {
+    controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, room, user, boundApps, environmentOffset, controllerGroup) {
 
     this.set('scene', scene);
     this.set('canvas', canvas);
@@ -110,7 +110,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('user', user);
     this.set('boundApps', boundApps);
     this.set('environmentOffset', environmentOffset);
-    this.set('cameraGroup', cameraGroup);
+    this.set('controllerGroup', controllerGroup);
 
     const self = this;
 
@@ -233,9 +233,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           break;
         case 'v':
           //adjust camera position for vive
-          this.get('cameraGroup').translateX(-0.8);
-          this.get('cameraGroup').translateZ(1.94);
-          this.get('cameraGroup').rotateY(3.14159);
+          this.get('controllerGroup').translateX(-0.8);
+          this.get('controllerGroup').translateZ(1.94);
+          this.get('controllerGroup').rotateY(3.14159);
           break;
       }
     };
@@ -1669,8 +1669,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     cameraOffset.copy(this.camera.position);
     cameraOffset.y = 0;
-    let offset = new THREE.Vector3().subVectors(this.get('cameraGroup.position'), cameraOffset);
-    this.user.position.subVectors(new THREE.Vector3(position.x, this.user.position.y, position.z), offset);
+    this.user.position.subVectors(new THREE.Vector3(position.x, this.user.position.y, position.z), cameraOffset);
     
   },
 

@@ -450,21 +450,21 @@ export default VRRendering.extend(Ember.Evented, {
       hasChanged = true;
       positionObj.controller1 = {
         "position": currentPositions.controller1,
-        "quaternion": this.controller1.quaternion.toArray()
+        "quaternion": this.controller1.quaternion.multiply(this.controllerGroup.quaternion).toArray()
       };
     }
     if(JSON.stringify(currentPositions.controller2) !== JSON.stringify(this.lastPositions.controller2)) {
       hasChanged = true;
       positionObj.controller2 = {
         "position": currentPositions.controller2,
-        "quaternion": this.controller2.quaternion.toArray()
+        "quaternion": this.controller2.quaternion.multiply(this.controllerGroup.quaternion).toArray()
       };
     }
     if(JSON.stringify(currentPositions.camera) !== JSON.stringify(this.lastPositions.camera)) {
       hasChanged = true;
       positionObj.camera = {
         "position": currentPositions.camera,
-        "quaternion": this.camera.quaternion.multiply(this.cameraGroup.quaternion).toArray()
+        "quaternion": this.camera.quaternion.toArray()
       };
     }
 
