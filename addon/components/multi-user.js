@@ -318,6 +318,12 @@ export default VRRendering.extend(Ember.Evented, {
       old_onGripDownController1.apply(this, [event]);
     };
 
+    let old_onGripDownController2 = this.get('interaction').onGripDownController2;
+    this.get('interaction').onGripDownController2 = function(event) {
+      if(self.state !== 'spectating')
+        old_onGripDownController2.apply(this, [event]);
+    };
+
     let old_onGripUpController1 = this.get('interaction').onGripUpController1;
     this.get('interaction').onGripUpController1 = function(event) {
       self.onGripUpController1();
