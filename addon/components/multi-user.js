@@ -906,10 +906,13 @@ export default VRRendering.extend(Ember.Evented, {
       user.setVisible(false);
       if(this.state === 'spectating' && this.spectatedUser === userID) {
         this.deactivateSpectating();
+      } else {
+        MessageBox.enqueueMessage.call(this, { title: user.name, text: 'is now spectating'}, 2000);
       }
     } else {
       user.state = 'connected';
       user.setVisible(true);
+      MessageBox.enqueueMessage.call(this, { title: user.name, text: 'is no longer spectating'}, 2000);
     }
   },
 
