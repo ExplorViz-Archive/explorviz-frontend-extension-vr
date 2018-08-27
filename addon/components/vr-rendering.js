@@ -50,6 +50,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   initDone: false, //tells if initRendering() already terminated 
 
   user: null, //THREEGROUP containing camera and controller(s) of user
+  cameraGroup: null,
 
   raycaster: null, //raycaster for intersection checking (used in interaction)
   interaction: null, //class which handles mouse/keyboard/controller interaction
@@ -225,8 +226,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('scene').add(this.get('controller2'));
 
     this.set('user', new THREE.Group());
+    this.set('cameraGroup', new THREE.Group());
     this.get('scene').add(this.get('user'));
-    this.get('user').add(this.get('camera'));
+    this.get('cameraGroup').add(this.get('camera'));
+    this.get('user').add(this.get('cameraGroup'))
     this.get('user').add(this.get('controller1'));
     this.get('user').add(this.get('controller2'));
 
@@ -1466,7 +1469,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       raycaster, this.get('vrLandscape').children, controller1, controller2, 
       vrEnvironment, this.get('configuration.landscapeColors'), 
       this.get('configurationApplication.applicationColors'), this.get('textBox'), 
-      this.get('labeler'), this.get('room'), user, this.get('boundApps'), this.get('environmentOffset'));
+      this.get('labeler'), this.get('room'), user, this.get('boundApps'), this.get('environmentOffset'), 
+      this.get('cameraGroup'));
 
     // Set listeners
     this.get('interaction').on('redrawScene', function() {
