@@ -3,6 +3,7 @@ import Menu from '../menu';
 let menu = null;
 
 export function showHint(hint, blinks) {
+  const self = this;
   close.call(this);
   menu = new Menu({
     title: 'hintMenu',
@@ -12,7 +13,11 @@ export function showHint(hint, blinks) {
     color: '#002e4f'
   });
   menu.addText(hint, 'text', 28, { x: 256, y: 50}, '#ffffff', 'center', false);
-  menu.interact = (action, position) => {};
+  menu.interact = (action, position) => {
+    if(action === 'rightTrigger') {
+      close.call(this);
+    }
+  };
 
   menu.createMesh();
 
@@ -30,12 +35,12 @@ export function showHint(hint, blinks) {
   function animate() {
     if(!menu)
       return;
-    moved += 0.001;
+    moved += 0.00075;
     if(counter < 2*blinks) {
-      if (moved >= 0 && moved < 0.02) {
-        mesh.position.z += dir * 0.001;
-      } else if (moved >= 0.02) {
-        mesh.position.z += dir * 0.001;
+      if (moved >= 0 && moved < 0.015) {
+        mesh.position.z += dir * 0.00075;
+      } else if (moved >= 0.015) {
+        mesh.position.z += dir * 0.00075;
         dir *= -1;
         moved = 0;
         counter++;
@@ -44,7 +49,6 @@ export function showHint(hint, blinks) {
     } else {
       counter = 0;
       animateClose();
-      close.call(this);
     }
   }
   function animateOpen() {
@@ -70,6 +74,7 @@ export function showHint(hint, blinks) {
       mesh.scale.x -= 0.05;
     } else if (moved >= 1) {
       moved = 0;
+      close.call(self);
       return;
     }
     requestAnimationFrame(animateClose);
