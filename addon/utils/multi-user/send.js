@@ -14,7 +14,7 @@ export function sendLandscapeUpdate(deltaPosition){
     "offset" : this.get('environmentOffset').toArray(),
     "quaternion" : quaternion.toArray()
   }
-  this.updateQueue.push(landscapeObj);
+  this.get('updateQueue').push(landscapeObj);
 }
 
 /**
@@ -30,7 +30,7 @@ export function sendSystemUpdate(id, isOpen){
     "id": id,
     "isOpen": isOpen
   }
-  this.updateQueue.push(systemObj);
+  this.get('updateQueue').push(systemObj);
 }
 
 /**
@@ -46,7 +46,7 @@ export function sendNodegroupUpdate(id, isOpen){
     "id": id,
     "isOpen": isOpen
   }
-  this.updateQueue.push(nodeGroupObj);
+  this.get('updateQueue').push(nodeGroupObj);
 }
 
 /**
@@ -60,7 +60,7 @@ export function sendAppClosed(appID){
     "time": Date.now(),
     "id": appID
   }
-  this.updateQueue.push(appObj);
+  this.get('updateQueue').push(appObj);
 }
 
 /**
@@ -83,7 +83,7 @@ export function sendAppBinded(appID, appPosition, appQuaternion, isBoundToContro
     "controllerPosition" : controllerPosition.toArray(),
     "controllerQuaternion" : controllerQuaternion.toArray()
   }
-  this.updateQueue.push(appObj);
+  this.get('updateQueue').push(appObj);
 }
 
 /**
@@ -100,7 +100,7 @@ export function sendAppReleased(appID, position, quaternion){
     "position" : position.toArray(),
     "quaternion" : quaternion.toArray()
   }
-  this.updateQueue.push(appObj);
+  this.get('updateQueue').push(appObj);
 }
 
 /**
@@ -117,7 +117,7 @@ export function sendComponentUpdate(appID, componentID, isOpened){
     "componentID": componentID,
     "isOpened": isOpened
   }
-  this.updateQueue.push(appObj);
+  this.get('updateQueue').push(appObj);
 }
 
 /**
@@ -138,7 +138,7 @@ export function sendHighlightingUpdate(isHighlighted, appID, entityID, color){
     "isHighlighted": isHighlighted,
     "color": color
   }
-  this.updateQueue.push(hightlightObj);
+  this.get('updateQueue').push(hightlightObj);
 }
 
 /**
@@ -149,11 +149,11 @@ export function sendSpectatingUpdate(){
   let spectateObj = {
     "event": "receive_spectating_update",
     "userID": this.get('userID'),
-    "isSpectating": this.state === 'spectating',
+    "isSpectating": this.get('state') === 'spectating',
     "spectatedUser": this.get('spectatedUser'),
     "time": Date.now()
   }
-  this.updateQueue.push(spectateObj);
+  this.get('updateQueue').push(spectateObj);
 }
 
 /**
@@ -171,28 +171,28 @@ export function sendControllerUpdate() {
   let hasChanged = false;
 
   //handle that controller 1 has disconnected
-  if(this.controllersConnected.controller1 && this.controller1.getGamepad() === undefined) {
-    disconnect.push("controller1");
-    this.controllersConnected.controller1 = false;
+  if(this.get('controllersConnected.controller1') && this.get('controller1').getGamepad() === undefined) {
+    disconnect.push('controller1');
+    this.set('controllersConnected.controller1', false);
     hasChanged = true;
   }
   //handle that controller 1 has connected
-  else if(!this.controllersConnected.controller1 && this.controller1.getGamepad() !== undefined) {
-    connect.controller1 = this.controller1.getGamepad().id;
-    this.controllersConnected.controller1 = true;
+  else if(!this.get('controllersConnected.controller1') && this.get('controller1').getGamepad() !== undefined) {
+    connect.controller1 = this.get('controller1').getGamepad().id;
+    this.set('controllersConnected.controller1', true);
     hasChanged = true;
   }
 
   //handle that controller 2 has disconnected
-  if(this.controllersConnected.controller2 && this.controller2.getGamepad() === undefined) {
-    disconnect.push("controller2");
-    this.controllersConnected.controller2 = false;
+  if(this.get('controllersConnected.controller2') && this.get('controller2').getGamepad() === undefined) {
+    disconnect.push('controller2');
+    this.set('controllersConnected.controller2', false);
     hasChanged = true;
   }
   //handle that controller 2 has connected
-  else if(!this.controllersConnected.controller2 && this.controller2.getGamepad() !== undefined) {
-    connect.controller2 = this.controller2.getGamepad().id;
-    this.controllersConnected.controller2 = true;
+  else if(!this.get('controllersConnected.controller2') && this.get('controller2').getGamepad() !== undefined) {
+    connect.controller2 = this.get('controller2').getGamepad().id;
+    this.set('controllersConnected.controller2', true);
     hasChanged = true;
   }
 
@@ -207,7 +207,7 @@ export function sendControllerUpdate() {
 
     //if status of at least one controller has changed, inform backend
     if(controllerObj.disconnect || controllerObj.connect) {
-      this.updateQueue.push(controllerObj);
+      this.get('updateQueue').push(controllerObj);
     }
   }
 }
@@ -232,5 +232,5 @@ export function sendAppOpened(id, app){
     "position" : position.toArray(),
     "quaternion" : quaternion.toArray()
   }
-  this.updateQueue.push(appObj);
+  this.get('updateQueue').push(appObj);
 }

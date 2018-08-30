@@ -31,14 +31,14 @@ export default EmberObject.extend({
    * @param {boolean} [clickable=false] - If true, the text can the used for interactions and changes color on hover.
    */
   addText(text, name, size, position, color, align, clickable) {
-    if(!this.items)
-      this.items = new Array();
+    if(!this.get('items'))
+      this.set('items', new Array());
 
     color = color || '#ffffff';
     align = align || 'left';
     clickable = clickable || false;
 
-    this.items.push({ type: 'text', name, text, size, position, color, align, clickable, hover: false });
+    this.get('items').push({ type: 'text', name, text, size, position, color, align, clickable, hover: false });
   },
   
   /**
@@ -55,13 +55,13 @@ export default EmberObject.extend({
    * @param {string} [color='#ffffff'] - The text's color in hexadecimal.
    */
   addArrowButton(name, position, to, style, color) {
-    if(!this.items)
-      this.items = new Array();
+    if(!this.get('items'))
+      this.set('items', new Array());
 
     style = style || 'arrow_right';
     color = color || '#ffffff';
 
-    this.items.push({ type: 'button', style, name, position, to, color, hover: false });
+    this.get('items').push({ type: 'button', style, name, position, to, color, hover: false });
   },
   
   /**
@@ -78,13 +78,13 @@ export default EmberObject.extend({
    * @param {string} [color='#ffffff'] - The text's color in hexadecimal.
    */
   addCurvedArrowButton(name, position, size, style, color) {
-    if(!this.items)
-      this.items = new Array();
+    if(!this.get('items'))
+      this.set('items', new Array());
 
     style = style || 'curved_arrow_left';
     color = color || '#ffffff';
 
-    this.items.push({ type: 'button', style, name, position, size, color, hover: false });
+    this.get('items').push({ type: 'button', style, name, position, size, color, hover: false });
   },
 
   /**
@@ -94,14 +94,14 @@ export default EmberObject.extend({
     if(!this.get('canvas')) {
       this.set('canvas', document.createElement('canvas'));
     }
-    this.get('canvas').width = this.resolution.width;
-    this.get('canvas').height = this.resolution.height;
+    this.get('canvas').width = this.get('resolution.width');
+    this.get('canvas').height = this.get('resolution.height');
     let canvas = this.get('canvas');
     let ctx = canvas.getContext('2d');
     ctx.fillStyle = this.color;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    for(let i = 0; i < this.items.length; i++) {
+    for(let i = 0; i < this.get('items').length; i++) {
       let item = this.items[i];
       if(item.type === 'text') {
         // Draw Text
@@ -121,8 +121,8 @@ export default EmberObject.extend({
       } else if(item.type === 'button') {
         if(item.style.startsWith('curved_arrow_')) {
           if(item.hover) {
-            ctx.fillStyle = this.hoverColor;
-            ctx.strokeStyle = this.hoverColor;
+            ctx.fillStyle = this.get('hoverColor');
+            ctx.strokeStyle = this.get('hoverColor');
           } else {
             ctx.fillStyle = item.color;
             ctx.strokeStyle = item.color;
@@ -130,7 +130,7 @@ export default EmberObject.extend({
           this.drawCurvedArrow(ctx, item.position, item.size, item.style);
         } else if(item.style.startsWith('arrow_')) {
           if(item.hover) {
-            ctx.fillStyle = this.hoverColor;
+            ctx.fillStyle = this.get('hoverColor');
           } else {
             ctx.fillStyle = item.color;
           }
@@ -142,14 +142,14 @@ export default EmberObject.extend({
     // create texture out of canvas
     let texture = new THREE.CanvasTexture(canvas);
     // Map texture
-    let material = new THREE.MeshBasicMaterial({map: texture, depthTest: true});
+    let material = new THREE.MeshBasicMaterial({ map: texture, depthTest: true });
     material.transparent = true;
     material.opacity = this.opacity;
 
     // Update texture      
     texture.needsUpdate = true;
     // Update mesh material
-    this.mesh.material = material;
+    this.get('mesh').material = material;
   },
 
   /**
@@ -159,8 +159,8 @@ export default EmberObject.extend({
    * @param {string} text - The new text of the item.
    */
   updateText(itemName, text) {
-    for(let i = 0; i < this.items.length; i++) {
-      const item = this.items[i];
+    for(let i = 0; i < this.get('items').length; i++) {
+      const item = this.get('items')[i];
       if(item.name === itemName) {
         item.text = text;
         this.update();
@@ -251,9 +251,9 @@ export default EmberObject.extend({
    * Remove the menu mesh.
    */
   close() {
-    this.mesh.geometry.dispose();
-    this.mesh.material.dispose();
-    this.mesh = null;
+    this.get('mesh').geometry.dispose();
+    this.get('mesh').material.dispose();
+    this.set('mesh', null);
     Menus.remove(this.getTitle());
   },
 
@@ -265,10 +265,10 @@ export default EmberObject.extend({
    * @returns Item at given position if there is one, else undefined.
    */
   getItem(position) {
-    for(let i = 0; i < this.items.length; i++) {
-      let item = this.items[i];
-      let x = this.resolution.width * position.x;
-      let y = this.resolution.height - (this.resolution.height * position.y);
+    for(let i = 0; i < this.get('items').length; i++) {
+      let item = this.get('items')[i];
+      let x = this.get('resolution.width') * position.x;
+      let y = this.get('resolution.height') - (this.get('resolution.height') * position.y);
       if(item.type === 'text' && item.clickable) {
 
         let size = Helper.getTextSize(item.text, `${item.size}px arial`);
@@ -311,29 +311,29 @@ export default EmberObject.extend({
    * @param {Object} item - Menu item that shall the hovered.
    */
   setHover(item) {    
-    if(item === null && this.hoveredItem) {
-      this.hoveredItem.hover = false;
-      this.hoveredItem = null;
+    if(item === null && this.get('hoveredItem')) {
+      this.set('hoveredItem.hover', false);
+      this.set('hoveredItem', null);
       this.update();
       return;
     }
 
-    if(item === this.hoveredItem)
+    if(item === this.get('hoveredItem'))
       return;
 
-    if(this.hoveredItem) {
-      this.hoveredItem.hover = false;
+    if(this.get('hoveredItem')) {
+      this.set('hoveredItem.hover', false);
     }
-    this.hoveredItem = item;
-    this.hoveredItem.hover = true;
+    this.set('hoveredItem', item);
+    this.set('hoveredItem.hover', true);
 
     this.update();
 
   },
 
   setClickable(itemName, bool) {
-    for(let i = 0; i < this.items.length; i++) {
-      const item = this.items[i];
+    for(let i = 0; i < this.get('items').length; i++) {
+      const item = this.get('items')[i];
       if(item.name === itemName && item.type === 'text') {
         item.clickable = bool;
         this.update();
@@ -343,8 +343,8 @@ export default EmberObject.extend({
   },
 
   setColor(itemName, color) {
-    for(let i = 0; i < this.items.length; i++) {
-      const item = this.items[i];
+    for(let i = 0; i < this.get('items').length; i++) {
+      const item = this.get('items')[i];
       if(item.name === itemName) {
         item.color = color;
         this.update();
@@ -357,16 +357,16 @@ export default EmberObject.extend({
    * Creates THREE.Mesh of the menu.
    */
   createMesh() {
-    if(this.mesh) {
+    if(this.get('mesh')) {
       return;
     }
 
     let material = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(this.color)
+      color: new THREE.Color(this.get('color'))
     });
-    let textBox = new THREE.Mesh(new THREE.PlaneGeometry(this.size.width, this.size.height), material);
-    textBox.name = this.title;
-    this.mesh = textBox;
+    let textBox = new THREE.Mesh(new THREE.PlaneGeometry(this.get('size.width'), this.get('size.height')), material);
+    textBox.name = this.get('title');
+    this.set('mesh', textBox);
 
     this.update();
     Menus.add(this);
@@ -377,14 +377,14 @@ export default EmberObject.extend({
    * Returns menu mesh.
    */
   getMesh() {
-    return this.mesh;
+    return this.get('mesh');
   },
 
   /**
    * Returns the menu title.
    */
   getTitle() {
-    return this.title;
+    return this.get('title');
   }
 
 });

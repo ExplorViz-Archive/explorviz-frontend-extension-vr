@@ -54,7 +54,7 @@ export function enqueueMessage(message, time) {
       mesh.position.z -= 0.3;
       mesh.rotateX(0.45);
 
-      this.camera.add(mesh);
+      this.get('camera').add(mesh);
       let y = 0;
       function animate() {
         y -= 0.015;
@@ -81,7 +81,7 @@ export function enqueueMessage(message, time) {
        * Remove text message on top edge of user's view
        */
       function deleteMessageBox() {
-        this.camera.remove(messageBox.getMesh());
+        this.get('camera').remove(messageBox.getMesh());
         messageBox.close();
         messageBox = null;
       }

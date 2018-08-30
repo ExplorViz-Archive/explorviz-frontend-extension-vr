@@ -28,14 +28,14 @@ export function open(lastMenu) {
       }
       if(action === 'rightTrigger') {
         if(item.name === 'next_user') {
-          if(this.users.size < 1)
+          if(this.get('users').size < 1)
             return;
 
-          let users = this.users.keys();
+          let users = this.get('users').keys();
           let userArray = [];
 
           for(let id of users) {
-            if(this.users.get(id).state === 'connected')
+            if(this.get('users').get(id).state === 'connected')
               userArray.push(id);
           }
 
@@ -44,13 +44,13 @@ export function open(lastMenu) {
 
           userArray.sort();
 
-          if(!this.spectatedUser) {
+          if(!this.get('spectatedUser')) {
             this.activateSpectating(userArray[0]);
-            menu.updateText('spectating_user', this.users.get(userArray[0]).name);
+            menu.updateText('spectating_user', this.get('users').get(userArray[0]).name);
             return;
           }
           
-          let index = Helper.binaryIndexOf(userArray, this.spectatedUser);
+          let index = Helper.binaryIndexOf(userArray, this.get('spectatedUser'));
 
           if(index !== -1) {
             if(index === userArray.length - 1) {
@@ -58,18 +58,18 @@ export function open(lastMenu) {
               menu.updateText('spectating_user', 'Spectating off');
             } else {
               this.activateSpectating(userArray[index+1]);
-              menu.updateText('spectating_user', this.users.get(userArray[index+1]).name);
+              menu.updateText('spectating_user', this.get('users').get(userArray[index+1]).name);
             }
           }
         } else if(item.name === 'previous_user') {
-          if(this.users.size < 1)
+          if(this.get('users').size < 1)
             return;
 
-          let users = this.users.keys();
+          let users = this.get('users').keys();
           let userArray = [];
           
           for(let id of users) {
-            if(this.users.get(id).state === 'connected')
+            if(this.get('users').get(id).state === 'connected')
               userArray.push(id);
           }
 
@@ -78,13 +78,13 @@ export function open(lastMenu) {
 
           userArray.sort();
 
-          if(!this.spectatedUser) {
+          if(!this.get('spectatedUser')) {
             this.activateSpectating(userArray[userArray.length-1]);
-            menu.updateText('spectating_user', this.users.get(userArray[userArray.length-1]).name);
+            menu.updateText('spectating_user', this.get('users').get(userArray[userArray.length-1]).name);
             return;
           }
         
-          let index = Helper.binaryIndexOf(userArray, this.spectatedUser);
+          let index = Helper.binaryIndexOf(userArray, this.get('spectatedUser'));
 
           if(index !== -1) {
             if(index === 0) {
@@ -92,7 +92,7 @@ export function open(lastMenu) {
               menu.updateText('spectating_user', 'Spectating off');
             } else {
               this.activateSpectating(userArray[index-1]);
-              menu.updateText('spectating_user', this.users.get(userArray[index-1]).name);
+              menu.updateText('spectating_user', this.get('users').get(userArray[index-1]).name);
             }
           }
         } else if(item.name === 'back') {
@@ -107,7 +107,7 @@ export function open(lastMenu) {
   const mesh = menu.getMesh();
   mesh.position.x += 0.2;
   mesh.geometry.rotateX(-1.5707963267949);
-  this.controller1.add(mesh);
+  this.get('controller1').add(mesh);
 }
 
 /**
@@ -116,7 +116,7 @@ export function open(lastMenu) {
 export function close() {
   if(menu) {
     this.deactivateSpectating();
-    this.controller1.remove(menu.getMesh());
+    this.get('controller1').remove(menu.getMesh());
     menu.close();
     menu = null;
   }

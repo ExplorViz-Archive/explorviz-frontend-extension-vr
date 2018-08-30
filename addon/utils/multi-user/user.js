@@ -18,97 +18,97 @@ export default EmberObject.extend({
   namePlane: null, //PlaneGeometry containing username
 
   initCamera(obj) {
-    this.camera = {
+    this.set('camera', {
       position: new THREE.Vector3(),
       quaternion: new THREE.Quaternion(),
       model: new THREE.Object3D()
-    };
+    });
     this.get('camera.model').add(obj);
   },
 
   initController1(name, obj) {
-    this.controller1 = {
+    this.set('controller1', {
       id: name,
       position: new THREE.Vector3(),
       quaternion: new THREE.Quaternion(),
       model: new THREE.Object3D()
-    };
+    });
 
     this.get('controller1.model').add(obj);
   },
 
   initController2(name, obj) {
-    this.controller2 = {
+    this.set('controller2', {
       id: name,
       position: new THREE.Vector3(),
       quaternion: new THREE.Quaternion(),
       model: new THREE.Object3D()
-    };
+    });
 
     this.get('controller2.model').add(obj);
   },
 
   removeController1() {
-    this.controller1 = null;
+    this.set('controller1', null);
   },
 
   removeController2() {
-    this.controller2 = null;
+    this.set('controller2', null);
   },
 
   removeCamera() {
-    this.camera = null;
+    this.set('camera', null);
   },
 
   removeNamePlane() {
-    this.namePlane = null;
+    this.set('namePlane', null);
   },
   
   updateCamera(camera) {
-    if(this.camera) {
-      this.camera.position.fromArray([camera.position[0], camera.position[1] - 0.01, camera.position[2]]);
-      this.camera.quaternion.fromArray(camera.quaternion);
-      this.camera.model.position.copy(this.camera.position);
-      this.camera.model.quaternion.copy(this.camera.quaternion);
+    if(this.get('camera')) {
+      this.get('camera').position.fromArray([camera.position[0], camera.position[1] - 0.01, camera.position[2]]);
+      this.get('camera').quaternion.fromArray(camera.quaternion);
+      this.get('camera').model.position.copy(this.get('camera').position);
+      this.get('camera').model.quaternion.copy(this.get('camera').quaternion);
     }
   },
   
   updateController1(controller) {
-    if(this.controller1) {
-      this.controller1.position.fromArray(controller.position);
-      this.controller1.quaternion.fromArray(controller.quaternion);
-      this.controller1.model.position.copy(this.controller1.position);
-      this.controller1.model.quaternion.copy(this.controller1.quaternion);
+    if(this.get('controller1')) {
+      this.get('controller1').position.fromArray(controller.position);
+      this.get('controller1').quaternion.fromArray(controller.quaternion);
+      this.get('controller1').model.position.copy(this.get('controller1').position);
+      this.get('controller1').model.quaternion.copy(this.get('controller1').quaternion);
     }
   },
   
   updateController2(controller) {
-    if(this.controller2) {
-      this.controller2.position.fromArray(controller.position);
-      this.controller2.quaternion.fromArray(controller.quaternion);
-      this.controller2.model.position.copy(this.controller2.position);
-      this.controller2.model.quaternion.copy(this.controller2.quaternion);
+    if(this.get('controller2')) {
+      this.get('controller2').position.fromArray(controller.position);
+      this.get('controller2').quaternion.fromArray(controller.quaternion);
+      this.get('controller2').model.position.copy(this.get('controller2').position);
+      this.get('controller2').model.quaternion.copy(this.get('controller2').quaternion);
     }
   },
 
   setHighlightedEntity(appID, entityID, originalColor){
-    this.highlightedEntity.appID = appID;
-    this.highlightedEntity.entityID = entityID;
-    this.highlightedEntity.originalColor = originalColor;
+    this.set('highlightedEntity.appID', appID);
+    this.set('highlightedEntity.entityID', entityID);
+    this.set('highlightedEntity.originalColor', originalColor);
   },
 
   setVisible(bool){
-    if(this.camera) {
-      this.camera.model.visible = bool;
+    if(this.get('camera')) {
+      this.set('camera.model.visible', bool);
     }
-    if(this.controller1) {
-      this.controller1.model.visible = bool;
+    if(this.get('controller1')) {
+      this.set('controller1.model.visible', bool);
     }
-    if(this.controller2) {
-      this.controller2.model.visible = bool;
+    if(this.get('controller2')) {
+      this.set('controller2.model.visible', bool);
     }
-    if(this.namePlane) {
-      this.namePlane.visible = bool;
+    if(this.get('namePlane')) {
+      this.set('namePlane.visible', bool);
     }
   }
 

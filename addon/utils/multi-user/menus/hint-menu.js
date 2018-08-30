@@ -31,7 +31,7 @@ export function showHint(hint, blinks) {
   let moved = 0.0;
   let counter = 0;
 
-  this.camera.add(mesh);
+  this.get('camera').add(mesh);
   function animate() {
     if(!menu)
       return;
@@ -84,7 +84,7 @@ export function showHint(hint, blinks) {
 
 function close() {
   if(menu) {
-    this.camera.remove(menu.getMesh());
+    this.get('camera').remove(menu.getMesh());
     menu.close();
     menu = null;
   }

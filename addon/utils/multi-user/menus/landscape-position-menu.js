@@ -66,7 +66,7 @@ export function open(lastMenu) {
   const mesh = menu.getMesh();
   mesh.position.x += 0.2;
   mesh.geometry.rotateX(-1.5707963267949);
-  this.controller1.add(mesh);
+  this.get('controller1').add(mesh);
 }
 
 /**
@@ -74,7 +74,7 @@ export function open(lastMenu) {
  */
 export function close() {
   if(menu) {
-    this.controller1.remove(menu.getMesh());
+    this.get('controller1').remove(menu.getMesh());
     menu.close();
     menu = null;
   }

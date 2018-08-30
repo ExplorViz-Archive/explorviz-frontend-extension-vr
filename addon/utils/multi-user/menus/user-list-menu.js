@@ -14,7 +14,7 @@ export function open() {
 
   menu.addText('Users', 'title', 18, { x: 20, y: 20}, '#ffffff', 'left', false);
 
-  let users = this.users.values();
+  let users = this.get('users').values();
   let playingUsers = [];
   let spectatingUsers = [];
   for(let user of users) {
@@ -30,9 +30,9 @@ export function open() {
   let yOffset = 20;
   let yPos = 50 + yOffset;
 
-  if(this.state === 'connected') {
-    menu.addText(this.get('session.data.authenticated.username') || "ID: " + this.userID, 'connected', 12,
-      { x: 50, y: yPos}, Helper.rgbToHex(this.color), 'left', false);
+  if(this.get('state') === 'connected') {
+    menu.addText(this.get('session.data.authenticated.username') || "ID: " + this.get('userID'), 'connected', 12,
+      { x: 50, y: yPos}, Helper.rgbToHex(this.get('color')), 'left', false);
     yPos += yOffset;
   }
 
@@ -48,9 +48,9 @@ export function open() {
 
   yPos += yOffset;
 
-  if(this.state === 'spectating') {
+  if(this.get('state') === 'spectating') {
     menu.addText(this.get('session.data.authenticated.username') || "ID: " + this.userID, 'connected', 12,
-      { x: 50, y: yPos}, Helper.rgbToHex(this.color), 'left', false);
+      { x: 50, y: yPos}, Helper.rgbToHex(this.get('color')), 'left', false);
     yPos += yOffset;
   }
   
@@ -64,7 +64,7 @@ export function open() {
   menu.createMesh();
   const mesh = menu.getMesh();
   mesh.position.z -= 0.5;
-  this.camera.add(mesh);
+  this.get('camera').add(mesh);
 }
 
 /**
@@ -72,7 +72,7 @@ export function open() {
  */
 export function close() {
   if(menu) {
-    this.camera.remove(menu.getMesh());
+    this.get('camera').remove(menu.getMesh());
     menu.close();
     menu = null;
   }
