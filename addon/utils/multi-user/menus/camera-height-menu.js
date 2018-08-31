@@ -12,12 +12,12 @@ export function open(lastMenu) {
   menu = new Menu({
     title: 'changeCameraHeightMenu'
   });
-  menu.addRectangle({x: 0, y: 0}, 256, 33, '#777777');
-  menu.addText('Change Camera', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
-  menu.addArrowButton('height_down', {x: 30, y: 103}, {x: 60, y: 133}, 'arrow_down', '#ffc338');
-  menu.addArrowButton('height_up', {x: 196, y: 103}, {x: 226, y: 133}, 'arrow_up', '#ffc338');
-  menu.addText(this.user.position.y.toFixed(2), 'camera_height', 14, { x: 128, y: 113}, '#ffffff', 'center', false);
-  menu.addText('Back', 'back', 14, { x: 128, y: 220}, ' #ffffff', 'center', true);
+  menu.addRectangle({x: 0, y: 0}, 512, 66, '#777777');
+  menu.addText('Change Camera', 'title', 36, { x: 256, y: 20}, '#ffffff', 'center', false);
+  menu.addArrowButton('height_down', {x: 100, y: 182}, {x: 150, y: 242}, 'arrow_down', '#ffc338');
+  menu.addArrowButton('height_up', {x: 366, y: 182}, {x: 416, y: 242}, 'arrow_up', '#ffc338');
+  menu.addText(this.user.position.y.toFixed(2), 'camera_height', 28, { x: 256, y: 202}, '#ffffff', 'center', false);
+  menu.addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
   prevMenu = lastMenu;
   menu.interact = (action, position) => {
     let item = menu.getItem(position);

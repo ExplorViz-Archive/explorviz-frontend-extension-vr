@@ -9,7 +9,8 @@ let menu = null;
 export function open() {
   close.call(this); 
   menu = new Menu({
-    title: 'userListMenu'
+    title: 'userListMenu',
+    resolution: { width: 256, height: 256 }
   });
 
   menu.addRectangle({x: 0, y: 0}, 256, 33, '#777777');

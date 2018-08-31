@@ -12,27 +12,27 @@ export function open(lastMenu) {
   menu = new Menu({
     title: 'changeLandscapePositionMenu'
   });
-  menu.addRectangle({x: 0, y: 0}, 256, 33, '#777777');
-  menu.addText('Move Landscape', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
+  menu.addRectangle({x: 0, y: 0}, 512, 66, '#777777');
+  menu.addText('Move Landscape', 'title', 36, { x: 256, y: 20}, '#ffffff', 'center', false);
 
   // buttons for moving landscape in plane
-  menu.addRectangle({x: 113, y: 133}, 30, 30, '#eeeeee');
-  menu.addArrowButton('move_left', {x: 80, y: 133}, {x: 100, y: 163}, 'arrow_left', '#ffc338');
-  menu.addArrowButton('move_right', {x: 156, y: 133}, {x: 176, y: 163}, 'arrow_right', '#ffc338');
-  menu.addArrowButton('move_forward', {x: 113, y: 100}, {x: 143, y: 120}, 'arrow_up', '#ffc338');
-  menu.addArrowButton('move_backward', {x: 113, y: 176}, {x: 143, y: 196}, 'arrow_down', '#ffc338');
+  menu.addRectangle({x: 226, y: 246}, 60, 60, '#eeeeee');
+  menu.addArrowButton('move_left', {x: 160, y: 246}, {x: 200, y: 306}, 'arrow_left', '#ffc338');
+  menu.addArrowButton('move_right', {x: 312, y: 246}, {x: 352, y: 306}, 'arrow_right', '#ffc338');
+  menu.addArrowButton('move_forward', {x: 226, y: 180}, {x: 286, y: 220}, 'arrow_up', '#ffc338');
+  menu.addArrowButton('move_backward', {x: 226, y: 332}, {x: 286, y: 372}, 'arrow_down', '#ffc338');
 
   // buttons for changing landscape height
-  menu.addRectangle({x: 35, y: 89}, 30, 2, '#eeeeee');
-  menu.addArrowButton('move_up', {x: 40, y: 60}, {x: 60, y: 80}, 'arrow_up', '#ffc338');
-  menu.addArrowButton('move_down', {x: 40, y: 100}, {x: 60, y: 120}, 'arrow_down', '#ffc338');
+  menu.addRectangle({x: 70, y: 178}, 60, 4, '#eeeeee');
+  menu.addArrowButton('move_up', {x: 80, y: 120}, {x: 120, y: 160}, 'arrow_up', '#ffc338');
+  menu.addArrowButton('move_down', {x: 80, y: 200}, {x: 120, y: 240}, 'arrow_down', '#ffc338');
 
   // buttons for rotating landscape
-  menu.addCurvedArrowButton('rotate_right', {x: 195, y: 60}, 30, 'curved_arrow_right', '#ffc338');
-  menu.addCurvedArrowButton('rotate_left', {x: 195, y: 100}, 30, 'curved_arrow_left', '#ffc338');
+  menu.addCurvedArrowButton('rotate_right', {x: 390, y: 120}, 60, 'curved_arrow_right', '#ffc338');
+  menu.addCurvedArrowButton('rotate_left', {x: 390, y: 200}, 60, 'curved_arrow_left', '#ffc338');
 
   // add back button
-  menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ffffff', 'center', true);
+  menu.addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
   prevMenu = lastMenu;
   menu.interact = (action, position) => {
     let item = menu.getItem(position);

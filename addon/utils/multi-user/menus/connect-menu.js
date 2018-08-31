@@ -11,11 +11,12 @@ export function open(lastMenu) {
   menu = new Menu({
     title: 'connectMenu'
   });
-  menu.addRectangle({x: 0, y: 0}, 256, 33, '#777777');
-  menu.addText('Connection', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
-  menu.addText('Status: ', 'status', 14, { x: 128, y: 50}, '#ffffff', 'center', false);
-  menu.addText('', 'connect', 14, { x: 128, y: 113}, '#ffffff', 'center', true);
-  menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ffffff', 'center', true);
+  menu.addRectangle({x: 0, y: 0}, 512, 66, '#777777');
+  menu.addText('Connection', 'title', 36, { x: 256, y: 20}, '#ffffff', 'center', false);
+  menu.addText('Status: ', 'status', 28, { x: 256, y: 140}, '#ffffff', 'center', false);
+  menu.addTextButton('', 'connect', {x: 100, y: 186}, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+  menu.addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
+
   prevMenu = lastMenu;
 
   menu.interact = (action, position) => {

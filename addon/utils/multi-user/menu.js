@@ -5,7 +5,7 @@ import Menus from './menus';
 
 export default EmberObject.extend({
   title: null,
-  resolution: { width: 256, height: 256 },
+  resolution: { width: 512, height: 512 },
   size: { height: 0.3, width: 0.3},
   items: null,
   color: '#444444',
@@ -87,6 +87,13 @@ export default EmberObject.extend({
     this.get('items').push({ type: 'button', style, name, position, size, color, hover: false });
   },
 
+  addTextButton(text, name, position, width, height, textSize, buttonColor, textColor, hoverColor, clickable) {
+    if(!this.get('items'))
+      this.set('items', new Array());
+
+    this.get('items').push({ type: 'textButton', name, text, position, width, height, textSize, buttonColor, textColor, hoverColor, clickable, hover: false });
+  },
+
   addRectangle(position, width, height, color) {
     if(!this.get('items'))
       this.set('items', new Array());
@@ -146,6 +153,29 @@ export default EmberObject.extend({
           }
           this.drawArrowhead(ctx, item.position, item.to, item.style);
         }
+      } else if(item.type === 'textButton') {
+        // draw button background
+        if(item.clickable && item.hover)
+          ctx.fillStyle = item.hoverColor;
+        else
+          ctx.fillStyle = item.buttonColor;
+
+        ctx.fillRect(item.position.x, item.position.y, item.width, item.height);
+
+        // draw button text
+        ctx.fillStyle = item.textColor;
+        ctx.font = `${item.textSize}px arial`;
+        ctx.textAlign = 'center';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+        ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+        let textSize = Helper.getTextSize(item.text, ctx.font);
+        ctx.fillText(item.text, item.position.x + (item.width / 2), item.position.y + ((item.height + textSize.sublineHeight) / 2));
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+
       } else if(item.type === 'background') {
         ctx.fillStyle = item.color;
         ctx.fillRect(item.position.x, item.position.y, item.width, item.height);
@@ -329,6 +359,12 @@ export default EmberObject.extend({
             return item;
           }
         }
+      } else if(item.type === 'textButton') {
+        let itemX = item.position.x;
+        let itemY = item.position.y;
+
+        if(x >= itemX && y >= itemY && x <= itemX + item.width && y <= itemY  + item.height)
+          return item;
       }
     }
   },
@@ -368,7 +404,7 @@ export default EmberObject.extend({
   setClickable(itemName, bool) {
     for(let i = 0; i < this.get('items').length; i++) {
       const item = this.get('items')[i];
-      if(item.name === itemName && item.type === 'text') {
+      if(item.name === itemName) {
         item.clickable = bool;
         this.update();
         break;
@@ -386,7 +422,10 @@ export default EmberObject.extend({
     for(let i = 0; i < this.get('items').length; i++) {
       const item = this.get('items')[i];
       if(item.name === itemName) {
-        item.color = color;
+        if(item.type === 'textButton')
+          item.textColor = color;
+        else
+          item.color = color;
         this.update();
         break;
       }

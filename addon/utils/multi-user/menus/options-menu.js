@@ -13,13 +13,13 @@ export function open() {
   menu = new Menu({
       title: 'optionsMenu'
   });
-  menu.addRectangle({x: 0, y: 0}, 256, 33, '#777777');
-  menu.addText('Options', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
-  menu.addText('Change Camera', 'change_height', 14, { x: 128, y: 70}, '#ffc338', 'center', true);
-  menu.addText('Move Landscape', 'change_landscape_position', 14, { x: 128, y: 100}, '#ffc338', 'center', true);
-  menu.addText('Spectate', 'spectate', 14, { x: 128, y: 130}, '#ffc338', 'center', true);
-  menu.addText('Connection', 'connection', 14, { x: 128, y: 160}, '#ffc338', 'center', true);
-  menu.addText('Exit', 'exit', 14, { x: 128, y: 220}, '	#ffffff', 'center', true);
+  menu.addRectangle({x: 0, y: 0}, 512, 66, '#777777');
+  menu.addText('Options', 'title', 36, { x: 256, y: 20}, '#ffffff', 'center', false);
+  menu.addTextButton('Change Camera', 'change_height', {x: 100, y: 126}, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+  menu.addTextButton('Move Landscape', 'change_landscape_position', {x: 100, y: 186}, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+  menu.addTextButton('Spectate', 'spectate', {x: 100, y: 246}, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+  menu.addTextButton('Connection', 'connection', {x: 100, y: 306}, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+  menu.addTextButton('Exit', 'exit', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
   menu.interact = (action, position) => {
     let item = menu.getItem(position);
     if(item) {

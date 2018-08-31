@@ -14,12 +14,13 @@ export function open(lastMenu) {
   menu = new Menu({
     title: 'spectateMenu'
   });
-  menu.addRectangle({x: 0, y: 0}, 256, 33, '#777777');
-  menu.addText('Spectate', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
-  menu.addArrowButton('previous_user', {x: 30, y: 103}, {x: 50, y: 133}, 'arrow_left', '#ffc338');
-  menu.addArrowButton('next_user', {x: 206, y: 103}, {x: 226, y: 133}, 'arrow_right', '#ffc338');
-  menu.addText('Spectating off', 'spectating_user', 14, { x: 128, y: 113}, '#ffffff', 'center', false);
-  menu.addText('Go Back and Stop Spectating', 'back', 14, { x: 128, y: 220}, '#ffffff', 'center', true);
+  menu.addRectangle({x: 0, y: 0}, 512, 66, '#777777');
+  menu.addRectangle({x: 106, y: 182}, 304, 60, '#666666');
+  menu.addText('Spectate', 'title', 36, { x: 256, y: 20}, '#ffffff', 'center', false);
+  menu.addArrowButton('previous_user', {x: 60, y: 182}, {x: 100, y: 242}, 'arrow_left', '#ffc338');
+  menu.addArrowButton('next_user', {x: 416, y: 182}, {x: 456, y: 242}, 'arrow_right', '#ffc338');
+  menu.addText('Spectating off', 'spectating_user', 28, { x: 256, y: 202}, '#ffffff', 'center', false);
+  menu.addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
   prevMenu = lastMenu;
   menu.interact = (action, position) => {
     let item = menu.getItem(position);
