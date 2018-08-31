@@ -11,8 +11,9 @@ export function open(lastMenu) {
   menu = new Menu({
     title: 'connectMenu'
   });
+  menu.addRectangle({x: 0, y: 0}, 256, 33, '#777777');
   menu.addText('Connection', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
-  menu.addText('Status: ', 'status', 14, { x: 128, y: 40}, '#ffffff', 'center', false);
+  menu.addText('Status: ', 'status', 14, { x: 128, y: 50}, '#ffffff', 'center', false);
   menu.addText('', 'connect', 14, { x: 128, y: 113}, '#ffffff', 'center', true);
   menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ffffff', 'center', true);
   prevMenu = lastMenu;

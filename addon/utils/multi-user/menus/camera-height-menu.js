@@ -12,6 +12,7 @@ export function open(lastMenu) {
   menu = new Menu({
     title: 'changeCameraHeightMenu'
   });
+  menu.addRectangle({x: 0, y: 0}, 256, 33, '#777777');
   menu.addText('Change Height', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
   menu.addArrowButton('height_down', {x: 30, y: 103}, {x: 60, y: 133}, 'arrow_down', '#ffc338');
   menu.addArrowButton('height_up', {x: 196, y: 103}, {x: 226, y: 133}, 'arrow_up', '#ffc338');

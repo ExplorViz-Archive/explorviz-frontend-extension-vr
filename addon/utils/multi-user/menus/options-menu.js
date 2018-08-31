@@ -13,6 +13,7 @@ export function open() {
   menu = new Menu({
       title: 'optionsMenu'
   });
+  menu.addRectangle({x: 0, y: 0}, 256, 33, '#777777');
   menu.addText('Options', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
   menu.addText('Change Height', 'change_height', 14, { x: 128, y: 70}, '#ffc338', 'center', true);
   menu.addText('Change Landscape Position', 'change_landscape_position', 14, { x: 128, y: 100}, '#ffc338', 'center', true);

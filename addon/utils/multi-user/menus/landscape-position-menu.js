@@ -12,15 +12,18 @@ export function open(lastMenu) {
   menu = new Menu({
     title: 'changeLandscapePositionMenu'
   });
+  menu.addRectangle({x: 0, y: 0}, 256, 33, '#777777');
   menu.addText('Change Landscape Position', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
 
   // buttons for moving landscape in plane
-  menu.addArrowButton('move_left', {x: 70, y: 123}, {x: 90, y: 153}, 'arrow_left', '#ffc338');
-  menu.addArrowButton('move_right', {x: 166, y: 123}, {x: 186, y: 153}, 'arrow_right', '#ffc338');
-  menu.addArrowButton('move_forward', {x: 113, y: 80}, {x: 143, y: 100}, 'arrow_up', '#ffc338');
+  menu.addRectangle({x: 113, y: 133}, 30, 30, '#eeeeee');
+  menu.addArrowButton('move_left', {x: 80, y: 133}, {x: 100, y: 163}, 'arrow_left', '#ffc338');
+  menu.addArrowButton('move_right', {x: 156, y: 133}, {x: 176, y: 163}, 'arrow_right', '#ffc338');
+  menu.addArrowButton('move_forward', {x: 113, y: 100}, {x: 143, y: 120}, 'arrow_up', '#ffc338');
   menu.addArrowButton('move_backward', {x: 113, y: 176}, {x: 143, y: 196}, 'arrow_down', '#ffc338');
 
   // buttons for changing landscape height
+  menu.addRectangle({x: 35, y: 89}, 30, 2, '#eeeeee');
   menu.addArrowButton('move_up', {x: 40, y: 60}, {x: 60, y: 80}, 'arrow_up', '#ffc338');
   menu.addArrowButton('move_down', {x: 40, y: 100}, {x: 60, y: 120}, 'arrow_down', '#ffc338');
 

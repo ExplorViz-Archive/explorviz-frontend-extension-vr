@@ -14,6 +14,7 @@ export function open(lastMenu) {
   menu = new Menu({
     title: 'spectateMenu'
   });
+  menu.addRectangle({x: 0, y: 0}, 256, 33, '#777777');
   menu.addText('Spectate', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
   menu.addArrowButton('previous_user', {x: 30, y: 103}, {x: 50, y: 133}, 'arrow_left', '#ffc338');
   menu.addArrowButton('next_user', {x: 206, y: 103}, {x: 226, y: 133}, 'arrow_right', '#ffc338');

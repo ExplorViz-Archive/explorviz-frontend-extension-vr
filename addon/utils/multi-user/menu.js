@@ -87,6 +87,13 @@ export default EmberObject.extend({
     this.get('items').push({ type: 'button', style, name, position, size, color, hover: false });
   },
 
+  addRectangle(position, width, height, color) {
+    if(!this.get('items'))
+      this.set('items', new Array());
+
+    this.get('items').push({ type: 'background', position, width, height, color});
+  },
+
   /**
    * Completely redraws the menu and creates a new and updates THREE.Mesh.
    */
@@ -118,6 +125,9 @@ export default EmberObject.extend({
         ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
         let textSize = Helper.getTextSize(item.text, ctx.font);
         ctx.fillText(item.text, item.position.x, item.position.y + textSize.sublineHeight);
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
       } else if(item.type === 'button') {
         if(item.style.startsWith('curved_arrow_')) {
           if(item.hover) {
@@ -136,6 +146,9 @@ export default EmberObject.extend({
           }
           this.drawArrowhead(ctx, item.position, item.to, item.style);
         }
+      } else if(item.type === 'background') {
+        ctx.fillStyle = item.color;
+        ctx.fillRect(item.position.x, item.position.y, item.width, item.height);
       }
     }
        

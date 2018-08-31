@@ -12,6 +12,7 @@ export function open() {
     title: 'userListMenu'
   });
 
+  menu.addRectangle({x: 0, y: 0}, 256, 33, '#777777');
   menu.addText('Users', 'title', 18, { x: 20, y: 20}, '#ffffff', 'left', false);
 
   let users = this.get('users').values();
