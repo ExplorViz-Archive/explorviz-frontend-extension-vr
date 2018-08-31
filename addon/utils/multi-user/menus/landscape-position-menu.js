@@ -1,5 +1,4 @@
 import Menu from '../menu';
-import THREE from 'three';
 
 let menu = null;
 let prevMenu = null;

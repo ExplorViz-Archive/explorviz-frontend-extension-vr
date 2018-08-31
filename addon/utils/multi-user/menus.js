@@ -24,10 +24,11 @@ export function getMenus() {
   return menus.values();
 }
 
-export function getMenuMeshesArray() {
+export function getVisibleMenuMeshesArray() {
   let list = [];
   for(let menu of menus.values()) {
-    list.push(menu.mesh);
+    if(menu.mesh.visible && menu.mesh.parent.visible)
+      list.push(menu.mesh);
   }
   return list;
 }
@@ -38,7 +39,7 @@ export function get(menuTitle) {
 
 export function add(menu) {
   menus.set(menu.getTitle(), menu);
-};
+}
 
 export function remove(menuTitle) {
   menus.delete(menuTitle);

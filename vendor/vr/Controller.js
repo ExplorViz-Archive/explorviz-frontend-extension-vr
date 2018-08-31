@@ -17,6 +17,7 @@ Controller = function (id) {
   var menuIsPressed = false;
   var timestamp = 0;
   var deleteCounter = 0;
+  var connected = false;
   
   this.matrixAutoUpdate = false
   this.standingMatrix = new THREE.Matrix4();
@@ -54,6 +55,10 @@ Controller = function (id) {
     return gamepad;
   };
 
+  this.isConnected = () => {
+    return connected;
+  }
+
   this.getButtonState = function ( button ) {
     if(button === 'thumbpad') return thumbpadIsPressed;
     if(button === 'trigger') return triggerIsPressed;
@@ -73,6 +78,7 @@ Controller = function (id) {
       if(gamepad.pose === null) return; // No user action yet
 
       deleteCounter = 0;
+      connected = true;
 
       // Position and orientation.
 
@@ -130,6 +136,7 @@ Controller = function (id) {
       // prevents flickering on the oculus rift
       if(++deleteCounter === 30) {
         scope.visible = false;
+        connected = false;
       }
     }
 

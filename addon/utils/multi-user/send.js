@@ -171,26 +171,26 @@ export function sendControllerUpdate() {
   let hasChanged = false;
 
   //handle that controller 1 has disconnected
-  if(this.get('controllersConnected.controller1') && this.get('controller1').getGamepad() === undefined) {
+  if(this.get('controllersConnected.controller1') && !this.get('controller1').isConnected()) {
     disconnect.push('controller1');
     this.set('controllersConnected.controller1', false);
     hasChanged = true;
   }
   //handle that controller 1 has connected
-  else if(!this.get('controllersConnected.controller1') && this.get('controller1').getGamepad() !== undefined) {
+  else if(!this.get('controllersConnected.controller1') && this.get('controller1').isConnected()) {
     connect.controller1 = this.get('controller1').getGamepad().id;
     this.set('controllersConnected.controller1', true);
     hasChanged = true;
   }
 
   //handle that controller 2 has disconnected
-  if(this.get('controllersConnected.controller2') && this.get('controller2').getGamepad() === undefined) {
+  if(this.get('controllersConnected.controller2') && !this.get('controller2').isConnected()) {
     disconnect.push('controller2');
     this.set('controllersConnected.controller2', false);
     hasChanged = true;
   }
   //handle that controller 2 has connected
-  else if(!this.get('controllersConnected.controller2') && this.get('controller2').getGamepad() !== undefined) {
+  else if(!this.get('controllersConnected.controller2') && this.get('controller2').isConnected()) {
     connect.controller2 = this.get('controller2').getGamepad().id;
     this.set('controllersConnected.controller2', true);
     hasChanged = true;

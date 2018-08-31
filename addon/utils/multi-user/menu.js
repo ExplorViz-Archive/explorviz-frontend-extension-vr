@@ -251,9 +251,11 @@ export default EmberObject.extend({
    * Remove the menu mesh.
    */
   close() {
-    this.get('mesh').geometry.dispose();
-    this.get('mesh').material.dispose();
-    this.set('mesh', null);
+    if(this.get('mesh')) {
+      this.get('mesh').geometry.dispose();
+      this.get('mesh').material.dispose();
+      this.set('mesh', null);
+    }
     Menus.remove(this.getTitle());
   },
 
