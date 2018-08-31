@@ -28,6 +28,7 @@ export function open(lastMenu) {
   menu.addCurvedArrowButton('rotate_right', {x: 195, y: 60}, 30, 'curved_arrow_right', '#ffc338');
   menu.addCurvedArrowButton('rotate_left', {x: 195, y: 100}, 30, 'curved_arrow_left', '#ffc338');
 
+  // add back button
   menu.addText('Back', 'back', 14, { x: 128, y: 220}, '	#ffffff', 'center', true);
   prevMenu = lastMenu;
   menu.interact = (action, position) => {
@@ -62,6 +63,8 @@ export function open(lastMenu) {
     }
   };
   menu.createMesh();
+
+  // move mesh next to controller 1 and add it as child.
   const mesh = menu.getMesh();
   mesh.position.x += 0.2;
   mesh.geometry.rotateX(-1.5707963267949);

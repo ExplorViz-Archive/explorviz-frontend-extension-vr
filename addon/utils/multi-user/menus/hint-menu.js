@@ -21,19 +21,38 @@ export function showHint(hint, blinks) {
 
   menu.createMesh();
 
+  // move mesh to middle of the screen and set initial size to 0 (invisible)
   const mesh = menu.getMesh();
   mesh.position.y -= 0.1;
   mesh.position.z -= 0.3;
   mesh.rotateX(-0.18);
   mesh.scale.x = 0;
-  let thismenu = menu;
 
+  let thismenu = menu;
   let dir = 1;
   let moved = 0.0;
   let counter = 0;
 
   this.get('camera').add(mesh);
-  function animate() {
+
+  // menu's stretch-open animation
+  function animateOpen() {
+    if(!thismenu)
+      return;
+
+    moved += 0.05;
+    if (moved >= 0 && moved < 1) {
+      mesh.scale.x += 0.05;
+    } else if (moved >= 1) {
+      // if opened, make menu pulsate
+      moved = 0;
+      animatePulsation();
+      return;
+    }
+    requestAnimationFrame(animateOpen);
+  }
+  // animates hint menu's pulsation effect
+  function animatePulsation() {
     if(!thismenu)
       return;
     moved += 0.00075;
@@ -46,26 +65,15 @@ export function showHint(hint, blinks) {
         moved = 0;
         counter++;
       }
-      requestAnimationFrame(animate);
+      requestAnimationFrame(animatePulsation);
     } else {
+      // if pulsation done, close menu
       counter = 0;
       animateClose();
     }
   }
-  function animateOpen() {
-    if(!thismenu)
-      return;
-
-    moved += 0.05;
-    if (moved >= 0 && moved < 1) {
-      mesh.scale.x += 0.05;
-    } else if (moved >= 1) {
-      moved = 0;
-      animate();
-      return;
-    }
-    requestAnimationFrame(animateOpen);
-  }
+  // animtes menu closing animation, the reverse of the open animation
+  // closes menu afterward
   function animateClose() {
     if(!thismenu)
       return;
@@ -74,6 +82,7 @@ export function showHint(hint, blinks) {
     if (moved >= 0 && moved < 1) {
       mesh.scale.x -= 0.05;
     } else if (moved >= 1) {
+      // if close animation done, actually close menu.
       moved = 0;
       close.call(self, thismenu);
       return;

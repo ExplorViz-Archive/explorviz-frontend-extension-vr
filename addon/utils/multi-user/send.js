@@ -126,7 +126,7 @@ export function sendComponentUpdate(appID, componentID, isOpened){
  * @param {boolean} isHighlighted Tells whether the entity has been highlighted or not
  * @param {Long} appID ID of the parent application of the entity
  * @param {Long} entityID ID of the highlighted/unhighlighted component/clazz
- * @param {Color} color Original color of the entity as hex value
+ * @param {string} color Original color of the entity as hex value
  */
 export function sendHighlightingUpdate(isHighlighted, appID, entityID, color){
   let hightlightObj = {

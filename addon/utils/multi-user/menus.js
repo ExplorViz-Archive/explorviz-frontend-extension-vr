@@ -20,10 +20,16 @@ export {
   HintMenu
 }
 
+/**
+ * Returns an iterator of all open menus.
+ */
 export function getMenus() {
   return menus.values();
 }
 
+/**
+ * Returns an array containing all menu meshes that are set visible.
+ */
 export function getVisibleMenuMeshesArray() {
   let list = [];
   for(let menu of menus.values()) {
@@ -33,14 +39,29 @@ export function getVisibleMenuMeshesArray() {
   return list;
 }
 
+/**
+ * Returns menu object matching the title.
+ * 
+ * @param {string} menuTitle - The title of the menu.
+ */
 export function get(menuTitle) {
   return menus.get(menuTitle);
 }
 
+/**
+ * Adds a menu to the opened list, which enables raycasting.
+ * 
+ * @param {object} menu - The menu to set as opened.
+ */
 export function add(menu) {
   menus.set(menu.getTitle(), menu);
 }
 
+/**
+ * Removes menu from the opened-menu list and disable raycasting on it.
+ * 
+ * @param {string} menuTitle - The title of the menu.
+ */
 export function remove(menuTitle) {
   menus.delete(menuTitle);
 }

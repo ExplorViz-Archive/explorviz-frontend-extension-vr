@@ -56,6 +56,11 @@ export function binaryIndexOf(array, searchElement) {
   return -1;
 }
 
+/**
+ * Turns an rgb color array to its string representation.
+ * 
+ * @param {string[]} colorArray - Array containing color as rgb values (0-255).
+ */
 export function colorToString(colorArray){
   return 'rgb(' + colorArray[0] + ',' + colorArray[1] + ',' + colorArray[2] + ')'; 
 }

@@ -215,6 +215,19 @@ export default EmberObject.extend({
     }
   },
 
+  /**
+   * Draw a curved right/left arrow to a canvas.
+   * @example
+   * let canvas = document.createElement('canvas');
+   * let ctx = canvas.getContext('2d');
+   * 
+   * drawCurvedArrow(ctx, {x: 30, y: 50}, 20, 'curved_arrow_left');
+   * 
+   * @param {Object} ctx - The context of a canvas.
+   * @param {{x: number, y: number}} from - The upper left position of the arrow.
+   * @param {number} size - The size of the arrow in both x and y direction.
+   * @param {string} style - The style of the arrow.
+   */
   drawCurvedArrow(ctx, from, size, style) {
     const x = (size / 2) + from.x;
     const y = (size / 2) + from.y;
@@ -333,6 +346,12 @@ export default EmberObject.extend({
 
   },
 
+  /**
+   * Make a menu item clickable or unclickable.
+   * 
+   * @param {string} itemName - The identifier of the menu item.
+   * @param {boolean} bool - Makes item clickable if true, unclickable if false.
+   */
   setClickable(itemName, bool) {
     for(let i = 0; i < this.get('items').length; i++) {
       const item = this.get('items')[i];
@@ -344,6 +363,12 @@ export default EmberObject.extend({
     }
   },
 
+  /**
+   * Change the color of a menu item.
+   * 
+   * @param {string} itemName - The identifier of the menu item.
+   * @param {string} color - The new color of the item as hex string.
+   */
   setColor(itemName, color) {
     for(let i = 0; i < this.get('items').length; i++) {
       const item = this.get('items')[i];

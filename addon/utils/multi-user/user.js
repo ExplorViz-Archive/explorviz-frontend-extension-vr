@@ -2,7 +2,6 @@ import EmberObject from '@ember/object';
 import THREE from 'three';
 
 export default EmberObject.extend({
-  label: null,
   name: null,
   id: null,
   state: null,
@@ -64,6 +63,11 @@ export default EmberObject.extend({
     this.set('namePlane', null);
   },
   
+  /**
+   * Updates the camera model's position and rotation.
+   * 
+   * @param {{position: number[], quaternion: number[]}} camera - Object containing the new camera position and quaterion.
+   */
   updateCamera(camera) {
     if(this.get('camera')) {
       this.get('camera').position.fromArray([camera.position[0], camera.position[1] - 0.01, camera.position[2]]);
@@ -73,6 +77,11 @@ export default EmberObject.extend({
     }
   },
   
+  /**
+   * Updates the controller1 model's position and rotation.
+   * 
+   * @param {{position: number[], quaternion: number[]}} controller - Object containing the new controller1 position and quaterion.
+   */
   updateController1(controller) {
     if(this.get('controller1')) {
       this.get('controller1').position.fromArray(controller.position);
@@ -82,6 +91,11 @@ export default EmberObject.extend({
     }
   },
   
+  /**
+   * Updates the controller2 model's position and rotation.
+   * 
+   * @param {{position: number[], quaternion: number[]}} controller - Object containing the new controller2 position and quaterion.
+   */
   updateController2(controller) {
     if(this.get('controller2')) {
       this.get('controller2').position.fromArray(controller.position);
@@ -97,6 +111,11 @@ export default EmberObject.extend({
     this.set('highlightedEntity.originalColor', originalColor);
   },
 
+  /**
+   * Hides user or unhides them.
+   * 
+   * @param {boolean} bool - If false, hides user's controllers, camera and name tag. Shows them if true.
+   */
   setVisible(bool){
     if(this.get('camera')) {
       this.set('camera.model.visible', bool);

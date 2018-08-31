@@ -45,7 +45,6 @@ export default VRRendering.extend(Ember.Evented, {
   badConnectionSince: null, // if there is a bad connection, contains timestamp of last 'bad_connection' msg
 
 
-
   gameLoop() {
     if(!this.get('running')) {
       return;
@@ -371,7 +370,12 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
+  /**
+   * Handles menu-down controller iteraction.
+   */
   onMenuDownController1() {
+    // Open options menu if no other menu is open
+    // Else closes current menu or goes back one menu if possible.
     if(this.get('state') !== 'spectating') {
       if(OptionsMenu.isOpen())
         OptionsMenu.close.call(this);
@@ -391,6 +395,10 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
+  /**
+   * Handles grip-down controller iteraction.
+   * Opens user list menu if online.
+   */
   onGripDownController1() {
     if(this.get('state') === 'connected' || this.get('state') === 'spectating')
       UserListMenu.open.call(this);
@@ -496,9 +504,11 @@ export default VRRendering.extend(Ember.Evented, {
     }];
     this.send(disconnectMessage);
 
+    // set own state to offline
     this.set('state', 'offline');
     ConnectMenu.setState.call(this, 'offline');
     
+    // remove other users and their corresponding models
     let users = this.users.values();
     for(let user of users) {
       this.get('scene').remove(user.get('controller1.model'));
@@ -512,6 +522,7 @@ export default VRRendering.extend(Ember.Evented, {
       this.get('users').delete(user.get('id'));
     }
 
+    // close socket
     this.get('websockets').closeSocketFor(`ws://${this.host}:${this.port}/`);
 
     const socket = this.get('socketRef');
@@ -715,6 +726,11 @@ export default VRRendering.extend(Ember.Evented, {
     this.addLineToControllerModel(user.get('controller2'), user.get('color'));
   },
 
+  /**
+   * Returns controller model that matches the controller's name. Returns Vive controller if no match.
+   * 
+   * @param {string} name - The contoller's id.
+   */
   getControllerModelByName(name) {
     if(name === 'Oculus Touch (Left)')
       return Models.getOculusLeftControllerModel();
@@ -760,7 +776,8 @@ export default VRRendering.extend(Ember.Evented, {
       this.deactivateSpectating();
     }
 
-
+    // removes user and their models.
+    // informs our user about their disconnect.
     if(this.get('users') && this.get('users').has(id)) {
       //unhighlight possible objects of disconnected user
       this.onHighlightingUpdate(id, false);
@@ -1135,7 +1152,9 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   /**
-   * Move landscape in x or z direction
+   * Moves landscape in all three directions.
+   * 
+   * @param {{x: number, y: number, z: number}} delta - The amounts to move the landscape by.
    */
   moveLandscape(delta) {
     this.get('environmentOffset').x += delta.x;
@@ -1151,7 +1170,10 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('interaction').trigger('landscapeMoved', deltaPosition);
   },
 
-  rotateLandscape(delta){
+  /**
+   * Moves landscape in all three directions.
+   */
+  rotateLandscape(delta) {
     //apply rotattion
     this.get('vrEnvironment').rotation.x += delta.x;
     this.get('vrEnvironment').rotation.y += delta.y;
@@ -1164,28 +1186,28 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   /*
-   *  This method is used to update the matrix of
-   *  a given Object3D
+   * This method is used to update the matrix of
+   * a given Object3D
    */
-  updateObjectMatrix(object){
-    if(object){
+  updateObjectMatrix(object) {
+    if(object) {
       object.updateMatrix();
     }
   },
 
-  //called when the websocket is opened for the first time
+  // called when the websocket is opened for the first time
   openHandler(event) {
     console.log(`On open event has been called: ${event}`);
   },
 
-  //used to send messages to the backend
+  // used to send messages to the backend
   send(obj) {
     // console.log(`Sending: ${JSON.stringify(obj)}`);
     if(this.get('socketRef'))
       this.get('socketRef').send(JSON.stringify(obj));
   },
 
-  //called when the websocket is closed
+  // called when the websocket is closed
   closeHandler(event) {
     console.log(`On close event has been called: ${event}`);
     // ConnectMenu.open.call(this, OptionsMenu.open);
@@ -1194,7 +1216,7 @@ export default VRRendering.extend(Ember.Evented, {
 
   },
 
-  //called when user closes the site / tab
+  // called when user closes the site / tab
   willDestroyElement() {
     this._super(...arguments);
 

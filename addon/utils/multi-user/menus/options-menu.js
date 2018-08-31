@@ -53,6 +53,7 @@ export function open() {
   mesh.geometry.rotateX(-1.5707963267949);
   this.get('controller1').add(mesh);
 
+  // hide spectate menu item if user isn't connected the server
   if(this.state === 'offline' || this.state === 'connecting') {
     menu.setClickable('spectate', false);
     menu.setColor('spectate', '#A8A8A8');
