@@ -450,6 +450,7 @@ export default VRRendering.extend(Ember.Evented, {
       camera: posCamera.toArray()
     }
 
+    //use world quaternions because controller can also be rotated via controllerGroup
     let controller1Quaternion = new THREE.Quaternion();
     this.get('controller1').getWorldQuaternion(controller1Quaternion);
 
@@ -671,6 +672,11 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('state', 'connected');
     ConnectMenu.setState('connected');
     this.set('controllersConnected', { controller1: false, controller2: false });
+
+    console.log("onSelfConnected()");
+
+    // remove any open apps which may still exist from offline mode
+    this.removeOpenApps();
   },
 
   /**

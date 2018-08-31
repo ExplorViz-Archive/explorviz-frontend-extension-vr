@@ -1657,6 +1657,21 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   },
 
+  removeOpenApps(){
+    this.get('openApps').forEach( app => {
+      app.children.forEach( child => {
+        const emberModel = child.userData.model;
+        if (emberModel !== undefined){
+          const emberModelName = emberModel.constructor.modelName;
+          if (emberModelName === "component")
+            child.userData.model.setOpenedStatus(false);
+        }
+      });
+      this.removeChildren(app);
+    });
+    this.set('openApps', new Map());
+  },
+
   removeFoundation(appID, store){
     const foundation = this.get('foundations').get(appID);
 
