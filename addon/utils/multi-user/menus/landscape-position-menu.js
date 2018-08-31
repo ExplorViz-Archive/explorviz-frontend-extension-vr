@@ -13,7 +13,7 @@ export function open(lastMenu) {
     title: 'changeLandscapePositionMenu'
   });
   menu.addRectangle({x: 0, y: 0}, 256, 33, '#777777');
-  menu.addText('Change Landscape Position', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
+  menu.addText('Move Landscape', 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
 
   // buttons for moving landscape in plane
   menu.addRectangle({x: 113, y: 133}, 30, 30, '#eeeeee');
