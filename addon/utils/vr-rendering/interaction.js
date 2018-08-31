@@ -6,7 +6,7 @@ import HoverHandlerLandscape from 'explorviz-frontend/utils/landscape-rendering/
 import AlertifyHandler from 'explorviz-frontend/mixins/alertify-handler';
 import Selector from './selector';
 import THREE from "three";
-import Menus from '../multi-user/menus';
+import Menus, { HintMenu } from '../multi-user/menus';
 
 /*
  *  This util is used to realize the interaction by handeling
@@ -738,9 +738,15 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         const emberModelName = emberModel.constructor.modelName;
         
         // Handle application hit
-        if(emberModelName === "application" && !this.get('app3DBinded') && emberModel.get('components').get('length') !==0){
-          // Trigger event in component vr-rendering
-          this.trigger('showApplication', emberModel, intersectedViewObj.point); 
+        if(emberModelName === "application" && !this.get('app3DBinded')) {
+          if(emberModel.get('components').get('length') > 0) {
+            this.trigger('showApplication', emberModel, intersectedViewObj.point);
+          } else if(emberModel.get('components').get('length') === 0) {
+            const message = `No details available for`;
+            HintMenu.showHint.call(this, message, 3, emberModel.get('name'));
+            return;
+          }
+
         } 
         
         // Handle nodegroup or system hit
@@ -761,7 +767,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           let appID = intersectedViewObj.object.userData.appID;
 
           //dont allow altering bound apps
-          if (this.get('boundApps').has(appID)){
+          if (this.get('boundApps').has(appID)) {
             return;
           }
   
@@ -957,6 +963,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         let appID = intersectedViewObj.object.userData.appID;
 
         if (this.get('boundApps').has(appID)){
+          const message = 'Application is already being moved.';
+          HintMenu.showHint.call(this, message, 3);
           return;
         }
 
@@ -1166,7 +1174,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           const message = "Sorry, no details for <b>" + emberModel.get('name') + 
             "</b> are available.";
 
-          this.showAlertifyMessage(message); 
+          this.showAlertifyMessage(message);
         } 
         // Handle data for app3D available
         else {

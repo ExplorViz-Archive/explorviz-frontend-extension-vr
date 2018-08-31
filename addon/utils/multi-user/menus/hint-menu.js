@@ -2,7 +2,7 @@ import Menu from '../menu';
 
 let menu = null;
 
-export function showHint(hint, blinks) {
+export function showHint(hint, blinks, hint2) {
   const self = this;
   close.call(this, menu);
   menu = new Menu({
@@ -12,7 +12,12 @@ export function showHint(hint, blinks) {
     opacity: 0.7,
     color: '#002e4f'
   });
-  menu.addText(hint, 'text', 28, { x: 256, y: 50}, '#ffffff', 'center', false);
+  if(hint2) {
+    menu.addText(hint, 'text', 28, { x: 256, y: 25}, '#ffffff', 'center', false);
+    menu.addText(hint2, 'text2', 28, { x: 256, y: 75}, '#ffff00', 'center', false);
+  } else {
+    menu.addText(hint, 'text', 28, { x: 256, y: 50}, '#ffffff', 'center', false);
+  }
   menu.interact = (action, position) => {
     if(action === 'rightTrigger') {
       close.call(this, menu);
