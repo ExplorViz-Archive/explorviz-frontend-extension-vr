@@ -4,7 +4,7 @@ let menu = null;
 
 export function showHint(hint, blinks) {
   const self = this;
-  close.call(this);
+  close.call(this, menu);
   menu = new Menu({
     title: 'hintMenu',
     resolution: { width: 512, height: 128 },
@@ -15,7 +15,7 @@ export function showHint(hint, blinks) {
   menu.addText(hint, 'text', 28, { x: 256, y: 50}, '#ffffff', 'center', false);
   menu.interact = (action, position) => {
     if(action === 'rightTrigger') {
-      close.call(this);
+      close.call(this, menu);
     }
   };
 
@@ -26,6 +26,7 @@ export function showHint(hint, blinks) {
   mesh.position.z -= 0.3;
   mesh.rotateX(-0.18);
   mesh.scale.x = 0;
+  let thismenu = menu;
 
   let dir = 1;
   let moved = 0.0;
@@ -33,7 +34,7 @@ export function showHint(hint, blinks) {
 
   this.get('camera').add(mesh);
   function animate() {
-    if(!menu)
+    if(!thismenu)
       return;
     moved += 0.00075;
     if(counter < 2*blinks) {
@@ -52,7 +53,7 @@ export function showHint(hint, blinks) {
     }
   }
   function animateOpen() {
-    if(!menu)
+    if(!thismenu)
       return;
 
     moved += 0.05;
@@ -66,7 +67,7 @@ export function showHint(hint, blinks) {
     requestAnimationFrame(animateOpen);
   }
   function animateClose() {
-    if(!menu)
+    if(!thismenu)
       return;
 
     moved += 0.05;
@@ -74,7 +75,7 @@ export function showHint(hint, blinks) {
       mesh.scale.x -= 0.05;
     } else if (moved >= 1) {
       moved = 0;
-      close.call(self);
+      close.call(self, thismenu);
       return;
     }
     requestAnimationFrame(animateClose);
@@ -82,10 +83,10 @@ export function showHint(hint, blinks) {
   animateOpen();
 }
 
-function close() {
-  if(menu) {
-    this.get('camera').remove(menu.getMesh());
-    menu.close();
-    menu = null;
+function close(menue) {
+  if(menue) {
+    this.get('camera').remove(menue.getMesh());
+    menue.close();
+    menue = null;
   }
 }

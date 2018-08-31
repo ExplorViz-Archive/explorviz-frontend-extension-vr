@@ -276,16 +276,16 @@ export default VRRendering.extend(Ember.Evented, {
     let old_checkIntersectionRightController = this.get('interaction').checkIntersectionRightController;
     this.get('interaction').checkIntersectionRightController = function() {
       if(self.get('state') !== 'spectating')
-        old_checkIntersectionRightController.apply(this, [this.get('raycastObjectsLandscape').concat(Menus.getMenuMeshesArray())]);
+        old_checkIntersectionRightController.apply(this, [this.get('raycastObjectsLandscape').concat(Menus.getVisibleMenuMeshesArray())]);
       else {
-        old_checkIntersectionRightController.apply(this, [Menus.getMenuMeshesArray()]);
+        old_checkIntersectionRightController.apply(this, [Menus.getVisibleMenuMeshesArray()]);
       }
     };
     
     let old_checkIntersectionLeftController = this.get('interaction').checkIntersectionLeftController;
     this.get('interaction').checkIntersectionLeftController = function() {
       if(self.get('state') !== 'spectating')
-        old_checkIntersectionLeftController.apply(this, [this.excludeLandscape().concat(Menus.getMenuMeshesArray())]);
+        old_checkIntersectionLeftController.apply(this, [this.excludeLandscape().concat(Menus.getVisibleMenuMeshesArray())]);
       else
         self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
     };
@@ -293,15 +293,15 @@ export default VRRendering.extend(Ember.Evented, {
     let old_onTriggerDownController2 = this.get('interaction').onTriggerDownController2;
     this.get('interaction').onTriggerDownController2 = function(event) {
       if(self.get('state') !== 'spectating')
-        old_onTriggerDownController2.apply(this, [event, this.get('raycastObjectsLandscape').concat(Menus.getMenuMeshesArray())]);
+        old_onTriggerDownController2.apply(this, [event, this.get('raycastObjectsLandscape').concat(Menus.getVisibleMenuMeshesArray())]);
       else
-        old_onTriggerDownController2.apply(this, [event, Menus.getMenuMeshesArray()]);
+        old_onTriggerDownController2.apply(this, [event, Menus.getVisibleMenuMeshesArray()]);
     };
 
     let old_onTriggerDownController1 = this.get('interaction').onTriggerDownController1;
     this.get('interaction').onTriggerDownController1 = function(event) {
       if(self.get('state') !== 'spectating')
-        old_onTriggerDownController1.apply(this, [event, this.excludeLandscape().concat(Menus.getMenuMeshesArray())]);
+        old_onTriggerDownController1.apply(this, [event, this.excludeLandscape().concat(Menus.getVisibleMenuMeshesArray())]);
       else
         self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
     };
