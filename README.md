@@ -76,11 +76,11 @@ Press this button to display information about the targeted entity.
 
 ### Keyboard:
 
-- :arrow_up:: Move the environment upwards 
-- :arrow_down:: Move the environment downwards 
-- :arrow_left:: Move the environment leftwards
-- :arrow_right:: Move the environment rightwards
-- <kbd>+</kbd>: Zoom in 
-- <kbd>-</kbd>: Zoom out
+- :arrow_up:: Move the camera upwards 
+- :arrow_down:: Move the camera downwards 
+- :arrow_left:: Move the camera leftwards
+- :arrow_right:: Move the camera rightwards
+- <kbd>+</kbd>: Move camera forwards (Zoom in)
+- <kbd>-</kbd>: Move camera backward (Zoom out)
 - <kbd>q</kbd>: Rotate the environment forwards
 - <kbd>w</kbd>: Rotate the environment backwards
