@@ -40,12 +40,12 @@ export function getVisibleMenuMeshesArray() {
 }
 
 /**
- * Returns menu object matching the title.
+ * Returns menu object matching the name.
  * 
- * @param {string} menuTitle - The title of the menu.
+ * @param {string} menuName - The name of the menu.
  */
-export function get(menuTitle) {
-  return menus.get(menuTitle);
+export function get(menuName) {
+  return menus.get(menuName);
 }
 
 /**
@@ -54,14 +54,14 @@ export function get(menuTitle) {
  * @param {object} menu - The menu to set as opened.
  */
 export function add(menu) {
-  menus.set(menu.getTitle(), menu);
+  menus.set(menu.getName(), menu);
 }
 
 /**
  * Removes menu from the opened-menu list and disable raycasting on it.
  * 
- * @param {string} menuTitle - The title of the menu.
+ * @param {string} menuName - The name of the menu.
  */
-export function remove(menuTitle) {
-  menus.delete(menuTitle);
+export function remove(menuName) {
+  menus.delete(menuName);
 }

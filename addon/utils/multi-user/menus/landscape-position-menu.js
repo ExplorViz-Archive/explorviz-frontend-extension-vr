@@ -10,10 +10,10 @@ let prevMenu = null;
  */
 export function open(lastMenu) {
   menu = new Menu({
-    title: 'changeLandscapePositionMenu'
+    name: 'changeLandscapePositionMenu'
   });
-  menu.addRectangle({x: 0, y: 0}, 512, 66, '#777777');
-  menu.addText('Move Landscape', 'title', 36, { x: 256, y: 20}, '#ffffff', 'center', false);
+
+  menu.addTitle('Move Landscape');
 
   // buttons for moving landscape in plane
   menu.addRectangle({x: 226, y: 246}, 60, 60, '#eeeeee');

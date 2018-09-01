@@ -9,7 +9,7 @@ let menu = null;
 export function open() {
   close.call(this); 
   menu = new Menu({
-    title: 'userListMenu',
+    name: 'userListMenu',
     resolution: { width: 256, height: 256 }
   });
 

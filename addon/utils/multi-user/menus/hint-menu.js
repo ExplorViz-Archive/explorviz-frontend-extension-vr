@@ -6,7 +6,7 @@ export function showHint(hint, blinks, hint2) {
   const self = this;
   close.call(this, menu);
   menu = new Menu({
-    title: 'hintMenu',
+    name: 'hintMenu',
     resolution: { width: 512, height: 128 },
     size: { width: 0.2, height: 0.05 },
     opacity: 0.7,

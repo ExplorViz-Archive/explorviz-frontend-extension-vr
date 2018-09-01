@@ -9,10 +9,9 @@ let prevMenu = null;
 export function open(lastMenu) {
   close.call(this);
   menu = new Menu({
-    title: 'connectMenu'
+    name: 'connectMenu'
   });
-  menu.addRectangle({x: 0, y: 0}, 512, 66, '#777777');
-  menu.addText('Connection', 'title', 36, { x: 256, y: 20}, '#ffffff', 'center', false);
+  menu.addTitle('Connection');
   menu.addText('Status: ', 'status', 28, { x: 256, y: 140}, '#ffffff', 'center', false);
   menu.addTextButton('', 'connect', {x: 100, y: 186}, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
   menu.addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
@@ -96,13 +95,16 @@ export function setState(state) {
     menu.updateText('status', 'Status: offline');
     menu.updateText('connect', 'Connect');
     menu.setClickable('connect', true);
+    menu.setColor('status', '#ff3a3a');
   } else if(state === 'connecting') {
     menu.updateText('status', 'Status: connecting');
     menu.updateText('connect', '...');
     menu.setClickable('connect', false);
+    menu.setColor('status', '#ff9719');
   } else if(state === 'connected') {
     menu.updateText('status', 'Status: connected');
     menu.updateText('connect', 'Disconnect');
     menu.setClickable('connect', true);
+    menu.setColor('status', '#3bba2a');
   }
 }

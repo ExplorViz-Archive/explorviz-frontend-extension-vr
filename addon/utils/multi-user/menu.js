@@ -4,7 +4,7 @@ import Helper from './helper';
 import Menus from './menus';
 
 export default EmberObject.extend({
-  title: null,
+  name: null,
   resolution: { width: 512, height: 512 },
   size: { height: 0.3, width: 0.3},
   items: null,
@@ -14,6 +14,12 @@ export default EmberObject.extend({
   hoverColor: '#00e5ff',
   hoveredItem: null,
   canvas: null,
+
+
+  addTitle(text) {
+    this.addRectangle({x: 0, y: 0}, 512, 66, '#777777');
+    this.addText(text, 'title', 36, { x: 256, y: 20}, '#ffffff', 'center', false);
+  },
   
   /**
    * Adds a new text to the menu.
@@ -312,7 +318,7 @@ export default EmberObject.extend({
       this.get('mesh').material.dispose();
       this.set('mesh', null);
     }
-    Menus.remove(this.getTitle());
+    Menus.remove(this.getName());
   },
 
   /**
@@ -444,7 +450,7 @@ export default EmberObject.extend({
       color: new THREE.Color(this.get('color'))
     });
     let textBox = new THREE.Mesh(new THREE.PlaneGeometry(this.get('size.width'), this.get('size.height')), material);
-    textBox.name = this.get('title');
+    textBox.name = this.get('name');
     this.set('mesh', textBox);
 
     this.update();
@@ -460,10 +466,10 @@ export default EmberObject.extend({
   },
 
   /**
-   * Returns the menu title.
+   * Returns the menu name.
    */
-  getTitle() {
-    return this.get('title');
+  getName() {
+    return this.get('name');
   }
 
 });

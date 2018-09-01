@@ -1213,7 +1213,6 @@ export default VRRendering.extend(Ember.Evented, {
     // ConnectMenu.open.call(this, OptionsMenu.open);
     this.set('state', 'offline');
     ConnectMenu.setState.call(this, 'offline');
-
   },
 
   // called when user closes the site / tab

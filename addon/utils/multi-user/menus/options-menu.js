@@ -11,10 +11,9 @@ let menu = null;
  */
 export function open() {
   menu = new Menu({
-      title: 'optionsMenu'
+      name: 'optionsMenu'
   });
-  menu.addRectangle({x: 0, y: 0}, 512, 66, '#777777');
-  menu.addText('Options', 'title', 36, { x: 256, y: 20}, '#ffffff', 'center', false);
+  menu.addTitle('Options');
   menu.addTextButton('Change Camera', 'change_height', {x: 100, y: 126}, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
   menu.addTextButton('Move Landscape', 'change_landscape_position', {x: 100, y: 186}, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
   menu.addTextButton('Spectate', 'spectate', {x: 100, y: 246}, 316, 50, 28, '#555555', '#ffc338', '#929292', true);

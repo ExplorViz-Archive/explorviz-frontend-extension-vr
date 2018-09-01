@@ -10,10 +10,9 @@ let prevMenu = null;
  */
 export function open(lastMenu) {
   menu = new Menu({
-    title: 'changeCameraHeightMenu'
+    name: 'changeCameraHeightMenu'
   });
-  menu.addRectangle({x: 0, y: 0}, 512, 66, '#777777');
-  menu.addText('Change Camera', 'title', 36, { x: 256, y: 20}, '#ffffff', 'center', false);
+  menu.addTitle('Change Camera');
   menu.addArrowButton('height_down', {x: 100, y: 182}, {x: 150, y: 242}, 'arrow_down', '#ffc338');
   menu.addArrowButton('height_up', {x: 366, y: 182}, {x: 416, y: 242}, 'arrow_up', '#ffc338');
   menu.addText(this.user.position.y.toFixed(2), 'camera_height', 28, { x: 256, y: 202}, '#ffffff', 'center', false);

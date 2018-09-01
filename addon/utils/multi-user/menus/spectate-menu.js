@@ -12,11 +12,10 @@ let prevMenu = null;
 export function open(lastMenu) {
   close.call(this);
   menu = new Menu({
-    title: 'spectateMenu'
+    name: 'spectateMenu'
   });
-  menu.addRectangle({x: 0, y: 0}, 512, 66, '#777777');
+  menu.addTitle('Spectate');
   menu.addRectangle({x: 106, y: 182}, 304, 60, '#666666');
-  menu.addText('Spectate', 'title', 36, { x: 256, y: 20}, '#ffffff', 'center', false);
   menu.addArrowButton('previous_user', {x: 60, y: 182}, {x: 100, y: 242}, 'arrow_left', '#ffc338');
   menu.addArrowButton('next_user', {x: 416, y: 182}, {x: 456, y: 242}, 'arrow_right', '#ffc338');
   menu.addText('Spectating off', 'spectating_user', 28, { x: 256, y: 202}, '#ffffff', 'center', false);
