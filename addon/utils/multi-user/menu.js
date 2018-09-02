@@ -365,7 +365,7 @@ export default EmberObject.extend({
             return item;
           }
         }
-      } else if(item.type === 'textButton') {
+      } else if(item.type === 'textButton' && item.clickable) {
         let itemX = item.position.x;
         let itemY = item.position.y;
 
