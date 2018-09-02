@@ -496,11 +496,13 @@ export default VRRendering.extend(Ember.Evented, {
   /**
    * Inform the backend that user leaves the session
    */
-  disconnect() {
-    const disconnectMessage = [{
-      "event": "receive_disconnect_request"
-    }];
-    this.send(disconnectMessage);
+  disconnect(sendMessage) {
+    if(sendMessage) {
+      const disconnectMessage = [{
+        "event": "receive_disconnect_request"
+      }];
+      this.send(disconnectMessage);
+    }
 
     // Set own state to offline
     this.set('state', 'offline');
@@ -1209,8 +1211,7 @@ export default VRRendering.extend(Ember.Evented, {
   closeHandler(event) {
     console.log(`On close event has been called: ${event}`);
     // ConnectMenu.open.call(this, OptionsMenu.open);
-    this.set('state', 'offline');
-    ConnectMenu.setState.call(this, 'offline');
+    this.disconnect(false);
   },
 
   // Called when user closes the site / tab
@@ -1218,7 +1219,7 @@ export default VRRendering.extend(Ember.Evented, {
     this._super(...arguments);
 
     this.set('running', false);
-    this.disconnect();
+    this.disconnect(true);
     this.set('users', null);
     this.set('userID', null);
     this.set('state', null);
@@ -1231,6 +1232,13 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('updateQueue', null);
     this.set('spectatedUser', null);
     this.set('startPosition', null);
+
+    navigator.getVRDisplays()
+				.then( function ( displays ) {
+
+					if ( displays.length > 0 && displays[0].isPresenting)
+            displays[0].exitPresent();
+        });
   },
 
 });
