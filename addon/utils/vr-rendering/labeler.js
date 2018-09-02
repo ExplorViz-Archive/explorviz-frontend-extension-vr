@@ -91,7 +91,7 @@ export default Ember.Object.extend({
     }
 
 
-    let oldMaterial = new THREE.MeshBasicMaterial({color});
+    let oldMaterial = new THREE.MeshLambertMaterial({color});
 
     let canvas = this.get('canvasList')[name];
     var ctx = canvas.getContext('2d');
@@ -141,7 +141,7 @@ export default Ember.Object.extend({
     let texture = new THREE.CanvasTexture(canvas);
 
     // map texture
-    let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
+    let canvasMaterial = new THREE.MeshLambertMaterial({map: texture});
 
     // Update texture      
     texture.needsUpdate = true;   
@@ -244,7 +244,7 @@ export default Ember.Object.extend({
       // create texture out of canvas
       let texture = new THREE.CanvasTexture(canvas);
       // map texture
-      let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
+      let canvasMaterial = new THREE.MeshLambertMaterial({map: texture});
 
       // Update texture      
       texture.needsUpdate = true;
@@ -325,14 +325,14 @@ export default Ember.Object.extend({
       // create texture out of canvas
       let texture = new THREE.CanvasTexture(canvas);
       // map texture
-      let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
+      let canvasMaterial = new THREE.MeshLambertMaterial({map: texture});
 
       // Update texture      
       texture.needsUpdate = true;
       // Update mesh material    
     
       // use old material
-      let oldMaterial = new THREE.MeshBasicMaterial({
+      let oldMaterial = new THREE.MeshLambertMaterial({
         color
       });
       
@@ -406,14 +406,14 @@ export default Ember.Object.extend({
       // create texture out of canvas
       let texture = new THREE.CanvasTexture(canvas);
       // map texture
-      let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
+      let canvasMaterial = new THREE.MeshLambertMaterial({map: texture});
 
       // Update texture      
       texture.needsUpdate = true;
       // Update mesh material    
     
       // use old material
-      let oldMaterial = new THREE.MeshBasicMaterial({
+      let oldMaterial = new THREE.MeshLambertMaterial({
         color
       });
       
@@ -484,14 +484,14 @@ export default Ember.Object.extend({
       // create texture out of canvas
       let texture = new THREE.CanvasTexture(canvas);
       // map texture
-      let canvasMaterial = new THREE.MeshBasicMaterial({map: texture});
+      let canvasMaterial = new THREE.MeshLambertMaterial({map: texture});
 
       // Update texture      
       texture.needsUpdate = true;
       // Update mesh material    
     
       // use old material
-      let oldMaterial = new THREE.MeshBasicMaterial({
+      let oldMaterial = new THREE.MeshLambertMaterial({
         color
       });
       

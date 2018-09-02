@@ -266,7 +266,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     
     // Create text box 
     var color = new THREE.Color("rgb(253,245,230)");
-    let material = new THREE.MeshBasicMaterial({
+    let material = new THREE.MeshLambertMaterial({
       color
     });
     this.set('textBox', new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, this.get('zeroValue')), material));
@@ -351,17 +351,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.initInteraction();
 
     // Add lights
-    const dirLight = new THREE.DirectionalLight();
-    dirLight.position.set(30, 10, 20);
-    this.get('scene').add(dirLight);
 
-    const spotLight = new THREE.SpotLight(0xffffff, 0.5, 1000, 1.56, 0, 0);
-    spotLight.position.set(0, 0, 0);
-    spotLight.castShadow = false;
+    const spotLight = new THREE.SpotLight(0xffffff, 0.3, 1000, 1.56, 0, 0);
+    spotLight.position.set(-5, 2, 0);
     this.get('scene').add(spotLight);
 
     // AmbientLight( color, intensity )
-    const light = new THREE.AmbientLight(new THREE.Color(0.65, 0.65, 0.65), 0.8);
+    const light = new THREE.AmbientLight(new THREE.Color(.7, .7, .72), 1.0);
     this.scene.add(light);
 
     // Set default model
@@ -379,10 +375,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     floorTexture.repeat.set( 6, 5 );
 
     var floorGeometry = new THREE.BoxGeometry(6, this.get('zeroValue'), 5);
-    var floorMaterial = new THREE.MeshBasicMaterial({
+    var floorMaterial = new THREE.MeshLambertMaterial({
       map: floorTexture
     });
-    var floorMesh = new THREE.Mesh(floorGeometry, floorMaterial); 
+    var floorMesh = new THREE.Mesh(floorGeometry, floorMaterial);
     floorMesh.name = 'floor';
     floorMesh.userData.name = 'floor';
     this.get('room').add(floorMesh);
@@ -1320,7 +1316,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       const geometryPlane = new THREE.PlaneGeometry(lengthPlane, 
         tile.lineThickness * 3);
 
-      const materialPlane = new THREE.MeshBasicMaterial({color: tile.pipeColor});
+      const materialPlane = new THREE.MeshLambertMaterial({color: tile.pipeColor});
       const plane = new THREE.Mesh(geometryPlane, materialPlane);
 
       let isDiagonalPlane = false;
@@ -1365,7 +1361,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       var color = self.get('configuration.landscapeColors.' + emberModelName);
 
-      const material = new THREE.MeshBasicMaterial({
+      const material = new THREE.MeshLambertMaterial({
         color
       });
 
@@ -1387,7 +1383,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       var color = self.get('configuration.landscapeColors.' + emberModelName);
 
-      const material = new THREE.MeshBasicMaterial({
+      const material = new THREE.MeshLambertMaterial({
         color
       });
 
@@ -1501,7 +1497,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         // Create teleport area
         var geometry = new THREE.RingGeometry(0.14, 0.2, 32 );
         geometry.rotateX(-1.5707963);
-        var material = new THREE.MeshBasicMaterial( {
+        var material = new THREE.MeshLambertMaterial( {
          color: new THREE.Color(0x0000dc)} );
         material.transparent = true;
         material.opacity = 0.4;
@@ -1728,7 +1724,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           opacityValue = 0.4;
         }
 
-        const material = new THREE.MeshBasicMaterial({
+        const material = new THREE.MeshLambertMaterial({
           color : new THREE.Color(0xf49100),
           opacity : opacityValue,
           transparent : transparent
