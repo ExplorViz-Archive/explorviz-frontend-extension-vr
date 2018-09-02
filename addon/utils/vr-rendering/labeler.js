@@ -78,7 +78,8 @@ export default Ember.Object.extend({
       entity.geometry.computeBoundingBox();
       let bbox = entity.geometry.boundingBox;
       
-      let size = bbox.getSize();
+      let size = new THREE.Vector3();
+      bbox.getSize(size);
       
       // calculate aspect ratio and next power of 2 
       let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(size.x*40)/Math.log(2)));
@@ -204,7 +205,8 @@ export default Ember.Object.extend({
       textObj.parent.geometry.computeBoundingBox();
       let bbox = textObj.parent.geometry.boundingBox;
       
-      let size = bbox.getSize();
+      let size = new THREE.Vector3();
+      bbox.getSize(size);
       
       // calculate aspect ratio and next power of 2 
       let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(size.x*40)/Math.log(2)));
@@ -289,7 +291,8 @@ export default Ember.Object.extend({
       textObj.parent.geometry.computeBoundingBox();
       let bbox = textObj.parent.geometry.boundingBox;
       
-      let size = bbox.getSize();
+      let size = new THREE.Vector3();
+      bbox.getSize(size);
       
       // calculate aspect ratio and next power of 2 
       let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(size.x*30)/Math.log(2)));
@@ -370,7 +373,8 @@ export default Ember.Object.extend({
       textObj.parent.geometry.computeBoundingBox();
       let bbox = textObj.parent.geometry.boundingBox;
       
-      let size = bbox.getSize();
+      let size = new THREE.Vector3();
+      bbox.getSize(size);
       
       // calculate aspect ratio and next power of 2 
       let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(size.x*40)/Math.log(2)));
@@ -447,7 +451,8 @@ export default Ember.Object.extend({
       textObj.parent.geometry.computeBoundingBox();
       let bbox = textObj.parent.geometry.boundingBox;
       
-      let size = bbox.getSize();
+      let size = new THREE.Vector3();
+      bbox.getSize(size);
       
       // calculate aspect ratio and next power of 2 
       let nextPowerOf2X = Math.pow(2, Math.ceil(Math.log(size.x*75)/Math.log(2)));

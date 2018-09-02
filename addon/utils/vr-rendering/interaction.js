@@ -6,6 +6,7 @@ import HoverHandlerLandscape from 'explorviz-frontend/utils/landscape-rendering/
 import AlertifyHandler from 'explorviz-frontend/mixins/alertify-handler';
 import Selector from './selector';
 import THREE from "three";
+import Menus, { HintMenu } from '../multi-user/menus';
 
 /*
  *  This util is used to realize the interaction by handeling
@@ -18,6 +19,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   canvas: null,
   canvas2: null,
   camera: null,
+  controllerGroup: null,
+  user: null,
   room: null,
 
   renderer: null,
@@ -34,10 +37,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   // emberModel of the selected entity
   appCommunicationHighlighted: false,
+  highlightedAppModel: null,
   // mesh of the selected entity
   selectedEntitysMesh: null,
   selectedEntitysColor: null,
 
+  openApps: null,
   application3D: null,
   app3DBinded: false,
   app3DBindedByController: {},
@@ -60,14 +65,20 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   hoverHandlerApp3D: null,
   selector: null,
 
+  boundApps : null,
+  environmentOffset : null,
+
+  highlightingColor: "rgb(255,0,0)",
+
+  emptyFunction: () => {},
+
 
   /*
    * This method is called in "vr-rendering" after 
    * an application3D has been created 
    */
-  setupInteractionApp3D(application3D, app) {
-    this.set('application3D', application3D);
-    this.get('selector').saveLatestApplication(app);
+  setupInteractionApp3D(openApps) {
+    this.set('openApps', openApps);
   },
 
   /*
@@ -80,7 +91,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   // Import information from component vr-rendering to manipulate objects global
   setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1, 
-    controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, room) {
+    controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, room, user, boundApps, environmentOffset, controllerGroup) {
 
     this.set('scene', scene);
     this.set('canvas', canvas);
@@ -96,6 +107,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('textBox', textBox);
     this.set('labeler', labeler);
     this.set('room', room);
+    this.set('user', user);
+    this.set('boundApps', boundApps);
+    this.set('environmentOffset', environmentOffset);
+    this.set('controllerGroup', controllerGroup);
 
     const self = this;
 
@@ -105,39 +120,62 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('canvas2').height = 128;
 
     // Setup event listener in each controller for each button
-    self.get('controller1').addEventListener('triggerdown', registerLeftControllerTriggerDown);
-    self.get('controller2').addEventListener('triggerdown', registerRightControllerTriggerDown);
-    self.get('controller1').addEventListener('thumbpaddown', registerControllerThumbpadDown);
-    self.get('controller2').addEventListener('thumbpaddown', registerControllerThumbpadDown);
-    self.get('controller1').addEventListener('thumbpadup', registerControllerThumbpadUp);
-    self.get('controller2').addEventListener('thumbpadup', registerControllerThumbpadUp);
-    self.get('controller1').addEventListener('gripsdown', registerControllerGripsDownController1);
-    self.get('controller2').addEventListener('gripsdown', registerControllerGripsDownController2);
+    this.get('controller1').addEventListener('triggerdown', registerTriggerDownController1);
+    this.get('controller2').addEventListener('triggerdown', registerTriggerDownController2);
+    // this.get('controller1').addEventListener('triggerup', this.emptyFunction);
+    // this.get('controller2').addEventListener('triggerup', this.emptyFunction);
+    // this.get('controller1').addEventListener('thumbpaddown', registerThumbpadDownController1);
+    this.get('controller2').addEventListener('thumbpaddown', registerThumbpadDownController2);
+    // this.get('controller1').addEventListener('thumbpadup', this.emptyFunction);
+    // this.get('controller2').addEventListener('thumbpadup', this.emptyFunction);
+    this.get('controller1').addEventListener('gripdown', registerGripDownController1);
+    this.get('controller2').addEventListener('gripdown', registerGripDownController2);
+    this.get('controller1').addEventListener('gripup', registerGripUpController1);
+    this.get('controller2').addEventListener('gripup', registerGripUpController2);
+    this.get('controller1').addEventListener('menudown', registerMenuDownController1);
+    // this.get('controller2').addEventListener('menudown', this.emptyFunction);
+    // this.get('controller1').addEventListener('menuup', this.emptyFunction);
+    // this.get('controller2').addEventListener('menuup', this.emptyFunction);
+    // this.get('controller1').addEventListener('axischanged', this.emptyFunction);
+    // this.get('controller2').addEventListener('axischanged', this.emptyFunction);
 
     /* The following functions handle the events by
      * calling the corresponding method
      */
-    function registerRightControllerTriggerDown(event){
-      self.onRightControllerTriggerDown(event);
-    } 
-    function registerLeftControllerTriggerDown(event){
-      self.onLeftControllerTriggerDown(event);
+    function registerTriggerDownController2(event){
+      self.onTriggerDownController2(event);
+    }
+    function registerTriggerDownController1(event){
+      self.onTriggerDownController1(event);
     }
 
-    function registerControllerThumbpadDown(event){
-      self.onControllerThumbpadDown(event);
+    function registerGripDownController1(event){
+      self.onGripDownController1(event);
     }
      
-    function registerControllerThumbpadUp(event){
-      self.onThumbpadControllerUp(event);
+    function registerGripUpController1(event){
+      self.onGripUpController1(event);
+    }
+
+    function registerGripDownController2(event){
+      self.onGripDownController2(event);
+    }
+     
+    function registerGripUpController2(event){
+      self.onGripUpController2(event);
     }
   
-    // Function for handling gripsdown for left and right hand
-    function registerControllerGripsDownController1(evt){
-      self.onControllerGripsDown(evt, false);
-    }
-    function registerControllerGripsDownController2(evt){
-      self.onControllerGripsDown(evt, true);
+    // Function for handling gripdown for left and right hand
+    /* function registerThumbpadDownController1(evt) {
+      self.onThumbpadDownController1(evt, false);
+    } */
+
+    function registerThumbpadDownController2(evt){
+      self.onThumbpadDownController1(evt, true);
+    } 
+
+    function registerMenuDownController1(evt){
+      self.onMenuDownController1(evt);
     } 
 
     // mouseout handler for disabling notifications
@@ -160,99 +198,50 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 ////////// Keyboard interaction ////////// 
 
     // Add key listener for room positioning
-    window.onkeydown = function(event){
-
+    window.onkeydown = event => {
       // Handle keys
-      if(event.key === 'ArrowDown'){
-        self.get('vrEnvironment').position.y -=  0.05;
-        self.get('room').position.y -= 0.05;
-        self.updateObjectMatrix(self.get('vrEnvironment'));
-        self.updateObjectMatrix(self.get('room'));
-
-        if(!self.get('app3DBinded') && self.get('application3D')) {
-          self.get('application3D').position.y -=  0.05;
-          self.updateObjectMatrix(self.get('application3D'));
-        }
-      }
-      else if(event.key === 'ArrowUp'){
-        self.get('vrEnvironment').position.y += 0.05;
-        self.get('room').position.y += 0.05;
-        self.updateObjectMatrix(self.get('vrEnvironment'));
-        self.updateObjectMatrix(self.get('room'));
-
-        if(!self.get('app3DBinded') && self.get('application3D')) {
-          self.get('application3D').position.y +=  0.05;
-          self.updateObjectMatrix(self.get('application3D'));
-        }
-      }
-      else if(event.key === 'ArrowLeft'){
-        self.get('vrEnvironment').position.x -=  0.05;
-        self.get('room').position.x -= 0.05;
-        self.updateObjectMatrix(self.get('vrEnvironment'));
-        self.updateObjectMatrix(self.get('room'));
-
-        if(!self.get('app3DBinded') && self.get('application3D')) {
-          self.get('application3D').position.x -=  0.05;
-          self.updateObjectMatrix(self.get('application3D'));
-        }
-      }
-      else if(event.key === 'ArrowRight'){
-        self.get('vrEnvironment').position.x +=  0.05;
-        self.get('room').position.x += 0.05;
-        self.updateObjectMatrix(self.get('vrEnvironment'));
-        self.updateObjectMatrix(self.get('room'));
-
-        if(!self.get('app3DBinded') && self.get('application3D')) {
-          self.get('application3D').position.x +=  0.05;
-          self.updateObjectMatrix(self.get('application3D'));
-        }
-      }
-      else if(event.key === '-'){
-        self.get('vrEnvironment').position.z -=  0.05;
-        self.get('room').position.z -= 0.05;
-        self.updateObjectMatrix(self.get('vrEnvironment'));
-        self.updateObjectMatrix(self.get('room'));
-
-        if(!self.get('app3DBinded') && self.get('application3D')) {
-          self.get('application3D').position.z -=  0.05;
-          self.updateObjectMatrix(self.get('application3D'));
-        }
-      }
-      else if(event.key === '+'){
-        self.get('vrEnvironment').position.z +=  0.05;
-        self.get('room').position.z += 0.05;
-        self.updateObjectMatrix(self.get('vrEnvironment'));
-        self.updateObjectMatrix(self.get('room'));
-
-        if(!self.get('app3DBinded') && self.get('application3D')) {
-          self.get('application3D').position.z +=  0.05;
-          self.updateObjectMatrix(self.get('application3D'));
-        }
-      }
-      else if(event.key === 'q'){
-        self.get('vrEnvironment').rotation.x +=  0.05;
-        self.updateObjectMatrix(self.get('vrEnvironment'));
-        self.trigger('centerVREnvironment');
-
-        if(!self.get('app3DBinded') && self.get('application3D')) {
-          self.get('application3D').rotation.x +=  0.05;
-          self.updateObjectMatrix(self.get('application3D'));
-        }
-      }
-      else if(event.key === 'w'){
-        self.get('vrEnvironment').rotation.x -=  0.05;
-        self.updateObjectMatrix(self.get('vrEnvironment'));
-        self.trigger('centerVREnvironment');
-
-        if(!self.get('app3DBinded') && self.get('application3D')) {
-          self.get('application3D').rotation.x -=  0.05;
-          self.updateObjectMatrix(self.get('application3D'));
-        }
+      switch(event.key) {
+        case 'ArrowDown':
+          this.get('user').position.y -= 0.05;
+          break;
+        case 'ArrowUp':
+          this.get('user').position.y += 0.05;
+          break;
+        case 'ArrowLeft':
+          this.get('user').position.x -= 0.05;
+          break;
+        case 'ArrowRight':
+          this.get('user').position.x += 0.05;
+          break;
+        case '-':
+          this.get('user').position.z += 0.05;
+          break;
+        case '+':
+          this.get('user').position.z -= 0.05;
+          break;
+        case 'q':
+          this.get('vrEnvironment').rotation.x +=  0.05;
+          this.updateObjectMatrix(this.get('vrEnvironment'));
+          this.trigger('centerVREnvironment');
+          this.trigger('landscapeMoved', new THREE.Vector3(0, 0, 0)); //no position change, only quaternion
+          break;
+        case 'w':
+          this.get('vrEnvironment').rotation.x -=  0.05;
+          this.updateObjectMatrix(this.get('vrEnvironment'));
+          this.trigger('centerVREnvironment');
+          this.trigger('landscapeMoved', new THREE.Vector3(0, 0, 0)); //no position change, only quaternion
+          break;
+        case 'v':
+          //adjust camera position for vive
+          this.get('controllerGroup').translateX(-0.8);
+          this.get('controllerGroup').translateZ(1.94);
+          this.get('controllerGroup').rotateY(3.14159);
+          break;
       }
     };
 
     // Zoom handler    
-    canvas.addEventListener('mousewheel', registerMouseWheel, false);
+    canvas.addEventListener('wheel', registerMouseWheel, false);
 
     function registerMouseWheel(evt) {
       self.onMouseWheelStart(evt);
@@ -298,7 +287,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and clazzes if the controller ray hits them.
    * Furthermore this method scales the ray relative to distance of intersection
    */
-    checkIntersectionRightController(controller){
+  checkIntersectionRightController(objects) {
+    let controller = this.get('controller2');
+    let controllerLine = controller.getObjectByName('controllerLine');
 
     var tempMatrix = new THREE.Matrix4();
 
@@ -306,17 +297,21 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     let id = controller.id;
 
     // Calculate controller direction and origin
-    tempMatrix.identity().extractRotation( controller.matrixWorld );
+    tempMatrix.identity().extractRotation( controllerLine.matrixWorld );
     
     const origin = new THREE.Vector3();
-    origin.setFromMatrixPosition(controller.matrixWorld);
+    origin.setFromMatrixPosition(controllerLine.matrixWorld);
 
     const direction = new THREE.Vector3(0,0,-1);
     direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
+    if(!objects) {
+      objects = this.get('raycastObjectsLandscape');
+    }
+
     // Calculate hit object
     const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
-      null, this.get('raycastObjectsLandscape'));
+      null, objects);
 
     // Verify controllers
     let id2 = this.verifyControllers(id);
@@ -350,6 +345,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       if(intersectedViewObj.object.name === 'floor'){
         return;
       }
+
+      // Handle menus
+      let menu = Menus.get(intersectedViewObj.object.name);
+      if(menu) {
+        menu.interact('rightIntersect', intersectedViewObj.uv);
+        return;
+      }
   
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
@@ -377,12 +379,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.unhighlightedDeleteButton(id, additionalCondition);
     }
     // Reset highlighted enities if nothing was hit 
-    else{
+    else {
       // Unhighlight delete button 
       this.unhighlightedDeleteButton(id, true);
 
       // Resize ray 
-      controller.getObjectByName('controllerLine').scale.z = 5;
+      controllerLine.scale.z = 5;
     }
   },
   /*
@@ -390,7 +392,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and clazzes if the controller ray hits them.
    * Furthermore this method scales the ray relative to distance of intersection
    */
-    checkIntersectionLeftController(controller){
+  checkIntersectionLeftController(objects){
+    let controller = this.get('controller1');
+    let controllerLine = controller.getObjectByName('controllerLine');
 
     var tempMatrix = new THREE.Matrix4();
 
@@ -398,19 +402,21 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     let id = controller.id;
 
     // Calculate controller direction and origin
-    tempMatrix.identity().extractRotation( controller.matrixWorld );
+    tempMatrix.identity().extractRotation( controllerLine.matrixWorld );
     
     const origin = new THREE.Vector3();
-    origin.setFromMatrixPosition(controller.matrixWorld);
+    origin.setFromMatrixPosition(controllerLine.matrixWorld);
 
     const direction = new THREE.Vector3(0,0,-1);
     direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
-    var raycastingObjects = this.excludeLandscape();
+    if(!objects) {
+      objects = this.excludeLandscape();
+    }
 
     // Calculate hit object
     const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
-      null, raycastingObjects);
+      null, objects);
 
     // Verify controllers
     let id2 = this.verifyControllers(id);
@@ -448,6 +454,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       }
 
       const emberModel = intersectedViewObj.object.userData.model;
+
+      if(!emberModel)
+        return;
+
       const emberModelName = emberModel.constructor.modelName;
 
       // Calculate darker color
@@ -485,22 +495,23 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.unhighlightedDeleteButton(id, true);
 
       // Resize ray 
-      controller.getObjectByName('controllerLine').scale.z = 5;
+      controllerLine.scale.z = 5;
     }
   },
   //////// END checkIntersection
 
 
   /*
-   * This method handles the controller event 'gripsdown'
+   * This method handles the controller event 'gripdown'
    * and is used to show information about the intersected object. 
    * The additional parameter assigns a users hand to the controller
    * and adapts the position of the text box. 
-   * @method - onControllerGripsDown
+   * @method - onThumbpadDownController1
    */
-  onControllerGripsDown(event, rightHand){
+  onThumbpadDownController1(event, rightHand, objects){
 
     const controller = event.target;
+    let controllerLine = controller.getObjectByName('controllerLine');
 
     var tempMatrix = new THREE.Matrix4();
 
@@ -508,23 +519,34 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     let id = controller.id;
 
     // Calculate controller direction and origin
-    tempMatrix.identity().extractRotation( controller.matrixWorld );
+    tempMatrix.identity().extractRotation( controllerLine.matrixWorld );
     
     const origin = new THREE.Vector3();
-    origin.setFromMatrixPosition(controller.matrixWorld);
+    origin.setFromMatrixPosition(controllerLine.matrixWorld);
 
     const direction = new THREE.Vector3(0,0,-1);
     direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
+    if(!objects) {
+      objects = this.get('raycastObjectsLandscape');
+    }
+
     // Calculate hit object
     const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
-      null, this.get('raycastObjectsLandscape'));
+      null, objects);
 
     // Check if an object is hit
     if(intersectedViewObj){
 
       // Handle delete button and floor exception
       if (intersectedViewObj.object.name === 'deleteButton' || intersectedViewObj.object.name === 'floor'){
+        return;
+      }
+
+      // Handle menus
+      let menu = Menus.get(intersectedViewObj.object.name);
+      if(menu) {
+        menu.interact('leftThumbpadDown', intersectedViewObj.uv);
         return;
       }
 
@@ -631,11 +653,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and is used to release the app3D from controller 
    * and put it back into the scene
    */
-  onThumbpadControllerUp(event){
+  onGripUpController2(event){
 
     const controller = event.target;
 
-    if(controller.userData.selected !== undefined && controller.userData.selected.name !=="textBox"){
+    if(controller.userData.selected !== undefined && controller.userData.selected.name !== "textBox"){
       // Set bool for application3D not binded
       this.set('app3DBinded',false);
       this.get('app3DBindedByController')[controller.id] = null;
@@ -651,6 +673,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.get('scene').add(object);
       // Delete stored application3D 
       controller.userData.selected = undefined;
+
+      this.trigger('appReleased', object.userData.model.id, object.position, object.quaternion);
     }
   },
 
@@ -660,9 +684,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and is used to open/close systems, nodegroups and 
    * components of 3D application. 
    */
-  onRightControllerTriggerDown(event){
+  onTriggerDownController2(event, objects){
 
     const controller = event.target;
+    let controllerLine = controller.getObjectByName('controllerLine');
 
     /* Refuse trigger functionality if the controller which triggered
      * the event already binds the app3D 
@@ -671,17 +696,21 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Calculate controller direction and origin
       var tempMatrix = new THREE.Matrix4();
 
-      tempMatrix.identity().extractRotation( controller.matrixWorld );
+      tempMatrix.identity().extractRotation( controllerLine.matrixWorld );
       
       const origin = new THREE.Vector3();
-      origin.setFromMatrixPosition(controller.matrixWorld);
+      origin.setFromMatrixPosition(controllerLine.matrixWorld);
 
       const direction = new THREE.Vector3(0,0,-1);
       direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
+      if(!objects) {
+        objects = this.get('raycastObjectsLandscape');
+      }
+
       // Calculate hit object
       const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
-        null, this.get('raycastObjectsLandscape'));
+        null, objects);
 
       // Check if an object is hit
       if(intersectedViewObj) {
@@ -698,34 +727,64 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           return;
         }
 
+        // Handle menus
+        let menu = Menus.get(intersectedViewObj.object.name);
+        if(menu) {
+          menu.interact('rightTrigger', intersectedViewObj.uv);
+          return;
+        }
+
         const emberModel = intersectedViewObj.object.userData.model;
         const emberModelName = emberModel.constructor.modelName;
         
         // Handle application hit
-        if(emberModelName === "application" && !this.get('app3DBinded') && emberModel.get('components').get('length') !==0){
-          // Trigger event in component vr-rendering
-          this.trigger('showApplication', emberModel, intersectedViewObj.point); 
+        if(emberModelName === "application" && !this.get('app3DBinded')) {
+          if(emberModel.get('components').get('length') > 0) {
+            this.trigger('showApplication', emberModel, intersectedViewObj.point);
+          } else if(emberModel.get('components').get('length') === 0) {
+            const message = `No details available for`;
+            HintMenu.showHint.call(this, message, 3, emberModel.get('name'));
+            return;
+          }
+
         } 
         
         // Handle nodegroup or system hit
         else if (emberModelName === "nodegroup" || emberModelName === "system"){
           emberModel.setOpened(!emberModel.get('opened'));
+
+          if (emberModelName === "system"){
+            this.trigger('systemStateChanged',emberModel.id, emberModel.get('opened'));
+          } else if (emberModelName === "nodegroup"){
+            this.trigger('nodegroupStateChanged',emberModel.id, emberModel.get('opened'));
+          }
           // Trigger event in component vr-rendering
           this.trigger('redrawScene'); 
         }
         // Handle component of app3D hit
         else if((emberModelName === "component") && !this.get('app3DBinded')){
 
+          let appID = intersectedViewObj.object.userData.appID;
+
+          //dont allow altering bound apps
+          if (this.get('boundApps').has(appID)) {
+            return;
+          }
+  
           // Toggle state and redraw app
           emberModel.setOpenedStatus(!emberModel.get('opened'));
-          this.trigger('redrawApp');
-
+          this.trigger('redrawApp', appID);
+  
+          this.trigger('componentUpdate', appID , emberModel.id, emberModel.get('opened'));
+  
           // Restore selection
-          if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened')){
-            this.get('selector').highlightAppCommunication(this.get('appCommunicationHighlighted'));
+          if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened'))
+          
+          {
+            this.get('selector').highlightAppCommunication(this.get('appCommunicationHighlighted'), this.get('highlightedAppModel'));
             this.trigger('redrawAppCommunication');
-
-            let color = new THREE.Color("rgb(255,0,0)");
+  
+            let color = new THREE.Color(this.get('highlightingColor'));
             this.get('selectedEntitysMesh').material.color = color;
           }
           // Open selected component
@@ -742,13 +801,14 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   },
 
   /*
-   * This method handles the right controller (event 'triggerdown')
+   * This method handles the left controller (event 'triggerdown')
    * and is used 
    * select components/clazzes of application3D and teleport. 
    */
-  onLeftControllerTriggerDown(event){
+  onTriggerDownController1(event, objects){
 
     const controller = event.target;
+    let controllerLine = controller.getObjectByName('controllerLine');
 
     /* Refuse trigger functionality if the controller which triggered
      * the event already binds the app3D 
@@ -757,19 +817,21 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Calculate controller direction and origin
       var tempMatrix = new THREE.Matrix4();
 
-      tempMatrix.identity().extractRotation( controller.matrixWorld );
+      tempMatrix.identity().extractRotation( controllerLine.matrixWorld );
       
       const origin = new THREE.Vector3();
-      origin.setFromMatrixPosition(controller.matrixWorld);
+      origin.setFromMatrixPosition(controllerLine.matrixWorld);
 
       const direction = new THREE.Vector3(0,0,-1);
       direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
-      var raycastingObjects = this.excludeLandscape();
+      if(!objects) {
+        objects = this.excludeLandscape();
+      }
 
       // Calculate hit object
-      const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
-        null, raycastingObjects);
+      const intersectedViewObj = this.get('raycaster').raycasting(origin, direction,
+        null, objects);
 
       // Check if an object is hit
       if(intersectedViewObj) {
@@ -792,18 +854,24 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         
         // Handle component of app3D hit
         if((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded')){
+          let appID = intersectedViewObj.object.parent.userData.model.id;
 
           // Just highlight entity and communication lines if component closed or clazz
           if(!emberModel.get('opened') || emberModelName === "clazz"){
 
             // Check if a component is already highlighted and restore color
             if(this.get('selectedEntitysMesh') && this.get('appCommunicationHighlighted') && this.get('selectedEntitysColor')){
-              // Return if identical to intersected object
+
+              // If identical to intersected object unhighlight and return
               if(this.get('selectedEntitysMesh') === intersectedViewObj.object){
+                this.restoreSelectedEntity(this.verifyControllers(controller.id));
+                this.set('selectedEntitysMesh', null);
+                this.trigger("entityHighlighted", false);
+                this.set('selectedEntitysColor', null);
                 return;
               }
               // Reset communication lines
-              this.get('selector').highlightAppCommunication(null);
+              this.get('selector').highlightAppCommunication(null, this.get('highlightedAppModel'));
               // Restore old color
               this.restoreSelectedEntity(this.verifyControllers(controller.id));
      
@@ -813,24 +881,25 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             // Save selected entity and communication highlighting
             this.saveSelectedEntity(intersectedViewObj, emberModel);
 
+            this.trigger("entityHighlighted", true, appID, emberModel.id, this.get('selectedEntitysColor'));
+
             // Set new color
-            let color = new THREE.Color("rgb(255,0,0)");
+            let color = new THREE.Color(this.get('highlightingColor'));
             intersectedViewObj.object.material.color = color;
             // Highlight communication lines
             this.get('appCommunicationHighlighted').set('highlighted', true);
-            this.get('selector').highlightAppCommunication(emberModel);
+            this.get('selector').highlightAppCommunication(emberModel, this.get('highlightedAppModel'));
             this.trigger('redrawAppCommunication');
 
             // Reset highlighting for selected component
             this.get('highlightedEntitiesApp')[controller.id] = null;
-            
           }
         }
       }
       else{
         // Reset communication highlighting (nothing hit)
         if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && this.get('selectedEntitysColor')){
-          this.get('selector').highlightAppCommunication(null);
+          this.get('selector').highlightAppCommunication(null, this.get('highlightedAppModel')); 
           // Restore selected entity and communication lines
           this.restoreSelectedEntity(this.verifyControllers(controller.id));
   
@@ -838,6 +907,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           this.set('selectedEntitysMesh', null);
           this.set('selectedEntitysColor', null);
           this.trigger('redrawAppCommunication');
+          this.trigger("entityHighlighted", false);
         }
       }
     }
@@ -847,24 +917,28 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * This method handles the controller event 'thumbpaddown'
    * and is used to move, zoom and rotate application3D
    */
-  onControllerThumbpadDown(event){
-
+  onGripDownController2(event, objects){
     const controller = event.target;
+    let controllerLine = controller.getObjectByName('controllerLine');
 
      // Calculate controller direction and origin
     var tempMatrix = new THREE.Matrix4();
 
-    tempMatrix.identity().extractRotation( controller.matrixWorld );
+    tempMatrix.identity().extractRotation( controllerLine.matrixWorld );
     
     const origin = new THREE.Vector3();
-    origin.setFromMatrixPosition(controller.matrixWorld);
+    origin.setFromMatrixPosition(controllerLine.matrixWorld);
 
     const direction = new THREE.Vector3(0,0,-1);
     direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
+    if(!objects) {
+      objects = this.get('raycastObjectsLandscape');
+    }
+
     // Calculate hit object
     const intersectedViewObj = this.get('raycaster').raycasting(origin, direction, 
-      null, this.get('raycastObjectsLandscape'));
+      null, objects);
 
     // Check if an object is hit
     if(intersectedViewObj) {
@@ -873,20 +947,37 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       if (intersectedViewObj.object.name === 'deleteButton' || intersectedViewObj.object.name === 'floor'){
         return;
       }
+
+      // Handle menus
+      let menu = Menus.get(intersectedViewObj.object.name);
+      if(menu) {
+        menu.interact('rightGripDown', intersectedViewObj.uv);
+        return;
+      }
     
       const emberModel = intersectedViewObj.object.userData.model;
       const emberModelName = emberModel.constructor.modelName;
 
       // Component or clazz hit and app3D not aready binded
       if((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded') ){
-        
+        let appID = intersectedViewObj.object.userData.appID;
+
+        if (this.get('boundApps').has(appID)){
+          const message = 'Application is already being moved.';
+          HintMenu.showHint.call(this, message, 3);
+          return;
+        }
+
         // set bool for application3D binded
         this.set('app3DBinded',true);
         this.get('app3DBindedByController')[controller.id] = "true";
 
         // Get inverse of controller transoformation      
         tempMatrix.getInverse(controller.matrixWorld);
-        var object = this.get('application3D');
+
+        let object = intersectedViewObj.object.userData.object3D;
+        
+
         // Set transforamtion relative to controller transformation
         object.matrix.premultiply( tempMatrix );
         // Split up matrix into position, quaternion and scale
@@ -894,16 +985,24 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Add object to controller
         controller.add(object);
         // Store object 
-        controller.userData.selected = object; 
+        controller.userData.selected = object;
+
+        //send information about app binding to backend
+        let boundToController1 = controller.id === this.get('controller1').id;
+        //let appID = intersectedViewObj.object.parent.userData.model.id;
+        this.trigger('appBinded', appID, object.position, object.quaternion, boundToController1, controller.position, controller.quaternion);
       }
     }
   },
 
+  onGripDownController1(event) {},
+  onGripUpController1(event) {},
+  onMenuDownController1(event) {},
+
 ////////// Mouse interaction ////////// 
 
   onMouseWheelStart(evt) {
-
-    const delta = Math.max(-1, Math.min(1, (evt.wheelDelta || -evt.detail)));
+    const delta = Math.max(-1, Math.min(1, evt.deltaY));
 
     const mX = (evt.clientX / window.innerWidth ) * 2 - 1;
     const mY = - (evt.clientY / window.innerHeight ) * 2 + 1;
@@ -913,7 +1012,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     vector.sub(this.get('camera').position);
     
     this.get('camera').position.addVectors(this.get('camera').position,
-      vector.setLength(delta * 1.5));
+      vector.setLength(delta * 0.1));
 
     this.get('camera').updateProjectionMatrix();
 
@@ -1000,14 +1099,24 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('canvas').removeEventListener('mousestop', this.handleHover);
     this.get('canvas').removeEventListener('mouseenter', this.onMouseEnter);
     this.get('canvas').removeEventListener('mouseout', this.onMouseOut);
-    this.get('controller1').removeEventListener('triggerdown',this.onControllerTriggerDown);
-    this.get('controller2').removeEventListener('triggerdown',this.onControllerTriggerDown);
-    this.get('controller1').removeEventListener('thumbpaddown',this.onControllerThumbpadDown);
-    this.get('controller2').removeEventListener('thumbpaddown',this.onControllerThumbpadDown);
-    this.get('controller1').removeEventListener('thumbpadup',this.onControllerThumbpadUp);
-    this.get('controller2').removeEventListener('thumbpadup',this.onControllerThumbpadUp);
-    this.get('controller1').removeEventListener('gripsdown',this.onControllerGrispDown);
-    this.get('controller2').removeEventListener('gripsdown',this.onControllerGrispDown);
+    this.get('controller1').removeEventListener('triggerdown', this.onTriggerDownController1);
+    this.get('controller2').removeEventListener('triggerdown', this.onTriggerDownController2);
+    // this.get('controller1').removeEventListener('triggerup', this.emptyFunction);
+    // this.get('controller2').removeEventListener('triggerup', this.emptyFunction);
+    // this.get('controller1').removeEventListener('thumbpaddown', this.onThumbpadDownController1);
+    this.get('controller2').removeEventListener('thumbpaddown', this.onThumbpadDownController1);
+    // this.get('controller1').removeEventListener('thumbpadup', this.emptyFunction);
+    // this.get('controller2').removeEventListener('thumbpadup', this.emptyFunction);
+    // this.get('controller1').removeEventListener('gripdown', this.emptyFunction);
+    this.get('controller2').removeEventListener('gripdown', this.onGripDownController2);
+    this.get('controller1').removeEventListener('gripup', this.onGripUpController1);
+    this.get('controller2').removeEventListener('gripup', this.onGripUpController2);
+    this.get('controller1').removeEventListener('menudown', this.onMenuDownController1);
+    // this.get('controller2').removeEventListener('menudown', this.emptyFunction);
+    // this.get('controller1').removeEventListener('menuup', this.emptyFunction);
+    // this.get('controller2').removeEventListener('menuup', this.emptyFunction);
+    // this.get('controller1').removeEventListener('axischanged', this.emptyFunction);
+    // this.get('controller2').removeEventListener('axischanged', this.emptyFunction);
   },
 
   /*
@@ -1033,7 +1142,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     // Check if an object is hit
     if(intersectedViewObj) {
-
       // Handle delete button
       if (intersectedViewObj.object.name === 'deleteButton'){
         // Delete application
@@ -1066,7 +1174,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           const message = "Sorry, no details for <b>" + emberModel.get('name') + 
             "</b> are available.";
 
-          this.showAlertifyMessage(message); 
+          this.showAlertifyMessage(message);
         } 
         // Handle data for app3D available
         else {
@@ -1079,24 +1187,41 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Handle nodegroup or system hit
       else if (emberModelName === "nodegroup" || emberModelName === "system"){
         emberModel.setOpened(!emberModel.get('opened'));
+
+        if (emberModelName === "system"){
+          this.trigger('systemStateChanged',emberModel.id, emberModel.get('opened'));
+        } else if (emberModelName === "nodegroup"){
+          this.trigger('nodegroupStateChanged',emberModel.id, emberModel.get('opened'));
+        }
         // Trigger event in component vr-rendering
         this.trigger('redrawScene');
       }
       // Handle component of app3D hit
       else if(emberModelName === "component"){
+        let appID = intersectedViewObj.object.userData.appID;
+
+        //dont allow altering bound apps
+        if (this.get('boundApps').has(appID)){
+          return;
+        }
+
+        // Toggle state and redraw app
         emberModel.setOpenedStatus(!emberModel.get('opened'));
-        // Trigger event in component vr-rendering
-        this.trigger('redrawApp');
+        this.trigger('redrawApp', appID);
+
+        this.trigger('componentUpdate', appID , emberModel.id, emberModel.get('opened'));
 
         // Restore selection
-        if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened')){
-          this.get('selector').highlightAppCommunication(this.get('appCommunicationHighlighted'));
+        if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened'))
+        
+        {
+          this.get('selector').highlightAppCommunication(this.get('appCommunicationHighlighted'), this.get('highlightedAppModel'));
           this.trigger('redrawAppCommunication');
 
-          let color = new THREE.Color("rgb(255,0,0)");
+          let color = new THREE.Color(this.get('highlightingColor'));
           this.get('selectedEntitysMesh').material.color = color;
         }
-        // Opened selected component
+        // Open selected component
         else{
           if(this.get('appCommunicationHighlighted')){
             this.get('appCommunicationHighlighted').set('highlighted', false);
@@ -1171,6 +1296,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle hit component/clazz of app3D 
       if(emberModelName === "component" || emberModelName === "clazz"){
+        let appID = intersectedViewObj.object.parent.userData.model.id;
 
         // Just highlight communication lines if component closed or clazz
         if(!emberModel.get('opened') || emberModelName === "clazz"){
@@ -1178,10 +1304,14 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           if(this.get('selectedEntitysMesh') && this.get('appCommunicationHighlighted') && this.get('selectedEntitysColor')){
             // Return if identical to intersected object
             if(this.get('selectedEntitysMesh') === intersectedViewObj.object){
+              this.restoreSelectedEntity(id);
+              this.set('selectedEntitysMesh', null);
+
+              this.trigger("entityHighlighted", false);
               return;
             }
             // Reset communication lines
-            this.get('selector').highlightAppCommunication(null);
+            this.get('selector').highlightAppCommunication(null, this.get('highlightedAppModel'));
             // Restore selected entity and communication lines
             this.restoreSelectedEntity(id);
           }
@@ -1189,11 +1319,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           // Save selected entity and communication highlighting
           this.saveSelectedEntity(intersectedViewObj, emberModel);
 
-          let color = new THREE.Color("rgb(255,0,0)");
+          this.trigger('entityHighlighted', true, appID, emberModel.id, this.get('selectedEntitysColor'));
+          let color = new THREE.Color(this.get('highlightingColor'));
           intersectedViewObj.object.material.color = color;
           this.get('appCommunicationHighlighted').set('highlighted', true);
           
-          this.get('selector').highlightAppCommunication(emberModel);
+          this.get('selector').highlightAppCommunication(emberModel, this.get('highlightedAppModel'));
           this.trigger('redrawAppCommunication');
         }
       }
@@ -1210,7 +1341,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && this.get('selectedEntitysColor')){
 
         // Reset communication lines
-        this.get('selector').highlightAppCommunication(null);
+        this.get('selector').highlightAppCommunication(null, this.get('highlightedAppModel').userData.model);
 
         // Restore selected entity and communication lines
         this.restoreSelectedEntity(id);
@@ -1218,6 +1349,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         this.set('appCommunicationHighlighted', null);
         this.set('selectedEntitysMesh', null);
         this.trigger('redrawAppCommunication');
+        this.trigger('entityHighlighted', false);
       }
 
       // Unhighlight delete button
@@ -1233,16 +1365,34 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     if(event.button === 1){
       // Translate camera
-      var distanceXInPercent = (delta.x /
-        parseFloat(this.get('renderer').domElement.clientWidth)) * 100.0;
+      let distanceXInPercent = (delta.x /
+        parseFloat(this.get('renderer').domElement.clientWidth)) * ( -10.0);
 
-      var distanceYInPercent = (delta.y /
-        parseFloat(this.get('renderer').domElement.clientHeight)) * 100.0;
+      let distanceYInPercent = (delta.y /
+        parseFloat(this.get('renderer').domElement.clientHeight)) * 10.0;
 
-      this.get('vrEnvironment').position.x = this.get('vrEnvironment').position.x + distanceXInPercent;
-      this.get('vrEnvironment').position.y = this.get('vrEnvironment').position.y - distanceYInPercent;
+      this.get('vrEnvironment').position.x +=  distanceXInPercent;
+      this.get('vrEnvironment').position.z -= distanceYInPercent;
+
+      this.get('environmentOffset').x += distanceXInPercent;
+      this.get('environmentOffset').z -= distanceYInPercent;
+
       this.updateObjectMatrix(this.get('vrEnvironment'));
+      let deltaPosition = new THREE.Vector3(distanceXInPercent, 0, -distanceYInPercent);
+      this.trigger('landscapeMoved', deltaPosition);
+    } else if(event.button === 3){
+      // Translate camera
+      let distanceYInPercent = (delta.y /
+        parseFloat(this.get('renderer').domElement.clientHeight)) * 10.0;
+
+      this.get('vrEnvironment').position.y = this.get('vrEnvironment').position.y - distanceYInPercent;
+      this.get('environmentOffset').y -= distanceYInPercent;
+      
+      this.updateObjectMatrix(this.get('vrEnvironment'));
+      let deltaPosition = new THREE.Vector3(0, -distanceYInPercent, 0);
+      this.trigger('landscapeMoved', deltaPosition);
     }
+    
   },
 
   /*
@@ -1354,6 +1504,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  and the highlighted communication lines
    */
   saveSelectedEntity(intersectedViewObj, emberModel){
+    this.set('highlightedAppModel', intersectedViewObj.object.parent.userData.model);
     this.set('selectedEntitysMesh', intersectedViewObj.object);
     if(intersectedViewObj.object.userData.type === 'clazz'){
       this.set('selectedEntitysColor', new THREE.Color(this.get('colorListApp')[this.get('selectedEntitysMesh').userData.type]));
@@ -1417,13 +1568,13 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     
     // Handle packages
     if(condition1 && condition3){
-       this.get('highlightedEntitiesApp')[id].material.color =  
-         new THREE.Color(this.get('highlightedEntitiesApp')[id].userData.model.get('color'));
+      let originalColor = this.calculateLighterColor(this.get('highlightedEntitiesApp')[id]);
+      this.get('highlightedEntitiesApp')[id].material.color = new THREE.Color(originalColor);
      }
      // Handle clazzes
      if(condition2 && condition3){  
-       this.get('highlightedEntitiesApp')[id].material.color =  
-         new THREE.Color(this.get('colorListApp')[this.get('highlightedEntitiesApp')[id].userData.type]);
+      let originalColor = this.calculateLighterColor(this.get('highlightedEntitiesApp')[id]);
+      this.get('highlightedEntitiesApp')[id].material.color = new THREE.Color(originalColor);
      }
      this.get('highlightedEntitiesApp')[id] = null;
    },
@@ -1452,8 +1603,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  if the passed controller id highlighted it
    */
   unhighlightedDeleteButton(id, additionalCondition){
-    if(this.get('application3D') && this.get('deleteButtonHighlighted') === id && additionalCondition){
-      this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
+    if(this.get('openApps') && this.get('deleteButtonHighlighted') === id && additionalCondition){
+      this.get('openApps').forEach( app => {
+        app.getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
+      });
+      //this.get('application3D').getObjectByName('deleteButton').material = this.get('materialUnhighlighted');
       this.set('deleteButtonHighlighted', null);
     }
   },
@@ -1489,7 +1643,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  and to do all necessary clean up
    */
   deleteApplication3D(intersectedViewObj){
-    // Reset highlighting of delete button
+    // Reset highlighting of delete buttonghlighting of delete button
     this.set('deleteButtonHighlighted', null);
 
     // Check if delete button was highlighted => restore unhighlighted material
@@ -1503,13 +1657,15 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     }
     // Remove selection
     if(this.get('appCommunicationHighlighted')){
-      this.get('selector').highlightAppCommunication(null);
+      this.get('selector').highlightAppCommunication(null, this.get('highlightedAppModel'));
       this.get('appCommunicationHighlighted').set('highlighted', false);
       this.set('appCommunicationHighlighted', null);
       this.set('selectedEntitysMesh', null);
     }
-    // Remove application
-    this.trigger('removeApplication');
+    // Remove application if delete button was hit
+    if (intersectedViewObj.object.userData.appID && !this.get('boundApps').has(intersectedViewObj.object.userData.appID)){
+      this.trigger('removeApplication', intersectedViewObj.object.userData.appID);
+    }
   },
 
   /*
@@ -1517,25 +1673,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  the new position
    */
   teleportToPosition(position){
+    const cameraOffset = new THREE.Vector3();
 
-    let offsetX = position.x - this.get('camera').position.x;
-    let offsetZ = position.z - this.get('camera').position.z;
-
-    this.get('room').position.x -= offsetX;
-    this.get('room').position.z -= offsetZ;
-
-    this.updateObjectMatrix(this.get('room'));
-
-    this.get('vrEnvironment').position.x -= offsetX;
-    this.get('vrEnvironment').position.z -= offsetZ;
-
-    this.updateObjectMatrix(this.get('vrEnvironment'));
-
-    if(this.get('application3D') && !this.get('app3DBinded')){
-      this.get('application3D').position.x -= offsetX;
-      this.get('application3D').position.z -= offsetZ;
-      this.updateObjectMatrix(this.get('application3D'));
-    }
+    cameraOffset.copy(this.camera.position);
+    cameraOffset.y = 0;
+    this.user.position.subVectors(new THREE.Vector3(position.x, this.user.position.y, position.z), cameraOffset);
+    
   },
 
   /*
@@ -1590,9 +1733,30 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       actualColor = object.material.color;
     }
 
-    let r = Math.floor(actualColor.r * 0.65 * 255);
-    let g = Math.floor(actualColor.g * 0.65 * 255);
-    let b = Math.floor(actualColor.b * 0.65 * 255);
+    let r = Math.floor(actualColor.r * 0.625 * 255);
+    let g = Math.floor(actualColor.g * 0.625 * 255);
+    let b = Math.floor(actualColor.b * 0.625 * 255);
+
+    return "rgb("+r+", "+g+", "+b+")";
+  },
+
+    /*
+   * The method is used to reverse the effect of
+   * calculateDarkerColor()
+   */
+  calculateLighterColor(object){
+    let actualColor = null;
+
+    if(object.material.length){
+      actualColor = object.material[0].color;
+    }
+    else{
+      actualColor = object.material.color;
+    }
+
+    let r = Math.floor(actualColor.r * 1.6 * 255);
+    let g = Math.floor(actualColor.g * 1.6 * 255);
+    let b = Math.floor(actualColor.b * 1.6 * 255);
 
     return "rgb("+r+", "+g+", "+b+")";
   }

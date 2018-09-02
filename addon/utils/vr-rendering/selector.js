@@ -7,11 +7,7 @@ import Ember from 'ember';
  */
 export default Ember.Object.extend({
 
-  latestApplication: null,
-
-  saveLatestApplication(application){
-    this.set('latestApplication', application);
-  },
+  store: Ember.inject.service('store'),
 
   /*
    *  This method is used to highlight the communication lines of
@@ -20,26 +16,25 @@ export default Ember.Object.extend({
    *
    *  TODO: Complete adaptation to latest changes of model in backend
    */
-  highlightAppCommunication(entity) {
+  highlightAppCommunication(entity, app) {
 
-    const outgoingClazzCommunications = this.get('latestApplication').get('cumulatedClazzCommunications');
+    const outgoingClazzCommunications = app.get('cumulatedClazzCommunications');
 
     if(outgoingClazzCommunications != null){
 
       outgoingClazzCommunications.forEach((clazzCommunication) => {
 
         if(entity === null || entity === undefined){
-          outgoingClazzCommunications.state = "TRANSPARENT";
+          outgoingClazzCommunications.set("state", "TRANSPARENT");
           
         }
         else{
           if ((clazzCommunication.sourceClazz != null && clazzCommunication.get('sourceClazz').get('fullQualifiedName') === entity.get('fullQualifiedName')) ||
           (clazzCommunication.targetClazz != null && clazzCommunication.get('targetClazz').get('fullQualifiedName') === entity.get('fullQualifiedName'))) {
-            clazzCommunication.state = "NORMAL";
-
+            clazzCommunication.set("state", "NORMAL");
           } 
           else {
-            clazzCommunication.state = "TRANSPARENT";
+             clazzCommunication.set("state", "TRANSPARENT");
           }
         }
       });
