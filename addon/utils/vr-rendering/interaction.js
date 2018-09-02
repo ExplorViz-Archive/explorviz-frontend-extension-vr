@@ -232,7 +232,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           this.trigger('landscapeMoved', new THREE.Vector3(0, 0, 0)); //no position change, only quaternion
           break;
         case 'v':
-          //adjust camera position for vive
+          //adjust controller position for vive
           this.get('controllerGroup').translateX(-0.8);
           this.get('controllerGroup').translateZ(1.94);
           this.get('controllerGroup').rotateY(3.14159);

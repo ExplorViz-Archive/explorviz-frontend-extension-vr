@@ -23,26 +23,26 @@ export default VRRendering.extend(Ember.Evented, {
   socketRef: null, //websocket to send/receive messages to/from backend
   
   users: null, // Map: UserID -> User
-  userID: null, // own userID
-  color: null, // own color
-  state: null, // own connection status, state in {'connecting', 'connected', 'spectating'}
-  lastPositions: null, // last positions of camera and controllers
-  controllersConnected: null, // tells which controller(s) are connected
-  fps: 90, // tells how many pictures are max. rendered per second (refresh rate of Vive/Rift is 90)
-  updatesPerSecond: 90, //tells how many times per seconds msg can be sent to backend
-  badConnectionUpdates: 15, // tells how many updates are sent per second in case of a bad connection
-  lastViewTime: null, // last time an image was rendered
-  currentTime: null, // tells the current time in ms
-  deltaViewTime: null, // time between two frames
-  deltaUpdateTime: null, // time between two update messages
-  lastUpdateTime: null, //last time an update was sent
-  updateQueue: null, // messages which are ready to be sent to backend
-  running: null, // tells if gameLoop is executing
-  spectatedUser: null, // tells which userID (if any) is being spectated
-  startPosition: null, //position before this user starts spectating
-  session: service(), //session used to retrieve username
-  connectionIsGood: true, //tells whether or not backend has recently send a 'bad_connection' msg
-  badConnectionSince: null, // if there is a bad connection, contains timestamp of last 'bad_connection' msg
+  userID: null, // Own userID
+  color: null, // Own color
+  state: null, // Own connection status, state in {'connecting', 'connected', 'spectating'}
+  lastPositions: null, // Last positions of camera and controllers
+  controllersConnected: null, // Tells which controller(s) are connected
+  fps: 90, // Tells how many pictures are max. rendered per second (refresh rate of Vive/Rift is 90)
+  updatesPerSecond: 90, // Tells how many times per seconds msg can be sent to backend
+  badConnectionUpdates: 15, // Tells how many updates are sent per second in case of a bad connection
+  lastViewTime: null, // Last time an image was rendered
+  currentTime: null, // Tells the current time in ms
+  deltaViewTime: null, // Time between two frames
+  deltaUpdateTime: null, // Time between two update messages
+  lastUpdateTime: null, // Last time an update was sent
+  updateQueue: null, // Messages which are ready to be sent to backend
+  running: null, // Tells if gameLoop is executing
+  spectatedUser: null, // Tells which userID (if any) is being spectated
+  startPosition: null, // Position before this user starts spectating
+  session: service(), // Session used to retrieve username
+  connectionIsGood: true, // Tells whether or not backend has recently send a 'bad_connection' msg 
+  badConnectionSince: null, // If there is a bad connection, contains timestamp of last 'bad_connection' msg
 
 
   gameLoop() {
@@ -103,7 +103,6 @@ export default VRRendering.extend(Ember.Evented, {
 
     // check if bad connection data is still up to date (30 seconds or newer)
     if ((this.get('currentTime') - this.get('badConnectionSince')) / 1000 > 30){
-      this.get('badConnectionSince')
       this.set('badConnectionSince', null);
       this.set('updatesPerSecond', this.get('fps'));
       return;
@@ -112,7 +111,7 @@ export default VRRendering.extend(Ember.Evented, {
 
   /**
    * Set user name tag to be directly above their head
-   * and set rotation such that it look toward our camera.
+   * and set rotation such that it looks toward our camera.
    */
   updateUserNameTags() {
     let users = this.get('users').values();
@@ -252,7 +251,6 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('lastViewTime', new Date().getTime());
     this.set('lastUpdateTime', new Date().getTime());
     this.set('state', 'offline');
-
   },
 
   /**
@@ -458,7 +456,7 @@ export default VRRendering.extend(Ember.Evented, {
       camera: posCamera.toArray()
     }
 
-    //use world quaternions because controller can also be rotated via controllerGroup
+    // Use world quaternions because controller can also be rotated via controllerGroup
     let controller1Quaternion = new THREE.Quaternion();
     this.get('controller1').getWorldQuaternion(controller1Quaternion);
 
@@ -504,11 +502,11 @@ export default VRRendering.extend(Ember.Evented, {
     }];
     this.send(disconnectMessage);
 
-    // set own state to offline
+    // Set own state to offline
     this.set('state', 'offline');
     ConnectMenu.setState.call(this, 'offline');
     
-    // remove other users and their corresponding models
+    // Remove other users and their corresponding models
     let users = this.users.values();
     for(let user of users) {
       this.get('scene').remove(user.get('controller1.model'));
@@ -544,7 +542,7 @@ export default VRRendering.extend(Ember.Evented, {
    * @param {JSON} event Event of websocket containing all messages of backend
    */
   messageHandler(event) {
-    //backend could have sent multiple messages at a time
+    // Backend could have sent multiple messages at a time
     const messages = JSON.parse(event.data); 
     for(let i = 0; i < messages.length; i++) {
       let data = messages[i];
@@ -640,7 +638,7 @@ export default VRRendering.extend(Ember.Evented, {
    * @param {JSON} data Message containing own userID
    */
   onSelfConnecting(data) {
-    //if name is not found, use id as default name
+    // If name is not found, use id as default name
     let name = this.get('session.data.authenticated.username') || "ID: " + data.id;
     this.set('userID', data.id);
     this.set('color', data.color);
@@ -658,7 +656,7 @@ export default VRRendering.extend(Ember.Evented, {
    * @param {JSON} data Message containing data on other users.
    */
   onSelfConnected(data) {
-    // create User model for all users and add them to the users map
+    // Create User model for all users and add them to the users map
     for (let i = 0; i < data.users.length; i++) {
       const userData = data.users[i];
       let user = new User();
@@ -674,10 +672,10 @@ export default VRRendering.extend(Ember.Evented, {
         this.loadController2(userData.controllers.controller2, userData.id);
 
       user.initCamera(Models.getHMDModel());
-      //add models for other users
+      // Add models for other users
       this.get('scene').add(user.get('camera.model'));
 
-      //set name for user on top of his hmd 
+      // Set name for user on top of his hmd 
       this.addUsername(userData.id);
     }
     this.set('state', 'connected');
@@ -686,7 +684,7 @@ export default VRRendering.extend(Ember.Evented, {
 
     console.log("onSelfConnected()");
 
-    // remove any open apps which may still exist from offline mode
+    // Remove any open apps which may still exist from offline mode
     this.removeOpenApps();
   },
 
@@ -776,8 +774,8 @@ export default VRRendering.extend(Ember.Evented, {
       this.deactivateSpectating();
     }
 
-    // removes user and their models.
-    // informs our user about their disconnect.
+    // Removes user and their models.
+    // Informs our user about their disconnect.
     if(this.get('users') && this.get('users').has(id)) {
       //unhighlight possible objects of disconnected user
       this.onHighlightingUpdate(id, false);
@@ -969,11 +967,11 @@ export default VRRendering.extend(Ember.Evented, {
   onHighlightingUpdate(userID, isHighlighted, appID, entityID, originalColor){
     let user = this.get('users').get(userID);
 
-    //save highlighted entity
+    // Save highlighted entity
     if (isHighlighted){
       this.onHighlightingUpdate(userID, false);
       user.setHighlightedEntity(appID, entityID, originalColor);
-    //restore highlighted entity data
+    // Restore highlighted entity data
     } else {
       appID = user.highlightedEntity.appID;
       entityID = user.highlightedEntity.entityID;
@@ -982,12 +980,12 @@ export default VRRendering.extend(Ember.Evented, {
 
     let app = this.get('openApps').get(appID);
 
-    //return if app is not opened
+    // Return if app is not opened
     if(!app){
       return;
     }
 
-    //find component/clazz which shall be highlighted
+    // Find component/clazz which shall be highlighted
     app.children.forEach( child => {
       if (child.userData.model && child.userData.model.id === entityID){
 
@@ -998,11 +996,11 @@ export default VRRendering.extend(Ember.Evented, {
           let colorArray = user.get('color');
           let userColor = new THREE.Color(colorArray[0]/255.0, colorArray[1]/255.0, colorArray[2]/255.0);
           child.material.color = new THREE.Color(userColor);
-          //darken the color (same is done for HMDs)
+          // Darken the color (same is done for HMDs)
           child.material.emissive.setHSL(hsl.h, hsl.s, 0.1);
         } else {
           child.material.color = new THREE.Color(originalColor);
-          //lighten color up again
+          // Lighten color up again
           child.material.emissive.setHSL(hsl.h, hsl.s, 0);
         }
         return;
@@ -1046,26 +1044,26 @@ export default VRRendering.extend(Ember.Evented, {
 
     let textSize = Helper.getTextSize(username);
 
-    //width according to textsize, will be automatically resized to a power of two
+    // Width according to textsize, will be automatically resized to a power of two
     let width = textSize.width * 3 + 20;
     let height = textSize.height * 5;
 
-    // use canvas to display text
+    // Use canvas to display text
     this.set('canvas2', document.createElement('canvas'));
     this.get('canvas2').width = width;
     this.get('canvas2').height = height;
     let canvas2 = this.get('canvas2');
     var ctx = canvas2.getContext('2d');
-    ctx.fillStyle = 'rgba(200, 200, 216, 0.5)'; // light grey
+    ctx.fillStyle = 'rgba(200, 200, 216, 0.5)'; // Light grey
     ctx.fillRect(0, 0, canvas2.width, canvas2.height);
 
 
     ctx.font = `30px arial`;
-    ctx.fillStyle = Helper.rgbToHex(user.get('color')); // username is colored in corresponding color
+    ctx.fillStyle = Helper.rgbToHex(user.get('color')); // Username is colored in corresponding color
     ctx.textAlign = 'center';
     ctx.fillText(username, canvas2.width / 2, 35);
        
-    // create texture out of canvas
+    // Create texture out of canvas
     let texture = new THREE.Texture(canvas2);
 
     // Update texture      
@@ -1074,20 +1072,20 @@ export default VRRendering.extend(Ember.Evented, {
     let geometry = new THREE.PlaneGeometry(width / 500, height / 500, 32 );
     let material = new THREE.MeshBasicMaterial( {map: texture, color: 0xffffff, side: THREE.DoubleSide} );
     material.transparent = true;
-    material.opacity = 0.8; //make username tag slightly transparent
+    material.opacity = 0.8; // Make username tag slightly transparent
     let plane = new THREE.Mesh( geometry, material );
 
-    //use dummy object to let username always face camera with lookAt() function
+    // Use dummy object to let username always face camera with lookAt() function
     let dummy = new THREE.Object3D();
     dummy.name = 'dummyPlaneName';
 
     dummy.position.x = camera.position.x;
-    dummy.position.y = camera.position.y + 0.3; //display username above hmd
+    dummy.position.y = camera.position.y + 0.3; // Display username above hmd
     dummy.position.z = camera.position.z;
 
     user.set('namePlane', plane);
 
-    //username moves with user
+    // Username moves with user
     camera.add(dummy);
     this.get('scene').add(plane);
   },
@@ -1104,7 +1102,7 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   setLandscapeState(systems, nodegroups){
-    // set system status to opened / closed
+    // Set system status to opened / closed
     let vrLandscape = this.get('vrLandscape').children;
     systems.forEach(system => {
       let emberModel = this.get('store').peekRecord('system', system.id);
@@ -1114,7 +1112,7 @@ export default VRRendering.extend(Ember.Evented, {
     });
     this.populateScene();
 
-    // use of store like above currently not possible, due to problems with klay
+    // Use of store like above currently not possible, due to problems with klay
     nodegroups.forEach(function (nodegroup){
       let id = nodegroup.id;
       let isOpen = nodegroup.opened;
@@ -1131,23 +1129,23 @@ export default VRRendering.extend(Ember.Evented, {
   showApplication(id, posArray, quatArray){
     this.set('viewImporter.importedURL', null);
 
-    //get model of application of the store
+    // Get model of application of the store
     let emberModel = this.get('store').peekRecord('application', id);
    
-    //dont allow to have the same app opened twice
+    // Dont allow to have the same app opened twice
     if (this.get('openApps').has(emberModel.id)){
       return;
     }
 
-    //note that this property is still only working for one app at a time
+    // Note that this property is still only working for one app at a time
     this.set('landscapeRepo.latestApplication', emberModel); 
-    //position and quaternion where the application shall be displayed
+    // Position and quaternion where the application shall be displayed
     let position = new THREE.Vector3().fromArray(posArray);
     let quaternion = new THREE.Quaternion().fromArray(quatArray);
     // Add 3D Application to scene (also if another one exists already)
     this.add3DApplicationToLandscape(emberModel, position, quaternion);
 
-    //update matrix to display application correctly in the world
+    // Update matrix to display application correctly in the world
     this.get('openApps').get(emberModel.id).updateMatrix();
   },
 
@@ -1195,19 +1193,19 @@ export default VRRendering.extend(Ember.Evented, {
     }
   },
 
-  // called when the websocket is opened for the first time
+  // Called when the websocket is opened for the first time
   openHandler(event) {
     console.log(`On open event has been called: ${event}`);
   },
 
-  // used to send messages to the backend
+  // Used to send messages to the backend
   send(obj) {
     // console.log(`Sending: ${JSON.stringify(obj)}`);
     if(this.get('socketRef'))
       this.get('socketRef').send(JSON.stringify(obj));
   },
 
-  // called when the websocket is closed
+  // Called when the websocket is closed
   closeHandler(event) {
     console.log(`On close event has been called: ${event}`);
     // ConnectMenu.open.call(this, OptionsMenu.open);
@@ -1215,7 +1213,7 @@ export default VRRendering.extend(Ember.Evented, {
     ConnectMenu.setState.call(this, 'offline');
   },
 
-  // called when user closes the site / tab
+  // Called when user closes the site / tab
   willDestroyElement() {
     this._super(...arguments);
 
