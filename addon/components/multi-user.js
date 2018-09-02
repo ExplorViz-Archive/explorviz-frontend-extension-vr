@@ -688,6 +688,11 @@ export default VRRendering.extend(Ember.Evented, {
 
     // Remove any open apps which may still exist from offline mode
     this.removeOpenApps();
+
+    // Reset landscape position
+    this.set('environmentOffset', new THREE.Vector3(0, 0, 0));
+    this.get('vrEnvironment').rotation.x =  -1.5708;
+    this.updateObjectMatrix(this.get('vrEnvironment'));
   },
 
   /**
