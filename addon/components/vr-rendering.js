@@ -369,6 +369,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('centerAndZoomCalculator.centerPoint', null);
 
     // Create floor
+    /**
+     * Floor texture by
+     * Author: V.Hartikainen
+     * License: https://creativecommons.org/licenses/by/3.0/
+     * Title: Seamless Dark Texture With Small Grid
+     * Source: https://tiled-bg.blogspot.com/2014/08/seamless-dark-texture-with-small-grid.html
+     */
     var floorTexture = new THREE.TextureLoader().load('images/materials/floor.jpg');
     floorTexture.wrapS = THREE.MirroredRepeatWrapping;
     floorTexture.wrapT = THREE.MirroredRepeatWrapping;
