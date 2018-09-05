@@ -88,11 +88,6 @@ Controller = function (id) {
       if(pose.position !== null )
         scope.position.fromArray(pose.position);
 
-      if(gamepad.id.startsWith('Oculus Touch'))
-        scope.position.y += 1.61;
-      else
-        scope.position.y += 0.8;
-
       if(pose.orientation !== null)
         scope.quaternion.fromArray(pose.orientation);
 
