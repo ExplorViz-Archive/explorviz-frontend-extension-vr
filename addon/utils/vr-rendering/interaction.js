@@ -354,6 +354,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       }
   
       const emberModel = intersectedViewObj.object.userData.model;
+
+      if(!emberModel)
+        return;
+
       const emberModelName = emberModel.constructor.modelName;
 
       // Calculate darker color
@@ -561,6 +565,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       if(!this.get('previousToolTipObjects')[id]){
 
         const emberModel = intersectedViewObj.object.userData.model;
+        
+        if(!emberModel)
+          return;
 
         // Get information to display for hit object
         var content = this.get('hoverHandler').buildContent(emberModel);
@@ -735,6 +742,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         }
 
         const emberModel = intersectedViewObj.object.userData.model;
+
+        if(!emberModel)
+          return;
+
         const emberModelName = emberModel.constructor.modelName;
         
         // Handle application hit
@@ -850,6 +861,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         }
 
         const emberModel = intersectedViewObj.object.userData.model;
+        
+        if(!emberModel)
+          return;
+
         const emberModelName = emberModel.constructor.modelName;
         
         // Handle component of app3D hit
@@ -956,6 +971,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       }
     
       const emberModel = intersectedViewObj.object.userData.model;
+
+      if(!emberModel)
+      return;
+
       const emberModelName = emberModel.constructor.modelName;
 
       // Component or clazz hit and app3D not aready binded
@@ -1160,6 +1179,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.get('hoverHandlerApp3D').hideTooltip();
 
       const emberModel = intersectedViewObj.object.userData.model;
+      
+      if(!emberModel)
+      return;
+
       const emberModelName = emberModel.constructor.modelName;
       
       // Handle application hit
@@ -1286,6 +1309,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       this.get('hoverHandlerApp3D').hideTooltip();
 
       const emberModel = intersectedViewObj.object.userData.model;
+      
+      if(!emberModel)
+      return;
+
       const emberModelName = emberModel.constructor.modelName;
 
       // Calculate darker color
@@ -1424,6 +1451,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       }
 
       const emberModel = intersectedViewObj.object.userData.model;
+      
+      if(!emberModel)
+      return;
+      
       const emberModelName = emberModel.constructor.modelName;
 
       if(emberModelName === "nodegroup" || emberModelName === "system" || emberModelName === "node" || emberModelName === "application"){

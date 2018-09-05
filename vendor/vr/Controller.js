@@ -97,7 +97,7 @@ Controller = function (id) {
         scope.quaternion.fromArray(pose.orientation);
 
       scope.matrix.compose(scope.position, scope.quaternion, scope.scale);
-      scope.matrix.multiplyMatrices(scope.standingMatrix, scope.matrix)
+      scope.matrix.multiplyMatrices(scope.standingMatrix, scope.matrix);
       scope.matrixWorldNeedsUpdate = true;
       scope.visible = true;
 

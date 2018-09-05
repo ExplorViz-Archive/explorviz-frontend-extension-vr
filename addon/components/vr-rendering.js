@@ -197,7 +197,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('scene', new THREE.Scene());
     this.set('scene.background', new THREE.Color(0xeaf4fc));
 
-    this.set('camera', new THREE.PerspectiveCamera(70, width / height, 0.1, 10));
+    this.set('camera', new THREE.PerspectiveCamera(70, width / height, 0.01, 50));
 
     // Create and configure renderer
     this.set('webglrenderer', new THREE.WebGLRenderer({
@@ -352,13 +352,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // Add lights
 
-    const spotLight = new THREE.SpotLight(0xffffff, 0.3, 1000, 1.56, 0, 0);
-    spotLight.position.set(-5, 2, 0);
-    this.get('scene').add(spotLight);
+    //const spotLight = new THREE.SpotLight(0xffffff, 0.3, 1000, 1.56, 0, 0);
+    //spotLight.position.set(-5, 2, 0);
+    //this.get('scene').add(spotLight);
 
     // AmbientLight( color, intensity )
-    const light = new THREE.AmbientLight(new THREE.Color(.7, .7, .72), 1.0);
-    this.scene.add(light);
+    //const light = new THREE.AmbientLight(new THREE.Color(.7, .7, .72), 1.0);
+    //this.scene.add(light);
 
     // Set default model
     this.set('imageLoader.logos', {});
@@ -386,10 +386,22 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       map: floorTexture
     });
     var floorMesh = new THREE.Mesh(floorGeometry, floorMaterial);
+    floorMesh.receiveShadow = true;
     floorMesh.name = 'floor';
     floorMesh.userData.name = 'floor';
     this.get('room').add(floorMesh);
-    self.get('scene').add(this.get('room'));///// End floor
+    this.get('scene').add(this.get('room'));///// End floor
+
+    this.get('scene').add( new THREE.HemisphereLight( 0x888877, 0x777788, 0.5 ) );
+    var light = new THREE.DirectionalLight( 0xffffff );
+    light.position.set( 0, 6, 0 );
+    light.castShadow = true;
+    light.shadow.camera.top = 2;
+    light.shadow.camera.bottom = -2;
+    light.shadow.camera.right = 2;
+    light.shadow.camera.left = -2;
+    light.shadow.mapSize.set( 4096, 4096 );
+    this.get('scene').add( light );
 
     Models.loadModels();
 
@@ -1184,7 +1196,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       const requestsList = {};
 
       tiles.forEach((tile) => {
-
         requestsList[tile.requestsCache] = 0;
       });
 
@@ -1268,7 +1279,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           for (let requests in list) {
             let categoryValue = getCategoryFromLinearValues(requests, t1, t2,
               t3);
-
             list[requests] = categoryValue;
           }
 
@@ -1717,11 +1727,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         end.subVectors(cumuClazzCommu.get('endPoint'), viewCenterPoint);
         end.multiplyScalar(0.5);
 
-        if(start.y >= end.y) {
+        /*if(start.y >= end.y) {
           end.y = start.y;
         } else {
           start.y = end.y;
-        }
+        }*/
 
         let transparent = false;
         let opacityValue = 1.0;
@@ -1753,14 +1763,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       const direction = new THREE.Vector3().subVectors(pointY, pointX);
       const orientation = new THREE.Matrix4();
       orientation.lookAt(pointX, pointY, new THREE.Object3D().up);
-      orientation.multiply(new THREE.Matrix4().set(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1));
-      const edgeGeometry = new THREE.CylinderGeometry(thickness, thickness, direction.length(), 20, 1);
+      orientation.multiply(new THREE.Matrix4().set(1, 0, 0, 0, 0, 0, 1,
+        0, 0, -1, 0, 0, 0, 0, 0, 1));
+      const edgeGeometry = new THREE.CylinderGeometry(thickness, thickness,
+        direction.length(), 20, 1);
       const pipe = new THREE.Mesh(edgeGeometry, material);
       pipe.applyMatrix(orientation);
-
-      //adding 5.5 so the lines are positioned correctly
-      //unsure if it works for every application
-      pipe.position.x = (pointY.x + pointX.x) / 2.0 + 5.5;
+  
+      pipe.position.x = (pointY.x + pointX.x) / 2.0;
       pipe.position.y = (pointY.y + pointX.y) / 2.0;
       pipe.position.z = (pointY.z + pointX.z) / 2.0;
       return pipe;
@@ -1890,8 +1900,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         component.get('positionZ') + component.get('depth') / 2.0);
 
       const material = new THREE.MeshLambertMaterial();
-
       material.color = new THREE.Color(color);
+
+      centerPoint.sub(self.get('centerAndZoomCalculator.centerPoint'));
 
       centerPoint.multiplyScalar(0.5);
 

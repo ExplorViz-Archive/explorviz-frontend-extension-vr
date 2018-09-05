@@ -191,7 +191,7 @@ export default EmberObject.extend({
     // create texture out of canvas
     let texture = new THREE.CanvasTexture(canvas);
     // Map texture
-    let material = new THREE.MeshPhongMaterial({ map: texture, depthTest: true });
+    let material = new THREE.MeshBasicMaterial({ map: texture, depthTest: true });
     material.transparent = true;
     material.opacity = this.opacity;
 
