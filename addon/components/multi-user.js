@@ -87,7 +87,6 @@ export default VRRendering.extend(Ember.Evented, {
       if(this.get('state') === 'connected' || this.get('state') === 'spectating')
         this.checkForBadConnection();
     }
-    requestAnimationFrame(this.gameLoop.bind(this));
   },
 
   handleBadConnection(){
@@ -228,7 +227,7 @@ export default VRRendering.extend(Ember.Evented, {
       ConnectMenu.open.call(this, OptionsMenu.open);
       console.log("Start gameLoop");
       this.set('running', true);
-      this.gameLoop();
+      this.get('webglrenderer').setAnimationLoop(this.gameLoop.bind(this));
     });
   },
 
