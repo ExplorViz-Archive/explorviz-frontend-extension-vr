@@ -602,6 +602,7 @@ export default VRRendering.extend(Ember.Evented, {
           console.log(data);
           this.get('boundApps').delete(data.id);
           this.updateAppPosition(data.id, data.position, data.quaternion);
+          this.get('scene').add(this.get('openApps').get(data.id));
           break;
         case 'receive_component_update':
           if (data.isFoundation){
@@ -781,7 +782,7 @@ export default VRRendering.extend(Ember.Evented, {
     // Informs our user about their disconnect.
     if(this.get('users') && this.get('users').has(id)) {
       //unhighlight possible objects of disconnected user
-      this.onHighlightingUpdate(id, false);
+      this.onHighlightingUpdate(id, false, user.highlightedEntity.appID, user.highlightedEntity.entityID, user.highlightedEntity.originalColor);
       let user = this.get('users').get(id);
       this.get('scene').remove(user.get('controller1.model'));
       user.removeController1();
@@ -954,15 +955,17 @@ export default VRRendering.extend(Ember.Evented, {
 
   updateAppPosition(appID, position, quatArray){
     if (this.get('openApps').has(appID)) {
-      var appPosition = new THREE.Vector3(position[0], position[1], position[2]);
-      var appQuaternion = new THREE.Quaternion(quatArray[0], quatArray[1], quatArray[2], quatArray[3]);
-      let app3DModel = this.get('openApps').get(appID).userData.model;
+      //var appPosition = new THREE.Vector3(position[0], position[1], position[2]);
+      //var appQuaternion = new THREE.Quaternion(quatArray[0], quatArray[1], quatArray[2], quatArray[3]);
+      let app3DModel = this.get('openApps').get(appID);
 
+      app3DModel.position.fromArray(position);
+      app3DModel.quaternion.fromArray(quatArray);
       // Empty application 3D (remove app3D)
-      this.removeChildren(this.get('openApps').get(appID));
+      //this.removeChildren(this.get('openApps').get(appID));
 
       // Add application3D to scene
-      this.add3DApplicationToLandscape(app3DModel, appPosition, appQuaternion);
+      //this.add3DApplicationToLandscape(app3DModel, appPosition, appQuaternion);
       this.get('openApps').get(appID).updateMatrix();
      }       
   },
@@ -972,13 +975,10 @@ export default VRRendering.extend(Ember.Evented, {
 
     // Save highlighted entity
     if (isHighlighted){
-      this.onHighlightingUpdate(userID, false);
+      this.onHighlightingUpdate(userID, false, user.highlightedEntity.appID, user.highlightedEntity.entityID, 
+           user.highlightedEntity.originalColor); //unhighlight possible old highlighting
       user.setHighlightedEntity(appID, entityID, originalColor);
     // Restore highlighted entity data
-    } else {
-      appID = user.highlightedEntity.appID;
-      entityID = user.highlightedEntity.entityID;
-      originalColor = user.highlightedEntity.originalColor;
     }
 
     let app = this.get('openApps').get(appID);
@@ -999,7 +999,7 @@ export default VRRendering.extend(Ember.Evented, {
           let colorArray = user.get('color');
           let userColor = new THREE.Color(colorArray[0]/255.0, colorArray[1]/255.0, colorArray[2]/255.0);
           child.material.color = new THREE.Color(userColor);
-          // Darken the color (same is done for HMDs)
+          // Darken the color
           child.material.emissive.setHSL(hsl.h, hsl.s, 0.1);
         } else {
           child.material.color = new THREE.Color(originalColor);

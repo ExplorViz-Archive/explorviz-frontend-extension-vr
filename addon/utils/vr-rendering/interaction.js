@@ -881,7 +881,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
               if(this.get('selectedEntitysMesh') === intersectedViewObj.object){
                 this.restoreSelectedEntity(this.verifyControllers(controller.id));
                 this.set('selectedEntitysMesh', null);
-                this.trigger("entityHighlighted", false);
+                this.trigger("entityHighlighted", false, emberModel.id, this.get('selectedEntitysColor'));
                 this.set('selectedEntitysColor', null);
                 return;
               }
@@ -909,20 +909,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             // Reset highlighting for selected component
             this.get('highlightedEntitiesApp')[controller.id] = null;
           }
-        }
-      }
-      else{
-        // Reset communication highlighting (nothing hit)
-        if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && this.get('selectedEntitysColor')){
-          this.get('selector').highlightAppCommunication(null, this.get('highlightedAppModel')); 
-          // Restore selected entity and communication lines
-          this.restoreSelectedEntity(this.verifyControllers(controller.id));
-  
-          this.set('appCommunicationHighlighted', null);
-          this.set('selectedEntitysMesh', null);
-          this.set('selectedEntitysColor', null);
-          this.trigger('redrawAppCommunication');
-          this.trigger("entityHighlighted", false);
         }
       }
     }
@@ -1334,7 +1320,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
               this.restoreSelectedEntity(id);
               this.set('selectedEntitysMesh', null);
 
-              this.trigger("entityHighlighted", false);
+              this.trigger("entityHighlighted", false, appID, emberModel.id, this.get('selectedEntitysColor'));
               return;
             }
             // Reset communication lines
@@ -1363,21 +1349,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     else{
       // Remove area for teleporting
       this.trigger('removeTeleportArea');
-
-      // Reset selection 
-      if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && this.get('selectedEntitysColor')){
-
-        // Reset communication lines
-        this.get('selector').highlightAppCommunication(null, this.get('highlightedAppModel').userData.model);
-
-        // Restore selected entity and communication lines
-        this.restoreSelectedEntity(id);
-
-        this.set('appCommunicationHighlighted', null);
-        this.set('selectedEntitysMesh', null);
-        this.trigger('redrawAppCommunication');
-        this.trigger('entityHighlighted', false);
-      }
 
       // Unhighlight delete button
       this.unhighlightedDeleteButton(id, true);
