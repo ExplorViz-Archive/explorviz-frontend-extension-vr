@@ -346,8 +346,8 @@ export default VRRendering.extend(Ember.Evented, {
     this.get('interaction').on('appBinded',(appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion) => {
       Sender.sendAppBinded.call(this, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion);
     });
-    this.get('interaction').on('componentUpdate', (appID , componentID, isOpened) => {
-      Sender.sendComponentUpdate.call(this, appID, componentID, isOpened);
+    this.get('interaction').on('componentUpdate', (appID , componentID, isOpened, isFoundation) => {
+      Sender.sendComponentUpdate.call(this, appID, componentID, isOpened, isFoundation);
     });
     this.get('interaction').on('landscapeMoved', (deltaPosition) => {
       Sender.sendLandscapeUpdate.call(this, deltaPosition);
@@ -611,8 +611,11 @@ export default VRRendering.extend(Ember.Evented, {
           this.updateAppPosition(data.id, data.position, data.quaternion);
           break;
         case 'receive_component_update':
-          console.log(data);
-          this.get('store').peekRecord('component', data.componentID).setOpenedStatus(data.isOpened);
+          if (data.isFoundation){
+            this.get('foundations').get(data.appID).setOpenedStatus(data.isOpened);
+          } else {
+            this.get('store').peekRecord('component', data.componentID).setOpenedStatus(data.isOpened);
+          }
           this.redrawApplication(data.appID);
           break;
         case 'receive_hightlight_update':

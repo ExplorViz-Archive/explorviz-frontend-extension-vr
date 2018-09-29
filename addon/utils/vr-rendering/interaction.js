@@ -786,7 +786,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
           emberModel.setOpenedStatus(!emberModel.get('opened'));
           this.trigger('redrawApp', appID);
   
-          this.trigger('componentUpdate', appID , emberModel.id, emberModel.get('opened'));
+          this.trigger('componentUpdate', appID , emberModel.id, emberModel.get('opened'), emberModel.get('foundation'));
   
           // Restore selection
           if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened'))
@@ -1232,7 +1232,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         emberModel.setOpenedStatus(!emberModel.get('opened'));
         this.trigger('redrawApp', appID);
 
-        this.trigger('componentUpdate', appID , emberModel.id, emberModel.get('opened'));
+        this.trigger('componentUpdate', appID , emberModel.id, emberModel.get('opened'), emberModel.get('foundation'));
 
         // Restore selection
         if(this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened'))

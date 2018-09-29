@@ -109,13 +109,14 @@ export function sendAppReleased(appID, position, quaternion){
  * @param {Long} componentID ID of the component which was opened or closed
  * @param {boolean} isOpened Tells whether the component is now open or closed (current state)
  */
-export function sendComponentUpdate(appID, componentID, isOpened){
+export function sendComponentUpdate(appID, componentID, isOpened, isFoundation){
   let appObj = {
     "event": "receive_component_update",
     "time": Date.now(),
     "appID": appID,
     "componentID": componentID,
-    "isOpened": isOpened
+    "isOpened": isOpened,
+    "isFoundation": isFoundation
   }
   this.get('updateQueue').push(appObj);
 }
