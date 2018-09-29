@@ -1209,6 +1209,9 @@ export default VRRendering.extend(Ember.Evented, {
   closeHandler(event) {
     console.log(`On close event has been called: ${event}`);
     // ConnectMenu.open.call(this, OptionsMenu.open);
+    if(this.state === 'connecting')
+      HintMenu.showHint.call(this, "Couldn't establish connection", 3);
+
     this.disconnect(false);
   },
 
