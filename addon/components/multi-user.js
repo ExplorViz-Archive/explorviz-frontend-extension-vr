@@ -211,7 +211,7 @@ export default VRRendering.extend(Ember.Evented, {
       port = json.port;
 
       if(!host || !port) {
-        console.log('Config not found');
+        console.error('Config not found');
         return;
       }
 
@@ -219,7 +219,6 @@ export default VRRendering.extend(Ember.Evented, {
       this.port = port;
 
       ConnectMenu.open.call(this, OptionsMenu.open);
-      console.log("Start gameLoop");
       this.set('running', true);
       this.get('webglrenderer').setAnimationLoop(this.gameLoop.bind(this));
     });
@@ -543,49 +542,35 @@ export default VRRendering.extend(Ember.Evented, {
       let data = messages[i];
       switch(data.event) {
         case 'receive_self_connecting':
-          console.log(data);
           this.onSelfConnecting(data);
-          console.log(`You are connecting with id ${this.get('userID')}`);
           break;
         case 'receive_self_connected':
-          console.log(data);
           this.onSelfConnected(data);
-          console.log(`You just connected with id ${this.get('userID')}`);
           break;
         case 'receive_user_connecting':
-          console.log(data);
-          console.log(`New client connecting with ID ${data.id}`);
           break;
         case 'receive_user_connected':
-          console.log(data);
           this.onUserConnected(data);
-          console.log(`${data.user.name} connected with ID ${data.user.id}`);
           break;
         case 'receive_user_positions':
           this.onUserPositions(data);
           break;
         case 'receive_user_controllers':
-          console.log(data);
           this.onUserControllers(data);
           break;
         case 'receive_user_disconnect':
-          console.log(data);
           this.onUserDisconnect(data);
           break;
         case 'receive_landscape':
-          console.log(data);
           this.onInitialLandscape(data);
           break;
           case 'receive_landscape_position':
-          console.log(data);
           this.onLandscapePosition(data.deltaPosition, data.quaternion);
           break;
         case 'receive_system_update':
-          console.log(data);
           this.onLandscapeUpdate(data.id, data.isOpen);
           break;
         case 'receive_nodegroup_update':
-          console.log(data);
           this.onLandscapeUpdate(data.id, data.isOpen);
           break;
         case 'receive_app_opened':
@@ -599,7 +584,6 @@ export default VRRendering.extend(Ember.Evented, {
             data.isBoundToController1, data.controllerPosition, data.controllerQuaternion);
           break;
         case 'receive_app_released':
-          console.log(data);
           this.get('boundApps').delete(data.id);
           this.updateAppPosition(data.id, data.position, data.quaternion);
           this.get('scene').add(this.get('openApps').get(data.id));
@@ -613,18 +597,16 @@ export default VRRendering.extend(Ember.Evented, {
           this.redrawApplication(data.appID);
           break;
         case 'receive_hightlight_update':
-          console.log(data);
           this.onHighlightingUpdate(data.userID, data.isHighlighted, data.appID, data.entityID, data.color);
           break;
         case 'receive_spectating_update':
-          console.log(data);
           this.onSpectatingUpdate(data.userID, data.isSpectating);
           break;
         case 'receive_ping':
           this.updateQueue.push(data);
           break;
         case 'receive_bad_connection':
-        this.handleBadConnection();
+          this.handleBadConnection();
           break;
       }
     }
@@ -680,8 +662,6 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('state', 'connected');
     ConnectMenu.setState('connected');
     this.set('controllersConnected', { controller1: false, controller2: false });
-
-    console.log("onSelfConnected()");
 
     // Remove any open apps which may still exist from offline mode
     this.removeOpenApps();
@@ -753,7 +733,6 @@ export default VRRendering.extend(Ember.Evented, {
     user.set('id', data.user.id);
     user.set('color', data.user.color);
     user.set('state', 'connected');
-    console.log(user);
     user.initCamera(Models.getHMDModel());
     this.get('users').set(data.user.id, user);
 
@@ -1208,19 +1187,16 @@ export default VRRendering.extend(Ember.Evented, {
 
   // Called when the websocket is opened for the first time
   openHandler(event) {
-    console.log(`On open event has been called: ${event}`);
   },
 
   // Used to send messages to the backend
   send(obj) {
-    // console.log(`Sending: ${JSON.stringify(obj)}`);
     if(this.get('socketRef'))
       this.get('socketRef').send(JSON.stringify(obj));
   },
 
   // Called when the websocket is closed
   closeHandler(event) {
-    console.log(`On close event has been called: ${event}`);
     // ConnectMenu.open.call(this, OptionsMenu.open);
     if(this.state === 'connecting')
       HintMenu.showHint.call(this, "Couldn't establish connection", 3);
