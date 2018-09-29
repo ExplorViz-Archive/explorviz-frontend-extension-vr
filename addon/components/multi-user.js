@@ -56,38 +56,31 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('deltaViewTime',  this.get('currentTime') - this.get('lastViewTime'));
     this.set('deltaUpdateTime', this.get('currentTime') - this.get('lastUpdateTime'));
 
-    //if time difference is large enough, update user's view
-    if(this.get('deltaViewTime') > (1000 / this.get('fps'))) {
-      if(this.get('userID') && this.get('state') === 'spectating') {
-        this.spectateUser(); // follow view of spectated user
-      }
-
-      this.updateControllers();
-
-      if(this.get('userID') && this.get('state') === 'connected' || this.get('state') === 'spectating')
-        this.updateUserNameTags();
-
-      this.render2();
-
-      this.set('lastViewTime', this.get('currentTime'));
+    if(this.get('userID') && this.get('state') === 'spectating') {
+      this.spectateUser(); // follow view of spectated user
     }
 
-    //if time difference is large enough, send updates to backend
-    if(this.get('deltaUpdateTime') > (1000 / this.get('updatesPerSecond'))) {
-      if(this.get('userID') && this.get('state') === 'connected') {
-        this.update();
-      } 
+    this.updateControllers();
 
-      //send messages like connecting request, position updates etc.
-      if(this.get('state') !== 'offline')
-        this.sendUpdates();
+    if(this.get('userID') && this.get('state') === 'connected' || this.get('state') === 'spectating')
+      this.updateUserNameTags();
 
-      this.set('lastUpdateTime', this.get('currentTime'));
+    this.render2();
 
-      if(this.get('state') === 'connected' || this.get('state') === 'spectating')
-        this.checkForBadConnection();
-    }
-    requestAnimationFrame(this.gameLoop.bind(this));
+    this.set('lastViewTime', this.get('currentTime'));
+
+    if(this.get('userID') && this.get('state') === 'connected' || this.get('state') === 'spectating') {
+      this.update();
+    } 
+
+    //send messages like connecting request, position updates etc.
+    if(this.get('state') !== 'offline')
+      this.sendUpdates();
+
+    this.set('lastUpdateTime', this.get('currentTime'));
+
+    //if(this.get('state') === 'connected' || this.get('state') === 'spectating')
+    //  this.checkForBadConnection();
   },
 
   handleBadConnection(){
@@ -228,7 +221,7 @@ export default VRRendering.extend(Ember.Evented, {
       ConnectMenu.open.call(this, OptionsMenu.open);
       console.log("Start gameLoop");
       this.set('running', true);
-      this.gameLoop();
+      this.get('webglrenderer').setAnimationLoop(this.gameLoop.bind(this));
     });
   },
 
@@ -1219,6 +1212,9 @@ export default VRRendering.extend(Ember.Evented, {
   closeHandler(event) {
     console.log(`On close event has been called: ${event}`);
     // ConnectMenu.open.call(this, OptionsMenu.open);
+    if(this.state === 'connecting')
+      HintMenu.showHint.call(this, "Couldn't establish connection", 3);
+
     this.disconnect(false);
   },
 
