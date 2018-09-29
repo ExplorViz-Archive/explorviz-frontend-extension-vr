@@ -881,7 +881,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
               if(this.get('selectedEntitysMesh') === intersectedViewObj.object){
                 this.restoreSelectedEntity(this.verifyControllers(controller.id));
                 this.set('selectedEntitysMesh', null);
-                this.trigger("entityHighlighted", false, emberModel.id, this.get('selectedEntitysColor'));
+                this.trigger("entityHighlighted", false, appID, emberModel.id, this.get('selectedEntitysColor'));
                 this.set('selectedEntitysColor', null);
                 return;
               }

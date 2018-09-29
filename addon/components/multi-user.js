@@ -781,9 +781,9 @@ export default VRRendering.extend(Ember.Evented, {
     // Removes user and their models.
     // Informs our user about their disconnect.
     if(this.get('users') && this.get('users').has(id)) {
+      let user = this.get('users').get(id);
       //unhighlight possible objects of disconnected user
       this.onHighlightingUpdate(id, false, user.highlightedEntity.appID, user.highlightedEntity.entityID, user.highlightedEntity.originalColor);
-      let user = this.get('users').get(id);
       this.get('scene').remove(user.get('controller1.model'));
       user.removeController1();
       this.get('scene').remove(user.get('controller2.model'));
@@ -992,6 +992,16 @@ export default VRRendering.extend(Ember.Evented, {
     app.children.forEach( child => {
       if (child.userData.model && child.userData.model.id === entityID){
 
+        if(this.get('interaction.selectedEntitysMesh') === child && !isHighlighted){
+          return;
+        }
+
+        if(this.get('interaction.selectedEntitysMesh') === child){
+          this.get('interaction').set('selectedEntitysMesh', null);
+        }
+        
+          
+
         let hsl = new Object();
         child.material.emissive.getHSL(hsl);
 
@@ -1000,11 +1010,11 @@ export default VRRendering.extend(Ember.Evented, {
           let userColor = new THREE.Color(colorArray[0]/255.0, colorArray[1]/255.0, colorArray[2]/255.0);
           child.material.color = new THREE.Color(userColor);
           // Darken the color
-          child.material.emissive.setHSL(hsl.h, hsl.s, 0.1);
+          //child.material.emissive.setHSL(hsl.h, hsl.s, 0.1);
         } else {
           child.material.color = new THREE.Color(originalColor);
           // Lighten color up again
-          child.material.emissive.setHSL(hsl.h, hsl.s, 0);
+          //child.material.emissive.setHSL(hsl.h, hsl.s, 0);
         }
         return;
       }
