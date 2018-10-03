@@ -293,14 +293,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // Load image for delete button
     this.set('deleteButtonTexture', new THREE.TextureLoader().load('images/x_white_transp.png'));
 
-    // VR Rendering loop //
-    //function animate() {  
-    //  self.get('webglrenderer').setAnimationLoop(render);
-    //}
-
-
-    //animate();
-
     ////////////////////
 
 
@@ -352,16 +344,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     this.initInteraction();
 
-    // Add lights
-
-    //const spotLight = new THREE.SpotLight(0xffffff, 0.3, 1000, 1.56, 0, 0);
-    //spotLight.position.set(-5, 2, 0);
-    //this.get('scene').add(spotLight);
-
-    // AmbientLight( color, intensity )
-    //const light = new THREE.AmbientLight(new THREE.Color(.7, .7, .72), 1.0);
-    //this.scene.add(light);
-
     // Set default model
     this.set('imageLoader.logos', {});
     this.set('labeler.textLabels', {});
@@ -393,6 +375,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     floorMesh.userData.name = 'floor';
     this.get('room').add(floorMesh);
     this.get('scene').add(this.get('room'));///// End floor
+
+    // Add lights
 
     this.get('scene').add( new THREE.HemisphereLight( 0x888877, 0x777788, 0.5 ) );
     var light = new THREE.DirectionalLight( 0xffffff );

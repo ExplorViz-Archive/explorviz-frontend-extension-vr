@@ -41,7 +41,7 @@ export default VRRendering.extend(Ember.Evented, {
   spectatedUser: null, // Tells which userID (if any) is being spectated
   startPosition: null, // Position before this user starts spectating
   session: service(), // Session used to retrieve username
-  connectionIsGood: true, // Tells whether or not backend has recently send a 'bad_connection' msg 
+  connectionIsGood: true, // Tells whether or not backend has recently sent a 'bad_connection' msg 
   badConnectionSince: null, // If there is a bad connection, contains timestamp of last 'bad_connection' msg
 
 
@@ -50,34 +50,38 @@ export default VRRendering.extend(Ember.Evented, {
       return;
     }
 
-    this.set('currentTime', new Date().getTime());
+    // this.set('currentTime', new Date().getTime());
 
     //time difference between now and the last time updates were sent
-    this.set('deltaViewTime',  this.get('currentTime') - this.get('lastViewTime'));
-    this.set('deltaUpdateTime', this.get('currentTime') - this.get('lastUpdateTime'));
+    // this.set('deltaViewTime',  this.get('currentTime') - this.get('lastViewTime'));
+    // this.set('deltaUpdateTime', this.get('currentTime') - this.get('lastUpdateTime'));
 
     if(this.get('userID') && this.get('state') === 'spectating') {
       this.spectateUser(); // follow view of spectated user
     }
 
+    // handle own controller updates and ray intersections
     this.updateControllers();
 
+    // move name tags to right position and rotate them toward our camera
     if(this.get('userID') && this.get('state') === 'connected' || this.get('state') === 'spectating')
       this.updateUserNameTags();
 
+    // render scene
     this.render2();
 
-    this.set('lastViewTime', this.get('currentTime'));
+    // this.set('lastViewTime', this.get('currentTime'));
 
+    // add controller/camera updates (position changes, controller disconnect etc.)
     if(this.get('userID') && this.get('state') === 'connected' || this.get('state') === 'spectating') {
       this.update();
     } 
 
-    //send messages like connecting request, position updates etc.
+    // actually send messages like connecting request, position updates etc.
     if(this.get('state') !== 'offline')
       this.sendUpdates();
 
-    this.set('lastUpdateTime', this.get('currentTime'));
+    // this.set('lastUpdateTime', this.get('currentTime'));
 
     //if(this.get('state') === 'connected' || this.get('state') === 'spectating')
     //  this.checkForBadConnection();
@@ -262,6 +266,8 @@ export default VRRendering.extend(Ember.Evented, {
   initInteractions() {
     const self = this;
 
+    // override actions to prevent users in spectator mode from interacting with landscape, apps or teleport
+
     let old_checkIntersectionRightController = this.get('interaction').checkIntersectionRightController;
     this.get('interaction').checkIntersectionRightController = function() {
       if(self.get('state') !== 'spectating')
@@ -353,7 +359,7 @@ export default VRRendering.extend(Ember.Evented, {
    * Check wether there are messages in the update queue and send them to the backend.
    */
   sendUpdates() {
-    //there are updates to send
+    // there are updates to send
     if(this.get('updateQueue').length > 0) {
       this.send(this.get('updateQueue'));
       this.set('updateQueue', []);
@@ -396,6 +402,10 @@ export default VRRendering.extend(Ember.Evented, {
       HintMenu.showHint.call(this, "You can't open the user list when offline!", 3);
   },
 
+  /**
+   * Handles grip-up controller iteraction.
+   * Closes user list menu
+   */
   onGripUpController1() {
     UserListMenu.close.call(this);
   },
@@ -412,6 +422,7 @@ export default VRRendering.extend(Ember.Evented, {
    * If changed, sends a message of new camera and controller positions and quaternions.
    */
   updateAndSendPositions() {
+    // if no last positions exist, set them to current position of camera and controllers
     if(this.get('camera') && this.get('user') && !this.get('lastPositions.camera')) {
       const pos = new THREE.Vector3();
       this.get('camera').getWorldPosition(pos);
@@ -433,6 +444,7 @@ export default VRRendering.extend(Ember.Evented, {
       "time": Date.now()
     };
 
+    // get current camera and controller positions
     const posCamera = new THREE.Vector3();
     this.get('camera').getWorldPosition(posCamera);
 
@@ -457,6 +469,7 @@ export default VRRendering.extend(Ember.Evented, {
 
     let hasChanged = false;
 
+    // if changed, add new positions and quaternions to message
     if(JSON.stringify(currentPositions.controller1) !== JSON.stringify(this.get('lastPositions.controller1'))) {
       hasChanged = true;
       positionObj.controller1 = {
@@ -479,6 +492,7 @@ export default VRRendering.extend(Ember.Evented, {
       };
     }
 
+    // send update if either position has changed
     if(hasChanged) {
       this.set('lastPositions', currentPositions);
       this.get('updateQueue').push(positionObj);
@@ -500,7 +514,7 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('state', 'offline');
     ConnectMenu.setState.call(this, 'offline');
     
-    // Remove other users and their corresponding models
+    // Remove other users and their corresponding models and name tags
     let users = this.users.values();
     for(let user of users) {
       this.get('scene').remove(user.get('controller1.model'));
@@ -517,6 +531,7 @@ export default VRRendering.extend(Ember.Evented, {
     // close socket
     this.get('websockets').closeSocketFor(`ws://${this.host}:${this.port}/`);
 
+    // close handlers
     const socket = this.get('socketRef');
     if(socket) {
       socket.off('open', this.openHandler);
@@ -624,10 +639,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('userID', data.id);
     this.set('color', data.color);
     this.get('interaction').set('highlightingColor', Helper.colorToString(data.color));
+
     let JSONObj = {
       "event": "receive_connect_request",
       name
     };
+
     this.get('updateQueue').push(JSONObj);
   },
 
@@ -647,12 +664,14 @@ export default VRRendering.extend(Ember.Evented, {
       user.set('state', 'connected');
       this.get('users').set(userData.id, user);
 
+      // load controllers
       if(userData.controllers.controller1)
         this.loadController1(userData.controllers.controller1, userData.id);
       if(userData.controllers.controller2)
         this.loadController2(userData.controllers.controller2, userData.id);
 
       user.initCamera(Models.getHMDModel());
+
       // Add models for other users
       this.get('scene').add(user.get('camera.model'));
 
@@ -741,6 +760,7 @@ export default VRRendering.extend(Ember.Evented, {
 
     this.addUsername(data.user.id);
 
+    // show connect notification
     MessageBox.enqueueMessage.call(this, {title: 'User connected', text: user.get('name'), color: Helper.rgbToHex(user.get('color'))}, 3000);
   },
 
@@ -761,17 +781,25 @@ export default VRRendering.extend(Ember.Evented, {
     // Informs our user about their disconnect.
     if(this.get('users') && this.get('users').has(id)) {
       let user = this.get('users').get(id);
+
       //unhighlight possible objects of disconnected user
       this.onHighlightingUpdate(id, false, user.highlightedEntity.appID, user.highlightedEntity.entityID, user.highlightedEntity.originalColor);
+
+      // remove user's models
       this.get('scene').remove(user.get('controller1.model'));
       user.removeController1();
       this.get('scene').remove(user.get('controller2.model'));
       user.removeController2();
       this.get('scene').remove(user.get('camera.model'));
       user.removeCamera();
+
+      // remove user's name tag
       this.get('scene').remove(user.get('namePlane'));
       user.removeNamePlane();
+
       this.get('users').delete(id);
+
+      // show disconnect notification
       MessageBox.enqueueMessage.call(this, {title: 'User disconnected', text: user.get('name'), color: Helper.rgbToHex(user.get('color'))}, 3000);
     }
   },
@@ -783,6 +811,7 @@ export default VRRendering.extend(Ember.Evented, {
    */
   onUserPositions(data) {
     let { camera, id, controller1, controller2 } = data;
+
     if(this.get('users').has(id)) {
       let user = this.get('users').get(id);
       if(controller1)
@@ -806,12 +835,16 @@ export default VRRendering.extend(Ember.Evented, {
       return;
 
     let user = this.get('users').get(id);
+
+    // load newly connected controller(s)
     if(connect) {
       if(connect.controller1)
         this.loadController1(connect.controller1, user.get('id'));
       if(connect.controller2)
         this.loadController2(connect.controller2, user.get('id'));
     }
+
+    // remove controller model(s) due to controller disconnect
     if(disconnect) {
       for (let i = 0; i < disconnect.length; i++) {
         const controller = disconnect[i];
@@ -831,6 +864,7 @@ export default VRRendering.extend(Ember.Evented, {
     let nodeGroups = data.nodeGroups;
     let openApps = data.openApps;
     this.setLandscapeState(systems, nodeGroups);
+
     openApps.forEach(app => {
       let openComponents = app.openComponents;
       openComponents.forEach(componentID => {
@@ -838,7 +872,6 @@ export default VRRendering.extend(Ember.Evented, {
       });
       this.showApplication(app.id, app.position, app.quaternion);
     });
-
     
     if(data.hasOwnProperty('landscape')){
       this.set('environmentOffset', new THREE.Vector3(0, 0, 0));
@@ -934,17 +967,11 @@ export default VRRendering.extend(Ember.Evented, {
 
   updateAppPosition(appID, position, quatArray){
     if (this.get('openApps').has(appID)) {
-      //var appPosition = new THREE.Vector3(position[0], position[1], position[2]);
-      //var appQuaternion = new THREE.Quaternion(quatArray[0], quatArray[1], quatArray[2], quatArray[3]);
       let app3DModel = this.get('openApps').get(appID);
 
       app3DModel.position.fromArray(position);
       app3DModel.quaternion.fromArray(quatArray);
-      // Empty application 3D (remove app3D)
-      //this.removeChildren(this.get('openApps').get(appID));
 
-      // Add application3D to scene
-      //this.add3DApplicationToLandscape(app3DModel, appPosition, appQuaternion);
       this.get('openApps').get(appID).updateMatrix();
      }       
   },
@@ -955,9 +982,8 @@ export default VRRendering.extend(Ember.Evented, {
     // Save highlighted entity
     if (isHighlighted){
       this.onHighlightingUpdate(userID, false, user.highlightedEntity.appID, user.highlightedEntity.entityID, 
-           user.highlightedEntity.originalColor); //unhighlight possible old highlighting
-      user.setHighlightedEntity(appID, entityID, originalColor);
-    // Restore highlighted entity data
+        user.highlightedEntity.originalColor); //unhighlight possible old highlighting
+      user.setHighlightedEntity(appID, entityID, originalColor); // Restore highlighted entity data
     }
 
     let app = this.get('openApps').get(appID);
@@ -970,7 +996,6 @@ export default VRRendering.extend(Ember.Evented, {
     // Find component/clazz which shall be highlighted
     app.children.forEach( child => {
       if (child.userData.model && child.userData.model.id === entityID){
-
         if(this.get('interaction.selectedEntitysMesh') === child && !isHighlighted){
           return;
         }
@@ -978,22 +1003,13 @@ export default VRRendering.extend(Ember.Evented, {
         if(this.get('interaction.selectedEntitysMesh') === child){
           this.get('interaction').set('selectedEntitysMesh', null);
         }
-        
-          
-
-        let hsl = new Object();
-        child.material.emissive.getHSL(hsl);
 
         if (isHighlighted){
           let colorArray = user.get('color');
           let userColor = new THREE.Color(colorArray[0]/255.0, colorArray[1]/255.0, colorArray[2]/255.0);
           child.material.color = new THREE.Color(userColor);
-          // Darken the color
-          //child.material.emissive.setHSL(hsl.h, hsl.s, 0.1);
         } else {
           child.material.color = new THREE.Color(originalColor);
-          // Lighten color up again
-          //child.material.emissive.setHSL(hsl.h, hsl.s, 0);
         }
         return;
       }
@@ -1048,7 +1064,6 @@ export default VRRendering.extend(Ember.Evented, {
     var ctx = canvas2.getContext('2d');
     ctx.fillStyle = 'rgba(200, 200, 216, 0.5)'; // Light grey
     ctx.fillRect(0, 0, canvas2.width, canvas2.height);
-
 
     ctx.font = `30px arial`;
     ctx.fillStyle = Helper.rgbToHex(user.get('color')); // Username is colored in corresponding color
@@ -1223,12 +1238,11 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('spectatedUser', null);
     this.set('startPosition', null);
 
-    navigator.getVRDisplays()
-				.then( function ( displays ) {
-
-					if ( displays.length > 0 && displays[0].isPresenting)
-            displays[0].exitPresent();
-        });
+    // exit presentation on HMD
+    navigator.getVRDisplays().then( function (displays) {
+			if(displays.length > 0 && displays[0].isPresenting)
+        displays[0].exitPresent();
+    });
   },
 
 });

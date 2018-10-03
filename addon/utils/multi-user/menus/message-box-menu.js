@@ -26,7 +26,6 @@ export function enqueueMessage(message, time) {
     createMessageBox.call(this, message.title, message.text, message.color);
     setTimeout(closeAfterTime.bind(this), time);
     
-
     function createMessageBox(title, text, color) {
       messageBox = new Menu({
         title: 'messageBox',

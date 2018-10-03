@@ -16,6 +16,12 @@ export default EmberObject.extend({
   canvas: null,
 
 
+  /**
+   * Adds a title to the top of the menu
+   * (only working for 512x512 atm)
+   * 
+   * @param {string} text Menu title
+   */
   addTitle(text) {
     this.addRectangle({x: 0, y: 0}, 512, 66, '#777777');
     this.addText(text, 'title', 36, { x: 256, y: 20}, '#ffffff', 'center', false);
@@ -93,6 +99,20 @@ export default EmberObject.extend({
     this.get('items').push({ type: 'button', style, name, position, size, color, hover: false });
   },
 
+  /**
+   * Add a button with centered text to the menu.
+   * 
+   * @param {string} text - Text displayed on the button.
+   * @param {string} name - A unique identifier, ecspecially used for interactions.
+   * @param {{x: number, y: number}} position - The upper left corner position of button.
+   * @param {number} width - Width of the button.
+   * @param {number} height - Height of the button.
+   * @param {number} textSize - Size of the text in pixels
+   * @param {string} buttonColor - Color of the button.
+   * @param {string} textColor - Color of the text on the button.
+   * @param {string} hoverColor - Color of the button when hovered on.
+   * @param {boolean} clickable - If true, button can be clicked, else it can't and is grayed out.
+   */
   addTextButton(text, name, position, width, height, textSize, buttonColor, textColor, hoverColor, clickable) {
     if(!this.get('items'))
       this.set('items', new Array());
@@ -100,6 +120,14 @@ export default EmberObject.extend({
     this.get('items').push({ type: 'textButton', name, text, position, width, height, textSize, buttonColor, textColor, hoverColor, clickable, hover: false });
   },
 
+  /**
+   * Adds a filled rectangle to the menu.
+   * 
+   * @param {*} position - The upper left corner position of button.
+   * @param {*} width - Width of the rectangle.
+   * @param {*} height - Height of the rectangle.
+   * @param {*} color - Color of the rectangle.
+   */
   addRectangle(position, width, height, color) {
     if(!this.get('items'))
       this.set('items', new Array());
@@ -331,10 +359,11 @@ export default EmberObject.extend({
   getItem(position) {
     for(let i = 0; i < this.get('items').length; i++) {
       let item = this.get('items')[i];
+      // calculate pixel position
       let x = this.get('resolution.width') * position.x;
       let y = this.get('resolution.height') - (this.get('resolution.height') * position.y);
-      if(item.type === 'text' && item.clickable) {
 
+      if(item.type === 'text' && item.clickable) {
         let size = Helper.getTextSize(item.text, `${item.size}px arial`);
 
         let itemX = item.position.x;
@@ -381,6 +410,7 @@ export default EmberObject.extend({
    * @param {Object} item - Menu item that shall the hovered.
    */
   setHover(item) {    
+    // no item to hover -> unhighlight old hovered item
     if(item === null && this.get('hoveredItem')) {
       this.set('hoveredItem.hover', false);
       this.set('hoveredItem', null);
@@ -398,7 +428,6 @@ export default EmberObject.extend({
     this.set('hoveredItem.hover', true);
 
     this.update();
-
   },
 
   /**
@@ -449,11 +478,14 @@ export default EmberObject.extend({
     let material = new THREE.MeshBasicMaterial({
       color: new THREE.Color(this.get('color'))
     });
+    // create menu mesh
     let textBox = new THREE.Mesh(new THREE.PlaneGeometry(this.get('size.width'), this.get('size.height')), material);
     textBox.name = this.get('name');
     this.set('mesh', textBox);
 
+    // give it the texture
     this.update();
+    
     Menus.add(this);
   },
 

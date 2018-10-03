@@ -14,6 +14,7 @@ export function open(lastMenu) {
   menu = new Menu({
     name: 'spectateMenu'
   });
+
   menu.addTitle('Spectate');
   menu.addRectangle({x: 106, y: 182}, 304, 60, '#666666');
   menu.addArrowButton('previous_user', {x: 60, y: 182}, {x: 100, y: 242}, 'arrow_left', '#ffc338');
@@ -21,6 +22,7 @@ export function open(lastMenu) {
   menu.addText('Spectating off', 'spectating_user', 28, { x: 256, y: 202}, '#ffffff', 'center', false);
   menu.addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
   prevMenu = lastMenu;
+
   menu.interact = (action, position) => {
     let item = menu.getItem(position);
     if(item) {
@@ -32,9 +34,9 @@ export function open(lastMenu) {
           if(this.get('users').size < 1)
             return;
 
+          // get all user that are connected
           let users = this.get('users').keys();
           let userArray = [];
-
           for(let id of users) {
             if(this.get('users').get(id).state === 'connected')
               userArray.push(id);
@@ -43,6 +45,7 @@ export function open(lastMenu) {
           if(userArray.length < 1)
             return;
 
+          // sort them by id
           userArray.sort();
 
           if(!this.get('spectatedUser')) {

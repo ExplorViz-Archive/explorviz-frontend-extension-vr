@@ -11,6 +11,7 @@ export function open(lastMenu) {
   menu = new Menu({
     name: 'connectMenu'
   });
+  
   menu.addTitle('Connection');
   menu.addText('Status: ', 'status', 28, { x: 256, y: 140}, '#ffffff', 'center', false);
   menu.addTextButton('', 'connect', {x: 100, y: 186}, 316, 50, 28, '#555555', '#ffc338', '#929292', true);

@@ -19,6 +19,7 @@ export function open() {
   menu.addTextButton('Spectate', 'spectate', {x: 100, y: 246}, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
   menu.addTextButton('Connection', 'connection', {x: 100, y: 306}, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
   menu.addTextButton('Exit', 'exit', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
+  
   menu.interact = (action, position) => {
     let item = menu.getItem(position);
     if(item) {
