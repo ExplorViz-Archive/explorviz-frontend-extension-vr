@@ -26,7 +26,7 @@ Follow the respective procedure in [ExplorViz frontend](https://github.com/Explo
 
 ## Configuration
 
-The IP address for the WebSocket connection(e.g. for user synchronization) to the backend can be configured in the file `public/config/config_multiuser.json`. Localhost is the fault address for the WebSocket connection.
+The IP address for the WebSocket connection(e.g. for user synchronization) to the backend can be configured in the file `public/config/config_multiuser.json`. The default address for the WebSocket connection is *localhost*.
 The IP address for RESTful data exchange(e.g. for landscape data) is still configured via environments of the [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend#running--development).
 
 
