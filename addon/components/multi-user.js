@@ -1134,8 +1134,6 @@ export default VRRendering.extend(Ember.Evented, {
   },
 
   showApplication(id, posArray, quatArray){
-    this.set('viewImporter.importedURL', null);
-
     // Get model of application of the store
     let emberModel = this.get('store').peekRecord('application', id);
    

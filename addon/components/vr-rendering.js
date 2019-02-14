@@ -12,6 +12,7 @@ import applyCityLayout from 'explorviz-frontend/utils/application-rendering/city
 import FoundationBuilder from 'explorviz-frontend/utils/application-rendering/foundation-builder';
 import layout from "../templates/components/vr-rendering";
 import Models from '../utils/models';
+import { getOwner } from '@ember/application';
 
 // Declare globals
 /*global WEBVR*/
@@ -21,7 +22,7 @@ import Models from '../utils/models';
  * This component unites landscape(adapted to 3D)-, application-rendering
  * and rendering-core from which many function are taken over.
  * This component contains listeners waiting for events from the controller. 
- * For this reason some services are injected (urlBuilder, viewImporter, reloadHandler, ..)
+ * For this reason some services are injected (reloadHandler, ..)
  * The corresponding functions are not implemented yet (in VR) but could be 
  * good templates fo future work.  
  *
@@ -32,9 +33,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   store: Ember.inject.service('store'), //store to access model information
 
-  // services imported from the frontend (further documentation there)
-  urlBuilder: Ember.inject.service("url-builder"),
-  viewImporter: Ember.inject.service("view-importer"),
   reloadHandler: Ember.inject.service("reload-handler"),
   landscapeRepo: Ember.inject.service("repos/landscape-repository"),
   renderingService: Ember.inject.service(),
@@ -296,7 +294,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     ////////////////////
 
 
-    this.debug("init vr-rendering");
+    // this.debug("init vr-rendering");
 
     this.onReSetupScene = function() {
       this.set('centerAndZoomCalculator.centerPoint', null);
@@ -315,7 +313,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     };
 
     if (!this.get('interaction')) {
-      this.set('interaction', Interaction.create());
+      this.set('interaction', Interaction.create(getOwner(this).ownerInjection()));
     }
 
     if (!this.get('imageLoader')) {
@@ -391,8 +389,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     Models.loadModels();
 
-    // Stop data flow
-    this.get('reloadHandler').stopExchange();
     // Load font for labels and synchronously proceed with populating the scene
     new THREE.FontLoader()
       .load('three.js/fonts/roboto_mono_bold_typeface.json', function(font) {
@@ -461,35 +457,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   initListener() {
     const self = this;
 
-    this.get('viewImporter').on('transmitView', function(newState) {
-      self.set('newState', newState);
-    });
-
-
     this.get('renderingService').on('reSetupScene', function() {
       self.onReSetupScene();
     });
-
-
-    this.get('urlBuilder').on('requestURL', function() {
-      const state = {};
-
-      // Get timestamp
-      state.timestamp = self.get('landscapeRepo.latestLandscape')
-        .get('timestamp');
-
-      // Get latestApp, may be null
-      const latestMaybeApp = self.get('landscapeRepo.latestApplication');
-      state.appID = latestMaybeApp ? latestMaybeApp.get('id') : null;
-
-      state.camX = self.get('camera').position.x;
-      state.camY = self.get('camera').position.y;
-      state.camZ = self.get('camera').position.z;
-
-      // Passes the state from component via service to controller
-      self.get('urlBuilder').transmitState(state);
-    });
-
 
     this.get('landscapeRepo').on("updated", function() {
       self.onUpdated();
@@ -517,14 +487,12 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.set('webglrenderer', null);
     this.set('camera', null);
     this.set('user', null);
-    this.get('urlBuilder').off('requestURL');
     this.removePerformanceMeasurement();
     //this.$(window).off('resize.visualization');
-    this.get('viewImporter').off('transmitView');
     this.get('renderingService').off('reSetupScene');
     this.get('landscapeRepo').off('updated');
 
-    this.debug("cleanup vr rendering");
+    // this.debug("cleanup vr rendering");
 
     this.set('imageLoader.logos', {});
     this.set('labeler.textLabels', {});
@@ -938,18 +906,18 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     self.set('configuration.landscapeColors.textchanged', false);
 
-    const appCommunication = emberLandscape.get('outgoingApplicationCommunications');
+    const appCommunications = emberLandscape.get('totalApplicationCommunications');
 
     const tiles = [];
 
     let tile;
 
     // Draw communication lines
-    if (appCommunication) {
+    if (appCommunications) {
 
       let color = self.get('configuration.landscapeColors.communication');
 
-      appCommunication.forEach((communication) => {
+      appCommunications.forEach((communication) => {
 
         // Calculate communication points
         const points = communication.get('points');
@@ -986,7 +954,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
               tiles.push(tile);
             }
 
-            tile.communications.push(appCommunication);
+            tile.communications.push(appCommunications);
             tile.requestsCache = tile.requestsCache +
               communication.get('requests');
 
@@ -1535,8 +1503,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      * (controller button pressed or mouse doubleclick)
      */
     this.get('interaction').on('showApplication', function(emberModel, intersectionPoint) {
-      self.set('viewImporter.importedURL', null);
-
       //dont allow to open the same two apps
       if (self.get('openApps').has(emberModel.id)){
         return;
@@ -1701,28 +1667,22 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     const viewCenterPoint = this.get('centerAndZoomCalculator.centerPoint');
 
-    const cumulatedClazzCommunications = application.get('cumulatedClazzCommunications');
+    const drawableClazzCommunications = application.get('drawableClazzCommunications');
 
-    cumulatedClazzCommunications.forEach((cumuClazzCommu) => {
-      if (cumuClazzCommu.get('startPoint') && cumuClazzCommu.get('endPoint')) {
+    drawableClazzCommunications.forEach((drawableClazzComm) => {
+      if (drawableClazzComm.get('startPoint') && drawableClazzComm.get('endPoint')) {
         const start = new THREE.Vector3();
-        start.subVectors(cumuClazzCommu.get('startPoint'), viewCenterPoint);
+        start.subVectors(drawableClazzComm.get('startPoint'), viewCenterPoint);
         start.multiplyScalar(0.5);
 
         const end = new THREE.Vector3();
-        end.subVectors(cumuClazzCommu.get('endPoint'), viewCenterPoint);
+        end.subVectors(drawableClazzComm.get('endPoint'), viewCenterPoint);
         end.multiplyScalar(0.5);
-
-        /*if(start.y >= end.y) {
-          end.y = start.y;
-        } else {
-          start.y = end.y;
-        }*/
 
         let transparent = false;
         let opacityValue = 1.0;
 
-        if(cumuClazzCommu.get('state') === "TRANSPARENT") {
+        if(drawableClazzComm.get('state') === "TRANSPARENT") {
           transparent = true;
           opacityValue = 0.4;
         }
@@ -1733,11 +1693,11 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           transparent : transparent
         });
 
-        const thickness = cumuClazzCommu.get('lineThickness') * 0.3;
+        const thickness = drawableClazzComm.get('lineThickness') * 0.3;
 
         const pipe = cylinderMesh(start, end, material, thickness);
 
-        pipe.userData.model = cumuClazzCommu;
+        pipe.userData.model = drawableClazzComm;
         self.get('openApps').get(application.id).add(pipe);
       }
     });

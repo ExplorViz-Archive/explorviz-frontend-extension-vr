@@ -7,6 +7,7 @@ import AlertifyHandler from 'explorviz-frontend/mixins/alertify-handler';
 import Selector from './selector';
 import THREE from "three";
 import Menus, { HintMenu } from '../multi-user/menus';
+import { getOwner } from '@ember/application';
 
 /*
  *  This util is used to realize the interaction by handeling
@@ -260,11 +261,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     // Init HoverHandler for mouse (Landscape)
     if (!this.get('hoverHandlerLandscape')) {
-      this.set('hoverHandlerLandscape', HoverHandlerLandscape.create());
+      this.set('hoverHandlerLandscape', HoverHandlerLandscape.create(getOwner(this).ownerInjection()));
     }   
     // Init HoverHandler for mouse (app3D)
     if (!this.get('hoverHandlerApp3D')) {
-      this.set('hoverHandlerApp3D', HoverHandlerApp3D.create());
+      this.set('hoverHandlerApp3D', HoverHandlerApp3D.create(getOwner(this).ownerInjection()));
     }
 
     // Init selector
@@ -1000,9 +1001,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     }
   },
 
-  onGripDownController1(event) {},
-  onGripUpController1(event) {},
-  onMenuDownController1(event) {},
+  // onGripDownController1(event) {},
+  // onGripUpController1(event) {},
+  // onMenuDownController1(event) {},
 
 ////////// Mouse interaction ////////// 
 
