@@ -1115,8 +1115,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       let landscapeSize = new THREE.Vector3();
       bboxLandscape.getSize(landscapeSize);
 
-      let requests = vrEnvironment.getObjectByName("earth");
-
       // Scale x
       let scaleX = (floorSize.x - 2.2) / landscapeSize.x;
       vrEnvironment.scale.x *= scaleX;
@@ -1125,9 +1123,14 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       let scaleZ = (floorSize.z - 3.2) / landscapeSize.z;
       vrEnvironment.scale.y *= scaleZ;
 
+      let requests = vrEnvironment.getObjectByName("earth");
+
+      // check if "earth" exists in landscape and scale it
+      if (requests){
       // Undo scaling requests
       requests.scale.x /= scaleX; 
       requests.scale.y /= vrEnvironment.scale.y; 
+      }
 
       // Restore rotation
       vrEnvironment.rotation.set(tempRotation.x, tempRotation.y, tempRotation.z);
