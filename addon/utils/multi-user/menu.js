@@ -30,7 +30,7 @@ export default EmberObject.extend({
   /**
    * Adds a new text to the menu.
    * @example
-   * let menu = new Menu();
+   * let menu = Menu.create();
    * 
    * menu.addText('Hello World', 'title', 18, {x: 50 y: 10}, '#a412b6', 'center');
    * 
@@ -56,7 +56,7 @@ export default EmberObject.extend({
   /**
    * Add a clickable arrow button to the menu.
    * @example
-   * let menu = new Menu();
+   * let menu = Menu.create();
    * 
    * menu.addArrowButton('next_user', {x: 10, y: 10}, {x: 20, y: 20}, 'arrow_right', '#d3f4aa');
    * 
@@ -79,7 +79,7 @@ export default EmberObject.extend({
   /**
    * Add a clickable arrow button to the menu.
    * @example
-   * let menu = new Menu();
+   * let menu = Menu.create();
    * 
    * menu.addCurvedArrowButton('rotate_right', {x: 10, y: 10}, {x: 20, y: 20}, 'curved_arrow_right', '#d3f4aa');
    * 

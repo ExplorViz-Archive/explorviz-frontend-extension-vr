@@ -10,7 +10,7 @@ let menu = null;
  * Creates and opens the Options Menu.
  */
 export function open() {
-  menu = new Menu({
+  menu = Menu.create({
       name: 'optionsMenu'
   });
   menu.addTitle('Options');

@@ -8,7 +8,7 @@ let prevMenu = null;
  */
 export function open(lastMenu) {
   close.call(this);
-  menu = new Menu({
+  menu = Menu.create({
     name: 'connectMenu'
   });
   

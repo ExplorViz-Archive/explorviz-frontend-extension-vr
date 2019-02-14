@@ -5,7 +5,7 @@ let menu = null;
 export function showHint(hint, blinks, hint2) {
   const self = this;
   close.call(this, menu);
-  menu = new Menu({
+  menu = Menu.create({
     name: 'hintMenu',
     resolution: { width: 512, height: 128 },
     size: { width: 0.2, height: 0.05 },
@@ -18,7 +18,8 @@ export function showHint(hint, blinks, hint2) {
   } else {
     menu.addText(hint, 'text', 28, { x: 256, y: 50}, '#ffffff', 'center', false);
   }
-  menu.interact = (action, position) => {
+  menu.interact = (action) => {
+  //menu.interact = (action, position) => {
     if(action === 'rightTrigger') {
       close.call(this, menu);
     }

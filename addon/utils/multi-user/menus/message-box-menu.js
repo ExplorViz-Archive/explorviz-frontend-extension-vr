@@ -27,7 +27,7 @@ export function enqueueMessage(message, time) {
     setTimeout(closeAfterTime.bind(this), time);
     
     function createMessageBox(title, text, color) {
-      messageBox = new Menu({
+      messageBox = Menu.create({
         title: 'messageBox',
         resolution: { width: 256, height: 64 },
         size: { width: 0.2, height: 0.05 },

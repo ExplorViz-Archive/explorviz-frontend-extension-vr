@@ -9,7 +9,7 @@ let prevMenu = null;
  * @param {Object} lastMenu - The menu to go back to on back button pressed.
  */
 export function open(lastMenu) {
-  menu = new Menu({
+  menu = Menu.create({
     name: 'changeCameraHeightMenu'
   });
 

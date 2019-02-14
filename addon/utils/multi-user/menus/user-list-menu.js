@@ -8,7 +8,7 @@ let menu = null;
  */
 export function open() {
   close.call(this); 
-  menu = new Menu({
+  menu = Menu.create({
     name: 'userListMenu',
     resolution: { width: 256, height: 256 }
   });
@@ -60,8 +60,8 @@ export function open() {
     let userColor = spectatingUsers[i].color;
     menu.addText(spectatingUsers[i].name, 'spectating', 12, { x: 50, y: yPos + i*yOffset}, Helper.rgbToHex(userColor), 'left', false);
   }
-
-  menu.interact = (action, position) => {};
+  
+  // menu.interact = (action, position) => {};
 
   menu.createMesh();
   const mesh = menu.getMesh();
