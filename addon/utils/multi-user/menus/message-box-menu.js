@@ -40,7 +40,8 @@ export function enqueueMessage(message, time) {
 
       messageBox.addText(title, 'title', 18, { x: 128, y: 10}, '#ffffff', 'center', false);
       messageBox.addText(text, 'text', 14, { x: 128, y: 40}, color, 'center', false);
-      messageBox.interact = (action, position) => {
+      messageBox.interact = (action) => {
+      // messageBox.interact = (action, position) => {
         if(action === 'rightTrigger') {
           close.call(this);
         }

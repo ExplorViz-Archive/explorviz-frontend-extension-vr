@@ -33,6 +33,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   store: Ember.inject.service('store'), //store to access model information
 
+  landscapeListener: Ember.inject.service("landscape-listener"),
   reloadHandler: Ember.inject.service("reload-handler"),
   landscapeRepo: Ember.inject.service("repos/landscape-repository"),
   renderingService: Ember.inject.service(),
@@ -388,6 +389,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('scene').add( light );
 
     Models.loadModels();
+
+    this.get('landscapeListener').initSSE();
 
     // Load font for labels and synchronously proceed with populating the scene
     new THREE.FontLoader()
