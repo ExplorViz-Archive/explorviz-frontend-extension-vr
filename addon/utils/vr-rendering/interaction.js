@@ -126,9 +126,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('controller2').addEventListener('thumbpaddown', (event) => { this.onThumbpadDownController2(event) });
     this.get('controller2').addEventListener('gripdown', (event) => { this.onGripDownController2(event) });
     this.get('controller2').addEventListener('gripup', (event) => { this.onGripUpController2(event) });
-    // unused events: triggerup, thumbpadup, menuup, axischanged
+    // Unused events: triggerup, thumbpadup, menuup, axischanged
 
-    // handler for mouse interaction with canvas
+    // Handlers for mouse interaction with canvas
     canvas.addEventListener('mouseout', (event) => { this.onMouseOut(event) });
     canvas.addEventListener('mouseenter', (event) => { this.onMouseEnter(event) });
     canvas.addEventListener('wheel', (event) => { this.onMouseWheelStart(event) });

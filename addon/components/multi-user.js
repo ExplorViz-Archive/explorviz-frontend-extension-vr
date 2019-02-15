@@ -301,12 +301,11 @@ export default VRRendering.extend(Ember.Evented, {
         self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
     };
 
-    /*
     let old_onMenuDownController1 = this.get('interaction').onMenuDownController1;
     this.get('interaction').onMenuDownController1 = function(event) {
       self.onMenuDownController1();
       old_onMenuDownController1.apply(this, [event]);
-    };*/
+    };
 
     let old_onGripDownController1 = this.get('interaction').onGripDownController1;
     this.get('interaction').onGripDownController1 = function(event) {
