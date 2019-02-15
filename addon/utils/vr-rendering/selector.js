@@ -18,7 +18,7 @@ export default Ember.Object.extend({
    */
   highlightAppCommunication(entity, app) {
 
-    const outgoingClazzCommunications = app.get('cumulatedClazzCommunications');
+    const outgoingClazzCommunications = app.get('drawableClazzCommunications');
 
     if(outgoingClazzCommunications != null){
 
@@ -26,7 +26,6 @@ export default Ember.Object.extend({
 
         if(entity === null || entity === undefined){
           outgoingClazzCommunications.set("state", "TRANSPARENT");
-          
         }
         else{
           if ((clazzCommunication.sourceClazz != null && clazzCommunication.get('sourceClazz').get('fullQualifiedName') === entity.get('fullQualifiedName')) ||

@@ -1237,10 +1237,12 @@ export default VRRendering.extend(Ember.Evented, {
     this.set('startPosition', null);
 
     // exit presentation on HMD
-    navigator.getVRDisplays().then( function (displays) {
-			if(displays.length > 0 && displays[0].isPresenting)
-        displays[0].exitPresent();
-    });
+    if(navigator.getVRDisplays) {
+      navigator.getVRDisplays().then( function (displays) {
+        if(displays.length > 0 && displays[0].isPresenting)
+          displays[0].exitPresent();
+      });
+    }
   },
 
 });
