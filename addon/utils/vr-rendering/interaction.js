@@ -133,7 +133,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('controller2').addEventListener('gripdown', registerGripDownController2);
     this.get('controller1').addEventListener('gripup', registerGripUpController1);
     this.get('controller2').addEventListener('gripup', registerGripUpController2);
-    this.get('controller1').addEventListener('menudown', registerMenuDownController1);
+    // this.get('controller1').addEventListener('menudown', registerMenuDownController1);
     // this.get('controller2').addEventListener('menudown', this.emptyFunction);
     // this.get('controller1').addEventListener('menuup', this.emptyFunction);
     // this.get('controller2').addEventListener('menuup', this.emptyFunction);
@@ -175,9 +175,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       self.onThumbpadDownController1(evt, true);
     } 
 
+    /*
     function registerMenuDownController1(evt){
       self.onMenuDownController1(evt);
-    } 
+    } */
 
     // mouseout handler for disabling notifications
     canvas.addEventListener('mouseout', registerMouseOut, false);
@@ -1001,9 +1002,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     }
   },
 
-  // onGripDownController1(event) {},
-  // onGripUpController1(event) {},
-  // onMenuDownController1(event) {},
+  onGripDownController1() {},
+  onGripUpController1() {},
+  // onMenuDownController1() {},
 
 ////////// Mouse interaction ////////// 
 
@@ -1117,7 +1118,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('controller2').removeEventListener('gripdown', this.onGripDownController2);
     this.get('controller1').removeEventListener('gripup', this.onGripUpController1);
     this.get('controller2').removeEventListener('gripup', this.onGripUpController2);
-    this.get('controller1').removeEventListener('menudown', this.onMenuDownController1);
+    // this.get('controller1').removeEventListener('menudown', this.onMenuDownController1);
     // this.get('controller2').removeEventListener('menudown', this.emptyFunction);
     // this.get('controller1').removeEventListener('menuup', this.emptyFunction);
     // this.get('controller2').removeEventListener('menuup', this.emptyFunction);
