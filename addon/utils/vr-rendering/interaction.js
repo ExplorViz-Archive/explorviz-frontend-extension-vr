@@ -115,7 +115,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     // Setup listener for controller 2 (right controller)
     this.get('controller2').addEventListener('triggerdown', (event) => { this.onTriggerDownController2(event) });
-    this.get('controller2').addEventListener('thumbpaddown', (event) => { this.onThumbpadDownController2(event) });
+    this.get('controller2').addEventListener('menudown', (event) => { this.onMenuDownController2(event) });
     this.get('controller2').addEventListener('gripdown', (event) => { this.onGripDownController2(event) });
     this.get('controller2').addEventListener('gripup', (event) => { this.onGripUpController2(event) });
     // Unused events: triggerup, thumbpadup, menuup, axischanged
@@ -427,9 +427,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   /*
    * This method handles the controller event 'gripdown'
    * and is used to show information about the intersected object. 
-   * @method - onThumbpadDownController2
+   * @method - onMenuDownController2
    */
-  onThumbpadDownController2(event, objects){
+  onMenuDownController2(event, objects){
 
     const controller = event.target;
     let controllerLine = controller.getObjectByName('controllerLine');
@@ -467,7 +467,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Handle menus
       let menu = Menus.get(intersectedViewObj.object.name);
       if(menu) {
-        menu.interact('leftThumbpadDown', intersectedViewObj.uv);
+        menu.interact('rightMenuDown', intersectedViewObj.uv);
         return;
       }
 
@@ -1024,7 +1024,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('controller1').removeEventListener('gripup', this.onGripUpController1);
     this.get('controller1').removeEventListener('menudown', this.onMenuDownController1);
 
-    this.get('controller2').removeEventListener('thumbpaddown', this.onThumbpadDownController2);
+    this.get('controller2').removeEventListener('menudown', this.onMenuDownController2);
     this.get('controller2').removeEventListener('gripdown', this.onGripDownController2);
     this.get('controller2').removeEventListener('gripup', this.onGripUpController2);
     this.get('controller2').removeEventListener('triggerdown', this.onTriggerDownController2);
