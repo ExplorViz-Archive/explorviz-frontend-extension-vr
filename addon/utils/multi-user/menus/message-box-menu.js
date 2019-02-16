@@ -49,7 +49,7 @@ export function enqueueMessage(message, time) {
 
       messageBox.createMesh();
 
-      const mesh = messageBox.getMesh();
+      const mesh = messageBox.get('mesh');
       mesh.position.y += 0.3;
       mesh.position.z -= 0.3;
       mesh.rotateX(0.45);
@@ -81,7 +81,7 @@ export function enqueueMessage(message, time) {
        * Remove text message on top edge of user's view
        */
       function deleteMessageBox() {
-        this.get('camera').remove(messageBox.getMesh());
+        this.get('camera').remove(messageBox.get('mesh'));
         messageBox.close();
         messageBox = null;
       }

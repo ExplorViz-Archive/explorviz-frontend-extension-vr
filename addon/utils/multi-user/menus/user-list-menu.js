@@ -64,7 +64,7 @@ export function open() {
   // menu.interact = (action, position) => {};
 
   menu.createMesh();
-  const mesh = menu.getMesh();
+  const mesh = menu.get('mesh');
   mesh.position.z -= 0.5;
   this.get('camera').add(mesh);
 }
@@ -74,7 +74,7 @@ export function open() {
  */
 export function close() {
   if(menu) {
-    this.get('camera').remove(menu.getMesh());
+    this.get('camera').remove(menu.get('mesh'));
     menu.close();
     menu = null;
   }

@@ -54,7 +54,7 @@ export function get(menuName) {
  * @param {object} menu - The menu to set as opened.
  */
 export function add(menu) {
-  menus.set(menu.getName(), menu);
+  menus.set(menu.get('name'), menu);
 }
 
 /**

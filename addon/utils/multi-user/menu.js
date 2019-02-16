@@ -346,7 +346,7 @@ export default EmberObject.extend({
       this.get('mesh').material.dispose();
       this.set('mesh', null);
     }
-    Menus.remove(this.getName());
+    Menus.remove(this.get('name'));
   },
 
   /**
@@ -488,20 +488,5 @@ export default EmberObject.extend({
     
     Menus.add(this);
   },
-
-
-  /**
-   * Returns menu mesh.
-   */
-  getMesh() {
-    return this.get('mesh');
-  },
-
-  /**
-   * Returns the menu name.
-   */
-  getName() {
-    return this.get('name');
-  }
 
 });

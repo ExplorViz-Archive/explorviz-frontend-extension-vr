@@ -28,7 +28,7 @@ export function showHint(hint, blinks, hint2) {
   menu.createMesh();
 
   // move mesh to middle of the screen and set initial size to 0 (invisible)
-  const mesh = menu.getMesh();
+  const mesh = menu.get('mesh');
   mesh.position.y -= 0.1;
   mesh.position.z -= 0.3;
   mesh.rotateX(-0.18);
@@ -100,7 +100,7 @@ export function showHint(hint, blinks, hint2) {
 
 function close(menue) {
   if(menue) {
-    this.get('camera').remove(menue.getMesh());
+    this.get('camera').remove(menue.get('mesh'));
     menue.close();
     menue = null;
   }
