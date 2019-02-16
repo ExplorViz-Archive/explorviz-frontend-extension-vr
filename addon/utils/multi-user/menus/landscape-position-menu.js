@@ -67,11 +67,7 @@ export function open(lastMenu) {
   };
   menu.createMesh();
 
-  // move mesh next to controller 1 and add it as child.
-  const mesh = menu.get('mesh');
-  mesh.position.x += 0.2;
-  mesh.geometry.rotateX(-1.5707963267949);
-  this.get('controller1').add(mesh);
+  menu.addToController(this.get('controller1'));
 }
 
 /**

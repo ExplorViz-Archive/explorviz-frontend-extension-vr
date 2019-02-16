@@ -49,10 +49,7 @@ export function open() {
   };
 
   menu.createMesh();
-  const mesh = menu.get('mesh');
-  mesh.position.x += 0.2;
-  mesh.geometry.rotateX(-1.5707963267949);
-  this.get('controller1').add(mesh);
+  menu.addToController(this.get('controller1'));
 
   // hide spectate menu item if user isn't connected the server
   if(this.state === 'offline' || this.state === 'connecting') {

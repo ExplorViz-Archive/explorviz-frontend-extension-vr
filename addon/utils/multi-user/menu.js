@@ -9,7 +9,7 @@ export default EmberObject.extend({
   size: { height: 0.3, width: 0.3},
   items: null,
   color: '#444444',
-  opacity: 0.8,
+  opacity: 1,
   mesh: null,
   hoverColor: '#00e5ff',
   hoveredItem: null,
@@ -488,5 +488,17 @@ export default EmberObject.extend({
     
     Menus.add(this);
   },
+
+  /**
+   * Adds this menu in form of a mesh to the given controller
+   */
+  addToController(controller){
+    const mesh = this.get('mesh');
+    mesh.position.x -= 0.0;
+    mesh.position.y += 0.11;
+    mesh.position.z -= 0.15;
+    mesh.geometry.rotateX(-0.785);
+    controller.add(mesh);
+  }
 
 });
