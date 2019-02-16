@@ -74,7 +74,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   room: null, //virtual room to which a flooar is added, important for raycasting
   initialPositions: {}, //initial positions of systems/nodegroups/..
   deleteButton: null, //delete Button of 3d application
-  textBox: null, //textbox(canvas) which can show additional information next to right controller
 
   // Storage for mesh data
   teleportArea: null,
@@ -265,18 +264,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('room').position.y -= 0.1;
     this.get('room').updateMatrix();
     
-    // Create text box 
-    var color = new THREE.Color("rgb(253,245,230)");
-    let material = new THREE.MeshLambertMaterial({
-      color
-    });
-    this.set('textBox', new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, this.get('zeroValue')), material));
-    this.get('textBox').name = 'textBox';
-
-    // Rotate text box
-    this.get('textBox').geometry.rotateX(1.5707963267949);
-    this.get('textBox').geometry.rotateY(1.5707963267949 * 2);
-
     // Load image for requests
     var requestTexture = new THREE.TextureLoader().load('images/logos/requests.png');
     var requestMaterial = new THREE.MeshPhongMaterial({
@@ -1442,7 +1429,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,
       raycaster, this.get('vrLandscape').children, controller1, controller2, 
       vrEnvironment, this.get('configuration.landscapeColors'), 
-      this.get('configurationApplication.applicationColors'), this.get('textBox'), 
+      this.get('configurationApplication.applicationColors'), 
       this.get('labeler'), this.get('room'), user, this.get('boundApps'), this.get('environmentOffset'), 
       this.get('controllerGroup'));
 

@@ -494,7 +494,6 @@ export default EmberObject.extend({
    */
   addToController(controller){
     const mesh = this.get('mesh');
-    mesh.position.x -= 0.0;
     mesh.position.y += 0.11;
     mesh.position.z -= 0.15;
     mesh.geometry.rotateX(-0.785);

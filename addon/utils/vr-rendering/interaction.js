@@ -18,7 +18,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   scene: null,
   canvas: null,
-  canvas2: null,
   camera: null,
   controllerGroup: null,
   user: null,
@@ -55,7 +54,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   textureHighlighted: null,
 
   previousToolTipObjects: {},
-  textBox: null,
 
   highlightedEntities: {},
   highlightedEntitiesApp: {},
@@ -89,7 +87,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   // Import information from component vr-rendering to manipulate objects global
   setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1,
-    controller2, vrEnvironment, colorList, colorListApp, textBox, labeler, room, user, boundApps, environmentOffset, controllerGroup) {
+    controller2, vrEnvironment, colorList, colorListApp, labeler, room, user, boundApps, environmentOffset, controllerGroup) {
 
     this.set('scene', scene);
     this.set('canvas', canvas);
@@ -102,18 +100,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.set('vrEnvironment', vrEnvironment);
     this.set('colorList', colorList);
     this.set('colorListApp', colorListApp);
-    this.set('textBox', textBox);
     this.set('labeler', labeler);
     this.set('room', room);
     this.set('user', user);
     this.set('boundApps', boundApps);
     this.set('environmentOffset', environmentOffset);
     this.set('controllerGroup', controllerGroup);
-
-    // Define dimension of canvas for infotext
-    this.set('canvas2', document.createElement('canvas'));
-    this.get('canvas2').width = 256;
-    this.get('canvas2').height = 128;
 
     // Setup listener for controller 1 (left controller)
     this.get('controller1').addEventListener('triggerdown', (event) => { this.onTriggerDownController1(event) });
@@ -435,11 +427,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   /*
    * This method handles the controller event 'gripdown'
    * and is used to show information about the intersected object. 
-   * The additional parameter assigns a users hand to the controller
-   * and adapts the position of the text box. 
    * @method - onThumbpadDownController2
    */
-  onThumbpadDownController2(event, rightHand=true, objects){
+  onThumbpadDownController2(event, objects){
 
     const controller = event.target;
     let controllerLine = controller.getObjectByName('controllerLine');
@@ -498,30 +488,40 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         // Get information to display for hit object
         var content = this.get('hoverHandler').buildContent(emberModel);
-        
-        // Clone text box
-        let textBox = this.get('textBox').clone();
 
-        let canvas2 = this.get('canvas2');
+        let textBox = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2));
+        textBox.name = 'textBox';
+
+        // Position box for tooltip
+        textBox.position.y += 0.065;
+        textBox.position.z -= 0.115;
+        textBox.geometry.rotateX(1.5707963267949 * 1.5);
+        textBox.geometry.rotateY(1.5707963267949 * 2);
+        textBox.geometry.rotateZ(1.5707963267949 * 2);
+
+            // Define dimension of canvas for infotext
+        let canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 128;
 
         // Fill context of canvas with color and text
-        var ctx = canvas2.getContext('2d');
+        var ctx = canvas.getContext('2d');
         ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, canvas2.width, canvas2.height);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#FDF5E6';
-        ctx.fillRect(0.4, 0.4, canvas2.width - 0.8, canvas2.height - 0.8);
+        ctx.fillRect(0.4, 0.4, canvas.width - 0.8, canvas.height - 0.8);
       
         // Draw title
         ctx.font = '20px arial';
         ctx.fillStyle = 'black';
         ctx.textAlign = "center";
-        ctx.fillText(content.title, canvas2.width / 2, 20);
+        ctx.fillText(content.title, canvas.width / 2, 20);
 
         // draw line
-        ctx.fillText("-------------------------------------------------", canvas2.width / 2, 32);
+        ctx.fillText("-------------------------------------------------", canvas.width / 2, 32);
 
         // Spilt up remaining canvas for each entry
-        let offset = (canvas2.height-52)/3;
+        let offset = (canvas.height-52)/3;
         
         let tempOffset = offset;
 
@@ -539,7 +539,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             // Draw content on the left (name)
             if(!left){
               ctx.textAlign = "right"; 
-              ctx.fillText(content.innerContent[key1][key2], canvas2.width-10, offset);
+              ctx.fillText(content.innerContent[key1][key2], canvas.width-10, offset);
               left = true;
             }
             // Draw content on the right (value)
@@ -553,22 +553,14 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         }
        
         // create texture out of canvas
-        let texture = new THREE.Texture(canvas2);
+        let texture = new THREE.Texture(canvas);
         // Map texture
-        let material = new THREE.MeshBasicMaterial({map: texture});
+        let material2 = new THREE.MeshBasicMaterial({map: texture});
 
         // Update texture      
         texture.needsUpdate = true;
         // Update mesh material    
-        textBox.material = material;
-
-        // position box for tooltip for right and left hand
-        if(rightHand){
-          textBox.position.x -= 0.2;
-        }
-        else{
-          textBox.position.x += 0.2;
-        }
+        textBox.material = material2;
 
         // Add mesh to controller
         controller.add(textBox);
