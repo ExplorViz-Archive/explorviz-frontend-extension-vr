@@ -190,8 +190,8 @@ export default Component.extend(Evented, THREEPerformance, {
     this.set('landscapeRepo.latestApplication', null);
 
     // Get size of outer ember div
-    const height = $('#rendering').innerHeight();
-    const width = $('#rendering').innerWidth();
+    const height = $('#vizContainer').height();
+    const width = $('#vizContainer').width();
 
     const canvas = $('#threeCanvas')[0];
 
@@ -217,8 +217,6 @@ export default Component.extend(Evented, THREEPerformance, {
 
     // Add VR button
     $('#vizContainer').append(WEBVR.createButton( this.get('webglrenderer') ));
-
-    console.log(document.body)
 
     // Create left controller
     this.set('controller1', new Controller(0));
@@ -294,6 +292,25 @@ export default Component.extend(Evented, THREEPerformance, {
     this.onReSetupScene = function() {
       this.set('centerAndZoomCalculator.centerPoint', null);
       this.populateScene();
+    };
+
+    this.onResizeCanvas = function() {
+      if(!this.get('camera') || !this.get('webglrenderer'))
+        return;
+
+      $('#threeCanvas').hide();
+
+      const height = Math.round($('#vizContainer').height());
+      const width = Math.round($('#vizContainer').width());
+
+      this.set('camera.aspect', width / height);
+      this.get('camera').updateProjectionMatrix();
+
+      this.get('webglrenderer').setSize(width, height);
+
+      this.onResized();
+
+      $('#threeCanvas').show();
     };
 
     this.onUpdated = function() {
@@ -453,6 +470,8 @@ export default Component.extend(Evented, THREEPerformance, {
    */
   initListener() {
     const self = this;
+
+    window.addEventListener('resize', this.onResizeCanvas.bind(this));
 
     this.get('renderingService').on('reSetupScene', function() {
       self.onReSetupScene();

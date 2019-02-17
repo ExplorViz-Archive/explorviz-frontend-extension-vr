@@ -114,7 +114,7 @@ var WEBVR = {
 		function stylizeElement( element ) {
 			element.id = 'vr_button';
 			element.style.position = 'relative';
-			element.style.bottom = '60px';
+			element.style.bottom = '80px';
 			element.style.padding = '12px 6px';
 			element.style.border = '1px solid #fff';
 			element.style.borderRadius = '4px';
