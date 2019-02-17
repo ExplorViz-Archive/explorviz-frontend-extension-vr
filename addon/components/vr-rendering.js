@@ -1,5 +1,8 @@
-import Ember from 'ember';
-import THREE from "three";
+import Component from '@ember/component';
+import Evented from '@ember/object/evented';
+import { inject as service } from '@ember/service';
+import { getOwner } from '@ember/application';
+import THREE from 'three';
 import THREEPerformance from 'explorviz-frontend/mixins/threejs-performance';
 import Raycaster from '../utils/vr-rendering/raycaster';
 import applyKlayLayout from 'explorviz-frontend/utils/landscape-rendering/klay-layouter';
@@ -10,9 +13,8 @@ import CalcCenterAndZoom from 'explorviz-frontend/utils/landscape-rendering/cent
 import ImageLoader from 'explorviz-frontend/utils/three-image-loader';
 import applyCityLayout from 'explorviz-frontend/utils/application-rendering/city-layouter';
 import FoundationBuilder from 'explorviz-frontend/utils/application-rendering/foundation-builder';
-import layout from "../templates/components/vr-rendering";
+import layout from '../templates/components/vr-rendering';
 import Models from '../utils/models';
-import { getOwner } from '@ember/application';
 
 // Declare globals
 /*global WEBVR*/
@@ -27,18 +29,17 @@ import { getOwner } from '@ember/application';
  * good templates fo future work.  
  *
  * @class VR-Rendering
- * @extends Ember.Component
+ * @extends Component
  */
-export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
+export default Component.extend(Evented, THREEPerformance, {
 
-  store: Ember.inject.service('store'), //store to access model information
+  store: service(), //store to access model information
 
-  landscapeListener: Ember.inject.service("landscape-listener"),
-  reloadHandler: Ember.inject.service("reload-handler"),
-  landscapeRepo: Ember.inject.service("repos/landscape-repository"),
-  renderingService: Ember.inject.service(),
-  configuration: Ember.inject.service("configuration"),
-  configurationApplication: Ember.inject.service("configuration"),
+  landscapeListener: service(),
+  reloadHandler: service(),
+  landscapeRepo: service('repos/landscape-repository'),
+  renderingService: service(),
+  configuration: service(),
 
   
   scene: null, //root element of Object3d's - contains all visble objects
@@ -55,10 +56,10 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
   interaction: null, //class which handles mouse/keyboard/controller interaction
   labeler: null, //for labeling landscape (-> frontend)
   labelerApp: null, //for labeling applications (-> frontend)
-  imageLoader: null, //for loading images e.g. of "world system"
+  imageLoader: null, //for loading images e.g. of 'world system'
   centerAndZoomCalculator: null, //frontend: CalcCenterAndZoom
   initialRendering: true, //handle initial rendering in populateScene()
-  requestMaterial: null, //material for e.g. "earth"
+  requestMaterial: null, //material for e.g. 'earth'
   foundationBuilder: null, //imported from frontend
   zeroValue: 0.0000000000000001 * 0.0000000000000001, //tiny number e.g. to emulate a plane with depth zeroValue
 
@@ -93,7 +94,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
 
   didRender() {
-  this._super(...arguments);
+    this._super(...arguments);
     this.initRendering();
     this.initListener();
   },
@@ -137,7 +138,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     }
   },
 
-  raycastObjectsNeedsUpdate: "",
+  raycastObjectsNeedsUpdate: '',
 
   willDestroyElement() {
     this._super(...arguments);
@@ -216,13 +217,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     // Create left controller
     this.set('controller1', new Controller(0));
     this.set('controller1.standingMatrix', this.get('webglrenderer').vr.getStandingMatrix())
-    this.get('controller1').name = "controller";
+    this.get('controller1').name = 'controller';
     this.get('scene').add(this.get('controller1'));
 
     // Create right controller
     this.set('controller2', new Controller(1));
     this.set('controller2.standingMatrix', this.get('webglrenderer').vr.getStandingMatrix())
-    this.get('controller2').name = "controller";
+    this.get('controller2').name = 'controller';
     this.get('scene').add(this.get('controller2'));
 
     this.set('user', new THREE.Group());
@@ -282,7 +283,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     ////////////////////
 
 
-    // this.debug("init vr-rendering");
+    // this.debug('init vr-rendering');
 
     this.onReSetupScene = function() {
       this.set('centerAndZoomCalculator.centerPoint', null);
@@ -394,7 +395,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     // remove controller 1 model if controller disconnected
     if(!this.get('controller1').getGamepad() || !this.get('controller1').getGamepad().pose) {
-      let model = this.get('controller1').getObjectByName("controllerTexture");
+      let model = this.get('controller1').getObjectByName('controllerTexture');
       if(model) {
         this.get('controller1').remove(model);
       }
@@ -402,7 +403,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       this.loadController(this.get('controller1'));
     }
     if(!this.get('controller2').getGamepad() || !this.get('controller2').getGamepad().pose) {
-      let model = this.get('controller2').getObjectByName("controllerTexture");
+      let model = this.get('controller2').getObjectByName('controllerTexture');
       if(model) {
         this.get('controller2').remove(model);
       }
@@ -425,13 +426,13 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   loadController(controller) {
     if(controller.getGamepad() !== undefined && controller.getGamepad().pose !== undefined
-      && !controller.getObjectByName("controllerTexture")) {
+      && !controller.getObjectByName('controllerTexture')) {
 
       let name = controller.getGamepad().id;
 
-      if (name === "Oculus Touch (Left)") {
+      if (name === 'Oculus Touch (Left)') {
         controller.add(Models.getOculusLeftControllerModel());
-      } else if (name === "Oculus Touch (Right)") {
+      } else if (name === 'Oculus Touch (Right)') {
         controller.add(Models.getOculusRightControllerModel());
       } else {
         controller.add(Models.getViveControllerModel());
@@ -451,7 +452,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.onReSetupScene();
     });
 
-    this.get('landscapeRepo').on("updated", function() {
+    this.get('landscapeRepo').on('updated', function() {
       self.onUpdated();
     });
   },
@@ -482,7 +483,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     this.get('renderingService').off('reSetupScene');
     this.get('landscapeRepo').off('updated');
 
-    // this.debug("cleanup vr rendering");
+    // this.debug('cleanup vr rendering');
 
     this.set('imageLoader.logos', {});
     this.set('labeler.textLabels', {});
@@ -537,7 +538,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     gl.getExtension('WEBGL_lose_context').loseContext();
 
     //remove enter vr button
-    var elem = document.getElementById("vr_button");
+    var elem = document.getElementById('vr_button');
     elem.remove();
 
   },
@@ -547,7 +548,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
    * The meshes are created first and the old ones
    * are deleted afterwards.
    * The function is called once in initRendering and every time 
-   * the util interaction triggers the event "redrawScene".
+   * the util interaction triggers the event 'redrawScene'.
    *
    * @method populateScene
    */
@@ -630,7 +631,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         var extensionX, extensionY, centerX, centerYClosed, centerYOpened;
 
         // Create earth
-        if (!isRequestObject && system.get('name') === "Requests") {
+        if (!isRequestObject && system.get('name') === 'Requests') {
           isRequestObject = true;
 
           // Add earth
@@ -644,7 +645,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
           // Create mesh for earth
           var requestGeometry = new THREE.SphereGeometry(0.1, 32, 32);
           var requests = new THREE.Mesh(requestGeometry, self.get('requestMaterial'));
-          requests.name = "earth";
+          requests.name = 'earth';
           requests.position.set(centerX, centerYClosed, system.get('positionZ'));
 
           // Scale requests
@@ -796,8 +797,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
               // Draw Box for node 
               let nodeMesh = createBox(node);
-              nodeMesh.type = "application";
-              nodeMesh.name = "node";
+              nodeMesh.type = 'application';
+              nodeMesh.name = 'node';
 
               // Get parent position and store new position
               node.set('positionZ', node.get('parent').get('positionZ') + diffNodeDepth / 2);
@@ -865,7 +866,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
                   self.get('imageLoader').createPicture(logoPos.x, logoPos.y,
                     logoPos.z + 0.001, logoSize.width, logoSize.height,
-                    texturePartialPath, applicationMesh, "logo");
+                    texturePartialPath, applicationMesh, 'logo');
 
                   // Create text labels 
                   let textColor =
@@ -1113,9 +1114,9 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       let scaleZ = (floorSize.z - 3.2) / landscapeSize.z;
       vrEnvironment.scale.y *= scaleZ;
 
-      let requests = vrEnvironment.getObjectByName("earth");
+      let requests = vrEnvironment.getObjectByName('earth');
 
-      // check if "earth" exists in landscape and scale it
+      // check if 'earth' exists in landscape and scale it
       if (requests){
       // Undo scaling requests
       requests.scale.x /= scaleX; 
@@ -1436,7 +1437,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     interaction.set('controller2', controller2);
     interaction.set('vrEnvironment', vrEnvironment);
     interaction.set('colorList', this.get('configuration.landscapeColors'));
-    interaction.set('colorListApp', this.get('configurationApplication.applicationColors'));
+    interaction.set('colorListApp', this.get('configuration.applicationColors'));
     interaction.set('labeler', this.get('labeler'));
     interaction.set('room', this.get('room'));
     interaction.set('user', user);
@@ -1496,7 +1497,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
     /*
      * This interaction listener is used to redraw the application3D 
-     * ("opened" value of package changed) 
+     * ('opened' value of package changed) 
      */
     this.get('interaction').on('redrawApp', (appID) => {
       this.redrawApplication(appID);
@@ -1555,7 +1556,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
   /*
    *  This method is used to remove the given children of an object3D.
-   *  "null" or "undefined" passed => delete all children 
+   *  'null' or 'undefined' passed => delete all children 
    */
   removeChildren(entity, childrenToRemove){
 
@@ -1633,7 +1634,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         const emberModel = child.userData.model;
         if (emberModel !== undefined){
           const emberModelName = emberModel.constructor.modelName;
-          if (emberModelName === "component")
+          if (emberModelName === 'component')
             child.userData.model.setOpenedStatus(false);
         }
       });
@@ -1686,7 +1687,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         let transparent = false;
         let opacityValue = 1.0;
 
-        if(drawableClazzComm.get('state') === "TRANSPARENT") {
+        if(drawableClazzComm.get('state') === 'TRANSPARENT') {
           transparent = true;
           opacityValue = 0.4;
         }
@@ -1762,7 +1763,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       this.set('deleteButton', new THREE.Mesh(geometryDel, materialDel));
       this.get('deleteButton').geometry.rotateY(-0.3);
       this.get('deleteButton').userData.name = 'deleteButton';
-      this.get('deleteButton').name = "deleteButton";
+      this.get('deleteButton').name = 'deleteButton';
       self.get('deleteButton').position.set(
         self.get('openApps').get(application.id).position.x,bboxApp3D.max.y*3.5,self.get('openApps').get(application.id).position.z);
 
