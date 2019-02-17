@@ -1,13 +1,13 @@
-import Router from "explorviz-frontend/router";
+import Router from 'explorviz-frontend/router';
 
 export function initialize(app) {
-	let service = app.lookup("service:page-setup");
+	let service = app.lookup('service:page-setup');
 	if(service){
-		service.get("navbarRoutes").push("VR");
+		service.get('navbarRoutes').push('VR');
 }
 	
 	Router.map(function(){
-		this.route("VR");
+		this.route('VR');
 	});
 }
 

@@ -1,11 +1,12 @@
 import { inject as service } from '@ember/service';
+import Evented from '@ember/object/evented';
+import THREE from 'three';
+import $ from 'jquery';
+import Models from '../utils/models';
 import User from '../utils/multi-user/user';
 import Helper from '../utils/multi-user/helper';
 import Sender from '../utils/multi-user/send';
 import VRRendering from './vr-rendering';
-import Ember from 'ember';
-import THREE from 'three';
-import Models from '../utils/models';
 import Menus, { UserListMenu, OptionsMenu, SpectateMenu,
   LandscapePositionMenu, CameraHeightMenu, MessageBox, ConnectMenu, HintMenu }  from '../utils/multi-user/menus';
 
@@ -18,7 +19,7 @@ import Menus, { UserListMenu, OptionsMenu, SpectateMenu,
  * @class MULTI-USER
  * @extends vr-rendering
  */
-export default VRRendering.extend(Ember.Evented, {
+export default VRRendering.extend(Evented, {
   websockets: service(), //service needed to use websockets
   socketRef: null, //websocket to send/receive messages to/from backend
   
@@ -210,7 +211,7 @@ export default VRRendering.extend(Ember.Evented, {
     this.initInteractions();
 
     let host, port;
-    Ember.$.getJSON("config/config_multiuser.json").then(json => {
+    $.getJSON('config/config_multiuser.json').then(json => {
       host = json.host;
       port = json.port;
 
@@ -399,7 +400,7 @@ export default VRRendering.extend(Ember.Evented, {
     if(this.get('state') === 'connected' || this.get('state') === 'spectating')
       UserListMenu.open.call(this);
     else
-      HintMenu.showHint.call(this, "You can't open the user list when offline!", 3);
+      HintMenu.showHint.call(this, 'Cannot open the user list when offline!', 3);
   },
 
   /**
@@ -635,7 +636,7 @@ export default VRRendering.extend(Ember.Evented, {
    */
   onSelfConnecting(data) {
     // If name is not found, use id as default name
-    let name = this.get('session.data.authenticated.username') || "ID: " + data.id;
+    let name = this.get('session.data.authenticated.username') || 'ID: ' + data.id;
     this.set('userID', data.id);
     this.set('color', data.color);
     this.get('interaction').set('highlightingColor', Helper.colorToString(data.color));
@@ -1212,7 +1213,7 @@ export default VRRendering.extend(Ember.Evented, {
   closeHandler(event) {
     // ConnectMenu.open.call(this, OptionsMenu.open);
     if(this.state === 'connecting')
-      HintMenu.showHint.call(this, "Couldn't establish connection", 3);
+      HintMenu.showHint.call(this, 'Could not establish connection', 3);
 
     this.disconnect(false);
   },
