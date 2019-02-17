@@ -48,22 +48,27 @@ export function open(lastMenu) {
         }
       }
       if (action === 'rightTriggerPressed' && item.isActivated) {
+        const deltaTime = this.get('deltaViewTime');
+        const triggerValue = this.get('controller2').getTriggerValue();
+
+        const moveAndRotateDistance = triggerValue * deltaTime * 0.001;
+
         if (item.name === 'move_left') {
-          this.moveLandscape({ x: -0.01, y: 0, z: 0 });
+          this.moveLandscape({ x: -moveAndRotateDistance, y: 0, z: 0 });
         } else if (item.name === 'move_right') {
-          this.moveLandscape({ x: 0.01, y: 0, z: 0 });
+          this.moveLandscape({ x: moveAndRotateDistance, y: 0, z: 0 });
         } else if (item.name === 'move_forward') {
-          this.moveLandscape({ x: 0, y: 0, z: -0.01 });
+          this.moveLandscape({ x: 0, y: 0, z: -moveAndRotateDistance });
         } else if (item.name === 'move_backward') {
-          this.moveLandscape({ x: 0, y: 0, z: 0.01 });
+          this.moveLandscape({ x: 0, y: 0, z: moveAndRotateDistance });
         } else if (item.name === 'move_up') {
-          this.moveLandscape({ x: 0, y: 0.01, z: 0 });
+          this.moveLandscape({ x: 0, y: moveAndRotateDistance, z: 0 });
         } else if (item.name === 'move_down') {
-          this.moveLandscape({ x: 0, y: -0.01, z: 0 });
+          this.moveLandscape({ x: 0, y: -moveAndRotateDistance, z: 0 });
         } else if (item.name === 'rotate_left') {
-          this.rotateLandscape({ x: -0.01, y: 0, z: 0 });
+          this.rotateLandscape({ x: -moveAndRotateDistance, y: 0, z: 0 });
         } else if (item.name === 'rotate_right') {
-          this.rotateLandscape({ x: 0.01, y: 0, z: 0 });
+          this.rotateLandscape({ x: moveAndRotateDistance, y: 0, z: 0 });
         }
       }
     } else {

@@ -37,11 +37,16 @@ export function open(lastMenu) {
         item.isActivated = false;
       }
       if(action === 'rightTriggerPressed' && item.isActivated) {
+        const deltaTime = this.get('deltaViewTime');
+        const triggerValue = this.get('controller2').getTriggerValue();
+
+        const moveDistance = triggerValue * deltaTime * 0.001;
+
         if(item.name === 'height_down') {
-          this.get('user').position.y -= 0.01;
+          this.get('user').position.y -= moveDistance;
           menu.updateText('camera_height', this.get('user').position.y.toFixed(2));
         } else if(item.name === 'height_up') {
-          this.get('user').position.y += 0.01;
+          this.get('user').position.y += moveDistance;
           menu.updateText('camera_height', this.get('user').position.y.toFixed(2));
         }
       }

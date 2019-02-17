@@ -54,10 +54,10 @@ export default VRRendering.extend(Evented, {
       return;
     }
 
-    // this.set('currentTime', new Date().getTime());
+    this.set('currentTime', new Date().getTime());
 
     //time difference between now and the last time updates were sent
-    // this.set('deltaViewTime',  this.get('currentTime') - this.get('lastViewTime'));
+    this.set('deltaViewTime',  this.get('currentTime') - this.get('lastViewTime'));
     // this.set('deltaUpdateTime', this.get('currentTime') - this.get('lastUpdateTime'));
 
     if(this.get('userID') && this.get('state') === 'spectating') {
@@ -74,7 +74,7 @@ export default VRRendering.extend(Evented, {
     // render scene
     this.render2();
 
-    // this.set('lastViewTime', this.get('currentTime'));
+    this.set('lastViewTime', this.get('currentTime'));
 
     // add controller/camera updates (position changes, controller disconnect etc.)
     if(this.get('userID') && this.get('state') === 'connected' || this.get('state') === 'spectating') {
