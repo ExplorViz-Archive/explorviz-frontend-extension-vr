@@ -1,5 +1,5 @@
 import Ember from 'ember';
-const { computed, Controller, inject, observer } = Ember;
+const { computed, Controller, inject } = Ember;
 
 export default Controller.extend({
 
@@ -16,7 +16,6 @@ export default Controller.extend({
     resetView() {
       this.get('renderingService').reSetupScene();
     }
-
 
   }
 });

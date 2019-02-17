@@ -11,40 +11,41 @@ let menu = null;
  */
 export function open() {
   menu = Menu.create({
-      name: 'optionsMenu'
+    name: 'optionsMenu'
   });
   menu.addTitle('Options');
-  menu.addTextButton('Change Camera', 'change_height', {x: 100, y: 126}, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
-  menu.addTextButton('Move Landscape', 'change_landscape_position', {x: 100, y: 186}, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
-  menu.addTextButton('Spectate', 'spectate', {x: 100, y: 246}, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
-  menu.addTextButton('Connection', 'connection', {x: 100, y: 306}, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
-  menu.addTextButton('Exit', 'exit', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
-  
+  menu.addTextButton('Change Camera', 'change_height', { x: 100, y: 126 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+  menu.addTextButton('Move Landscape', 'change_landscape_position', { x: 100, y: 186 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+  menu.addTextButton('Spectate', 'spectate', { x: 100, y: 246 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+  menu.addTextButton('Connection', 'connection', { x: 100, y: 306 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+  menu.addTextButton('Exit', 'exit', { x: 100, y: 402 }, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
+
   menu.interact = (action, position) => {
     let item = menu.getItem(position);
-    if(item) {
-      if(action === 'rightIntersect') {
+    if (item) {
+      if (action === 'rightIntersect' || action === 'rightTriggerDown') {
         menu.setHover(item);
       }
-      if(action === 'rightTrigger') {
-        if(item.name === 'exit') {
+      if (action === 'rightTriggerDown') {
+        if (item.name === 'exit') {
           close.call(this);
-        } else if(item.name === 'change_height') {
+        } else if (item.name === 'change_height') {
           close.call(this);
           CameraHeightMenu.open.call(this, open);
-        } else if(item.name === 'change_landscape_position') {
+        } else if (item.name === 'change_landscape_position') {
           close.call(this);
           LandscapePositionMenu.open.call(this, open);
-        } else if(item.name === 'spectate') {
+        } else if (item.name === 'spectate') {
           close.call(this);
           SpectateMenu.open.call(this, open);
-        } else if(item.name === 'connection') {
+        } else if (item.name === 'connection') {
           close.call(this);
           ConnectMenu.open.call(this, open);
         }
       }
     } else {
       menu.setHover(null);
+      menu.deactivateItems();
     }
   };
 
@@ -52,7 +53,7 @@ export function open() {
   menu.addToController(this.get('controller1'));
 
   // hide spectate menu item if user isn't connected the server
-  if(this.state === 'offline' || this.state === 'connecting') {
+  if (this.state === 'offline' || this.state === 'connecting') {
     menu.setClickable('spectate', false);
     menu.setColor('spectate', '#A8A8A8');
   }

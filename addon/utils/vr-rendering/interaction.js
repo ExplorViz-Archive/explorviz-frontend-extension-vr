@@ -12,7 +12,6 @@ import { getOwner } from '@ember/application';
 /*
  *  This util is used to realize the interaction by handeling
  *  mouse and controller events.
- *
  */
 export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
@@ -80,6 +79,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     // Setup listener for controller 2 (right controller)
     this.get('controller2').addEventListener('triggerdown', (event) => { this.onTriggerDownController2(event) });
+    this.get('controller2').addEventListener('triggerup', (event) => { this.onTriggerUpController2(event) });
     this.get('controller2').addEventListener('menudown', (event) => { this.onMenuDownController2(event) });
     this.get('controller2').addEventListener('gripdown', (event) => { this.onGripDownController2(event) });
     this.get('controller2').addEventListener('gripup', (event) => { this.onGripUpController2(event) });
@@ -235,7 +235,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       // Handle menus
       let menu = Menus.get(intersectedViewObj.object.name);
       if(menu) {
-        menu.interact('rightIntersect', intersectedViewObj.uv);
+        let triggerIsPressed = controller.getButtonState('trigger');
+        if (triggerIsPressed){
+          menu.interact('rightTriggerPressed', intersectedViewObj.uv);
+        } else {
+          menu.interact('rightIntersect', intersectedViewObj.uv);
+        }
         return;
       }
   
@@ -623,7 +628,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         // Handle menus
         let menu = Menus.get(intersectedViewObj.object.name);
         if(menu) {
-          menu.interact('rightTrigger', intersectedViewObj.uv);
+          menu.interact('rightTriggerDown', intersectedViewObj.uv);
           return;
         }
 
@@ -695,6 +700,52 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         }
       }
     }
+  },
+
+  /*
+   * This method handles the right controller (event 'triggerup')
+   */
+  onTriggerUpController2(event, objects) {
+
+    const controller = event.target;
+    let controllerLine = controller.getObjectByName('controllerLine');
+
+    /* Refuse trigger functionality if the controller which triggered
+     * the event already binds the app3D 
+     */
+    if (this.get('app3DBindedByController')[controller.id]) {
+      return;
+    }
+    // Calculate controller direction and origin
+    var tempMatrix = new THREE.Matrix4();
+
+    tempMatrix.identity().extractRotation(controllerLine.matrixWorld);
+
+    const origin = new THREE.Vector3();
+    origin.setFromMatrixPosition(controllerLine.matrixWorld);
+
+    const direction = new THREE.Vector3(0, 0, -1);
+    direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+
+    if (!objects) {
+      objects = this.get('raycastObjectsLandscape');
+    }
+
+    // Calculate hit object
+    const intersectedViewObj = this.get('raycaster').raycasting(origin, direction,
+      null, objects);
+
+    // Check if an object is hit
+    if (intersectedViewObj) {
+
+      // Handle menus
+      let menu = Menus.get(intersectedViewObj.object.name);
+      if (menu) {
+        menu.interact('rightTriggerUp', intersectedViewObj.uv);
+        return;
+      }
+    }
+
   },
 
   /*
