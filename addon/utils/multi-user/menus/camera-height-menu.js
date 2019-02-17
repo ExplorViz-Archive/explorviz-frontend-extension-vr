@@ -26,19 +26,28 @@ export function open(lastMenu) {
       if(action === 'rightIntersect') {
         menu.setHover(item);
       }
-      if(action === 'rightTrigger') {
+      if(action === 'rightTriggerDown'){
+        if(item.name === 'back') {
+          back.call(this);
+        } else {
+          item.isActivated = true;
+        }
+      }
+      if(action === 'rightTriggerUp'){
+        item.isActivated = false;
+      }
+      if(action === 'rightTriggerPressed' && item.isActivated) {
         if(item.name === 'height_down') {
-          this.get('user').position.y -= 0.05;
+          this.get('user').position.y -= 0.01;
           menu.updateText('camera_height', this.get('user').position.y.toFixed(2));
         } else if(item.name === 'height_up') {
-          this.get('user').position.y += 0.05;
+          this.get('user').position.y += 0.01;
           menu.updateText('camera_height', this.get('user').position.y.toFixed(2));
-        } else if(item.name === 'back') {
-          back.call(this);
         }
       }
     } else {
       menu.setHover(null);
+      menu.deactivateItems();
     }
   };
   

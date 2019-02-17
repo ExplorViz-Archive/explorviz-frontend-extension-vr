@@ -20,7 +20,7 @@ export function showHint(hint, blinks, hint2) {
   }
   menu.interact = (action) => {
   //menu.interact = (action, position) => {
-    if(action === 'rightTrigger') {
+    if(action === 'rightTriggerDown') {
       close.call(this, menu);
     }
   };

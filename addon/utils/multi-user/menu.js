@@ -50,7 +50,7 @@ export default EmberObject.extend({
     align = align || 'left';
     clickable = clickable || false;
 
-    this.get('items').push({ type: 'text', name, text, size, position, color, align, clickable, hover: false });
+    this.get('items').push({ type: 'text', name, text, size, position, color, align, clickable, hover: false, isActivated: false });
   },
   
   /**
@@ -73,7 +73,7 @@ export default EmberObject.extend({
     style = style || 'arrow_right';
     color = color || '#ffffff';
 
-    this.get('items').push({ type: 'button', style, name, position, to, color, hover: false });
+    this.get('items').push({ type: 'button', style, name, position, to, color, hover: false, isActivated: false });
   },
   
   /**
@@ -96,7 +96,7 @@ export default EmberObject.extend({
     style = style || 'curved_arrow_left';
     color = color || '#ffffff';
 
-    this.get('items').push({ type: 'button', style, name, position, size, color, hover: false });
+    this.get('items').push({ type: 'button', style, name, position, size, color, hover: false, isActivated: false });
   },
 
   /**
@@ -117,7 +117,7 @@ export default EmberObject.extend({
     if(!this.get('items'))
       this.set('items', new Array());
 
-    this.get('items').push({ type: 'textButton', name, text, position, width, height, textSize, buttonColor, textColor, hoverColor, clickable, hover: false });
+    this.get('items').push({ type: 'textButton', name, text, position, width, height, textSize, buttonColor, textColor, hoverColor, clickable, hover: false, isisActivated: false });
   },
 
   /**
@@ -401,6 +401,13 @@ export default EmberObject.extend({
         if(x >= itemX && y >= itemY && x <= itemX + item.width && y <= itemY  + item.height)
           return item;
       }
+    }
+  },
+
+  deactivateItems() {
+    for (let i = 0; i < this.get('items').length; i++) {
+      let item = this.get('items')[i];
+      item.isActivated = false;
     }
   },
 

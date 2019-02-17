@@ -22,10 +22,10 @@ export function open(lastMenu) {
   menu.interact = (action, position) => {
     let item = menu.getItem(position);
     if(item) {
-      if(action === 'rightIntersect') {
+      if(action === 'rightIntersect' || action === 'rightTriggerDown') {
         menu.setHover(item);
       }
-      if(action === 'rightTrigger') {
+      if(action === 'rightTriggerDown') {
         if(item.name === 'connect') {
           if(this.state === 'offline')
             this.connect();
@@ -37,6 +37,7 @@ export function open(lastMenu) {
       }
     } else {
       menu.setHover(null);
+      menu.deactivateItems();
     }
   };
   menu.createMesh();
