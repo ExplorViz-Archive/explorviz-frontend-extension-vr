@@ -194,7 +194,7 @@ export default Component.extend(Evented, THREEPerformance, {
     const width = $('#rendering').innerWidth();
 
     const canvas = $('#threeCanvas')[0];
-    
+
     this.set('canvas', canvas);
 
     this.set('scene', new THREE.Scene());
@@ -216,7 +216,9 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('webglrenderer').gammaOutput = true;
 
     // Add VR button
-    document.body.appendChild( WEBVR.createButton( this.get('webglrenderer') ));
+    $('#vizContainer').append(WEBVR.createButton( this.get('webglrenderer') ));
+
+    console.log(document.body)
 
     // Create left controller
     this.set('controller1', new Controller(0));
