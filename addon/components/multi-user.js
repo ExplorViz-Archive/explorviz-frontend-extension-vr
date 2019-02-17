@@ -20,6 +20,9 @@ import Menus, { UserListMenu, OptionsMenu, SpectateMenu,
  * @extends vr-rendering
  */
 export default VRRendering.extend(Evented, {
+
+  tagName: '',
+
   websockets: service(), //service needed to use websockets
   socketRef: null, //websocket to send/receive messages to/from backend
   

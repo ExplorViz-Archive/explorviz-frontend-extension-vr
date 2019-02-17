@@ -2,6 +2,7 @@ import Component from '@ember/component';
 import Evented from '@ember/object/evented';
 import { inject as service } from '@ember/service';
 import { getOwner } from '@ember/application';
+import $ from 'jquery';
 import THREE from 'three';
 import THREEPerformance from 'explorviz-frontend/mixins/threejs-performance';
 import Raycaster from '../utils/vr-rendering/raycaster';
@@ -32,6 +33,8 @@ import Models from '../utils/models';
  * @extends Component
  */
 export default Component.extend(Evented, THREEPerformance, {
+
+  tagName: '',
 
   store: service(), //store to access model information
 
@@ -187,10 +190,11 @@ export default Component.extend(Evented, THREEPerformance, {
     this.set('landscapeRepo.latestApplication', null);
 
     // Get size of outer ember div
-    const height = this.$()[0].clientHeight;
-    const width = this.$()[0].clientWidth;
+    const height = $('#rendering').innerHeight();
+    const width = $('#rendering').innerWidth();
 
-    const canvas = this.$('#threeCanvas')[0];
+    const canvas = $('#threeCanvas')[0];
+    
     this.set('canvas', canvas);
 
     this.set('scene', new THREE.Scene());
