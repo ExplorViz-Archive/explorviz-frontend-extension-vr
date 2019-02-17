@@ -1413,8 +1413,6 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
    */
   initInteraction() {
 
-    const self = this;
-
     const scene = this.get('scene');
     const canvas = this.get('canvas');
     const camera = this.get('camera');
@@ -1425,61 +1423,74 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
     const vrEnvironment = this.get('vrEnvironment');
     const user = this.get('user');
 
-    // Init interaction objects
-    this.get('interaction').setupInteraction(scene, canvas, camera, webglrenderer,
-      raycaster, this.get('vrLandscape').children, controller1, controller2, 
-      vrEnvironment, this.get('configuration.landscapeColors'), 
-      this.get('configurationApplication.applicationColors'), 
-      this.get('labeler'), this.get('room'), user, this.get('boundApps'), this.get('environmentOffset'), 
-      this.get('controllerGroup'));
+    let interaction = this.get('interaction');
+
+    // Set / Bind properties for interaction
+    interaction.set('scene', scene);
+    interaction.set('canvas', canvas);
+    interaction.set('camera', camera);
+    interaction.set('renderer', webglrenderer);
+    interaction.set('raycaster', raycaster);
+    interaction.set('raycastObjectsLandscape', this.get('vrLandscape').children);
+    interaction.set('controller1', controller1);
+    interaction.set('controller2', controller2);
+    interaction.set('vrEnvironment', vrEnvironment);
+    interaction.set('colorList', this.get('configuration.landscapeColors'));
+    interaction.set('colorListApp', this.get('configurationApplication.applicationColors'));
+    interaction.set('labeler', this.get('labeler'));
+    interaction.set('room', this.get('room'));
+    interaction.set('user', user);
+    interaction.set('boundApps', this.get('boundApps'));
+    interaction.set('environmentOffset', this.get('environmentOffset'));
+    interaction.set('controllerGroup', this.get('controllerGroup'));
+
+    // Init interaction handlers
+    this.get('interaction').initHandlers();
 
     // Set listeners
-    this.get('interaction').on('redrawScene', function() {
-      self.populateScene();
-    });
+    this.get('interaction').on('redrawScene', () => { this.populateScene(); });
 
-    this.get('interaction').on('centerVREnvironment', function() {
-      self.centerVREnvironment(self.get('vrEnvironment'), self.get('room'));
-    });
+    this.get('interaction').on('centerVREnvironment', () => { this.centerVREnvironment(this.get('vrEnvironment'), this.get('room')); });
 
-    this.get('interaction').on('redrawAppCommunication', function() {
+    this.get('interaction').on('redrawAppCommunication', () => {
       // Delete communication lines of application3D
-      self.get('openApps').forEach(function(app){
-        self.removeChildren(app, ['app3DCommunication']);
+      this.get('openApps').forEach((app) => {
+        this.removeChildren(app, ['app3DCommunication']);
         app.updateMatrix();
       });
 
-      self.get('openApps').forEach(function(app){
-        self.addCommunicationToApp(app.userData.model);
+      this.get('openApps').forEach((app) => {
+        this.addCommunicationToApp(app.userData.model);
         app.updateMatrix();
       });
     });
 
     // Show teleport area
-    this.get('interaction').on('showTeleportArea', function(intersectionPoint) {
-      if(!self.get('teleportArea')){
+    this.get('interaction').on('showTeleportArea', (intersectionPoint) => {
+      if (!this.get('teleportArea')) {
         // Create teleport area
-        var geometry = new THREE.RingGeometry(0.14, 0.2, 32 );
+        var geometry = new THREE.RingGeometry(0.14, 0.2, 32);
         geometry.rotateX(-1.5707963);
-        var material = new THREE.MeshLambertMaterial( {
-         color: new THREE.Color(0x0000dc)} );
+        var material = new THREE.MeshLambertMaterial({
+          color: new THREE.Color(0x0000dc)
+        });
         material.transparent = true;
         material.opacity = 0.4;
-        self.set('teleportArea', new THREE.Mesh( geometry, material ));
-        self.get('scene').add(self.get('teleportArea'));
+        this.set('teleportArea', new THREE.Mesh(geometry, material));
+        this.get('scene').add(this.get('teleportArea'));
       }
-      self.get('teleportArea').position.x = intersectionPoint.x;
-      self.get('teleportArea').position.y = intersectionPoint.y + 0.005;
-      self.get('teleportArea').position.z = intersectionPoint.z;
+      this.get('teleportArea').position.x = intersectionPoint.x;
+      this.get('teleportArea').position.y = intersectionPoint.y + 0.005;
+      this.get('teleportArea').position.z = intersectionPoint.z;
     });
 
     // Remove teleport area from the scene
-    this.get('interaction').on('removeTeleportArea', function() {
-      if(self.get('teleportArea')){
+    this.get('interaction').on('removeTeleportArea', () => {
+      if (this.get('teleportArea')) {
         let trash = new THREE.Object3D();
-        trash.add(self.get('teleportArea'));
-        self.removeChildren(trash);
-        self.set('teleportArea', null);
+        trash.add(this.get('teleportArea'));
+        this.removeChildren(trash);
+        this.set('teleportArea', null);
       }
     });
 
@@ -1487,26 +1498,26 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
      * This interaction listener is used to redraw the application3D 
      * ("opened" value of package changed) 
      */
-    this.get('interaction').on('redrawApp', function(appID) {
-      self.redrawApplication(appID);
+    this.get('interaction').on('redrawApp', (appID) => {
+      this.redrawApplication(appID);
     }); ///// End redraw application3D 
 
     /*
      * This interaction listener is used to create the application3D 
      * (controller button pressed or mouse doubleclick)
      */
-    this.get('interaction').on('showApplication', function(emberModel, intersectionPoint) {
+    this.get('interaction').on('showApplication', (emberModel, intersectionPoint) => {
       //dont allow to open the same two apps
-      if (self.get('openApps').has(emberModel.id)){
+      if (this.get('openApps').has(emberModel.id)) {
         return;
       }
       // Add 3D Application to scene (also if one exists already)
-      self.set('landscapeRepo.latestApplication', emberModel);
-      self.add3DApplicationToLandscape(emberModel, 
+      this.set('landscapeRepo.latestApplication', emberModel);
+      this.add3DApplicationToLandscape(emberModel,
         intersectionPoint, new THREE.Quaternion());
 
-        
-      let app = self.get('openApps').get(emberModel.id);
+
+      let app = this.get('openApps').get(emberModel.id);
       let bboxApp3D = new THREE.Box3().setFromObject(app);
       let app3DSize = new THREE.Vector3();
       bboxApp3D.getSize(app3DSize);
@@ -1515,8 +1526,8 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       let newPosition = new THREE.Vector3();
 
       // Center x and z around hit application
-      newPosition.x = intersectionPoint.x  - app3DSize.x;
-      newPosition.z = intersectionPoint.z  + app3DSize.z;
+      newPosition.x = intersectionPoint.x - app3DSize.x;
+      newPosition.z = intersectionPoint.z + app3DSize.z;
       newPosition.y = intersectionPoint.y + 0.3;
       app.position.set(newPosition.x, newPosition.y, newPosition.z);
 
@@ -1525,19 +1536,19 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       app.rotateX(1.5707963267949);
       app.rotateY(1.5707963267949);
       app.updateMatrix();
-      
-      self.trigger('applicationOpened', emberModel.id, app);
+
+      this.trigger('applicationOpened', emberModel.id, app);
     });
     /*
      * This interaction listener is used to delete an existing application3D 
      * (controller button pressed or mouse doubleclick)
      */
-    this.get('interaction').on('removeApplication', function(appID) {
+    this.get('interaction').on('removeApplication', (appID) => {
 
       // Remove 3D Application if present
-      if (self.get('openApps').has(appID)) {
-        self.removeChildren(self.get('openApps').get(appID));
-        self.get('openApps').delete(appID);
+      if (this.get('openApps').has(appID)) {
+        this.removeChildren(this.get('openApps').get(appID));
+        this.get('openApps').delete(appID);
       }
     });
   }, // END initInteraction
@@ -1604,7 +1615,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
         // remove foundation for re-rendering
         this.removeFoundation(entity.userData.model.id, this.get('store'));
         // Update application3D in interaction
-        this.get('interaction').setupInteractionApp3D(null, null);
+        this.get('interaction').set('openApps', null);
         this.set('landscapeRepo.latestApplication', null);
       }
     }
@@ -1777,7 +1788,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
       self.get('app3DMeshes').set(application.id, self.get('openApps').get(application.id));
 
       // Setup interaction for app3D
-      self.get('interaction').setupInteractionApp3D(self.get('openApps'));
+      self.get('interaction').set('openApps', self.get('openApps'));
     }
 
     this.actualizeRaycastObjects();
@@ -1872,7 +1883,7 @@ export default Ember.Component.extend(Ember.Evented, THREEPerformance, {
 
       // Pass highlighted mesh
       if(component.get('highlighted')){
-        self.get('interaction').saveSelectedMesh(mesh);
+        self.get('interaction').set('selectedEntitysMesh', mesh);
       }
 
       self.get('openApps').get(appID).add(mesh);

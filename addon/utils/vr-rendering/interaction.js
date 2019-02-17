@@ -69,43 +69,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   highlightingColor: "rgb(255,0,0)",
 
-  /*
-   * This method is called in "vr-rendering" after 
-   * an application3D has been created 
-   */
-  setupInteractionApp3D(openApps) {
-    this.set('openApps', openApps);
-  },
-
-  /*
-   *  This method is used to pass the selected mesh from component 'vr-rendering'
-   *  to 'interaction'
-   */
-  saveSelectedMesh(mesh){
-    this.set('selectedEntitysMesh', mesh);
-  },
-
   // Import information from component vr-rendering to manipulate objects global
-  setupInteraction(scene, canvas, camera, renderer, raycaster, raycastObjectsLandscape, controller1,
-    controller2, vrEnvironment, colorList, colorListApp, labeler, room, user, boundApps, environmentOffset, controllerGroup) {
-
-    this.set('scene', scene);
-    this.set('canvas', canvas);
-    this.set('camera', camera);
-    this.set('renderer', renderer);
-    this.set('raycaster', raycaster);
-    this.set('raycastObjectsLandscape', raycastObjectsLandscape);
-    this.set('controller1', controller1);
-    this.set('controller2', controller2);
-    this.set('vrEnvironment', vrEnvironment);
-    this.set('colorList', colorList);
-    this.set('colorListApp', colorListApp);
-    this.set('labeler', labeler);
-    this.set('room', room);
-    this.set('user', user);
-    this.set('boundApps', boundApps);
-    this.set('environmentOffset', environmentOffset);
-    this.set('controllerGroup', controllerGroup);
+  initHandlers() {
 
     // Setup listener for controller 1 (left controller)
     this.get('controller1').addEventListener('triggerdown', (event) => { this.onTriggerDownController1(event) });
@@ -119,6 +84,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('controller2').addEventListener('gripdown', (event) => { this.onGripDownController2(event) });
     this.get('controller2').addEventListener('gripup', (event) => { this.onGripUpController2(event) });
     // Unused events: triggerup, thumbpadup, menuup, axischanged
+
+    const canvas = this.get('canvas');
 
     // Handlers for mouse interaction with canvas
     canvas.addEventListener('mouseout', (event) => { this.onMouseOut(event) });
@@ -478,7 +445,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         this.get('previousToolTipObjects')[id] = null;
       }
 
-      // Create tool tip for intersected object
+      // Create tool tip for intersected object65
       if(!this.get('previousToolTipObjects')[id]){
 
         const emberModel = intersectedViewObj.object.userData.model;
