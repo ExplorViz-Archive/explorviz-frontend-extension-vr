@@ -83,6 +83,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.get('controller2').addEventListener('menudown', (event) => { this.onMenuDownController2(event) });
     this.get('controller2').addEventListener('gripdown', (event) => { this.onGripDownController2(event) });
     this.get('controller2').addEventListener('gripup', (event) => { this.onGripUpController2(event) });
+    this.get('controller2').addEventListener('axischanged', (event) => { this.onAxisChangedController2(event) });
     // Unused events: triggerup, thumbpadup, menuup, axischanged
 
     const canvas = this.get('canvas');
@@ -99,34 +100,59 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
     // Add key listener for room positioning
     window.onkeydown = event => {
+      const mvDst = 0.05;
       // Handle keys
       switch (event.key) {
         case 'ArrowDown':
-          this.get('user').position.y -= 0.05;
+          this.get('user').position.y -= mvDst;
           break;
         case 'ArrowUp':
-          this.get('user').position.y += 0.05;
+          this.get('user').position.y += mvDst;
           break;
         case 'ArrowLeft':
-          this.get('user').position.x -= 0.05;
+          this.get('user').position.x -= mvDst;
           break;
         case 'ArrowRight':
-          this.get('user').position.x += 0.05;
+          this.get('user').position.x += mvDst;
           break;
         case '-':
-          this.get('user').position.z += 0.05;
+          this.get('user').position.z += mvDst;
           break;
         case '+':
-          this.get('user').position.z -= 0.05;
+          this.get('user').position.z -= mvDst;
+          break;
+        case 'w':
+          this.get('vrEnvironment').position.z -= mvDst;
+          this.get('environmentOffset').z -= mvDst;
+          this.updateObjectMatrix(this.get('vrEnvironment'));
+          this.trigger('landscapeMoved', new THREE.Vector3(0, 0, -mvDst));
+          break;
+        case 'a':
+          this.get('vrEnvironment').position.x -= mvDst;
+          this.get('environmentOffset').x -= mvDst;
+          this.updateObjectMatrix(this.get('vrEnvironment'));
+          this.trigger('landscapeMoved', new THREE.Vector3(0, 0, -mvDst));
+          break;
+        case 's':
+          this.get('vrEnvironment').position.z += mvDst;
+          this.get('environmentOffset').z += mvDst;
+          this.updateObjectMatrix(this.get('vrEnvironment'));
+          this.trigger('landscapeMoved', new THREE.Vector3(0, 0, mvDst));
+          break;
+        case 'd':
+          this.get('vrEnvironment').position.x += mvDst;
+          this.get('environmentOffset').x += mvDst;
+          this.updateObjectMatrix(this.get('vrEnvironment'));
+          this.trigger('landscapeMoved', new THREE.Vector3(0, 0, mvDst));
           break;
         case 'q':
-          this.get('vrEnvironment').rotation.x += 0.05;
+          this.get('vrEnvironment').rotation.x -= mvDst;
           this.updateObjectMatrix(this.get('vrEnvironment'));
           this.trigger('centerVREnvironment');
           this.trigger('landscapeMoved', new THREE.Vector3(0, 0, 0)); //no position change, only quaternion
           break;
-        case 'w':
-          this.get('vrEnvironment').rotation.x -= 0.05;
+        case 'e':
+          this.get('vrEnvironment').rotation.x += mvDst;
           this.updateObjectMatrix(this.get('vrEnvironment'));
           this.trigger('centerVREnvironment');
           this.trigger('landscapeMoved', new THREE.Vector3(0, 0, 0)); //no position change, only quaternion
@@ -820,6 +846,24 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     }
   },
 
+  onAxisChangedController2(event){
+    const controller = event.target;
+
+    const axes = event.axes;
+    const xAxis = axes[0];
+    const yAxis = axes[1];
+
+    if (controller.userData.selected !== undefined && controller.userData.selected.name !== "textBox") {
+      // Get stored application3D from controller
+      let application = controller.userData.selected;
+      const maxRotation = 0.2;
+      application.rotateX(xAxis * maxRotation);
+      application.rotateZ(yAxis * maxRotation);
+      this.updateObjectMatrix(application);
+    }
+
+  },
+
   onGripDownController1() { },
   onGripUpController1() { },
   onMenuDownController1() { },
@@ -827,20 +871,11 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   ////////// Mouse interaction ////////// 
 
   onMouseWheelStart(evt) {
-    const delta = Math.max(-1, Math.min(1, evt.deltaY));
+    const deltaX = Math.max(-1, Math.min(1, evt.deltaX)) * 0.1
+    const deltaY = Math.max(-1, Math.min(1, evt.deltaY)) * 0.1;
 
-    const mX = (evt.clientX / window.innerWidth) * 2 - 1;
-    const mY = - (evt.clientY / window.innerHeight) * 2 + 1;
-
-    const vector = new THREE.Vector3(mX, mY, 1);
-    vector.unproject(this.get('camera'));
-    vector.sub(this.get('camera').position);
-
-    this.get('camera').position.addVectors(this.get('camera').position,
-      vector.setLength(delta * 0.1));
-
-    this.get('camera').updateProjectionMatrix();
-
+    this.get('user').position.y -= deltaX;
+    this.get('user').position.z += deltaY;
   },
 
   onMouseOut() {
@@ -1165,19 +1200,19 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     if (event.button === 1) {
       // Translate camera
       let distanceXInPercent = (delta.x /
-        parseFloat(this.get('renderer').domElement.clientWidth)) * (-10.0);
+        parseFloat(this.get('renderer').domElement.clientWidth)) * 10.0;
 
       let distanceYInPercent = (delta.y /
         parseFloat(this.get('renderer').domElement.clientHeight)) * 10.0;
 
       this.get('vrEnvironment').position.x += distanceXInPercent;
-      this.get('vrEnvironment').position.z -= distanceYInPercent;
+      this.get('vrEnvironment').position.z += distanceYInPercent;
 
       this.get('environmentOffset').x += distanceXInPercent;
-      this.get('environmentOffset').z -= distanceYInPercent;
+      this.get('environmentOffset').z += distanceYInPercent;
 
       this.updateObjectMatrix(this.get('vrEnvironment'));
-      let deltaPosition = new THREE.Vector3(distanceXInPercent, 0, -distanceYInPercent);
+      let deltaPosition = new THREE.Vector3(distanceXInPercent, 0, distanceYInPercent);
       this.trigger('landscapeMoved', deltaPosition);
     } else if (event.button === 3) {
       // Translate camera
