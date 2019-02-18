@@ -7,6 +7,7 @@ export default Controller.extend({
   reloadHandler: service(),
   renderingService: service(),
   landscapeRepo: service("repos/landscape-repository"),
+  additionalData: service(),
 
   showLandscape: computed('landscapeRepo.latestApplication', function() {
     return !this.get('landscapeRepo.latestApplication');

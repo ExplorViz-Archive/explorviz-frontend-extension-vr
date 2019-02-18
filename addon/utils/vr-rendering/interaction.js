@@ -892,23 +892,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    */
   setupHammerListener() {
 
-    const self = this;
-
-    this.get('hammerHandler').on('doubletap', function (mouse) {
-      self.handleDoubleClick(mouse);
-    });
-
-    this.get('hammerHandler').on('panning', function (delta, event) {
-      self.handlePanning(delta, event);
-    });
-
-    this.get('hammerHandler').on('panningEnd', function (mouse) {
-      self.handleHover(mouse);
-    });
-
-    this.get('hammerHandler').on('singletap', function (mouse) {
-      self.handleSingleClick(mouse);
-    });
+    this.get('hammerHandler').on('doubletap', (mouse) => { this.handleDoubleClick(mouse); });
+    this.get('hammerHandler').on('panning', (delta, event) => { this.handlePanning(delta, event); });
+    this.get('hammerHandler').on('panningEnd', (mouse) => { this.handleHover(mouse); });
+    this.get('hammerHandler').on('singletap', (mouse) => { this.handleSingleClick(mouse); });
 
   },
 
@@ -1235,17 +1222,19 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    */
   handleHover(evt) {
 
+    const rect = this.get('canvas').getBoundingClientRect();
+
     const mouse = {
-      x: evt.detail.clientX,
-      y: evt.detail.clientY
+      x: evt.detail.clientX -rect.left,
+      y: evt.detail.clientY - rect.top,
     };
 
     const origin = {};
 
-    origin.x = ((mouse.x - (this.get('renderer').domElement.offsetLeft + 0.66)) /
+    origin.x = ((evt.detail.clientX - (this.get('renderer').domElement.offsetLeft + 0.66)) /
       this.get('renderer').domElement.clientWidth) * 2 - 1;
 
-    origin.y = -((mouse.y - (this.get('renderer').domElement.offsetTop + 0.665)) /
+    origin.y = -((evt.detail.clientY - (this.get('renderer').domElement.offsetTop + 0.665)) /
       this.get('renderer').domElement.clientHeight) * 2 + 1;
 
     const intersectedViewObj = this.get('raycaster').raycasting(null, origin,
