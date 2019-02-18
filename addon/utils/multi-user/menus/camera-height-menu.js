@@ -40,7 +40,7 @@ export function open(lastMenu) {
         const deltaTime = this.get('deltaViewTime');
         const triggerValue = this.get('controller2').getTriggerValue();
 
-        const moveDistance = triggerValue * deltaTime * 0.001;
+        const moveDistance = triggerValue * deltaTime;
 
         if(item.name === 'height_down') {
           this.get('user').position.y -= moveDistance;

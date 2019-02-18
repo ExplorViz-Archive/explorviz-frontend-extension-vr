@@ -51,7 +51,7 @@ export function open(lastMenu) {
         const deltaTime = this.get('deltaViewTime');
         const triggerValue = this.get('controller2').getTriggerValue();
 
-        const moveAndRotateDistance = triggerValue * deltaTime * 0.001;
+        const moveAndRotateDistance = triggerValue * deltaTime;
 
         if (item.name === 'move_left') {
           this.moveLandscape({ x: -moveAndRotateDistance, y: 0, z: 0 });

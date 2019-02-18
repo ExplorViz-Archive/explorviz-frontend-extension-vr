@@ -36,8 +36,8 @@ export default VRRendering.extend(Evented, {
   updatesPerSecond: 90, // Tells how many times per seconds msg can be sent to backend
   badConnectionUpdates: 15, // Tells how many updates are sent per second in case of a bad connection
   lastViewTime: null, // Last time an image was rendered
-  currentTime: null, // Tells the current time in ms
-  deltaViewTime: null, // Time between two frames
+  currentTime: null, // Tells the current time in seconds
+  deltaViewTime: null, // Time between two frames in seconds
   deltaUpdateTime: null, // Time between two update messages
   lastUpdateTime: null, // Last time an update was sent
   updateQueue: null, // Messages which are ready to be sent to backend
@@ -54,7 +54,7 @@ export default VRRendering.extend(Evented, {
       return;
     }
 
-    this.set('currentTime', Date.now());
+    this.set('currentTime', Date.now() / 1000.0);
 
     //time difference between now and the last time updates were sent
     this.set('deltaViewTime',  this.get('currentTime') - this.get('lastViewTime'));
@@ -248,8 +248,8 @@ export default VRRendering.extend(Evented, {
     this.set('users', new Map());
     this.set('lastPositions', { camera: null, controller1: null, controller2: null });
     this.set('controllersConnected', { controller1: false, controller2: false });
-    this.set('lastViewTime', Date.now());
-    this.set('lastUpdateTime', Date.now());
+    this.set('lastViewTime', Date.now() / 1000.0);
+    this.set('lastUpdateTime', Date.now() / 1000.0);
     this.set('state', 'offline');
   },
 
