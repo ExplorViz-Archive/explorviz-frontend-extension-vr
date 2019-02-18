@@ -68,7 +68,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   highlightingColor: "rgb(255,0,0)",
 
-  // Import information from component vr-rendering to manipulate objects global
+  // Init handlers for interaction with landscape and applications
   initHandlers() {
 
     // Setup listener for controller 1 (left controller)
@@ -204,24 +204,22 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     let controllerLine = controller.getObjectByName('controllerLine');
 
     // Id to verfify which controller triggered the event
-    let id = controller.id;
+    let rightControllerId = controller.id;
+    let leftControllerId = this.get('controller1').id;
 
     // Calculate hit object
     const intersectedViewObj = this.calculateIntersectedViewObject(controller, objects);
 
-    // Verify controllers
-    let id2 = this.verifyControllers(id);
-
     // Stop if hit entity is already highlighted
-    if (this.isEntityHighlighted(intersectedViewObj, controller, id2)) {
+    if (this.isEntityHighlighted(intersectedViewObj, controller, leftControllerId)) {
       return;
     }
 
     // Restore old color of landscape
-    this.unhighlightLandscape(id);
+    this.unhighlightLandscape(rightControllerId);
 
     // Restore old color of application3D
-    this.unhighlightApplication3D(id);
+    this.unhighlightApplication3D(rightControllerId);
 
     // Return if selected entity is hit
     if (this.excludeSelectedEntity(controller, intersectedViewObj)) {
@@ -233,7 +231,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle delete button
       if (intersectedViewObj.object.name === 'deleteButton') {
-        this.highlightDeleteButton(intersectedViewObj, id);
+        this.highlightDeleteButton(intersectedViewObj, rightControllerId);
         return;
       }
 
@@ -265,7 +263,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       let darkerColor = this.calculateDarkerColor(intersectedViewObj.object);
 
       // Handle hit system, nodegroup or application and change color
-      this.highlightLandscape(emberModel, emberModelName, intersectedViewObj, id, darkerColor);
+      this.highlightLandscape(emberModel, emberModelName, intersectedViewObj, rightControllerId, darkerColor);
 
       // Handle hit component/clazz of app3D if its not binded to a Controller
       if ((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded') && emberModel !== this.get('appCommunicationHighlighted')) {
@@ -275,18 +273,18 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         /* Save highlighted object and bind it on controller id to quarantee 
          * that only this controller can unhighlight it */
-        this.get('highlightedEntitiesApp')[id] = intersectedViewObj.object;
+        this.get('highlightedEntitiesApp')[rightControllerId] = intersectedViewObj.object;
 
       }
       // Unhighlight delete button if app3D or landscape is 
       // highlighted AND delete button was highlighted by this controller
-      let additionalCondition = (this.get('highlightedEntitiesApp')[id] || this.get('highlightedEntities')[id]);
-      this.unhighlightedDeleteButton(id, additionalCondition);
+      let additionalCondition = (this.get('highlightedEntitiesApp')[rightControllerId] || this.get('highlightedEntities')[rightControllerId]);
+      this.unhighlightedDeleteButton(rightControllerId, additionalCondition);
     }
     // Reset highlighted enities if nothing was hit 
     else {
       // Unhighlight delete button 
-      this.unhighlightedDeleteButton(id, true);
+      this.unhighlightedDeleteButton(rightControllerId, true);
 
       // Resize ray 
       controllerLine.scale.z = 5;
@@ -307,10 +305,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     const intersectedViewObj = this.calculateIntersectedViewObject(controller, objects);
 
     // Verify controllers
-    let id2 = this.verifyControllers(id);
+    let rightControllerId = this.get('controller2').id;
 
     // Stop if entity is already highlighted by a controller
-    if (this.isEntityHighlighted(intersectedViewObj, controller, id2)) {
+    if (this.isEntityHighlighted(intersectedViewObj, controller, rightControllerId)) {
       return;
     }
 
@@ -739,7 +737,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
             // If identical to intersected object unhighlight and return
             if (this.get('selectedEntitysMesh') === intersectedViewObj.object) {
-              this.restoreSelectedEntity(this.verifyControllers(controller.id));
+              this.restoreSelectedEntity(this.get('controller2').id);
               this.set('selectedEntitysMesh', null);
               this.trigger("entityHighlighted", false, appID, emberModel.id, this.get('selectedEntitysColor'));
               this.set('selectedEntitysColor', null);
@@ -748,7 +746,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             // Reset communication lines
             this.get('selector').highlightAppCommunication(null, this.get('highlightedAppModel'));
             // Restore old color
-            this.restoreSelectedEntity(this.verifyControllers(controller.id));
+            this.restoreSelectedEntity(this.get('controller2').id);
 
             this.get('appCommunicationHighlighted').set('highlighted', false);
           }
@@ -1467,7 +1465,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  This method is used to scale the ray and check if an entity is 
    *  already highlighted
    */
-  isEntityHighlighted(intersectedViewObj, controller, id2) {
+  isEntityHighlighted(intersectedViewObj, controller, otherControllerId) {
 
     let id = controller.id;
 
@@ -1482,8 +1480,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         return true;
       }
       // Landscape or Application3D highlighted by second controller
-      else if ((this.get('highlightedEntities')[id2] && this.get('highlightedEntities')[id2] === intersectedViewObj.object) ||
-        (this.get('highlightedEntitiesApp')[id2] && this.get('highlightedEntitiesApp')[id2] === intersectedViewObj.object)) {
+      else if ((this.get('highlightedEntities')[otherControllerId] && this.get('highlightedEntities')[otherControllerId] === intersectedViewObj.object) ||
+        (this.get('highlightedEntitiesApp')[otherControllerId] && this.get('highlightedEntitiesApp')[otherControllerId] === intersectedViewObj.object)) {
         return true;
       }
     }
@@ -1530,21 +1528,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     cameraOffset.y = 0;
     this.user.position.subVectors(new THREE.Vector3(position.x, this.user.position.y, position.z), cameraOffset);
 
-  },
-
-  /*
-   *  This method is used to identify the controller ids of
-   *  each controller
-   */
-  verifyControllers(id) {
-    let id2;
-    if (id === this.get('controller1').id) {
-      id2 = this.get('controller2').id;
-    }
-    else {
-      id2 = this.get('controller1').id;
-    }
-    return id2;
   },
 
   /*
