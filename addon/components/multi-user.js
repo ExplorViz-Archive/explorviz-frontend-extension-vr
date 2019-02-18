@@ -54,7 +54,7 @@ export default VRRendering.extend(Evented, {
       return;
     }
 
-    this.set('currentTime', new Date().getTime());
+    this.set('currentTime', Date.now());
 
     //time difference between now and the last time updates were sent
     this.set('deltaViewTime',  this.get('currentTime') - this.get('lastViewTime'));
@@ -93,7 +93,7 @@ export default VRRendering.extend(Evented, {
 
   handleBadConnection(){
     this.set('connectionIsGood', false);
-    this.set('badConnectionSince', new Date().getTime());
+    this.set('badConnectionSince', Date.now());
     this.set('updatesPerSecond', this.get('badConnectionUpdates'));
   },
 
@@ -248,8 +248,8 @@ export default VRRendering.extend(Evented, {
     this.set('users', new Map());
     this.set('lastPositions', { camera: null, controller1: null, controller2: null });
     this.set('controllersConnected', { controller1: false, controller2: false });
-    this.set('lastViewTime', new Date().getTime());
-    this.set('lastUpdateTime', new Date().getTime());
+    this.set('lastViewTime', Date.now());
+    this.set('lastUpdateTime', Date.now());
     this.set('state', 'offline');
   },
 
