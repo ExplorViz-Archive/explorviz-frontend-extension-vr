@@ -34,6 +34,10 @@ export function open(lastMenu) {
   // add back button
   menu.addTextButton('Back', 'back', { x: 100, y: 402 }, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
   prevMenu = lastMenu;
+
+  let triggerController = this.get('userIsLefty') ? this.get('controller1') : this.get('controller2');
+  let menuController = this.get('userIsLefty') ? this.get('controller2') : this.get('controller1'); 
+
   menu.interact = (action, position) => {
     let item = menu.getItem(position);
     if (item) {
@@ -49,7 +53,7 @@ export function open(lastMenu) {
       }
       if (action === 'rightTriggerPressed' && item.isActivated) {
         const deltaTime = this.get('deltaViewTime');
-        const triggerValue = this.get('controller2').getTriggerValue();
+        const triggerValue = triggerController.getTriggerValue();
 
         const moveAndRotateDistance = triggerValue * deltaTime;
 
@@ -78,7 +82,7 @@ export function open(lastMenu) {
   };
   menu.createMesh();
 
-  menu.addToController(this.get('controller1'));
+  menu.addToController(menuController);
 }
 
 /**
@@ -86,7 +90,8 @@ export function open(lastMenu) {
  */
 export function close() {
   if(menu) {
-    this.get('controller1').remove(menu.get('mesh'));
+    let controller = this.get('userIsLefty') ? this.get('controller2') : this.get('controller1'); 
+    controller.remove(menu.get('mesh'));
     menu.close();
     menu = null;
   }

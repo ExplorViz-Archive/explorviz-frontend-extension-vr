@@ -7,8 +7,8 @@ import User from '../utils/multi-user/user';
 import Helper from '../utils/multi-user/helper';
 import Sender from '../utils/multi-user/send';
 import VRRendering from './vr-rendering';
-import Menus, { UserListMenu, OptionsMenu, SpectateMenu,
-  LandscapePositionMenu, CameraHeightMenu, MessageBox, ConnectMenu, HintMenu }  from '../utils/multi-user/menus';
+import Menus, { UserListMenu, OptionsMenu, SpectateMenu, LandscapePositionMenu,
+  CameraHeightMenu, MessageBox, ConnectMenu, HintMenu, AdvancedMenu }  from '../utils/multi-user/menus';
 
 /**
  * This component extends the functionalities of vr-rendering so that multiple users
@@ -376,17 +376,19 @@ export default VRRendering.extend(Evented, {
   onMenuDownController1() {
     // Open options menu if no other menu is open
     // Else closes current menu or goes back one menu if possible.
-    if(this.get('state') !== 'spectating') {
-      if(OptionsMenu.isOpen())
+    if (this.get('state') !== 'spectating') {
+      if (OptionsMenu.isOpen())
         OptionsMenu.close.call(this);
-      else if(CameraHeightMenu.isOpen())
+      else if (CameraHeightMenu.isOpen())
         CameraHeightMenu.back.call(this);
-      else if(LandscapePositionMenu.isOpen())
+      else if (LandscapePositionMenu.isOpen())
         LandscapePositionMenu.back.call(this);
-      else if(SpectateMenu.isOpen())
+      else if (SpectateMenu.isOpen())
         SpectateMenu.back.call(this);
-      else if(ConnectMenu.isOpen())
+      else if (ConnectMenu.isOpen())
         ConnectMenu.back.call(this);
+      else if (AdvancedMenu.isOpen())
+        AdvancedMenu.back.call(this);
       else
         OptionsMenu.open.call(this);
     } else {
@@ -1190,6 +1192,34 @@ export default VRRendering.extend(Evented, {
     //synchronize rotation with other users
     this.get('interaction').trigger('centerVREnvironment');
     this.get('interaction').trigger('landscapeMoved', new THREE.Vector3(0, 0, 0));
+  },
+
+  switchToLeftyMode(){
+    Menus.removeAll();
+    if (this.get('controller2').getObjectByName('textBox')){
+      this.get('controller2').remove(this.get('controller2').getObjectByName('textBox'));
+    }
+    this.set('userIsLefty', true);
+    this.get('interaction').removeControllerHandlers();
+    this.set('interaction.userIsLefty', true);
+    this.get('interaction').addControllerHandlers();
+    this.get('controller1').getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,204,51)');
+    this.get('controller2').getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,0,0)');
+    AdvancedMenu.open.call(this, OptionsMenu.open);
+  },
+
+  switchToRightyMode(){
+    Menus.removeAll();
+    if (this.get('controller1').getObjectByName('textBox')){
+      this.get('controller1').remove(this.get('controller1').getObjectByName('textBox'));
+    }
+    this.set('userIsLefty', false);
+    this.get('interaction').removeControllerHandlers();
+    this.set('interaction.userIsLefty', false);
+    this.get('interaction').addControllerHandlers();
+    this.get('controller1').getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,0,0)');
+    this.get('controller2').getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,204,51)');
+    AdvancedMenu.open.call(this, OptionsMenu.open);
   },
 
   /*

@@ -3,6 +3,7 @@ import SpectateMenu from './spectate-menu';
 import LandscapePositionMenu from './landscape-position-menu';
 import CameraHeightMenu from './camera-height-menu';
 import ConnectMenu from './connect-menu';
+import AdvanedMenu from './advanced-menu';
 
 let menu = null;
 
@@ -14,10 +15,11 @@ export function open() {
     name: 'optionsMenu'
   });
   menu.addTitle('Options');
-  menu.addTextButton('Change Camera', 'change_height', { x: 100, y: 126 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
-  menu.addTextButton('Move Landscape', 'change_landscape_position', { x: 100, y: 186 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
-  menu.addTextButton('Spectate', 'spectate', { x: 100, y: 246 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
-  menu.addTextButton('Connection', 'connection', { x: 100, y: 306 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+  menu.addTextButton('Change Camera', 'change_height', { x: 100, y: 80 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+  menu.addTextButton('Move Landscape', 'change_landscape_position', { x: 100, y: 140 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+  menu.addTextButton('Spectate', 'spectate', { x: 100, y: 200 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+  menu.addTextButton('Connection', 'connection', { x: 100, y: 260 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+  menu.addTextButton('Advanced Options', 'advanced', { x: 100, y: 320 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
   menu.addTextButton('Exit', 'exit', { x: 100, y: 402 }, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
 
   menu.interact = (action, position) => {
@@ -41,6 +43,9 @@ export function open() {
         } else if (item.name === 'connection') {
           close.call(this);
           ConnectMenu.open.call(this, open);
+        } else if (item.name === 'advanced') {
+          close.call(this);
+          AdvanedMenu.open.call(this, open);
         }
       }
     } else {
@@ -50,7 +55,9 @@ export function open() {
   };
 
   menu.createMesh();
-  menu.addToController(this.get('controller1'));
+
+  let controller = this.get('userIsLefty') ? 'controller2' : 'controller1'; 
+  menu.addToController(this.get(controller));
 
   // hide spectate menu item if user isn't connected the server
   if (this.state === 'offline' || this.state === 'connecting') {
@@ -64,12 +71,12 @@ export function open() {
  */
 export function close() {
   if(menu) {
-    this.get('controller1').remove(menu.get('mesh'));
+    let controller = this.get('userIsLefty') ? this.get('controller2') : this.get('controller1'); 
+    controller.remove(menu.get('mesh'));
     menu.close();
     menu = null;
   }
 }
-
 /**
  * Return whether the menu is opened or not.
  */

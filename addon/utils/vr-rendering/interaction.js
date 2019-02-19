@@ -9,6 +9,7 @@ import THREE from "three";
 import Menus, { HintMenu } from '../multi-user/menus';
 import { getOwner } from '@ember/application';
 
+
 /*
  *  This util is used to realize the interaction by handeling
  *  mouse and controller events.
@@ -68,23 +69,14 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   highlightingColor: "rgb(255,0,0)",
 
+  // --- TEST ---
+  userIsLefty: false,
+  listeners: null,
+
   // Init handlers for interaction with landscape and applications
   initHandlers() {
 
-    // Setup listener for controller 1 (left controller)
-    this.get('controller1').addEventListener('triggerdown', (event) => { this.onTriggerDownController1(event) });
-    this.get('controller1').addEventListener('gripdown', (event) => { this.onGripDownController1(event) });
-    this.get('controller1').addEventListener('gripup', (event) => { this.onGripUpController1(event) });
-    this.get('controller1').addEventListener('menudown', (event) => { this.onMenuDownController1(event) });
-
-    // Setup listener for controller 2 (right controller)
-    this.get('controller2').addEventListener('triggerdown', (event) => { this.onTriggerDownController2(event) });
-    this.get('controller2').addEventListener('triggerup', (event) => { this.onTriggerUpController2(event) });
-    this.get('controller2').addEventListener('menudown', (event) => { this.onMenuDownController2(event) });
-    this.get('controller2').addEventListener('gripdown', (event) => { this.onGripDownController2(event) });
-    this.get('controller2').addEventListener('gripup', (event) => { this.onGripUpController2(event) });
-    this.get('controller2').addEventListener('axischanged', (event) => { this.onAxisChangedController2(event) });
-    // Unused events: triggerup, thumbpadup, menuup, axischanged
+    this.addControllerHandlers();
 
     const canvas = this.get('canvas');
 
@@ -191,6 +183,42 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.setupHammerListener();
   },
 
+  addControllerHandlers() {
+    let controller1 = this.get('userIsLefty') ? 'controller2' : 'controller1';
+    let controller2 = this.get('userIsLefty') ? 'controller1' : 'controller2';
+
+    this.set('listeners', new Map());
+
+    // Save listeners for controller 1 to be able to later remove them
+    this.get('listeners').set('onTriggerDownController1', (event) => { this.onTriggerDownController1(event) });
+    this.get('listeners').set('onGripDownController1', (event) => { this.onGripDownController1(event) });
+    this.get('listeners').set('onGripUpController1', (event) => { this.onGripUpController1(event) });
+    this.get('listeners').set('onMenuDownController1', (event) => { this.onMenuDownController1(event) });
+
+    // Setup listeners for controller 1
+    this.get(controller1).addEventListener('triggerdown', this.get('listeners').get('onTriggerDownController1'));
+    this.get(controller1).addEventListener('gripdown', this.get('listeners').get('onGripDownController1'));
+    this.get(controller1).addEventListener('gripup', this.get('listeners').get('onGripUpController1'));
+    this.get(controller1).addEventListener('menudown', this.get('listeners').get('onMenuDownController1'));
+
+    // Save listeners for controller 2 to be able to later remove them
+    this.get('listeners').set('onTriggerDownController2', (event) => { this.onTriggerDownController2(event) });
+    this.get('listeners').set('onTriggerUpController2', (event) => { this.onTriggerUpController2(event) });
+    this.get('listeners').set('onMenuDownController2', (event) => { this.onMenuDownController2(event) });
+    this.get('listeners').set('onGripDownController2', (event) => { this.onGripDownController2(event) });
+    this.get('listeners').set('onGripUpController2', (event) => { this.onGripUpController2(event) });
+    this.get('listeners').set('onAxisChangedController2', (event) => { this.onAxisChangedController2(event) });
+
+    // Setup listeners for controller 2
+    this.get(controller2).addEventListener('triggerdown', this.get('listeners').get('onTriggerDownController2'));
+    this.get(controller2).addEventListener('triggerup', this.get('listeners').get('onTriggerUpController2'));
+    this.get(controller2).addEventListener('menudown', this.get('listeners').get('onMenuDownController2'));
+    this.get(controller2).addEventListener('gripdown', this.get('listeners').get('onGripDownController2'));
+    this.get(controller2).addEventListener('gripup', this.get('listeners').get('onGripUpController2'));
+    this.get(controller2).addEventListener('axischanged', this.get('listeners').get('onAxisChangedController2'));
+    // Unused events: triggerup, thumbpadup, menuup, axischanged
+  },
+
 
   ////////// Controller interaction ////////// 
 
@@ -200,12 +228,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * Furthermore this method scales the ray relative to distance of intersection
    */
   checkIntersectionRightController(objects) {
-    let controller = this.get('controller2');
+    let controller = this.get('userIsLefty') ? this.get('controller1') : this.get('controller2');
     let controllerLine = controller.getObjectByName('controllerLine');
 
     // Id to verfify which controller triggered the event
     let rightControllerId = controller.id;
-    let leftControllerId = this.get('controller1').id;
+    let leftControllerId = this.get('userIsLefty') ? this.get('controller1').id : this.get('controller2').id;
 
     // Calculate hit object
     const intersectedViewObj = this.calculateIntersectedViewObject(controller, objects);
@@ -296,7 +324,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * Furthermore this method scales the ray relative to distance of intersection
    */
   checkIntersectionLeftController(objects) {
-    let controller = this.get('controller1');
+    let controller = this.get('userIsLefty') ? this.get('controller2') : this.get('controller1');
     let controllerLine = controller.getObjectByName('controllerLine');
 
     // Id to verfify which controller triggered the event
@@ -305,7 +333,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     const intersectedViewObj = this.calculateIntersectedViewObject(controller, objects);
 
     // Verify controllers
-    let rightControllerId = this.get('controller2').id;
+    let rightControllerId = this.get('userIsLefty') ? this.get('controller1') : this.get('controller2');
 
     // Stop if entity is already highlighted by a controller
     if (this.isEntityHighlighted(intersectedViewObj, controller, rightControllerId)) {
@@ -388,15 +416,16 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
 
   /*
-   * This method handles the controller event 'gripdown'
+   * This method handles the controller event 'onmenudown'
    * and is used to show information about the intersected object. 
    * @method - onMenuDownController2
    */
-  onMenuDownController2(event, objects) {
+  onMenuDownController2(event) {
 
     const controller = event.target;
     let id = controller.id;
 
+    let objects = this.get('raycastObjectsLandscape');
     const intersectedViewObj = this.calculateIntersectedViewObject(controller, objects);
 
     // Check if an object is hit
@@ -932,19 +961,33 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   removeHandlers() {
     this.get('hammerHandler.hammerManager').off();
 
-    this.get('controller1').removeEventListener('triggerdown', this.onTriggerDownController1);
-    this.get('controller1').removeEventListener('gripup', this.onGripUpController1);
-    this.get('controller1').removeEventListener('menudown', this.onMenuDownController1);
-
-    this.get('controller2').removeEventListener('menudown', this.onMenuDownController2);
-    this.get('controller2').removeEventListener('gripdown', this.onGripDownController2);
-    this.get('controller2').removeEventListener('gripup', this.onGripUpController2);
-    this.get('controller2').removeEventListener('triggerdown', this.onTriggerDownController2);
+    this.removeControllerHandlers();
 
     this.get('canvas').removeEventListener('mousewheel', this.onMouseWheelStart);
     this.get('canvas').removeEventListener('mousestop', this.handleHover);
     this.get('canvas').removeEventListener('mouseenter', this.onMouseEnter);
     this.get('canvas').removeEventListener('mouseout', this.onMouseOut);
+  },
+
+  removeControllerHandlers(){
+    let controller1 = this.get('userIsLefty') ? 'controller2' : 'controller1';
+    let controller2 = this.get('userIsLefty') ? 'controller1' : 'controller2';
+    // Remove listeners for controller 1
+    this.get(controller1).removeEventListener('triggerdown', this.get('listeners').get('onTriggerDownController1'));
+    this.get(controller1).removeEventListener('gripdown', this.get('listeners').get('onGripDownController1'));
+    this.get(controller1).removeEventListener('gripup', this.get('listeners').get('onGripUpController1'));
+    this.get(controller1).removeEventListener('menudown', this.get('listeners').get('onMenuDownController1'));
+
+    // Remove listeners for controller 2
+    this.get(controller2).removeEventListener('triggerdown', this.get('listeners').get('onTriggerDownController2'));
+    this.get(controller2).removeEventListener('triggerup', this.get('listeners').get('onTriggerUpController2'));
+    this.get(controller2).removeEventListener('menudown', this.get('listeners').get('onMenuDownController2'));
+    this.get(controller2).removeEventListener('gripdown', this.get('listeners').get('onGripDownController2'));
+    this.get(controller2).removeEventListener('gripup', this.get('listeners').get('onGripUpController2'));
+    this.get(controller2).removeEventListener('axischanged', this.get('listeners').get('onAxisChangedController2'));
+
+    this.set('listeners', null);
+
   },
 
   /*

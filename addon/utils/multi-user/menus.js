@@ -6,6 +6,7 @@ import CameraHeightMenu from './menus/camera-height-menu';
 import MessageBox from './menus/message-box-menu';
 import ConnectMenu from './menus/connect-menu';
 import HintMenu from './menus/hint-menu';
+import AdvancedMenu from './menus/advanced-menu';
 
 let menus = new Map();
 
@@ -17,7 +18,8 @@ export {
   CameraHeightMenu,
   MessageBox,
   ConnectMenu,
-  HintMenu
+  HintMenu,
+  AdvancedMenu
 }
 
 /**
@@ -64,4 +66,8 @@ export function add(menu) {
  */
 export function remove(menuName) {
   menus.delete(menuName);
+}
+
+export function removeAll() {
+  menus.clear();
 }

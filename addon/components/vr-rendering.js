@@ -87,6 +87,8 @@ export default Component.extend(Evented, THREEPerformance, {
   foundations: null, //keep track of foundations (in openApps) for foundationBuilder
   boundApps: null, //applications which other users currently move/hold
 
+  userIsLefty: false,
+
   //still necessary?
   app3DMeshes: null,
   state: null,
@@ -1469,6 +1471,7 @@ export default Component.extend(Evented, THREEPerformance, {
     interaction.set('boundApps', this.get('boundApps'));
     interaction.set('environmentOffset', this.get('environmentOffset'));
     interaction.set('controllerGroup', this.get('controllerGroup'));
+    interaction.set('userIsLefty', this.get('userIsLefty'));
 
     // Init interaction handlers
     this.get('interaction').initHandlers();

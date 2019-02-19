@@ -41,7 +41,8 @@ export function open(lastMenu) {
     }
   };
   menu.createMesh();
-  menu.addToController(this.get('controller1'));
+  let controller = this.get('userIsLefty') ? 'controller2' : 'controller1'; 
+  menu.addToController(this.get(controller));
 
   setState(this.state);
 }
@@ -51,7 +52,8 @@ export function open(lastMenu) {
  */
 export function close() {
   if(menu) {
-    this.get('controller1').remove(menu.get('mesh'));
+    let controller = this.get('userIsLefty') ? this.get('controller2') : this.get('controller1'); 
+    controller.remove(menu.get('mesh'));
     menu.close();
     menu = null;
   }
