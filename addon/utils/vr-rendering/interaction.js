@@ -9,6 +9,7 @@ import THREE from "three";
 import Menus, { HintMenu } from '../multi-user/menus';
 import { getOwner } from '@ember/application';
 
+
 /*
  *  This util is used to realize the interaction by handeling
  *  mouse and controller events.
@@ -25,8 +26,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   renderer: null,
   raycaster: null,
   raycastObjectsLandscape: null,
-  controller1: null,
-  controller2: null,
+  primaryController: null,
+  secondaryController: null,
 
   labeler: null,
   vrEnvironment: null,
@@ -68,23 +69,12 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   highlightingColor: "rgb(255,0,0)",
 
-  // Import information from component vr-rendering to manipulate objects global
+  listeners: null, // Maps listener strings to functions, save listeners to be able to remove them later on
+
+  // Init handlers for interaction with landscape and applications
   initHandlers() {
 
-    // Setup listener for controller 1 (left controller)
-    this.get('controller1').addEventListener('triggerdown', (event) => { this.onTriggerDownController1(event) });
-    this.get('controller1').addEventListener('gripdown', (event) => { this.onGripDownController1(event) });
-    this.get('controller1').addEventListener('gripup', (event) => { this.onGripUpController1(event) });
-    this.get('controller1').addEventListener('menudown', (event) => { this.onMenuDownController1(event) });
-
-    // Setup listener for controller 2 (right controller)
-    this.get('controller2').addEventListener('triggerdown', (event) => { this.onTriggerDownController2(event) });
-    this.get('controller2').addEventListener('triggerup', (event) => { this.onTriggerUpController2(event) });
-    this.get('controller2').addEventListener('menudown', (event) => { this.onMenuDownController2(event) });
-    this.get('controller2').addEventListener('gripdown', (event) => { this.onGripDownController2(event) });
-    this.get('controller2').addEventListener('gripup', (event) => { this.onGripUpController2(event) });
-    this.get('controller2').addEventListener('axischanged', (event) => { this.onAxisChangedController2(event) });
-    // Unused events: triggerup, thumbpadup, menuup, axischanged
+    this.addControllerHandlers();
 
     const canvas = this.get('canvas');
 
@@ -191,6 +181,41 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     this.setupHammerListener();
   },
 
+  addControllerHandlers() {
+
+    this.set('listeners', new Map());
+
+    // Save listeners for primary controller (interaction with landscape etc.)
+    this.get('listeners').set('onTriggerDownPrimaryController', (event) => { this.onTriggerDownPrimaryController(event) });
+    this.get('listeners').set('onTriggerUpPrimaryController', (event) => { this.onTriggerUpPrimaryController(event) });
+    this.get('listeners').set('onMenuDownPrimaryController', (event) => { this.onMenuDownPrimaryController(event) });
+    this.get('listeners').set('onGripDownPrimaryController', (event) => { this.onGripDownPrimaryController(event) });
+    this.get('listeners').set('onGripUpPrimaryController', (event) => { this.onGripUpPrimaryController(event) });
+    this.get('listeners').set('onAxisChangedPrimaryController', (event) => { this.onAxisChangedPrimaryController(event) });
+
+    // Setup listeners for primary controller to be able to later remove them
+    this.get('primaryController').addEventListener('triggerdown', this.get('listeners').get('onTriggerDownPrimaryController'));
+    this.get('primaryController').addEventListener('triggerup', this.get('listeners').get('onTriggerUpPrimaryController'));
+    this.get('primaryController').addEventListener('menudown', this.get('listeners').get('onMenuDownPrimaryController'));
+    this.get('primaryController').addEventListener('gripdown', this.get('listeners').get('onGripDownPrimaryController'));
+    this.get('primaryController').addEventListener('gripup', this.get('listeners').get('onGripUpPrimaryController'));
+    this.get('primaryController').addEventListener('axischanged', this.get('listeners').get('onAxisChangedPrimaryController'));
+
+    // Save listeners for secondary controller to be able to later remove them
+    this.get('listeners').set('onTriggerDownSecondaryController', (event) => { this.onTriggerDownSecondaryController(event) });
+    this.get('listeners').set('onGripDownSecondaryController', (event) => { this.onGripDownSecondaryController(event) });
+    this.get('listeners').set('onGripUpSecondaryController', (event) => { this.onGripUpSecondaryController(event) });
+    this.get('listeners').set('onMenuDownSecondaryController', (event) => { this.onMenuDownSecondaryController(event) });
+
+    // Setup listeners for secondary controller (teleport, highlight etc.)
+    this.get('secondaryController').addEventListener('triggerdown', this.get('listeners').get('onTriggerDownSecondaryController'));
+    this.get('secondaryController').addEventListener('gripdown', this.get('listeners').get('onGripDownSecondaryController'));
+    this.get('secondaryController').addEventListener('gripup', this.get('listeners').get('onGripUpSecondaryController'));
+    this.get('secondaryController').addEventListener('menudown', this.get('listeners').get('onMenuDownSecondaryController'));
+
+    // Unused events: triggerup, thumbpadup, menuup, axischanged
+  },
+
 
   ////////// Controller interaction ////////// 
 
@@ -199,29 +224,27 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and clazzes if the controller ray hits them.
    * Furthermore this method scales the ray relative to distance of intersection
    */
-  checkIntersectionRightController(objects) {
-    let controller = this.get('controller2');
+  checkIntersectionPrimaryController(objects) {
+    let controller = this.get('primaryController')
     let controllerLine = controller.getObjectByName('controllerLine');
 
     // Id to verfify which controller triggered the event
-    let id = controller.id;
+    let primaryControllerId = controller.id;
+    let secondaryControllerId = this.get('secondaryController.id');
 
     // Calculate hit object
     const intersectedViewObj = this.calculateIntersectedViewObject(controller, objects);
 
-    // Verify controllers
-    let id2 = this.verifyControllers(id);
-
     // Stop if hit entity is already highlighted
-    if (this.isEntityHighlighted(intersectedViewObj, controller, id2)) {
+    if (this.isEntityHighlighted(intersectedViewObj, controller, secondaryControllerId)) {
       return;
     }
 
     // Restore old color of landscape
-    this.unhighlightLandscape(id);
+    this.unhighlightLandscape(primaryControllerId);
 
     // Restore old color of application3D
-    this.unhighlightApplication3D(id);
+    this.unhighlightApplication3D(primaryControllerId);
 
     // Return if selected entity is hit
     if (this.excludeSelectedEntity(controller, intersectedViewObj)) {
@@ -233,7 +256,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
       // Handle delete button
       if (intersectedViewObj.object.name === 'deleteButton') {
-        this.highlightDeleteButton(intersectedViewObj, id);
+        this.highlightDeleteButton(intersectedViewObj, primaryControllerId);
         return;
       }
 
@@ -265,7 +288,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
       let darkerColor = this.calculateDarkerColor(intersectedViewObj.object);
 
       // Handle hit system, nodegroup or application and change color
-      this.highlightLandscape(emberModel, emberModelName, intersectedViewObj, id, darkerColor);
+      this.highlightLandscape(emberModel, emberModelName, intersectedViewObj, primaryControllerId, darkerColor);
 
       // Handle hit component/clazz of app3D if its not binded to a Controller
       if ((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded') && emberModel !== this.get('appCommunicationHighlighted')) {
@@ -275,18 +298,18 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
         /* Save highlighted object and bind it on controller id to quarantee 
          * that only this controller can unhighlight it */
-        this.get('highlightedEntitiesApp')[id] = intersectedViewObj.object;
+        this.get('highlightedEntitiesApp')[primaryControllerId] = intersectedViewObj.object;
 
       }
       // Unhighlight delete button if app3D or landscape is 
       // highlighted AND delete button was highlighted by this controller
-      let additionalCondition = (this.get('highlightedEntitiesApp')[id] || this.get('highlightedEntities')[id]);
-      this.unhighlightedDeleteButton(id, additionalCondition);
+      let additionalCondition = (this.get('highlightedEntitiesApp')[primaryControllerId] || this.get('highlightedEntities')[primaryControllerId]);
+      this.unhighlightedDeleteButton(primaryControllerId, additionalCondition);
     }
     // Reset highlighted enities if nothing was hit 
     else {
       // Unhighlight delete button 
-      this.unhighlightedDeleteButton(id, true);
+      this.unhighlightedDeleteButton(primaryControllerId, true);
 
       // Resize ray 
       controllerLine.scale.z = 5;
@@ -297,8 +320,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and clazzes if the controller ray hits them.
    * Furthermore this method scales the ray relative to distance of intersection
    */
-  checkIntersectionLeftController(objects) {
-    let controller = this.get('controller1');
+  checkIntersectionSecondaryController(objects) {
+    let controller = this.get('secondaryController')
     let controllerLine = controller.getObjectByName('controllerLine');
 
     // Id to verfify which controller triggered the event
@@ -307,10 +330,10 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     const intersectedViewObj = this.calculateIntersectedViewObject(controller, objects);
 
     // Verify controllers
-    let id2 = this.verifyControllers(id);
+    let primaryControllerId = this.get('primaryController.id');
 
     // Stop if entity is already highlighted by a controller
-    if (this.isEntityHighlighted(intersectedViewObj, controller, id2)) {
+    if (this.isEntityHighlighted(intersectedViewObj, controller, primaryControllerId)) {
       return;
     }
 
@@ -390,15 +413,16 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
 
   /*
-   * This method handles the controller event 'gripdown'
+   * This method handles the controller event 'onmenudown'
    * and is used to show information about the intersected object. 
-   * @method - onMenuDownController2
+   * @method - onMenuDownPrimaryController
    */
-  onMenuDownController2(event, objects) {
+  onMenuDownPrimaryController(event) {
 
     const controller = event.target;
     let id = controller.id;
 
+    let objects = this.get('raycastObjectsLandscape');
     const intersectedViewObj = this.calculateIntersectedViewObject(controller, objects);
 
     // Check if an object is hit
@@ -524,7 +548,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and is used to release the app3D from controller 
    * and put it back into the scene
    */
-  onGripUpController2(event) {
+  onGripUpPrimaryController(event) {
 
     const controller = event.target;
 
@@ -555,7 +579,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and is used to open/close systems, nodegroups and 
    * components of 3D application. 
    */
-  onTriggerDownController2(event, objects) {
+  onTriggerDownPrimaryController(event, objects) {
 
     const controller = event.target;
 
@@ -660,7 +684,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   /*
    * This method handles the right controller (event 'triggerup')
    */
-  onTriggerUpController2(event, objects) {
+  onTriggerUpPrimaryController(event, objects) {
 
     const controller = event.target;
 
@@ -691,7 +715,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * and is used 
    * select components/clazzes of application3D and teleport. 
    */
-  onTriggerDownController1(event, objects) {
+  onTriggerDownSecondaryController(event, objects) {
 
     const controller = event.target;
 
@@ -739,7 +763,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
             // If identical to intersected object unhighlight and return
             if (this.get('selectedEntitysMesh') === intersectedViewObj.object) {
-              this.restoreSelectedEntity(this.verifyControllers(controller.id));
+              this.restoreSelectedEntity(this.get('primaryController.id'));
               this.set('selectedEntitysMesh', null);
               this.trigger("entityHighlighted", false, appID, emberModel.id, this.get('selectedEntitysColor'));
               this.set('selectedEntitysColor', null);
@@ -748,7 +772,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
             // Reset communication lines
             this.get('selector').highlightAppCommunication(null, this.get('highlightedAppModel'));
             // Restore old color
-            this.restoreSelectedEntity(this.verifyControllers(controller.id));
+            this.restoreSelectedEntity(this.get('primaryController.id'));
 
             this.get('appCommunicationHighlighted').set('highlighted', false);
           }
@@ -777,7 +801,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    * This method handles the controller event 'thumbpaddown'
    * and is used to move, zoom and rotate application3D
    */
-  onGripDownController2(event, objects) {
+  onGripDownPrimaryController(event, objects) {
 
     const controller = event.target;
     let controllerLine = controller.getObjectByName('controllerLine');
@@ -839,14 +863,14 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         controller.userData.selected = object;
 
         //send information about app binding to backend
-        let boundToController1 = controller.id === this.get('controller1').id;
+        let boundToSecondaryController = controller.id === this.get('secondaryController.id');
         //let appID = intersectedViewObj.object.parent.userData.model.id;
-        this.trigger('appBinded', appID, object.position, object.quaternion, boundToController1, controller.position, controller.quaternion);
+        this.trigger('appBinded', appID, object.position, object.quaternion, boundToSecondaryController, controller.position, controller.quaternion);
       }
     }
   },
 
-  onAxisChangedController2(event){
+  onAxisChangedPrimaryController(event){
     const controller = event.target;
 
     const axes = event.axes;
@@ -864,9 +888,9 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
 
   },
 
-  onGripDownController1() { },
-  onGripUpController1() { },
-  onMenuDownController1() { },
+  onGripDownSecondaryController() { },
+  onGripUpSecondaryController() { },
+  onMenuDownSecondaryController() { },
 
   ////////// Mouse interaction ////////// 
 
@@ -934,19 +958,32 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
   removeHandlers() {
     this.get('hammerHandler.hammerManager').off();
 
-    this.get('controller1').removeEventListener('triggerdown', this.onTriggerDownController1);
-    this.get('controller1').removeEventListener('gripup', this.onGripUpController1);
-    this.get('controller1').removeEventListener('menudown', this.onMenuDownController1);
-
-    this.get('controller2').removeEventListener('menudown', this.onMenuDownController2);
-    this.get('controller2').removeEventListener('gripdown', this.onGripDownController2);
-    this.get('controller2').removeEventListener('gripup', this.onGripUpController2);
-    this.get('controller2').removeEventListener('triggerdown', this.onTriggerDownController2);
+    this.removeControllerHandlers();
 
     this.get('canvas').removeEventListener('mousewheel', this.onMouseWheelStart);
     this.get('canvas').removeEventListener('mousestop', this.handleHover);
     this.get('canvas').removeEventListener('mouseenter', this.onMouseEnter);
     this.get('canvas').removeEventListener('mouseout', this.onMouseOut);
+  },
+
+  removeControllerHandlers() {
+
+    // Remove listeners for primary controller
+    this.get('primaryController').removeEventListener('triggerdown', this.get('listeners').get('onTriggerDownPrimaryController'));
+    this.get('primaryController').removeEventListener('triggerup', this.get('listeners').get('onTriggerUpPrimaryController'));
+    this.get('primaryController').removeEventListener('menudown', this.get('listeners').get('onMenuDownPrimaryController'));
+    this.get('primaryController').removeEventListener('gripdown', this.get('listeners').get('onGripDownPrimaryController'));
+    this.get('primaryController').removeEventListener('gripup', this.get('listeners').get('onGripUpPrimaryController'));
+    this.get('primaryController').removeEventListener('axischanged', this.get('listeners').get('onAxisChangedPrimaryController'));
+
+    // Remove listeners for secondary controller
+    this.get('secondaryController').removeEventListener('triggerdown', this.get('listeners').get('onTriggerDownSecondaryController'));
+    this.get('secondaryController').removeEventListener('gripdown', this.get('listeners').get('onGripDownSecondaryController'));
+    this.get('secondaryController').removeEventListener('gripup', this.get('listeners').get('onGripUpSecondaryController'));
+    this.get('secondaryController').removeEventListener('menudown', this.get('listeners').get('onMenuDownSecondaryController'));
+
+    this.set('listeners', null);
+
   },
 
   /*
@@ -1467,7 +1504,7 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
    *  This method is used to scale the ray and check if an entity is 
    *  already highlighted
    */
-  isEntityHighlighted(intersectedViewObj, controller, id2) {
+  isEntityHighlighted(intersectedViewObj, controller, otherControllerId) {
 
     let id = controller.id;
 
@@ -1482,8 +1519,8 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
         return true;
       }
       // Landscape or Application3D highlighted by second controller
-      else if ((this.get('highlightedEntities')[id2] && this.get('highlightedEntities')[id2] === intersectedViewObj.object) ||
-        (this.get('highlightedEntitiesApp')[id2] && this.get('highlightedEntitiesApp')[id2] === intersectedViewObj.object)) {
+      else if ((this.get('highlightedEntities')[otherControllerId] && this.get('highlightedEntities')[otherControllerId] === intersectedViewObj.object) ||
+        (this.get('highlightedEntitiesApp')[otherControllerId] && this.get('highlightedEntitiesApp')[otherControllerId] === intersectedViewObj.object)) {
         return true;
       }
     }
@@ -1530,21 +1567,6 @@ export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
     cameraOffset.y = 0;
     this.user.position.subVectors(new THREE.Vector3(position.x, this.user.position.y, position.z), cameraOffset);
 
-  },
-
-  /*
-   *  This method is used to identify the controller ids of
-   *  each controller
-   */
-  verifyControllers(id) {
-    let id2;
-    if (id === this.get('controller1').id) {
-      id2 = this.get('controller2').id;
-    }
-    else {
-      id2 = this.get('controller1').id;
-    }
-    return id2;
   },
 
   /*

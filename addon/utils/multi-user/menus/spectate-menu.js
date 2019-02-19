@@ -118,7 +118,8 @@ export function open(lastMenu) {
 export function close() {
   if(menu) {
     this.deactivateSpectating();
-    this.get('controller1').remove(menu.get('mesh'));
+    let controller = this.get('userIsLefty') ? this.get('controller2') : this.get('controller1'); 
+    controller.remove(menu.get('mesh'));
     menu.close();
     menu = null;
   }
