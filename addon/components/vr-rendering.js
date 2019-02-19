@@ -413,6 +413,9 @@ export default Component.extend(Evented, THREEPerformance, {
   },
 
   updateControllers() {
+    if(!Models.areLoaded())
+      return;
+
     this.get('controller1').update();
     this.get('controller2').update();
 

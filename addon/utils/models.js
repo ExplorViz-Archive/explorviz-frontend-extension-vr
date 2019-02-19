@@ -1,11 +1,12 @@
 import THREE from 'three';
 
 //Declare globals
-/*global createOBJLoader*/
+/*global OBJLoader*/
 
-const OBJLoader = createOBJLoader(THREE);
-const loader = new OBJLoader(THREE.DefaultLoadingManager);
+const loader = new OBJLoader();
 let hmdModel, oculusLeftControllerModel, oculusRightControllerModel, viveControllerModel;
+let loadCount = 0;
+let TOTAL_COUNT = 4;
 
 /**
  * Load the Texture for the hmds of other users
@@ -19,6 +20,7 @@ function loadHMDModel() {
     loader.setPath('generic_hmd/');
     obj.children[0].material.map = loader.load('generic_hmd.tga');
     hmdModel = obj;
+    loadCount++;
   });
 }
 
@@ -37,6 +39,7 @@ function loadOculusLeftControllerModel() {
     controller.position.y += 0.035;
     controller.position.z -= 0.035;
     oculusLeftControllerModel = obj;
+    loadCount++;
   });
 }
 
@@ -55,6 +58,7 @@ function loadOculusRightControllerModel() {
     controller.position.y += 0.035;
     controller.position.z -= 0.035;
     oculusRightControllerModel = obj;
+    loadCount++;
   });
 }
 
@@ -69,6 +73,7 @@ function loadViveControllerModel() {
     controller.material.map = loader.load('onepointfive_texture.png');
     controller.material.specularMap = loader.load('onepointfive_spec.png');
     viveControllerModel = obj;
+    loadCount++;
   });
 }
 
@@ -86,6 +91,10 @@ export function getOculusRightControllerModel() {
 
 export function getViveControllerModel() {
   return viveControllerModel.clone();
+}
+
+export function areLoaded() {
+  return loadCount === TOTAL_COUNT;
 }
 
 export function loadModels() {
