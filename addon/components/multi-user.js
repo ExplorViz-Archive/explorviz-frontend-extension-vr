@@ -272,61 +272,61 @@ export default VRRendering.extend(Evented, {
 
     // override actions to prevent users in spectator mode from interacting with landscape, apps or teleport
 
-    let old_checkIntersectionRightController = this.get('interaction').checkIntersectionRightController;
-    this.get('interaction').checkIntersectionRightController = function() {
+    let old_checkIntersectionPrimaryController = this.get('interaction').checkIntersectionPrimaryController;
+    this.get('interaction').checkIntersectionPrimaryController = function() {
       if(self.get('state') !== 'spectating')
-        old_checkIntersectionRightController.apply(this, [this.get('raycastObjectsLandscape').concat(Menus.getVisibleMenuMeshesArray())]);
+        old_checkIntersectionPrimaryController.apply(this, [this.get('raycastObjectsLandscape').concat(Menus.getVisibleMenuMeshesArray())]);
       else {
-        old_checkIntersectionRightController.apply(this, [Menus.getVisibleMenuMeshesArray()]);
+        old_checkIntersectionPrimaryController.apply(this, [Menus.getVisibleMenuMeshesArray()]);
       }
     };
     
-    let old_checkIntersectionLeftController = this.get('interaction').checkIntersectionLeftController;
-    this.get('interaction').checkIntersectionLeftController = function() {
+    let old_checkIntersectionSecondaryController = this.get('interaction').checkIntersectionSecondaryController;
+    this.get('interaction').checkIntersectionSecondaryController = function() {
       if(self.get('state') !== 'spectating')
-        old_checkIntersectionLeftController.apply(this, [this.excludeLandscape().concat(Menus.getVisibleMenuMeshesArray())]);
+        old_checkIntersectionSecondaryController.apply(this, [this.excludeLandscape().concat(Menus.getVisibleMenuMeshesArray())]);
       else
         self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
     };
 
-    let old_onTriggerDownController2 = this.get('interaction').onTriggerDownController2;
-    this.get('interaction').onTriggerDownController2 = function(event) {
+    let old_onTriggerDownPrimaryController = this.get('interaction').onTriggerDownPrimaryController;
+    this.get('interaction').onTriggerDownPrimaryController = function(event) {
       if(self.get('state') !== 'spectating')
-        old_onTriggerDownController2.apply(this, [event, this.get('raycastObjectsLandscape').concat(Menus.getVisibleMenuMeshesArray())]);
+        old_onTriggerDownPrimaryController.apply(this, [event, this.get('raycastObjectsLandscape').concat(Menus.getVisibleMenuMeshesArray())]);
       else
-        old_onTriggerDownController2.apply(this, [event, Menus.getVisibleMenuMeshesArray()]);
+        old_onTriggerDownPrimaryController.apply(this, [event, Menus.getVisibleMenuMeshesArray()]);
     };
 
-    let old_onTriggerDownController1 = this.get('interaction').onTriggerDownController1;
-    this.get('interaction').onTriggerDownController1 = function(event) {
+    let old_onTriggerDownSecondaryController = this.get('interaction').onTriggerDownSecondaryController;
+    this.get('interaction').onTriggerDownSecondaryController = function(event) {
       if(self.get('state') !== 'spectating')
-        old_onTriggerDownController1.apply(this, [event, this.excludeLandscape().concat(Menus.getVisibleMenuMeshesArray())]);
+      old_onTriggerDownSecondaryController.apply(this, [event, this.excludeLandscape().concat(Menus.getVisibleMenuMeshesArray())]);
       else
         self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
     };
 
-    let old_onMenuDownController1 = this.get('interaction').onMenuDownController1;
-    this.get('interaction').onMenuDownController1 = function(event) {
-      self.onMenuDownController1();
-      old_onMenuDownController1.apply(this, [event]);
+    let old_onMenuDownSecondaryController= this.get('interaction').onMenuDownSecondaryController;
+    this.get('interaction').onMenuDownSecondaryController = function(event) {
+      self.onMenuDownSecondaryController();
+      old_onMenuDownSecondaryController.apply(this, [event]);
     };
 
-    let old_onGripDownController1 = this.get('interaction').onGripDownController1;
-    this.get('interaction').onGripDownController1 = function(event) {
-      self.onGripDownController1();
-      old_onGripDownController1.apply(this, [event]);
+    let old_onGripDownSecondaryController = this.get('interaction').onGripDownSecondaryController;
+    this.get('interaction').onGripDownSecondaryController = function(event) {
+      self.onGripDownSecondaryController();
+      old_onGripDownSecondaryController.apply(this, [event]);
     };
 
-    let old_onGripDownController2 = this.get('interaction').onGripDownController2;
-    this.get('interaction').onGripDownController2 = function(event) {
+    let old_onGripDownPrimaryController = this.get('interaction').onGripDownPrimaryController;
+    this.get('interaction').onGripDownPrimaryController = function(event) {
       if(self.get('state') !== 'spectating')
-        old_onGripDownController2.apply(this, [event]);
+        old_onGripDownPrimaryController.apply(this, [event]);
     };
 
-    let old_onGripUpController1 = this.get('interaction').onGripUpController1;
-    this.get('interaction').onGripUpController1 = function(event) {
-      self.onGripUpController1();
-      old_onGripUpController1.apply(this, [event]);
+    let old_onGripUpSecondaryController = this.get('interaction').onGripUpSecondaryController;
+    this.get('interaction').onGripUpSecondaryController = function(event) {
+      self.onGripUpSecondaryController();
+      old_onGripUpSecondaryController.apply(this, [event]);
     };
 
     //initialize interaction events and delegate them to the corresponding functions
@@ -345,8 +345,8 @@ export default VRRendering.extend(Evented, {
     this.get('interaction').on('appReleased',(appID, position, quaternion) => {
       Sender.sendAppReleased.call(this, appID, position, quaternion);
     });
-    this.get('interaction').on('appBinded',(appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion) => {
-      Sender.sendAppBinded.call(this, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion);
+    this.get('interaction').on('appBinded',(appID, appPosition, appQuaternion, isBoundToSecondaryController, controllerPosition, controllerQuaternion) => {
+      Sender.sendAppBinded.call(this, appID, appPosition, appQuaternion, isBoundToSecondaryController, controllerPosition, controllerQuaternion);
     });
     this.get('interaction').on('componentUpdate', (appID , componentID, isOpened, isFoundation) => {
       Sender.sendComponentUpdate.call(this, appID, componentID, isOpened, isFoundation);
@@ -373,7 +373,7 @@ export default VRRendering.extend(Evented, {
   /**
    * Handles menu-down controller iteraction.
    */
-  onMenuDownController1() {
+  onMenuDownSecondaryController() {
     // Open options menu if no other menu is open
     // Else closes current menu or goes back one menu if possible.
     if (this.get('state') !== 'spectating') {
@@ -401,7 +401,7 @@ export default VRRendering.extend(Evented, {
    * Handles grip-down controller iteraction.
    * Opens user list menu if online.
    */
-  onGripDownController1() {
+  onGripDownSecondaryController() {
     if(this.get('state') === 'connected' || this.get('state') === 'spectating')
       UserListMenu.open.call(this);
     else
@@ -412,7 +412,7 @@ export default VRRendering.extend(Evented, {
    * Handles grip-up controller iteraction.
    * Closes user list menu
    */
-  onGripUpController1() {
+  onGripUpSecondaryController() {
     UserListMenu.close.call(this);
   },
 
@@ -454,14 +454,14 @@ export default VRRendering.extend(Evented, {
     const posCamera = new THREE.Vector3();
     this.get('camera').getWorldPosition(posCamera);
 
-    const posController1 = new THREE.Vector3();
-    this.get('controller1').getWorldPosition(posController1);
+    const posSecondaryController = new THREE.Vector3();
+    this.get('controller1').getWorldPosition(posSecondaryController);
 
     const posController2 = new THREE.Vector3();
     this.get('controller2').getWorldPosition(posController2);
 
     let currentPositions = {
-      controller1: posController1.toArray(),
+      controller1: posSecondaryController.toArray(),
       controller2: posController2.toArray(),
       camera: posCamera.toArray()
     }
@@ -1201,7 +1201,8 @@ export default VRRendering.extend(Evented, {
     }
     this.set('userIsLefty', true);
     this.get('interaction').removeControllerHandlers();
-    this.set('interaction.userIsLefty', true);
+    this.set('interaction.primaryController', this.get('controller1'));
+    this.set('interaction.secondaryController', this.get('controller2'));
     this.get('interaction').addControllerHandlers();
     this.get('controller1').getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,204,51)');
     this.get('controller2').getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,0,0)');
@@ -1215,7 +1216,8 @@ export default VRRendering.extend(Evented, {
     }
     this.set('userIsLefty', false);
     this.get('interaction').removeControllerHandlers();
-    this.set('interaction.userIsLefty', false);
+    this.set('interaction.primaryController', this.get('controller2'));
+    this.set('interaction.secondaryController', this.get('controller1'));
     this.get('interaction').addControllerHandlers();
     this.get('controller1').getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,0,0)');
     this.get('controller2').getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,204,51)');

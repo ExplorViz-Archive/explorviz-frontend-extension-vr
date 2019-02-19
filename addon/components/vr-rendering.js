@@ -441,10 +441,10 @@ export default Component.extend(Evented, THREEPerformance, {
     if (this.get('interaction')) {
       // only if no application3D binded on controller
       if (this.get('controller1').userData.selected === undefined) {
-        this.get('interaction').checkIntersectionLeftController();
+        this.get('interaction').checkIntersectionSecondaryController();
       }
       if (this.get('controller2').userData.selected === undefined) {
-        this.get('interaction').checkIntersectionRightController();
+        this.get('interaction').checkIntersectionPrimaryController();
       }
     }
   },
@@ -1460,8 +1460,8 @@ export default Component.extend(Evented, THREEPerformance, {
     interaction.set('renderer', webglrenderer);
     interaction.set('raycaster', raycaster);
     interaction.set('raycastObjectsLandscape', this.get('vrLandscape').children);
-    interaction.set('controller1', controller1);
-    interaction.set('controller2', controller2);
+    interaction.set('secondaryController', controller1);
+    interaction.set('primaryController', controller2);
     interaction.set('vrEnvironment', vrEnvironment);
     interaction.set('colorList', this.get('configuration.landscapeColors'));
     interaction.set('colorListApp', this.get('configuration.applicationColors'));
@@ -1471,7 +1471,6 @@ export default Component.extend(Evented, THREEPerformance, {
     interaction.set('boundApps', this.get('boundApps'));
     interaction.set('environmentOffset', this.get('environmentOffset'));
     interaction.set('controllerGroup', this.get('controllerGroup'));
-    interaction.set('userIsLefty', this.get('userIsLefty'));
 
     // Init interaction handlers
     this.get('interaction').initHandlers();
