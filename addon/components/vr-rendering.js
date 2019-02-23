@@ -1018,7 +1018,6 @@ export default Component.extend(Evented, THREEPerformance, {
     this.centerVREnvironment(this.get('vrEnvironment'), this.get('room'));
     this.get('vrEnvironment').updateMatrix();
     this.actualizeRaycastObjects();
-    this.get('webglrenderer').vr.submitFrame();
 
 
     // Helper functions //
