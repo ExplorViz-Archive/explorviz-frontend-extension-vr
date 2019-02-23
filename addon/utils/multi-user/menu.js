@@ -114,10 +114,17 @@ export default EmberObject.extend({
    * @param {boolean} clickable - If true, button can be clicked, else it can't and is grayed out.
    */
   addTextButton(text, name, position, width, height, textSize, buttonColor, textColor, hoverColor, clickable) {
-    if(!this.get('items'))
+    if (!this.get('items'))
       this.set('items', new Array());
 
-    this.get('items').push({ type: 'textButton', name, text, position, width, height, textSize, buttonColor, textColor, hoverColor, clickable, hover: false, isisActivated: false });
+    this.get('items').push({ type: 'textButton', name, text, position, width, height, textSize, buttonColor, textColor, hoverColor, clickable, hover: false, isActivated: false });
+  },
+
+  addCheckbox(name, position, width, height, color, contentColor, hoverColor, clickable, isChecked) {
+    if (!this.get('items'))
+      this.set('items', new Array());
+
+    this.get('items').push({ type: 'checkbox', name, position, width, height, color, contentColor, hoverColor, clickable, hover: false, isActivated: false, isChecked });
   },
 
   /**
@@ -187,9 +194,24 @@ export default EmberObject.extend({
           }
           this.drawArrowhead(ctx, item.position, item.to, item.style);
         }
-      } else if(item.type === 'textButton') {
+      } else if (item.type === 'checkbox') {
+        if (item.clickable && item.hover)
+          ctx.strokeStyle = item.hoverColor;
+        else
+          ctx.strokeStyle = item.color;
+        ctx.lineWidth = 5;
+        ctx.strokeRect(item.position.x, item.position.y, item.width, item.height);
+        if (item.isChecked) {
+          ctx.strokeStyle = item.contentColor;
+          ctx.beginPath();
+          ctx.moveTo(item.position.x + 10, item.position.y + (item.height / 2));
+          ctx.lineTo(item.position.x + (item.width / 2), item.position.y + item.height - 10);
+          ctx.lineTo(item.position.x + item.width - 10, item.position.y + 10);
+          ctx.stroke();
+        }
+      } else if (item.type === 'textButton') {
         // draw button background
-        if(item.clickable && item.hover)
+        if (item.clickable && item.hover)
           ctx.fillStyle = item.hoverColor;
         else
           ctx.fillStyle = item.buttonColor;
@@ -394,11 +416,11 @@ export default EmberObject.extend({
             return item;
           }
         }
-      } else if(item.type === 'textButton' && item.clickable) {
+      } else if ((item.type === 'textButton' || item.type === 'checkbox') && item.clickable) {
         let itemX = item.position.x;
         let itemY = item.position.y;
 
-        if(x >= itemX && y >= itemY && x <= itemX + item.width && y <= itemY  + item.height)
+        if (x >= itemX && y >= itemY && x <= itemX + item.width && y <= itemY + item.height)
           return item;
       }
     }
