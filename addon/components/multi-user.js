@@ -1194,33 +1194,20 @@ export default VRRendering.extend(Evented, {
     this.get('interaction').trigger('landscapeMoved', new THREE.Vector3(0, 0, 0));
   },
 
-  switchToLeftyMode(){
+  switchHand() {
     Menus.removeAll();
-    if (this.get('controller2').getObjectByName('textBox')){
-      this.get('controller2').remove(this.get('controller2').getObjectByName('textBox'));
+    let oldMenuController = this.get('userIsLefty') ? this.get('controller2') : this.get('controller1');
+    let oldOtherController = this.get('userIsLefty') ? this.get('controller1') : this.get('controller2');
+    if (oldMenuController.getObjectByName('textBox')) {
+      oldMenuController.remove(oldMenuController.getObjectByName('textBox'));
     }
-    this.set('userIsLefty', true);
+    this.set('userIsLefty', !this.get('userIsLefty'));
     this.get('interaction').removeControllerHandlers();
-    this.set('interaction.primaryController', this.get('controller1'));
-    this.set('interaction.secondaryController', this.get('controller2'));
+    this.set('interaction.primaryController', oldMenuController);
+    this.set('interaction.secondaryController', oldOtherController);
     this.get('interaction').addControllerHandlers();
-    this.get('controller1').getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,204,51)');
-    this.get('controller2').getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,0,0)');
-    AdvancedMenu.open.call(this, OptionsMenu.open);
-  },
-
-  switchToRightyMode(){
-    Menus.removeAll();
-    if (this.get('controller1').getObjectByName('textBox')){
-      this.get('controller1').remove(this.get('controller1').getObjectByName('textBox'));
-    }
-    this.set('userIsLefty', false);
-    this.get('interaction').removeControllerHandlers();
-    this.set('interaction.primaryController', this.get('controller2'));
-    this.set('interaction.secondaryController', this.get('controller1'));
-    this.get('interaction').addControllerHandlers();
-    this.get('controller1').getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,0,0)');
-    this.get('controller2').getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,204,51)');
+    oldMenuController.getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,204,51)');
+    oldOtherController.getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,0,0)');
     AdvancedMenu.open.call(this, OptionsMenu.open);
   },
 
