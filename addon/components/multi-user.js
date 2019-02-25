@@ -481,7 +481,7 @@ export default VRRendering.extend(Evented, {
    */
   disconnect(sendMessage) {
     if(sendMessage) {
-      this.get('webSocket').disconnect();
+      this.get('webSocket').sendDisconnectRequest();
     }
 
     // Set own state to offline
@@ -503,7 +503,7 @@ export default VRRendering.extend(Evented, {
     }
 
     // close socket
-    // this.get('webSocket').closeSocket();
+    this.get('webSocket').closeSocket();
 
     this.set('userID', null);
     this.set('controllersConnected', null);

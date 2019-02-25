@@ -63,12 +63,11 @@ export default Service.extend(Evented, {
       this.get('socketRef').send(JSON.stringify(obj));
   },
 
-  disconnect() {
+  sendDisconnectRequest() {
     const disconnectMessage = [{
       "event": "receive_disconnect_request"
     }];
     this.send(disconnectMessage);
-    this.closeSocket();
   },
 
   /**
