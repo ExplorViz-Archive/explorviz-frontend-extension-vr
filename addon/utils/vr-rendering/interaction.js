@@ -1,4 +1,5 @@
-import Ember from 'ember';
+import EmberObject from '@ember/object';
+import Evented from '@ember/object/evented';
 import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
 import HoverHandler from './hover-handler';
 import HoverHandlerApp3D from 'explorviz-frontend/utils/application-rendering/popup-handler';
@@ -14,7 +15,7 @@ import { getOwner } from '@ember/application';
  *  This util is used to realize the interaction by handeling
  *  mouse and controller events.
  */
-export default Ember.Object.extend(Ember.Evented, AlertifyHandler, {
+export default EmberObject.extend(Evented, AlertifyHandler, {
 
   scene: null,
   canvas: null,

@@ -1,11 +1,11 @@
-import Ember from 'ember';
+import EmberObject from '@ember/object';
 import THREE from "three";
 
 /*
  * This util is used to calculate the objects hit by the controller 
  * (raycaster).
  */
-export default Ember.Object.extend({
+export default EmberObject.extend({
 
   raycaster: new THREE.Raycaster(),
 

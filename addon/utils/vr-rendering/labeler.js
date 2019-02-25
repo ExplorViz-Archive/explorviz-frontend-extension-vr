@@ -1,12 +1,13 @@
-import Ember from 'ember';
+import EmberObject from '@ember/object';
 import THREE from "three";
+
 
 /*
  * This util is used to draw the labels of the
  * landscape and application3D
  *
  */ 
-export default Ember.Object.extend({
+export default EmberObject.extend({
 
   systemTextCache: [],
   nodegroupTextCache: [],

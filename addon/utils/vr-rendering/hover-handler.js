@@ -1,4 +1,5 @@
-import Ember from 'ember';
+import EmberObject from '@ember/object';
+import Evented from '@ember/object/evented';
 
 /*
  *  This util is used to define the important information  
@@ -6,7 +7,7 @@ import Ember from 'ember';
  *  and return them as an array.
  *
  */
-export default Ember.Object.extend(Ember.Evented, {
+export default EmberObject.extend(Evented, {
 
   alreadyDestroyed: true,
 
