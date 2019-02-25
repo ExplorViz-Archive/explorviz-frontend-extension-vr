@@ -10,4 +10,3 @@ module('Unit | Service | web-socket', function(hooks) {
     assert.ok(service);
   });
 });
-

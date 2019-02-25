@@ -5,7 +5,6 @@ import $ from 'jquery';
 import Models from '../utils/models';
 import User from '../utils/multi-user/user';
 import Helper from '../utils/multi-user/helper';
-import Sender from '../utils/multi-user/send';
 import VRRendering from './vr-rendering';
 import Menus, { UserListMenu, OptionsMenu, SpectateMenu, LandscapePositionMenu,
   CameraHeightMenu, MessageBox, ConnectMenu, HintMenu, AdvancedMenu }  from '../utils/multi-user/menus';
@@ -23,8 +22,8 @@ export default VRRendering.extend(Evented, {
 
   tagName: '',
 
-  websockets: service(), //service needed to use websockets
-  socketRef: null, //websocket to send/receive messages to/from backend
+  session: service(), // Session used to retrieve username
+  webSocket: service(),
   
   users: null, // Map: UserID -> User
   userID: null, // Own userID
@@ -40,11 +39,9 @@ export default VRRendering.extend(Evented, {
   deltaViewTime: null, // Time between two frames in seconds
   deltaUpdateTime: null, // Time between two update messages
   lastUpdateTime: null, // Last time an update was sent
-  updateQueue: null, // Messages which are ready to be sent to backend
   running: null, // Tells if gameLoop is executing
   spectatedUser: null, // Tells which userID (if any) is being spectated
   startPosition: null, // Position before this user starts spectating
-  session: service(), // Session used to retrieve username
   connectionIsGood: true, // Tells whether or not backend has recently sent a 'bad_connection' msg 
   badConnectionSince: null, // If there is a bad connection, contains timestamp of last 'bad_connection' msg
 
@@ -83,7 +80,7 @@ export default VRRendering.extend(Evented, {
 
     // actually send messages like connecting request, position updates etc.
     if(this.get('state') !== 'offline')
-      this.sendUpdates();
+      this.get('webSocket').sendUpdates();
 
     // this.set('lastUpdateTime', this.get('currentTime'));
 
@@ -165,7 +162,7 @@ export default VRRendering.extend(Evented, {
     spectatedUser.set('camera.model.visible', false);
     spectatedUser.set('namePlane.visible', false);
     this.set('state', 'spectating');
-    Sender.sendSpectatingUpdate.call(this);
+    this.get('webSocket').sendSpectatingUpdate(this.get('userID'), this.get('state'), this.get('spectatedUser'));
   },
 
   /**
@@ -187,7 +184,7 @@ export default VRRendering.extend(Evented, {
     let position = this.get('startPosition');
     this.get('user.position').fromArray(position.toArray());
 
-    Sender.sendSpectatingUpdate.call(this);
+    this.get('webSocket').sendSpectatingUpdate(this.get('userID'), this.get('state') /* , null */);
   },
 
 
@@ -212,6 +209,7 @@ export default VRRendering.extend(Evented, {
 
     this.initVariables();
     this.initInteractions();
+    this.initListeners();
 
     let host, port;
     $.getJSON('config/config_multiuser.json').then(json => {
@@ -223,8 +221,8 @@ export default VRRendering.extend(Evented, {
         return;
       }
 
-      this.host = host;
-      this.port = port;
+      this.set('webSocket.host', host);
+      this.set('webSocket.port', port);
 
       ConnectMenu.open.call(this, OptionsMenu.open);
       this.set('running', true);
@@ -235,15 +233,13 @@ export default VRRendering.extend(Evented, {
   connect() {
     this.set('state', 'connecting');
     ConnectMenu.setState.call(this, 'connecting');
-    this.set('updateQueue', []);
-    this.initSocket(this.get('host'), this.get('port'));
+    this.get('webSocket').initSocket();
   },
 
   initVariables() {
     this.set('currentTime', 0);
     this.set('deltaViewTime', 0);
     this.set('deltaUpdateTime', 0);
-    this.set('updateQueue', []);
     this.set('running', false);
     this.set('users', new Map());
     this.set('lastPositions', { camera: null, controller1: null, controller2: null });
@@ -251,20 +247,6 @@ export default VRRendering.extend(Evented, {
     this.set('lastViewTime', Date.now() / 1000.0);
     this.set('lastUpdateTime', Date.now() / 1000.0);
     this.set('state', 'offline');
-  },
-
-  /**
-   * Establish a websocket connection and initialize needed handlers.
-   * 
-   * @param {string} host The host address.
-   * @param {number} port The socket's port.
-   */
-  initSocket(host, port) {
-    const socket = this.get('websockets').socketFor(`ws://${host}:${port}/`);
-    socket.on('open', this.openHandler, this);
-    socket.on('message', this.messageHandler, this);
-    socket.on('close', this.closeHandler, this);
-    this.set('socketRef', socket);
   },
 
   initInteractions() {
@@ -331,43 +313,32 @@ export default VRRendering.extend(Evented, {
 
     //initialize interaction events and delegate them to the corresponding functions
     this.get('interaction').on('systemStateChanged', (id, isOpen) => {
-      Sender.sendSystemUpdate.call(this, id, isOpen);
+      this.get('webSocket').sendSystemUpdate(id, isOpen);
     });
     this.get('interaction').on('nodegroupStateChanged', (id, isOpen) => {
-      Sender.sendNodegroupUpdate.call(this, id, isOpen);
+      this.get('webSocket').sendNodegroupUpdate(id, isOpen);
     });
     this.on('applicationOpened', (id, app) => {
-      Sender.sendAppOpened.call(this, id, app);
+      this.get('webSocket').sendAppOpened(id, app);
     });
     this.get('interaction').on('removeApplication',(appID) => {
-      Sender.sendAppClosed.call(this, appID);
+      this.get('webSocket').sendAppClosed(appID);
     });
     this.get('interaction').on('appReleased',(appID, position, quaternion) => {
-      Sender.sendAppReleased.call(this, appID, position, quaternion);
+      this.get('webSocket').sendAppReleased(appID, position, quaternion);
     });
     this.get('interaction').on('appBinded',(appID, appPosition, appQuaternion, isBoundToSecondaryController, controllerPosition, controllerQuaternion) => {
-      Sender.sendAppBinded.call(this, appID, appPosition, appQuaternion, isBoundToSecondaryController, controllerPosition, controllerQuaternion);
+      this.get('webSocket').sendAppBinded(appID, appPosition, appQuaternion, isBoundToSecondaryController, controllerPosition, controllerQuaternion);
     });
     this.get('interaction').on('componentUpdate', (appID , componentID, isOpened, isFoundation) => {
-      Sender.sendComponentUpdate.call(this, appID, componentID, isOpened, isFoundation);
+      this.get('webSocket').sendComponentUpdate(appID, componentID, isOpened, isFoundation);
     });
     this.get('interaction').on('landscapeMoved', (deltaPosition) => {
-      Sender.sendLandscapeUpdate.call(this, deltaPosition);
+      this.get('webSocket').sendLandscapeUpdate(deltaPosition, this.get('vrEnvironment'), this.get('environmentOffset'));
     });
     this.get('interaction').on('entityHighlighted', (isHighlighted, appID, entityID, color) => {
-      Sender.sendHighlightingUpdate.call(this, isHighlighted, appID, entityID, color);
+      this.get('webSocket').sendHighlightingUpdate(this.get('userID'), isHighlighted, appID, entityID, color);
     });
-  },
-
-  /**
-   * Check wether there are messages in the update queue and send them to the backend.
-   */
-  sendUpdates() {
-    // there are updates to send
-    if(this.get('updateQueue').length > 0) {
-      this.send(this.get('updateQueue'));
-      this.set('updateQueue', []);
-    }
   },
 
   /**
@@ -421,7 +392,7 @@ export default VRRendering.extend(Evented, {
    */
   update() {
     this.updateAndSendPositions();
-    Sender.sendControllerUpdate.call(this);
+    this.get('webSocket').sendControllerUpdate();
   },
 
   /**
@@ -501,7 +472,7 @@ export default VRRendering.extend(Evented, {
     // send update if either position has changed
     if(hasChanged) {
       this.set('lastPositions', currentPositions);
-      this.get('updateQueue').push(positionObj);
+      this.get('webSocket').enqueue(positionObj);
     }
   },
 
@@ -510,10 +481,7 @@ export default VRRendering.extend(Evented, {
    */
   disconnect(sendMessage) {
     if(sendMessage) {
-      const disconnectMessage = [{
-        "event": "receive_disconnect_request"
-      }];
-      this.send(disconnectMessage);
+      this.get('webSocket').disconnect();
     }
 
     // Set own state to offline
@@ -535,102 +503,56 @@ export default VRRendering.extend(Evented, {
     }
 
     // close socket
-    this.get('websockets').closeSocketFor(`ws://${this.host}:${this.port}/`);
+    // this.get('webSocket').closeSocket();
 
-    // close handlers
-    const socket = this.get('socketRef');
-    if(socket) {
-      socket.off('open', this.openHandler);
-      socket.off('message', this.messageHandler);
-      socket.off('close', this.closeHandler);
-    }
-    this.set('socketRef', null),
     this.set('userID', null);
-    this.set('updateQueue', []);
     this.set('controllersConnected', null);
   },
 
+  initListeners() {
+    const socket = this.get('webSocket');
 
-  /**
-   * Handles all incoming messages of the backend and delegates data to
-   * the corresponding function
-   * @param {JSON} event Event of websocket containing all messages of backend
-   */
-  messageHandler(event) {
-    // Backend could have sent multiple messages at a time
-    const messages = JSON.parse(event.data); 
-    for(let i = 0; i < messages.length; i++) {
-      let data = messages[i];
-      switch(data.event) {
-        case 'receive_self_connecting':
-          this.onSelfConnecting(data);
-          break;
-        case 'receive_self_connected':
-          this.onSelfConnected(data);
-          break;
-        case 'receive_user_connecting':
-          break;
-        case 'receive_user_connected':
-          this.onUserConnected(data);
-          break;
-        case 'receive_user_positions':
-          this.onUserPositions(data);
-          break;
-        case 'receive_user_controllers':
-          this.onUserControllers(data);
-          break;
-        case 'receive_user_disconnect':
-          this.onUserDisconnect(data);
-          break;
-        case 'receive_landscape':
-          this.onInitialLandscape(data);
-          break;
-          case 'receive_landscape_position':
-          this.onLandscapePosition(data.deltaPosition, data.quaternion);
-          break;
-        case 'receive_system_update':
-          this.onLandscapeUpdate(data.id, data.isOpen);
-          break;
-        case 'receive_nodegroup_update':
-          this.onLandscapeUpdate(data.id, data.isOpen);
-          break;
-        case 'receive_app_opened':
-          this.onAppOpened(data.id, data.position, data.quaternion);
-          break;
-        case 'receive_app_closed':
-          this.onAppClosed(data.id);
-          break;
-        case 'receive_app_binded':
-          this.onAppBinded(data.userID, data.appID, data.appPosition, data.appQuaternion, 
-            data.isBoundToController1, data.controllerPosition, data.controllerQuaternion);
-          break;
-        case 'receive_app_released':
-          this.get('boundApps').delete(data.id);
-          this.updateAppPosition(data.id, data.position, data.quaternion);
-          this.get('scene').add(this.get('openApps').get(data.id));
-          break;
-        case 'receive_component_update':
-          if (data.isFoundation){
-            this.get('foundations').get(data.appID).setOpenedStatus(data.isOpened);
-          } else {
-            this.get('store').peekRecord('component', data.componentID).setOpenedStatus(data.isOpened);
-          }
-          this.redrawApplication(data.appID);
-          break;
-        case 'receive_hightlight_update':
-          this.onHighlightingUpdate(data.userID, data.isHighlighted, data.appID, data.entityID, data.color);
-          break;
-        case 'receive_spectating_update':
-          this.onSpectatingUpdate(data.userID, data.isSpectating);
-          break;
-        case 'receive_ping':
-          this.updateQueue.push(data);
-          break;
-        case 'receive_bad_connection':
-          this.handleBadConnection();
-          break;
+    const self = this;
+
+    socket.on('receive_self_connecting', function(data) { self.onSelfConnecting(data); });
+    socket.on('receive_self_connected', function(data) { self.onSelfConnected(data); });
+    socket.on('receive_user_connecting', function() {});
+    socket.on('receive_user_connected', function(data) { self.onUserConnected(data); });
+    socket.on('receive_user_positions', function(data) { self.onUserPositions(data); });
+    socket.on('receive_user_controllers', function(data) { self.onUserControllers(data); });
+    socket.on('receive_user_disconnect', function(data) { self.onUserDisconnect(data); });
+    socket.on('receive_landscape', function(data) { self.onInitialLandscape(data); });
+    socket.on('receive_landscape_position', function({ deltaPosition, quaternion }) { self.onLandscapePosition(deltaPosition, quaternion); });
+    socket.on('receive_system_update', function({ id, isOpen }) { self.onLandscapeUpdate(id, isOpen); });
+    socket.on('receive_nodegroup_update', function({ id, isOpen }) { self.onLandscapeUpdate(id, isOpen); });
+    socket.on('receive_app_opened', function({ id, position, quaternion }) { self.onAppOpened(id, position, quaternion); });
+    socket.on('receive_app_closed', function({ id }) { self.onAppClosed(id); });
+    socket.on('receive_app_binded', function({ userID, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion }) {
+      self.onAppBinded(userID, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion);
+    });
+    socket.on('receive_app_released', function({ id, position, quaternion }) {
+      self.get('boundApps').delete(id);
+      self.updateAppPosition(id, position, quaternion);
+      self.get('scene').add(self.get('openApps').get(id));
+    });
+    socket.on('receive_component_update', function({ isFoundation, appID, componentID, isOpened }) {
+      if (isFoundation){
+        self.get('foundations').get(appID).setOpenedStatus(isOpened);
+      } else {
+        self.get('store').peekRecord('component', componentID).setOpenedStatus(isOpened);
       }
-    }
+      self.redrawApplication(appID);
+    });
+    socket.on('receive_hightlight_update', function({ userID, isHighlighted, appID, entityID, color }) {
+      self.onHighlightingUpdate(userID, isHighlighted, appID, entityID, color);
+    });
+    socket.on('receive_spectating_update', function({ userID, isSpectating }) {
+      self.onSpectatingUpdate(userID, isSpectating);
+    });
+    socket.on('receive_ping', function(data) {
+      self.get('webSocket').enqueue(data);
+    });
+    socket.on('receive_bad_connection', function() { self.handleBadConnection(); });
   },
 
   /**
@@ -651,7 +573,7 @@ export default VRRendering.extend(Evented, {
       name
     };
 
-    this.get('updateQueue').push(JSONObj);
+    this.get('webSocket').enqueue(JSONObj);
   },
 
   /**
@@ -1211,6 +1133,47 @@ export default VRRendering.extend(Evented, {
     AdvancedMenu.open.call(this, OptionsMenu.open);
   },
 
+  sendControllerUpdate() {
+    let disconnect = [];
+    let connect = {};
+
+    let hasChanged = false;
+
+    //handle that controller 1 has disconnected
+    if(this.get('controllersConnected.controller1') && !this.get('controller1').isConnected()) {
+      disconnect.push('controller1');
+      this.set('controllersConnected.controller1', false);
+      hasChanged = true;
+    }
+    //handle that controller 1 has connected
+    else if(!this.get('controllersConnected.controller1') && this.get('controller1').isConnected()) {
+      connect.controller1 = this.get('controller1').getGamepad().id;
+      this.set('controllersConnected.controller1', true);
+      hasChanged = true;
+    }
+
+    //handle that controller 2 has disconnected
+    if(this.get('controllersConnected.controller2') && !this.get('controller2').isConnected()) {
+      disconnect.push('controller2');
+      this.set('controllersConnected.controller2', false);
+      hasChanged = true;
+    }
+    //handle that controller 2 has connected
+    else if(!this.get('controllersConnected.controller2') && this.get('controller2').isConnected()) {
+      connect.controller2 = this.get('controller2').getGamepad().id;
+      this.set('controllersConnected.controller2', true);
+      hasChanged = true;
+    }
+
+    //handle the case that either controller was connected/disconnected
+    if(hasChanged) {
+      //if status of at least one controller has changed, inform backend
+      if((disconnect && disconnect.length > 0) || connect) {
+        this.get('webSocket').sendControllerUpdate(connect, disconnect);
+      }
+    }
+  },
+
   /*
    * This method is used to update the matrix of
    * a given Object3D
@@ -1219,25 +1182,6 @@ export default VRRendering.extend(Evented, {
     if(object) {
       object.updateMatrix();
     }
-  },
-
-  // Called when the websocket is opened for the first time
-  openHandler(event) {
-  },
-
-  // Used to send messages to the backend
-  send(obj) {
-    if(this.get('socketRef'))
-      this.get('socketRef').send(JSON.stringify(obj));
-  },
-
-  // Called when the websocket is closed
-  closeHandler(event) {
-    // ConnectMenu.open.call(this, OptionsMenu.open);
-    if(this.state === 'connecting')
-      HintMenu.showHint.call(this, 'Could not establish connection', 3);
-
-    this.disconnect(false);
   },
 
   // Called when user closes the site / tab
@@ -1255,7 +1199,7 @@ export default VRRendering.extend(Evented, {
     this.set('currentTime', null);
     this.set('deltaTime', null);
     this.set('running', null);
-    this.set('updateQueue', null);
+    // this.set('updateQueue', null);
     this.set('spectatedUser', null);
     this.set('startPosition', null);
 
