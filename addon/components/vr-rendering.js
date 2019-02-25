@@ -37,7 +37,7 @@ export default Component.extend(Evented, THREEPerformance, {
 
   tagName: '',
 
-  store: service(), //store to access model information
+  store: service(),
 
   landscapeListener: service(),
   reloadHandler: service(),
@@ -46,59 +46,53 @@ export default Component.extend(Evented, THREEPerformance, {
   configuration: service(),
 
   
-  scene: null, //root element of Object3d's - contains all visble objects
-  webglrenderer: null, //renders the scene
-  camera: null, //PerspectiveCamera
-  canvas: null, //canvas of webglrenderer
-  font: null, //font used for text
-  initDone: false, //tells if initRendering() already terminated 
+  scene: null, // Root element of Object3d's - contains all visble objects
+  webglrenderer: null, // Renders the scene
+  camera: null, // PerspectiveCamera
+  canvas: null, // Canvas of webglrenderer
+  font: null, // Font used for text
+  initDone: false, // Tells if initRendering() already terminated 
 
-  user: null, //THREEGROUP containing camera and controller(s) of user
-  controllerGroup: null,
+  user: null, // THREE.Group containing camera and controller(s) of user
+  controllerGroup: null, // THREE.Group containing the controller(s)
 
-  raycaster: null, //raycaster for intersection checking (used in interaction)
-  interaction: null, //class which handles mouse/keyboard/controller interaction
-  labeler: null, //for labeling landscape (-> frontend)
-  labelerApp: null, //for labeling applications (-> frontend)
-  imageLoader: null, //for loading images e.g. of 'world system'
-  centerAndZoomCalculator: null, //frontend: CalcCenterAndZoom
-  initialRendering: true, //handle initial rendering in populateScene()
-  requestMaterial: null, //material for e.g. 'earth'
-  foundationBuilder: null, //imported from frontend
+  raycaster: null, // Raycaster for intersection checking (used in interaction)
+  interaction: null, // Class which handles mouse/keyboard/controller interaction
+  labeler: null, // For labeling landscape (-> frontend)
+  labelerApp: null, // For labeling applications (-> frontend)
+  imageLoader: null, // For loading images e.g. of 'world system'
+  centerAndZoomCalculator: null, // Frontend: CalcCenterAndZoom
+  initialRendering: true, // Fandle initial rendering in populateScene()
+  requestMaterial: null, // Material for e.g. 'earth'
+  foundationBuilder: null, // Imported from frontend
   zeroValue: 0.0000000000000001 * 0.0000000000000001, //tiny number e.g. to emulate a plane with depth zeroValue
 
   // VR
-  vrEnvironment: null, //contains vrLandscape and vrCommunications
-  environmentOffset : null, //tells how much the environment position should differ from the floor center point
-  vrLandscape: null, //contains systems and their children
-  vrCommunications: null, //contains communication between elements of landscape
-  controller1: null, //left controller
-  controller2: null, //right controller
-  geometry: null, //ray for controller
-  depth: 0.2, //depth value for systems/nodegroups etc. (2D rectangles -> 3D cubes)
-  room: null, //virtual room to which a flooar is added, important for raycasting
-  initialPositions: {}, //initial positions of systems/nodegroups/..
-  deleteButton: null, //delete Button of 3d application
+  vrEnvironment: null, // Contains vrLandscape and vrCommunications
+  environmentOffset : null, // Tells how much the environment position should differ from the floor center point
+  vrLandscape: null, // Contains systems and their children
+  vrCommunications: null, // Contains communication between elements of landscape
+  controller1: null, // Secondary controller
+  controller2: null, // Primary controller
+  geometry: null, // Ray for controller
+  depth: 0.2, // Depth value for systems/nodegroups etc. (2D rectangles -> 3D cubes)
+  room: null, // Virtual room to which a flooar is added, important for raycasting
+  initialPositions: {}, // Initial positions of systems/nodegroups/..
+  deleteButton: null, // Delete Button of 3d application
 
   // Storage for mesh data
   teleportArea: null,
 
   // Application
-  openApps : null, //Object3d's of opened applications
-  foundations: null, //keep track of foundations (in openApps) for foundationBuilder
-  boundApps: null, //applications which other users currently move/hold
+  openApps : null, // Object3d's of opened applications
+  foundations: null, // Keep track of foundations (in openApps) for foundationBuilder
+  boundApps: null, // Applications which other users currently move/hold
 
   userIsLefty: false,
 
-  //still necessary?
-  app3DMeshes: null,
   state: null,
   layout: layout,
-  classNames: ['viz'],
-  hammerManager: null,
-  vrAvailable: false,
-
-
+  
   didRender() {
     this._super(...arguments);
     this.initRendering();
@@ -143,8 +137,6 @@ export default Component.extend(Evented, THREEPerformance, {
       return help;
     }
   },
-
-  raycastObjectsNeedsUpdate: '',
 
   willDestroyElement() {
     this._super(...arguments);
@@ -281,7 +273,6 @@ export default Component.extend(Evented, THREEPerformance, {
     
     this.set('openApps', new Map());
     this.set('foundations', new Map());
-    this.set('app3DMeshes', new Map());
     this.set('boundApps', new Set());
 
     // Load image for delete button
@@ -1773,9 +1764,6 @@ export default Component.extend(Evented, THREEPerformance, {
       });
 
       self.get('scene').add(self.get('openApps').get(application.id));
-
-      // Store application mesh for redraw
-      self.get('app3DMeshes').set(application.id, self.get('openApps').get(application.id));
 
       // Setup interaction for app3D
       self.get('interaction').set('openApps', self.get('openApps'));
