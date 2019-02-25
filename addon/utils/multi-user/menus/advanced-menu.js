@@ -27,18 +27,12 @@ export function open(lastMenu) {
       if(action === 'rightIntersect' || action === 'rightTriggerDown') {
         menu.setHover(item);
       }
-      if(action === 'rightTriggerDown') {
-        if (item.name === 'lefty') {
-          close.call(this);
-          this.switchToLeftyMode();
-        } else if (item.name === 'righty') {
-          close.call(this);
-          this.switchToRightyMode();
-        } else if (item.name === 'back') {
-          back.call(this);
-        } else if (item.name === 'isLefty') {
+      if (action === 'rightTriggerDown') {
+        if (item.name === 'isLefty') {
           close.call(this);
           this.switchHand();
+        } else if (item.name === 'back') {
+          back.call(this);
         }
       }
     } else {

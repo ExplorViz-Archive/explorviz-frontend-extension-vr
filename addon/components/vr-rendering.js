@@ -1074,45 +1074,6 @@ export default Component.extend(Evented, THREEPerformance, {
       }
     }
 
-    /*
-     *  This function is used to compute the amount of 
-     *  all requests for each entity (id) [not yet in use]
-     */
-    /*
-    function computeRequests(appCommunication) {
-      let requests = {};
-      if(!appCommunication){
-        return;
-      }
-      appCommunication.forEach((communication) => {
-
-        if (!requests[communication.get('target').get('id')]) {
-          requests[communication.get('target').get('id')] = communication.get('requests');
-        } else {
-          requests[communication.get('target').get('id')] = 
-            requests[communication.get('target').get('id')] + communication.get('requests');
-        }
-
-        let parent = communication.get('target').get('parent');
-
-        // Check for parents and exclude root parent
-        while (parent && parseInt(parent.get('id')) !== 1) {
-
-          if (!requests[parent.get('id')]) {
-            requests[parent.get('id')] = communication.get('requests');
-          } else {
-            requests[parent.get('id')] = 
-              requests[parent.get('id')] + communication.get('requests');
-          }
-          parent = parent.get('parent');
-        }
-
-      });
-      return requests;
-    }
-	*/
-
-
     /* 
      *  This function is used to resize
      *  the landscape(3D) so it fits on the floor
@@ -1186,7 +1147,7 @@ export default Component.extend(Evented, THREEPerformance, {
 
       for (let i = 0; i < tiles.length; i++) {
         let tile = tiles[i];
-        createLine(tile, tiles, meshes);
+        createLine(tile, meshes);
       }
 
       function getCategories(list, linear) {
@@ -1278,8 +1239,6 @@ export default Component.extend(Evented, THREEPerformance, {
           }
         }
 
-
-
       } // END getCategories
 
     } // END addCommunicationLineDrawing
@@ -1295,7 +1254,7 @@ export default Component.extend(Evented, THREEPerformance, {
     /*
      * This function is used to create the lines for th communication
      */
-    function createLine(tile, tiles, parent) {
+    function createLine(tile, parent) {
 
 
       let firstVector = new THREE.Vector3(tile.startPoint.x - centerPoint.x, 
@@ -1926,7 +1885,7 @@ export default Component.extend(Evented, THREEPerformance, {
 
   
   redrawApplication(appID){
-    //only redraw if app is opened
+    // Only redraw if app is opened
     if (!this.get('openApps').has(appID)){
       return;
     }

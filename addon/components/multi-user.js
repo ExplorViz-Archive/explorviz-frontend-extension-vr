@@ -38,45 +38,44 @@ export default VRRendering.extend(Evented, {
   lastViewTime: null, // Last time an image was rendered
   currentTime: null, // Tells the current time in seconds
   deltaViewTime: null, // Time between two frames in seconds
-  deltaUpdateTime: null, // Time between two update messages
   lastUpdateTime: null, // Last time an update was sent
   updateQueue: null, // Messages which are ready to be sent to backend
-  running: null, // Tells if gameLoop is executing
+  running: null, // Tells if mainLoop is executing
   spectatedUser: null, // Tells which userID (if any) is being spectated
   startPosition: null, // Position before this user starts spectating
   session: service(), // Session used to retrieve username
-  connectionIsGood: true, // Tells whether or not backend has recently sent a 'bad_connection' msg 
-  badConnectionSince: null, // If there is a bad connection, contains timestamp of last 'bad_connection' msg
 
-
-  gameLoop() {
+  /**
+   * Main loop contains all methods which need to be called
+   * for every rendering iteration
+   */
+  mainLoop() {
     if(!this.get('running')) {
       return;
     }
 
     this.set('currentTime', Date.now() / 1000.0);
 
-    //time difference between now and the last time updates were sent
+    // Time difference between now and the last time updates were sent
     this.set('deltaViewTime',  this.get('currentTime') - this.get('lastViewTime'));
-    // this.set('deltaUpdateTime', this.get('currentTime') - this.get('lastUpdateTime'));
 
     if(this.get('userID') && this.get('state') === 'spectating') {
-      this.spectateUser(); // follow view of spectated user
+      this.spectateUser(); // Follow view of spectated user
     }
 
-    // handle own controller updates and ray intersections
+    // Handle own controller updates and ray intersections
     this.updateControllers();
 
-    // move name tags to right position and rotate them toward our camera
+    // Move name tags to right position and rotate them toward our camera
     if(this.get('userID') && this.get('state') === 'connected' || this.get('state') === 'spectating')
       this.updateUserNameTags();
 
-    // render scene
-    this.render2();
+    // Render scene
+    this.renderScene();
 
     this.set('lastViewTime', this.get('currentTime'));
 
-    // add controller/camera updates (position changes, controller disconnect etc.)
+    // Add controller/camera updates (position changes, controller disconnect etc.)
     if(this.get('userID') && this.get('state') === 'connected' || this.get('state') === 'spectating') {
       this.update();
     } 
@@ -84,30 +83,16 @@ export default VRRendering.extend(Evented, {
     // actually send messages like connecting request, position updates etc.
     if(this.get('state') !== 'offline')
       this.sendUpdates();
-
-    // this.set('lastUpdateTime', this.get('currentTime'));
-
-    //if(this.get('state') === 'connected' || this.get('state') === 'spectating')
-    //  this.checkForBadConnection();
   },
 
-  handleBadConnection(){
-    this.set('connectionIsGood', false);
-    this.set('badConnectionSince', Date.now());
-    this.set('updatesPerSecond', this.get('badConnectionUpdates'));
-  },
-
-  checkForBadConnection(){
-    if (this.get('connectionIsGood') || this.get('badConnectionSince') === null){
-      return;
-    }
-
-    // check if bad connection data is still up to date (30 seconds or newer)
-    if ((this.get('currentTime') - this.get('badConnectionSince')) / 1000 > 30){
-      this.set('badConnectionSince', null);
-      this.set('updatesPerSecond', this.get('fps'));
-      return;
-    }
+  /**
+   * Main rendering method.
+   */
+  renderScene() {
+    this.get('threexStats').update(this.get('webglrenderer'));
+    this.get('stats').begin();
+    this.get('webglrenderer').render(this.get('scene'), this.get('camera'));
+    this.get('stats').end();
   },
 
   /**
@@ -161,7 +146,7 @@ export default VRRendering.extend(Evented, {
     this.set('spectatedUser', userID);
     let spectatedUser = this.get('users').get(userID);
 
-    //other user's hmd should be invisible
+    // Other user's hmd should be invisible
     spectatedUser.set('camera.model.visible', false);
     spectatedUser.set('namePlane.visible', false);
     this.set('state', 'spectating');
@@ -190,22 +175,8 @@ export default VRRendering.extend(Evented, {
     Sender.sendSpectatingUpdate.call(this);
   },
 
-
-
   /**
-   * Main rendering method. Is called render2 to avoid name conflict with built-in 
-   * render() method
-   */
-  render2() {
-    this.get('threexStats').update(this.get('webglrenderer'));
-    this.get('stats').begin();
-    this.get('webglrenderer').render(this.get('scene'), this.get('camera'));
-    this.get('stats').end();
-  },
-
-  /**
-   * This function is the entry point for this component. 
-   * It is called once when the site has loaded.
+   * Called once when the site has loaded.
    */
   didRender() {
     this._super(...arguments);
@@ -228,7 +199,7 @@ export default VRRendering.extend(Evented, {
 
       ConnectMenu.open.call(this, OptionsMenu.open);
       this.set('running', true);
-      this.get('webglrenderer').setAnimationLoop(this.gameLoop.bind(this));
+      this.get('webglrenderer').setAnimationLoop(this.mainLoop.bind(this));
     });
   },
 
@@ -239,10 +210,12 @@ export default VRRendering.extend(Evented, {
     this.initSocket(this.get('host'), this.get('port'));
   },
 
+  /**
+   * Initiates properties with default values.
+   */
   initVariables() {
     this.set('currentTime', 0);
     this.set('deltaViewTime', 0);
-    this.set('deltaUpdateTime', 0);
     this.set('updateQueue', []);
     this.set('running', false);
     this.set('users', new Map());
@@ -534,10 +507,10 @@ export default VRRendering.extend(Evented, {
       this.get('users').delete(user.get('id'));
     }
 
-    // close socket
+    // Close socket
     this.get('websockets').closeSocketFor(`ws://${this.host}:${this.port}/`);
 
-    // close handlers
+    // Close handlers
     const socket = this.get('socketRef');
     if(socket) {
       socket.off('open', this.openHandler);
@@ -1143,7 +1116,7 @@ export default VRRendering.extend(Evented, {
     // Get model of application of the store
     let emberModel = this.get('store').peekRecord('application', id);
    
-    // Dont allow to have the same app opened twice
+    // Do not allow to have the same app opened twice
     if (this.get('openApps').has(emberModel.id)){
       return;
     }
@@ -1183,13 +1156,13 @@ export default VRRendering.extend(Evented, {
    * Moves landscape in all three directions.
    */
   rotateLandscape(delta) {
-    //apply rotattion
+    // Apply rotattion
     this.get('vrEnvironment').rotation.x += delta.x;
     this.get('vrEnvironment').rotation.y += delta.y;
     this.get('vrEnvironment').rotation.z += delta.z;
     this.updateObjectMatrix(this.get('vrEnvironment'));
 
-    //synchronize rotation with other users
+    // Synchronize rotation with other users
     this.get('interaction').trigger('centerVREnvironment');
     this.get('interaction').trigger('landscapeMoved', new THREE.Vector3(0, 0, 0));
   },
@@ -1259,7 +1232,7 @@ export default VRRendering.extend(Evented, {
     this.set('spectatedUser', null);
     this.set('startPosition', null);
 
-    // exit presentation on HMD
+    // Exit presentation on HMD
     if(navigator.getVRDisplays) {
       navigator.getVRDisplays().then( function (displays) {
         if(displays.length > 0 && displays[0].isPresenting)
