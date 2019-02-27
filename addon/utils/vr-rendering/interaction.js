@@ -20,7 +20,6 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
   scene: null,
   canvas: null,
   camera: null,
-  controllerGroup: null,
   user: null,
   room: null,
 

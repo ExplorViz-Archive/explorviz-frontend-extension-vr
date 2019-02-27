@@ -54,7 +54,6 @@ export default Component.extend(Evented, THREEPerformance, {
   initDone: false, //tells if initRendering() already terminated 
 
   user: null, //THREEGROUP containing camera and controller(s) of user
-  controllerGroup: null,
 
   raycaster: null, //raycaster for intersection checking (used in interaction)
   interaction: null, //class which handles mouse/keyboard/controller interaction
@@ -225,21 +224,17 @@ export default Component.extend(Evented, THREEPerformance, {
     this.set('controller1', new Controller(0));
     this.set('controller1.standingMatrix', this.get('webglrenderer').vr.getStandingMatrix())
     this.get('controller1').name = 'controller';
-    this.get('scene').add(this.get('controller1'));
 
     // Create right controller
     this.set('controller2', new Controller(1));
     this.set('controller2.standingMatrix', this.get('webglrenderer').vr.getStandingMatrix())
     this.get('controller2').name = 'controller';
-    this.get('scene').add(this.get('controller2'));
 
     this.set('user', new THREE.Group());
-    this.set('controllerGroup', new THREE.Group());
     this.get('scene').add(this.get('user'));
     this.get('user').add(this.get('camera'));
-    this.get('user').add(this.get('controllerGroup'));
-    this.get('controllerGroup').add(this.get('controller1'));
-    this.get('controllerGroup').add(this.get('controller2'));
+    this.get('user').add(this.get('controller1'));
+    this.get('user').add(this.get('controller2'));
 
     // Ray for Controller
     this.set('geometry', new THREE.Geometry());
@@ -1470,7 +1465,6 @@ export default Component.extend(Evented, THREEPerformance, {
     interaction.set('user', user);
     interaction.set('boundApps', this.get('boundApps'));
     interaction.set('environmentOffset', this.get('environmentOffset'));
-    interaction.set('controllerGroup', this.get('controllerGroup'));
 
     // Init interaction handlers
     this.get('interaction').initHandlers();
