@@ -36,7 +36,7 @@ export default Service.extend(Evented, {
       socket.off('close', this._closeHandler);
     }
     this.set('_socketRef', null);
-    this.set('_updateQueue', []);
+    this.set('_updateQueue', null);
   },
 
   _closeHandler(event) {
@@ -84,7 +84,9 @@ export default Service.extend(Evented, {
   },
 
   enqueue(JSONObj) {
-    this.get('_updateQueue').push(JSONObj);
+    if(this.get('_updateQueue')) {
+      this.get('_updateQueue').push(JSONObj);
+    }
   },
 
   /**
