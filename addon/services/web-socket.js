@@ -4,8 +4,10 @@ import THREE from 'three';
 
 export default Service.extend(Evented, {
   websockets: service(), //service needed to use websockets
-  socketRef: null, //websocket to send/receive messages to/from backend
-  updateQueue: null, // Messages which are ready to be sent to backend
+
+  _socketRef: null, //websocket to send/receive messages to/from backend
+  _updateQueue: null, // Messages which are ready to be sent to backend
+  
   host: null,
   port: null,
 
@@ -16,28 +18,28 @@ export default Service.extend(Evented, {
    * @param {number} port The socket's port.
    */
   initSocket() {
-    this.set('updateQueue', []);
+    this.set('_updateQueue', []);
     const socket = this.get('websockets').socketFor(`ws://${this.get('host')}:${this.get('port')}/`);
-    socket.on('open', this.openHandler, this);
-    socket.on('message', this.messageHandler, this);
-    socket.on('close', this.closeHandler, this);
-    this.set('socketRef', socket);
+    socket.on('open', this._openHandler, this);
+    socket.on('message', this._messageHandler, this);
+    socket.on('close', this._closeHandler, this);
+    this.set('_socketRef', socket);
   },
 
   closeSocket() {
     this.get('websockets').closeSocketFor(`ws://${this.get('host')}:${this.get('port')}/`);
     // close handlers
-    const socket = this.get('socketRef');
+    const socket = this.get('_socketRef');
     if(socket) {
-      socket.off('open', this.openHandler);
-      socket.off('message', this.messageHandler);
-      socket.off('close', this.closeHandler);
+      socket.off('open', this._openHandler);
+      socket.off('message', this._messageHandler);
+      socket.off('close', this._closeHandler);
     }
-    this.set('socketRef', null);
-    this.set('updateQueue', []);
+    this.set('_socketRef', null);
+    this.set('_updateQueue', []);
   },
 
-  closeHandler(event) {
+  _closeHandler(event) {
     // if(this.state === 'connecting')
     //  HintMenu.showHint.call(this, 'Could not establish connection', 3);
 
@@ -45,10 +47,10 @@ export default Service.extend(Evented, {
   },
 
   // Called when the websocket is opened for the first time
-  openHandler(event) {
+  _openHandler(event) {
   },
 
-  messageHandler(event) {
+  _messageHandler(event) {
     // Backend could have sent multiple messages at a time
     const messages = JSON.parse(event.data); 
     for(let i = 0; i < messages.length; i++) {
@@ -59,8 +61,8 @@ export default Service.extend(Evented, {
 
   // Used to send messages to the backend
   send(obj) {
-    if(this.get('socketRef'))
-      this.get('socketRef').send(JSON.stringify(obj));
+    if(this.get('_socketRef'))
+      this.get('_socketRef').send(JSON.stringify(obj));
   },
 
   sendDisconnectRequest() {
@@ -75,14 +77,14 @@ export default Service.extend(Evented, {
    */
   sendUpdates() {
     // there are updates to send
-    if(this.get('updateQueue').length > 0) {
-      this.send(this.get('updateQueue'));
-      this.set('updateQueue', []);
+    if(this.get('_updateQueue').length > 0) {
+      this.send(this.get('_updateQueue'));
+      this.set('_updateQueue', []);
     }
   },
 
   enqueue(JSONObj) {
-    this.get('updateQueue').push(JSONObj);
+    this.get('_updateQueue').push(JSONObj);
   },
 
   /**

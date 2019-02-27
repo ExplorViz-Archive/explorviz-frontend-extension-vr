@@ -306,9 +306,6 @@ export default Component.extend(Evented, THREEPerformance, {
       const height = Math.round($('#vizContainer').height());
       const width = Math.round($('#vizContainer').width());
 
-      this.set('camera.aspect', width / height);
-      this.get('camera').updateProjectionMatrix();
-
       this.get('webglrenderer').setSize(width, height);
 
       this.onResized();
