@@ -1199,7 +1199,6 @@ export default VRRendering.extend(Evented, {
     this.set('currentTime', null);
     this.set('deltaTime', null);
     this.set('running', null);
-    // this.set('updateQueue', null);
     this.set('spectatedUser', null);
     this.set('startPosition', null);
 
