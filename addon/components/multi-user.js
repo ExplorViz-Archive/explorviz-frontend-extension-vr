@@ -446,7 +446,7 @@ export default VRRendering.extend(Evented, {
     // send update if either position has changed
     if(hasChanged) {
       this.set('lastPositions', currentPositions);
-      this.get('webSocket').enqueue(positionObj);
+      this.get('webSocket').enqueueIfOpen(positionObj);
     }
   },
 
@@ -531,7 +531,7 @@ export default VRRendering.extend(Evented, {
       self.onSpectatingUpdate(userID, isSpectating);
     });
     socket.on('receive_ping', function(data) {
-      self.get('webSocket').enqueue(data);
+      self.get('webSocket').enqueueIfOpen(data);
     });
     socket.on('receive_bad_connection', function() { self.handleBadConnection(); });
   },
@@ -554,7 +554,7 @@ export default VRRendering.extend(Evented, {
       name
     };
 
-    this.get('webSocket').enqueue(JSONObj);
+    this.get('webSocket').enqueueIfOpen(JSONObj);
   },
 
   /**

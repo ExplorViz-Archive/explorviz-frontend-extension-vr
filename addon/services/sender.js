@@ -19,7 +19,7 @@ export default Service.extend({
       "offset" : environmentOffset.toArray(),
       "quaternion" : quaternion.toArray()
     }
-    this.get('webSocket').enqueue(landscapeObj);
+    this.get('webSocket').enqueueIfOpen(landscapeObj);
   },
 
   /**
@@ -35,7 +35,7 @@ export default Service.extend({
       "id": id,
       "isOpen": isOpen
     }
-    this.get('webSocket').enqueue(systemObj);
+    this.get('webSocket').enqueueIfOpen(systemObj);
   },
 
   /**
@@ -51,7 +51,7 @@ export default Service.extend({
       "id": id,
       "isOpen": isOpen
     }
-    this.get('webSocket').enqueue(nodeGroupObj);
+    this.get('webSocket').enqueueIfOpen(nodeGroupObj);
   },
 
   /**
@@ -65,7 +65,7 @@ export default Service.extend({
       "time": Date.now(),
       "id": appID
     }
-    this.get('webSocket').enqueue(appObj);
+    this.get('webSocket').enqueueIfOpen(appObj);
   },
 
   /**
@@ -88,7 +88,7 @@ export default Service.extend({
       "controllerPosition" : controllerPosition.toArray(),
       "controllerQuaternion" : controllerQuaternion.toArray()
     }
-    this.get('webSocket').enqueue(appObj);
+    this.get('webSocket').enqueueIfOpen(appObj);
   },
 
   /**
@@ -105,7 +105,7 @@ export default Service.extend({
       "position" : position.toArray(),
       "quaternion" : quaternion.toArray()
     }
-    this.get('webSocket').enqueue(appObj);
+    this.get('webSocket').enqueueIfOpen(appObj);
   },
 
   /**
@@ -123,7 +123,7 @@ export default Service.extend({
       "isOpened": isOpened,
       "isFoundation": isFoundation
     }
-    this.get('webSocket').enqueue(appObj);
+    this.get('webSocket').enqueueIfOpen(appObj);
   },
 
   /**
@@ -144,7 +144,7 @@ export default Service.extend({
       "isHighlighted": isHighlighted,
       "color": color
     }
-    this.get('webSocket').enqueue(hightlightObj);
+    this.get('webSocket').enqueueIfOpen(hightlightObj);
   },
 
   /**
@@ -159,7 +159,7 @@ export default Service.extend({
       "spectatedUser": spectatedUser,
       "time": Date.now()
     }
-    this.get('webSocket').enqueue(spectateObj);
+    this.get('webSocket').enqueueIfOpen(spectateObj);
   },
 
   /**
@@ -173,7 +173,7 @@ export default Service.extend({
       connect
     };
 
-    this.get('webSocket').enqueue(controllerObj);
+    this.get('webSocket').enqueueIfOpen(controllerObj);
   },
 
   /**
@@ -196,6 +196,6 @@ export default Service.extend({
       "position" : position.toArray(),
       "quaternion" : quaternion.toArray()
     }
-    this.get('webSocket').enqueue(appObj);
+    this.get('webSocket').enqueueIfOpen(appObj);
   }
 });
