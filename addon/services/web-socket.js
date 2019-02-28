@@ -17,12 +17,12 @@ export default Service.extend(Evented, {
    * @param {number} port The socket's port.
    */
   initSocket() {
+    this.set('_updateQueue', []);
     const socket = this.get('websockets').socketFor(`ws://${this.get('host')}:${this.get('port')}/`);
     socket.on('open', this._openHandler, this);
     socket.on('message', this._messageHandler, this);
     socket.on('close', this._closeHandler, this);
     this.set('_socketRef', socket);
-    this.set('_updateQueue', []);
   },
 
   closeSocket() {
@@ -89,10 +89,10 @@ export default Service.extend(Evented, {
 
   isWebSocketOpen() {
     const socketRef = this.get('_socketRef');
-    
+
     if(!socketRef)
       return false;
 
-    return this.get('_socketRef').readyState === 0;
+    return this.get('_socketRef').readyState() === 1;
   }
 });
