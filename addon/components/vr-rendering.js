@@ -293,19 +293,13 @@ export default Component.extend(Evented, THREEPerformance, {
     };
 
     this.onResizeCanvas = function() {
-      if(!this.get('camera') || !this.get('webglrenderer'))
-        return;
-
-      $('#threeCanvas').hide();
-
       const height = Math.round($('#vizContainer').height());
       const width = Math.round($('#vizContainer').width());
-
-      this.get('webglrenderer').setSize(width, height);
+      
+      $("#threeCanvas").height(height);
+      $("#threeCanvas").width(width);
 
       this.onResized();
-
-      $('#threeCanvas').show();
     };
 
     this.onUpdated = function() {

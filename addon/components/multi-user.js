@@ -24,6 +24,7 @@ export default VRRendering.extend(Evented, {
 
   session: service(), // Session used to retrieve username
   webSocket: service(),
+  sender: service(),
   
   users: null, // Map: UserID -> User
   userID: null, // Own userID
@@ -162,7 +163,7 @@ export default VRRendering.extend(Evented, {
     spectatedUser.set('camera.model.visible', false);
     spectatedUser.set('namePlane.visible', false);
     this.set('state', 'spectating');
-    this.get('webSocket').sendSpectatingUpdate(this.get('userID'), this.get('state'), this.get('spectatedUser'));
+    this.get('sender').sendSpectatingUpdate(this.get('userID'), this.get('state'), this.get('spectatedUser'));
   },
 
   /**
@@ -184,7 +185,7 @@ export default VRRendering.extend(Evented, {
     let position = this.get('startPosition');
     this.get('user.position').fromArray(position.toArray());
 
-    this.get('webSocket').sendSpectatingUpdate(this.get('userID'), this.get('state') /* , null */);
+    this.get('sender').sendSpectatingUpdate(this.get('userID'), this.get('state') /* , null */);
   },
 
 
@@ -313,31 +314,31 @@ export default VRRendering.extend(Evented, {
 
     //initialize interaction events and delegate them to the corresponding functions
     this.get('interaction').on('systemStateChanged', (id, isOpen) => {
-      this.get('webSocket').sendSystemUpdate(id, isOpen);
+      this.get('sender').sendSystemUpdate(id, isOpen);
     });
     this.get('interaction').on('nodegroupStateChanged', (id, isOpen) => {
-      this.get('webSocket').sendNodegroupUpdate(id, isOpen);
+      this.get('sender').sendNodegroupUpdate(id, isOpen);
     });
     this.on('applicationOpened', (id, app) => {
-      this.get('webSocket').sendAppOpened(id, app);
+      this.get('sender').sendAppOpened(id, app);
     });
     this.get('interaction').on('removeApplication',(appID) => {
-      this.get('webSocket').sendAppClosed(appID);
+      this.get('sender').sendAppClosed(appID);
     });
     this.get('interaction').on('appReleased',(appID, position, quaternion) => {
-      this.get('webSocket').sendAppReleased(appID, position, quaternion);
+      this.get('sender').sendAppReleased(appID, position, quaternion);
     });
     this.get('interaction').on('appBinded',(appID, appPosition, appQuaternion, isBoundToSecondaryController, controllerPosition, controllerQuaternion) => {
-      this.get('webSocket').sendAppBinded(appID, appPosition, appQuaternion, isBoundToSecondaryController, controllerPosition, controllerQuaternion);
+      this.get('sender').sendAppBinded(appID, appPosition, appQuaternion, isBoundToSecondaryController, controllerPosition, controllerQuaternion);
     });
     this.get('interaction').on('componentUpdate', (appID , componentID, isOpened, isFoundation) => {
-      this.get('webSocket').sendComponentUpdate(appID, componentID, isOpened, isFoundation);
+      this.get('sender').sendComponentUpdate(appID, componentID, isOpened, isFoundation);
     });
     this.get('interaction').on('landscapeMoved', (deltaPosition) => {
-      this.get('webSocket').sendLandscapeUpdate(deltaPosition, this.get('vrEnvironment'), this.get('environmentOffset'));
+      this.get('sender').sendLandscapeUpdate(deltaPosition, this.get('vrEnvironment'), this.get('environmentOffset'));
     });
     this.get('interaction').on('entityHighlighted', (isHighlighted, appID, entityID, color) => {
-      this.get('webSocket').sendHighlightingUpdate(this.get('userID'), isHighlighted, appID, entityID, color);
+      this.get('sender').sendHighlightingUpdate(this.get('userID'), isHighlighted, appID, entityID, color);
     });
   },
 
@@ -392,7 +393,7 @@ export default VRRendering.extend(Evented, {
    */
   update() {
     this.updateAndSendPositions();
-    this.get('webSocket').sendControllerUpdate();
+    this.get('sender').sendControllerUpdate();
   },
 
   /**
@@ -481,7 +482,7 @@ export default VRRendering.extend(Evented, {
    */
   disconnect(sendMessage) {
     if(sendMessage) {
-      this.get('webSocket').sendDisconnectRequest();
+      this.get('sender').sendDisconnectRequest();
     }
 
     // Set own state to offline
@@ -513,6 +514,13 @@ export default VRRendering.extend(Evented, {
     const socket = this.get('webSocket');
 
     const self = this;
+
+    socket.on('connection_closed', function() {
+      if(self.get('state') === 'connecting') {
+        HintMenu.showHint.call(self, 'Could not establish connection', 3);
+      }
+      self.disconnect(false);
+    });
 
     socket.on('receive_self_connecting', function(data) { self.onSelfConnecting(data); });
     socket.on('receive_self_connected', function(data) { self.onSelfConnected(data); });
@@ -1169,7 +1177,7 @@ export default VRRendering.extend(Evented, {
     if(hasChanged) {
       //if status of at least one controller has changed, inform backend
       if((disconnect && disconnect.length > 0) || connect) {
-        this.get('webSocket').sendControllerUpdate(connect, disconnect);
+        this.get('sender').sendControllerUpdate(connect, disconnect);
       }
     }
   },
