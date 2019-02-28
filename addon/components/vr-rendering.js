@@ -37,7 +37,7 @@ export default Component.extend(Evented, THREEPerformance, {
 
   tagName: '',
 
-  store: service(), //store to access model information
+  store: service(),
 
   landscapeListener: service(),
   reloadHandler: service(),
@@ -45,7 +45,6 @@ export default Component.extend(Evented, THREEPerformance, {
   renderingService: service(),
   configuration: service(),
 
-  
   scene: null, //root element of Object3d's - contains all visble objects
   webglrenderer: null, //renders the scene
   camera: null, //PerspectiveCamera
@@ -67,37 +66,31 @@ export default Component.extend(Evented, THREEPerformance, {
   zeroValue: 0.0000000000000001 * 0.0000000000000001, //tiny number e.g. to emulate a plane with depth zeroValue
 
   // VR
-  vrEnvironment: null, //contains vrLandscape and vrCommunications
-  environmentOffset : null, //tells how much the environment position should differ from the floor center point
-  vrLandscape: null, //contains systems and their children
-  vrCommunications: null, //contains communication between elements of landscape
-  controller1: null, //left controller
-  controller2: null, //right controller
-  geometry: null, //ray for controller
-  depth: 0.2, //depth value for systems/nodegroups etc. (2D rectangles -> 3D cubes)
-  room: null, //virtual room to which a flooar is added, important for raycasting
-  initialPositions: {}, //initial positions of systems/nodegroups/..
-  deleteButton: null, //delete Button of 3d application
+  vrEnvironment: null, // Contains vrLandscape and vrCommunications
+  environmentOffset : null, // Tells how much the environment position should differ from the floor center point
+  vrLandscape: null, // Contains systems and their children
+  vrCommunications: null, // Contains communication between elements of landscape
+  controller1: null, // Secondary controller
+  controller2: null, // Primary controller
+  geometry: null, // Ray for controller
+  depth: 0.2, // Depth value for systems/nodegroups etc. (2D rectangles -> 3D cubes)
+  room: null, // Virtual room to which a flooar is added, important for raycasting
+  initialPositions: {}, // Initial positions of systems/nodegroups/..
+  deleteButton: null, // Delete Button of 3d application
 
   // Storage for mesh data
   teleportArea: null,
 
   // Application
-  openApps : null, //Object3d's of opened applications
-  foundations: null, //keep track of foundations (in openApps) for foundationBuilder
-  boundApps: null, //applications which other users currently move/hold
+  openApps : null, // Object3d's of opened applications
+  foundations: null, // Keep track of foundations (in openApps) for foundationBuilder
+  boundApps: null, // Applications which other users currently move/hold
 
   userIsLefty: false,
 
-  //still necessary?
-  app3DMeshes: null,
   state: null,
   layout: layout,
-  classNames: ['viz'],
-  hammerManager: null,
-  vrAvailable: false,
-
-
+  
   didRender() {
     this._super(...arguments);
     this.initRendering();
@@ -142,8 +135,6 @@ export default Component.extend(Evented, THREEPerformance, {
       return help;
     }
   },
-
-  raycastObjectsNeedsUpdate: '',
 
   willDestroyElement() {
     this._super(...arguments);
@@ -276,7 +267,6 @@ export default Component.extend(Evented, THREEPerformance, {
     
     this.set('openApps', new Map());
     this.set('foundations', new Map());
-    this.set('app3DMeshes', new Map());
     this.set('boundApps', new Set());
 
     // Load image for delete button
@@ -1060,45 +1050,6 @@ export default Component.extend(Evented, THREEPerformance, {
       }
     }
 
-    /*
-     *  This function is used to compute the amount of 
-     *  all requests for each entity (id) [not yet in use]
-     */
-    /*
-    function computeRequests(appCommunication) {
-      let requests = {};
-      if(!appCommunication){
-        return;
-      }
-      appCommunication.forEach((communication) => {
-
-        if (!requests[communication.get('target').get('id')]) {
-          requests[communication.get('target').get('id')] = communication.get('requests');
-        } else {
-          requests[communication.get('target').get('id')] = 
-            requests[communication.get('target').get('id')] + communication.get('requests');
-        }
-
-        let parent = communication.get('target').get('parent');
-
-        // Check for parents and exclude root parent
-        while (parent && parseInt(parent.get('id')) !== 1) {
-
-          if (!requests[parent.get('id')]) {
-            requests[parent.get('id')] = communication.get('requests');
-          } else {
-            requests[parent.get('id')] = 
-              requests[parent.get('id')] + communication.get('requests');
-          }
-          parent = parent.get('parent');
-        }
-
-      });
-      return requests;
-    }
-	*/
-
-
     /* 
      *  This function is used to resize
      *  the landscape(3D) so it fits on the floor
@@ -1172,7 +1123,7 @@ export default Component.extend(Evented, THREEPerformance, {
 
       for (let i = 0; i < tiles.length; i++) {
         let tile = tiles[i];
-        createLine(tile, tiles, meshes);
+        createLine(tile, meshes);
       }
 
       function getCategories(list, linear) {
@@ -1264,8 +1215,6 @@ export default Component.extend(Evented, THREEPerformance, {
           }
         }
 
-
-
       } // END getCategories
 
     } // END addCommunicationLineDrawing
@@ -1281,7 +1230,7 @@ export default Component.extend(Evented, THREEPerformance, {
     /*
      * This function is used to create the lines for th communication
      */
-    function createLine(tile, tiles, parent) {
+    function createLine(tile, parent) {
 
 
       let firstVector = new THREE.Vector3(tile.startPoint.x - centerPoint.x, 
@@ -1800,9 +1749,6 @@ export default Component.extend(Evented, THREEPerformance, {
 
       self.get('scene').add(self.get('openApps').get(application.id));
 
-      // Store application mesh for redraw
-      self.get('app3DMeshes').set(application.id, self.get('openApps').get(application.id));
-
       // Setup interaction for app3D
       self.get('interaction').set('openApps', self.get('openApps'));
     }
@@ -1911,7 +1857,7 @@ export default Component.extend(Evented, THREEPerformance, {
 
   
   redrawApplication(appID){
-    //only redraw if app is opened
+    // Only redraw if app is opened
     if (!this.get('openApps').has(appID)){
       return;
     }

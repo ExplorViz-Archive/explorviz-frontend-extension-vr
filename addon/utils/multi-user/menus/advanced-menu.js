@@ -15,7 +15,7 @@ export function open(lastMenu) {
   menu.addTitle('Advanced Options');
   menu.addText('Lefty Mode', 'isLeftyText', 28, { x: 100, y: 148 }, '#FFFFFF', 'left', false);
   menu.addCheckbox("isLefty", { x: 366, y: 126 }, 50, 50, '#ffc338', '#ffffff', '#00e5ff', true, this.get('userIsLefty'));
-  menu.addTextButton('Back', 'back', { x: 100, y: 402 }, 316, 50, 28, '#555555', '#ffffff', '#00e5ff', true);
+  menu.addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
 
   prevMenu = lastMenu;
 
@@ -27,18 +27,12 @@ export function open(lastMenu) {
       if(action === 'rightIntersect' || action === 'rightTriggerDown') {
         menu.setHover(item);
       }
-      if(action === 'rightTriggerDown') {
-        if (item.name === 'lefty') {
-          close.call(this);
-          this.switchToLeftyMode();
-        } else if (item.name === 'righty') {
-          close.call(this);
-          this.switchToRightyMode();
-        } else if (item.name === 'back') {
-          back.call(this);
-        } else if (item.name === 'isLefty') {
+      if (action === 'rightTriggerDown') {
+        if (item.name === 'isLefty') {
           close.call(this);
           this.switchHand();
+        } else if (item.name === 'back') {
+          back.call(this);
         }
       }
     } else {

@@ -40,7 +40,7 @@ export function open(lastMenu) {
         item.isActivated = false;
       }
       if(action === 'rightTriggerPressed' && item.isActivated) {
-        const deltaTime = this.get('deltaViewTime');
+        const deltaTime = this.get('deltaTime');
         const triggerValue = triggerController.getTriggerValue();
 
         const moveDistance = triggerValue * deltaTime;
