@@ -28,18 +28,12 @@ export default VRRendering.extend(Evented, {
   
   users: null, // Map: UserID -> User
   userID: null, // Own userID
-  color: null, // Own color
   state: null, // Own connection status, state in {'connecting', 'connected', 'spectating'}
   lastPositions: null, // Last positions of camera and controllers
   controllersConnected: null, // Tells which controller(s) are connected
-  fps: 90, // Tells how many pictures are max. rendered per second (refresh rate of Vive/Rift is 90)
-  updatesPerSecond: 90, // Tells how many times per seconds msg can be sent to backend
-  badConnectionUpdates: 15, // Tells how many updates are sent per second in case of a bad connection
   lastViewTime: null, // Last time an image was rendered
-  currentTime: null, // Tells the current time in seconds
   deltaTime: null, // Time between two frames in seconds
-  lastUpdateTime: null, // Last time an update was sent
-  running: null, // Tells if gameLoop is executing
+  running: null, // Tells if main loop is executing
   spectatedUser: null, // Tells which userID (if any) is being spectated
   startPosition: null, // Position before this user starts spectating
 
@@ -52,10 +46,10 @@ export default VRRendering.extend(Evented, {
       return;
     }
 
-    this.set('currentTime', Date.now() / 1000.0);
+    let currentTime = Date.now() / 1000.0;
 
     // Time difference between now and the last time updates were sent
-    this.set('deltaTime',  this.get('currentTime') - this.get('lastViewTime'));
+    this.set('deltaTime',  currentTime - this.get('lastViewTime'));
 
     if(this.get('userID') && this.get('state') === 'spectating') {
       this.spectateUser(); // Follow view of spectated user
@@ -71,9 +65,9 @@ export default VRRendering.extend(Evented, {
     // Render scene
     this.renderScene();
 
-    this.set('lastViewTime', this.get('currentTime'));
+    this.set('lastViewTime', currentTime);
 
-    // Add controller/camera updates (position changes, controller disconnect etc.)
+    // Add controller / camera updates (position changes, controller disconnect etc.)
     if(this.get('userID') && this.get('state') === 'connected' || this.get('state') === 'spectating') {
       this.update();
     } 
@@ -212,14 +206,12 @@ export default VRRendering.extend(Evented, {
    * Initiates properties with default values.
    */
   initVariables() {
-    this.set('currentTime', 0);
     this.set('deltaTime', 0);
     this.set('running', false);
     this.set('users', new Map());
     this.set('lastPositions', { camera: null, controller1: null, controller2: null });
     this.set('controllersConnected', { controller1: false, controller2: false });
     this.set('lastViewTime', Date.now() / 1000.0);
-    this.set('lastUpdateTime', Date.now() / 1000.0);
     this.set('state', 'offline');
   },
 
@@ -486,54 +478,52 @@ export default VRRendering.extend(Evented, {
   initListeners() {
     const socket = this.get('webSocket');
 
-    const self = this;
-
-    socket.on('connection_closed', function() {
-      if(self.get('state') === 'connecting') {
-        HintMenu.showHint.call(self, 'Could not establish connection', 3);
+    socket.on('connection_closed', () => {
+      if (this.get('state') === 'connecting') {
+        HintMenu.showHint.call(this, 'Could not establish connection', 3);
       }
-      self.disconnect(false);
+      this.disconnect(false);
     });
 
-    socket.on('receive_self_connecting', function(data) { self.onSelfConnecting(data); });
-    socket.on('receive_self_connected', function(data) { self.onSelfConnected(data); });
-    socket.on('receive_user_connecting', function() {});
-    socket.on('receive_user_connected', function(data) { self.onUserConnected(data); });
-    socket.on('receive_user_positions', function(data) { self.onUserPositions(data); });
-    socket.on('receive_user_controllers', function(data) { self.onUserControllers(data); });
-    socket.on('receive_user_disconnect', function(data) { self.onUserDisconnect(data); });
-    socket.on('receive_landscape', function(data) { self.onInitialLandscape(data); });
-    socket.on('receive_landscape_position', function({ deltaPosition, quaternion }) { self.onLandscapePosition(deltaPosition, quaternion); });
-    socket.on('receive_system_update', function({ id, isOpen }) { self.onLandscapeUpdate(id, isOpen); });
-    socket.on('receive_nodegroup_update', function({ id, isOpen }) { self.onLandscapeUpdate(id, isOpen); });
-    socket.on('receive_app_opened', function({ id, position, quaternion }) { self.onAppOpened(id, position, quaternion); });
-    socket.on('receive_app_closed', function({ id }) { self.onAppClosed(id); });
-    socket.on('receive_app_binded', function({ userID, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion }) {
-      self.onAppBinded(userID, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion);
+    socket.on('receive_self_connecting', (data) => { this.onSelfConnecting(data); });
+    socket.on('receive_self_connected', (data) => { this.onSelfConnected(data); });
+    socket.on('receive_user_connecting', () => { });
+    socket.on('receive_user_connected', (data) => { this.onUserConnected(data); });
+    socket.on('receive_user_positions', (data) => { this.onUserPositions(data); });
+    socket.on('receive_user_controllers', (data) => { this.onUserControllers(data); });
+    socket.on('receive_user_disconnect', (data) => { this.onUserDisconnect(data); });
+    socket.on('receive_landscape', (data) => { this.onInitialLandscape(data); });
+    socket.on('receive_landscape_position', ({ deltaPosition, quaternion }) => { this.onLandscapePosition(deltaPosition, quaternion); });
+    socket.on('receive_system_update', ({ id, isOpen }) => { this.onLandscapeUpdate(id, isOpen); });
+    socket.on('receive_nodegroup_update', ({ id, isOpen }) => { this.onLandscapeUpdate(id, isOpen); });
+    socket.on('receive_app_opened', ({ id, position, quaternion }) => { this.onAppOpened(id, position, quaternion); });
+    socket.on('receive_app_closed', ({ id }) => { this.onAppClosed(id); });
+    socket.on('receive_app_binded', ({ userID, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion }) => {
+      this.onAppBinded(userID, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion);
     });
-    socket.on('receive_app_released', function({ id, position, quaternion }) {
-      self.get('boundApps').delete(id);
-      self.updateAppPosition(id, position, quaternion);
-      self.get('scene').add(self.get('openApps').get(id));
+    socket.on('receive_app_released', ({ id, position, quaternion }) => {
+      this.get('boundApps').delete(id);
+      this.updateAppPosition(id, position, quaternion);
+      this.get('scene').add(this.get('openApps').get(id));
     });
-    socket.on('receive_component_update', function({ isFoundation, appID, componentID, isOpened }) {
-      if (isFoundation){
-        self.get('foundations').get(appID).setOpenedStatus(isOpened);
+    socket.on('receive_component_update', ({ isFoundation, appID, componentID, isOpened }) => {
+      if (isFoundation) {
+        this.get('foundations').get(appID).setOpenedStatus(isOpened);
       } else {
-        self.get('store').peekRecord('component', componentID).setOpenedStatus(isOpened);
+        this.get('store').peekRecord('component', componentID).setOpenedStatus(isOpened);
       }
-      self.redrawApplication(appID);
+      this.redrawApplication(appID);
     });
-    socket.on('receive_hightlight_update', function({ userID, isHighlighted, appID, entityID, color }) {
-      self.onHighlightingUpdate(userID, isHighlighted, appID, entityID, color);
+    socket.on('receive_hightlight_update', ({ userID, isHighlighted, appID, entityID, color }) => {
+      this.onHighlightingUpdate(userID, isHighlighted, appID, entityID, color);
     });
-    socket.on('receive_spectating_update', function({ userID, isSpectating }) {
-      self.onSpectatingUpdate(userID, isSpectating);
+    socket.on('receive_spectating_update', ({ userID, isSpectating }) => {
+      this.onSpectatingUpdate(userID, isSpectating);
     });
-    socket.on('receive_ping', function(data) {
-      self.get('webSocket').enqueueIfOpen(data);
+    socket.on('receive_ping', (data) => {
+      this.get('webSocket').enqueueIfOpen(data);
     });
-    socket.on('receive_bad_connection', function() { self.handleBadConnection(); });
+    socket.on('receive_bad_connection', () => { this.handleBadConnection(); });
   },
 
   /**
@@ -1006,12 +996,11 @@ export default VRRendering.extend(Evented, {
     this.get('scene').add(plane);
   },
 
-  setEntityState(id, isOpen){
-    const self = this;
-    this.get('vrLandscape').children.forEach(function (system) {
+  setEntityState(id, isOpen) {
+    this.get('vrLandscape').children.forEach((system) => {
       if (system.userData.model && system.userData.model.id === id) {
         system.userData.model.setOpened(isOpen);
-        self.populateScene();
+        this.populateScene();
         return;
       }
     });
@@ -1029,7 +1018,7 @@ export default VRRendering.extend(Evented, {
     this.populateScene();
 
     // Use of store like above currently not possible, due to problems with klay
-    nodegroups.forEach(function (nodegroup){
+    nodegroups.forEach((nodegroup) => {
       let id = nodegroup.id;
       let isOpen = nodegroup.opened;
       vrLandscape.forEach(entity => {
@@ -1177,16 +1166,15 @@ export default VRRendering.extend(Evented, {
     this.set('lastPositions', null);
     this.set('controllersConnected', null);
     this.set('lastTime', null);
-    this.set('currentTime', null);
     this.set('deltaTime', null);
     this.set('running', null);
     this.set('spectatedUser', null);
     this.set('startPosition', null);
 
     // Exit presentation on HMD
-    if(navigator.getVRDisplays) {
-      navigator.getVRDisplays().then( function (displays) {
-        if(displays.length > 0 && displays[0].isPresenting)
+    if (navigator.getVRDisplays) {
+      navigator.getVRDisplays().then((displays) => {
+        if (displays.length > 0 && displays[0].isPresenting)
           displays[0].exitPresent();
       });
     }
