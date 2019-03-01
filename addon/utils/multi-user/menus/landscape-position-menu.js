@@ -1,116 +1,84 @@
+import BaseMenu from './menu-base';
 import Menu from '../menu';
 
-let menu = null;
-let prevMenu = null;
+export default BaseMenu.extend({
+  
+  /**
+   * Creates and opens the Connect Menu.
+   */
+  open(lastMenu, that) {
+    this._super(lastMenu, that);
 
-/**
- * Creates and opens the Landscape Position Menu.
- * 
- * @param {Object} lastMenu - The menu to go back to on back button pressed.
- */
-export function open(lastMenu) {
-  menu = Menu.create({
-    name: 'changeLandscapePositionMenu'
-  });
+    this.set('menu', Menu.create({ name: 'changeLandscapePositionMenu' }));
 
-  menu.addTitle('Move Landscape');
+    this.get('menu').addTitle('Move Landscape');
+  
+    // buttons for moving landscape in plane
+    this.get('menu').addRectangle({ x: 226, y: 246 }, 60, 60, '#eeeeee');
+    this.get('menu').addArrowButton('move_left', { x: 160, y: 246 }, { x: 200, y: 306 }, 'arrow_left', '#ffc338');
+    this.get('menu').addArrowButton('move_right', { x: 312, y: 246 }, { x: 352, y: 306 }, 'arrow_right', '#ffc338');
+    this.get('menu').addArrowButton('move_forward', { x: 226, y: 180 }, { x: 286, y: 220 }, 'arrow_up', '#ffc338');
+    this.get('menu').addArrowButton('move_backward', { x: 226, y: 332 }, { x: 286, y: 372 }, 'arrow_down', '#ffc338');
+  
+    // buttons for changing landscape height
+    this.get('menu').addRectangle({ x: 70, y: 178 }, 60, 4, '#eeeeee');
+    this.get('menu').addArrowButton('move_up', { x: 80, y: 120 }, { x: 120, y: 160 }, 'arrow_up', '#ffc338');
+    this.get('menu').addArrowButton('move_down', { x: 80, y: 200 }, { x: 120, y: 240 }, 'arrow_down', '#ffc338');
+  
+    // buttons for rotating landscape
+    this.get('menu').addCurvedArrowButton('rotate_right', { x: 390, y: 120 }, 60, 'curved_arrow_right', '#ffc338');
+    this.get('menu').addCurvedArrowButton('rotate_left', { x: 390, y: 200 }, 60, 'curved_arrow_left', '#ffc338');
+  
+    // add back button
+    this.get('menu').addTextButton('Back', 'back', { x: 100, y: 402 }, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
 
-  // buttons for moving landscape in plane
-  menu.addRectangle({ x: 226, y: 246 }, 60, 60, '#eeeeee');
-  menu.addArrowButton('move_left', { x: 160, y: 246 }, { x: 200, y: 306 }, 'arrow_left', '#ffc338');
-  menu.addArrowButton('move_right', { x: 312, y: 246 }, { x: 352, y: 306 }, 'arrow_right', '#ffc338');
-  menu.addArrowButton('move_forward', { x: 226, y: 180 }, { x: 286, y: 220 }, 'arrow_up', '#ffc338');
-  menu.addArrowButton('move_backward', { x: 226, y: 332 }, { x: 286, y: 372 }, 'arrow_down', '#ffc338');
-
-  // buttons for changing landscape height
-  menu.addRectangle({ x: 70, y: 178 }, 60, 4, '#eeeeee');
-  menu.addArrowButton('move_up', { x: 80, y: 120 }, { x: 120, y: 160 }, 'arrow_up', '#ffc338');
-  menu.addArrowButton('move_down', { x: 80, y: 200 }, { x: 120, y: 240 }, 'arrow_down', '#ffc338');
-
-  // buttons for rotating landscape
-  menu.addCurvedArrowButton('rotate_right', { x: 390, y: 120 }, 60, 'curved_arrow_right', '#ffc338');
-  menu.addCurvedArrowButton('rotate_left', { x: 390, y: 200 }, 60, 'curved_arrow_left', '#ffc338');
-
-  // add back button
-  menu.addTextButton('Back', 'back', { x: 100, y: 402 }, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
-  prevMenu = lastMenu;
-
-  let triggerController = this.get('userIsLefty') ? this.get('controller1') : this.get('controller2');
-  let menuController = this.get('userIsLefty') ? this.get('controller2') : this.get('controller1'); 
-
-  menu.interact = (action, position) => {
-    let item = menu.getItem(position);
-    if (item) {
-      if (action === 'rightIntersect' || action === 'rightTriggerDown') {
-        menu.setHover(item);
-      }
-      if (action === 'rightTriggerDown') {
-        if (item.name === 'back') {
-          back.call(this);
-        } else {
-          item.isActivated = true;
+    let triggerController = that.get('userIsLefty') ? that.get('controller1') : that.get('controller2');
+    let menuController = that.get('userIsLefty') ? that.get('controller2') : that.get('controller1'); 
+  
+    this.get('menu').interact = (action, position) => {
+      let item = this.get('menu').getItem(position);
+      if (item) {
+        if (action === 'rightIntersect' || action === 'rightTriggerDown') {
+          this.get('menu').setHover(item);
         }
-      }
-      if (action === 'rightTriggerPressed' && item.isActivated) {
-        const deltaTime = this.get('deltaTime');
-        const triggerValue = triggerController.getTriggerValue();
-
-        const moveAndRotateDistance = triggerValue * deltaTime;
-
-        if (item.name === 'move_left') {
-          this.moveLandscape({ x: -moveAndRotateDistance, y: 0, z: 0 });
-        } else if (item.name === 'move_right') {
-          this.moveLandscape({ x: moveAndRotateDistance, y: 0, z: 0 });
-        } else if (item.name === 'move_forward') {
-          this.moveLandscape({ x: 0, y: 0, z: -moveAndRotateDistance });
-        } else if (item.name === 'move_backward') {
-          this.moveLandscape({ x: 0, y: 0, z: moveAndRotateDistance });
-        } else if (item.name === 'move_up') {
-          this.moveLandscape({ x: 0, y: moveAndRotateDistance, z: 0 });
-        } else if (item.name === 'move_down') {
-          this.moveLandscape({ x: 0, y: -moveAndRotateDistance, z: 0 });
-        } else if (item.name === 'rotate_left') {
-          this.rotateLandscape({ x: -moveAndRotateDistance, y: 0, z: 0 });
-        } else if (item.name === 'rotate_right') {
-          this.rotateLandscape({ x: moveAndRotateDistance, y: 0, z: 0 });
+        if (action === 'rightTriggerDown') {
+          if (item.name === 'back') {
+            this.back(that);
+          } else {
+            item.isActivated = true;
+          }
         }
+        if (action === 'rightTriggerPressed' && item.isActivated) {
+          const deltaTime = that.get('deltaTime');
+          const triggerValue = triggerController.getTriggerValue();
+  
+          const moveAndRotateDistance = triggerValue * deltaTime;
+  
+          if (item.name === 'move_left') {
+            that.moveLandscape({ x: -moveAndRotateDistance, y: 0, z: 0 });
+          } else if (item.name === 'move_right') {
+            that.moveLandscape({ x: moveAndRotateDistance, y: 0, z: 0 });
+          } else if (item.name === 'move_forward') {
+            that.moveLandscape({ x: 0, y: 0, z: -moveAndRotateDistance });
+          } else if (item.name === 'move_backward') {
+            that.moveLandscape({ x: 0, y: 0, z: moveAndRotateDistance });
+          } else if (item.name === 'move_up') {
+            that.moveLandscape({ x: 0, y: moveAndRotateDistance, z: 0 });
+          } else if (item.name === 'move_down') {
+            that.moveLandscape({ x: 0, y: -moveAndRotateDistance, z: 0 });
+          } else if (item.name === 'rotate_left') {
+            that.rotateLandscape({ x: -moveAndRotateDistance, y: 0, z: 0 });
+          } else if (item.name === 'rotate_right') {
+            that.rotateLandscape({ x: moveAndRotateDistance, y: 0, z: 0 });
+          }
+        }
+      } else {
+        this.get('menu').setHover(null);
+        this.get('menu').deactivateItems();
       }
-    } else {
-      menu.setHover(null);
-      menu.deactivateItems();
-    }
-  };
-  menu.createMesh();
-
-  menu.addToController(menuController);
-}
-
-/**
- * Closes and removes the Landscape Position Menu.
- */
-export function close() {
-  if(menu) {
-    let controller = this.get('userIsLefty') ? this.get('controller2') : this.get('controller1'); 
-    controller.remove(menu.get('mesh'));
-    menu.close();
-    menu = null;
+    };
+    this.get('menu').createMesh();
+  
+    this.get('menu').addToController(menuController);
   }
-}
-
-/**
- * Go back to the previous menu.
- */
-export function back() {
-  close.call(this);
-  if(prevMenu) {
-    prevMenu.call(this);
-    prevMenu = null;
-  }
-}
-
-/**
- * Return whether the menu is opened or not.
- */
-export function isOpen() {
-  return menu ? true : false;
-}
+});

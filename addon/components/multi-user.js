@@ -162,10 +162,10 @@ export default VRRendering.extend(Evented, {
     spectatedUser.set('camera.model.visible', true);
     spectatedUser.set('namePlane.visible', true);
     this.set('state', 'connected');
-    ConnectMenu.setState.call(this, 'connected');
+    this.get('connectMenu').setState('connected');
     this.set('spectatedUser', null);
 
-    SpectateMenu.updateText('spectating_user', 'Spectating off');
+    this.get('spectateMenu').updateText('spectating_user', 'Spectating off');
 
     let position = this.get('startPosition');
     this.get('user.position').fromArray(position.toArray());
@@ -183,6 +183,13 @@ export default VRRendering.extend(Evented, {
     this.initInteractions();
     this.initListeners();
 
+    this.set('advancedMenu', AdvancedMenu.create());
+    this.set('connectMenu', ConnectMenu.create());
+    this.set('cameraHeightMenu', CameraHeightMenu.create());
+    this.set('landscapePositionMenu', LandscapePositionMenu.create());
+    this.set('spectateMenu', SpectateMenu.create());
+    this.set('optionsMenu', OptionsMenu.create());
+
     let host, port;
     $.getJSON('config/config_multiuser.json').then(json => {
       host = json.host;
@@ -196,7 +203,7 @@ export default VRRendering.extend(Evented, {
       this.set('webSocket.host', host);
       this.set('webSocket.port', port);
 
-      ConnectMenu.open.call(this, OptionsMenu.open);
+      this.get('connectMenu').open(this.get('optionsMenu'), this);
       this.set('running', true);
       this.get('webglrenderer').setAnimationLoop(this.mainLoop.bind(this));
     });
@@ -204,7 +211,7 @@ export default VRRendering.extend(Evented, {
 
   connect() {
     this.set('state', 'connecting');
-    ConnectMenu.setState.call(this, 'connecting');
+    this.get('connectMenu').setState('connecting');
     this.get('webSocket').initSocket();
   },
 
@@ -322,23 +329,23 @@ export default VRRendering.extend(Evented, {
     // Open options menu if no other menu is open
     // Else closes current menu or goes back one menu if possible.
     if (this.get('state') !== 'spectating') {
-      if (OptionsMenu.isOpen())
-        OptionsMenu.close.call(this);
-      else if (CameraHeightMenu.isOpen())
-        CameraHeightMenu.back.call(this);
-      else if (LandscapePositionMenu.isOpen())
-        LandscapePositionMenu.back.call(this);
-      else if (SpectateMenu.isOpen())
-        SpectateMenu.back.call(this);
-      else if (ConnectMenu.isOpen())
-        ConnectMenu.back.call(this);
-      else if (AdvancedMenu.isOpen())
-        AdvancedMenu.back.call(this);
+      if (this.get('optionsMenu').isOpen())
+        this.get('optionsMenu').close();
+      else if (this.get('cameraHeightMenu').isOpen())
+        this.get('cameraHeightMenu').back(this);
+      else if (this.get('landscapePositionMenu').isOpen())
+        this.get('landscapePositionMenu').back(this);
+      else if (this.get('spectateMenu').isOpen())
+        this.get('spectateMenu').back(this);
+      else if (this.get('connectMenu').isOpen())
+        this.get('connectMenu').back(this);
+      else if (this.get('advancedMenu').isOpen())
+        this.get('advancedMenu').back(this);
       else
-        OptionsMenu.open.call(this);
+        this.get('optionsMenu').open(null, this);
     } else {
       this.deactivateSpectating();
-      SpectateMenu.back.call(this);
+      this.get('spectateMenu').back(this);
     }
   },
 
@@ -460,7 +467,7 @@ export default VRRendering.extend(Evented, {
 
     // Set own state to offline
     this.set('state', 'offline');
-    ConnectMenu.setState.call(this, 'offline');
+    this.get('connectMenu').setState('offline');
     
     // Remove other users and their corresponding models and name tags
     let users = this.users.values();
@@ -588,7 +595,7 @@ export default VRRendering.extend(Evented, {
       this.addUsername(userData.id);
     }
     this.set('state', 'connected');
-    ConnectMenu.setState('connected');
+    this.get('connectMenu').setState('connected');
     this.set('controllersConnected', { controller1: false, controller2: false });
 
     // Remove any open apps which may still exist from offline mode
@@ -1111,7 +1118,7 @@ export default VRRendering.extend(Evented, {
     this.get('interaction').addControllerHandlers();
     oldMenuController.getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,204,51)');
     oldOtherController.getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,0,0)');
-    AdvancedMenu.open.call(this, OptionsMenu.open);
+    this.get('advancedMenu').open(this.get('optionsMenu'), this);
   },
 
   sendControllerUpdate() {

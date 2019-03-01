@@ -1,75 +1,43 @@
+import BaseMenu from './menu-base';
 import Menu from '../menu';
 
-let menu = null;
-let prevMenu = null;
-
-/**
- * Creates and opens the Connect Menu.
- */
-export function open(lastMenu) {
-  close.call(this);
-  menu = Menu.create({
-    name: 'advancedMenu'
-  });
+export default BaseMenu.extend({
   
-  menu.addTitle('Advanced Options');
-  menu.addText('Lefty Mode', 'isLeftyText', 28, { x: 100, y: 148 }, '#FFFFFF', 'left', false);
-  menu.addCheckbox("isLefty", { x: 366, y: 126 }, 50, 50, '#ffc338', '#ffffff', '#00e5ff', true, this.get('userIsLefty'));
-  menu.addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
+  /**
+   * Creates and opens the Connect Menu.
+   */
+  open(lastMenu, that) {
+    this._super(lastMenu, that);
 
-  prevMenu = lastMenu;
-
-  let controller = this.get('userIsLefty') ? this.get('controller2') : this.get('controller1'); 
-
-  menu.interact = (action, position) => {
-    let item = menu.getItem(position);
-    if(item) {
-      if(action === 'rightIntersect' || action === 'rightTriggerDown') {
-        menu.setHover(item);
-      }
-      if (action === 'rightTriggerDown') {
-        if (item.name === 'isLefty') {
-          close.call(this);
-          this.switchHand();
-        } else if (item.name === 'back') {
-          back.call(this);
+    this.set('menu', Menu.create({ name: 'advancedMenu' }));
+    
+    this.get('menu').addTitle('Advanced Options');
+    this.get('menu').addText('Lefty Mode', 'isLeftyText', 28, { x: 100, y: 148 }, '#FFFFFF', 'left', false);
+    this.get('menu').addCheckbox("isLefty", { x: 366, y: 126 }, 50, 50, '#ffc338', '#ffffff', '#00e5ff', true, that.get('userIsLefty'));
+    this.get('menu').addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
+  
+    let controller = that.get('userIsLefty') ? that.get('controller2') : that.get('controller1'); 
+  
+    this.get('menu').interact = (action, position) => {
+      let item = this.get('menu').getItem(position);
+      if(item) {
+        if(action === 'rightIntersect' || action === 'rightTriggerDown') {
+          this.get('menu').setHover(item);
         }
+        if (action === 'rightTriggerDown') {
+          if (item.name === 'isLefty') {
+            this.close();
+            that.switchHand();
+          } else if (item.name === 'back') {
+            this.back(that);
+          }
+        }
+      } else {
+        this.get('menu').setHover(null);
+        this.get('menu').deactivateItems();
       }
-    } else {
-      menu.setHover(null);
-      menu.deactivateItems();
-    }
-  };
-  menu.createMesh();
-  menu.addToController(controller);
-}
-
-/**
- * Closes and removes the Advanced Menu.
- */
-export function close() {
-  if(menu) {
-    let controller = this.get('userIsLefty') ? this.get('controller2') : this.get('controller1'); 
-    controller.remove(menu.get('mesh'));
-    menu.close();
-    menu = null;
+    };
+    this.get('menu').createMesh();
+    this.get('menu').addToController(controller);
   }
-}
-
-/**
- * Go back to the previous menu.
- */
-export function back() {
-  close.call(this);
-  if(prevMenu) {
-    prevMenu.call(this);
-    prevMenu = null;
-  }
-}
-
-/**
- * Return whether the menu is opened or not.
- */
-export function isOpen() {
-  return menu ? true : false;
-}
+});
