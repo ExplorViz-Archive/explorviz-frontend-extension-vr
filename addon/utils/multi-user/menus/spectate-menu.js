@@ -1,9 +1,11 @@
 import BaseMenu from './menu-base';
 import Menu from '../menu';
-import Helper from '../helper';
+import { inject as service } from "@ember/service";
 
 export default BaseMenu.extend({
-  
+
+  store: service(),
+
   /**
    * Creates and opens the Connect Menu.
    */
@@ -21,78 +23,58 @@ export default BaseMenu.extend({
 
     this.get('menu').interact = (action, position) => {
       let item = this.get('menu').getItem(position);
+      let users = this.get('store').peekAll('vr-user').toArray();
+
+      // Sort users by Id
+      users.sort( (a,b) => (a.id > b.id) ? 1 : -1); 
+
       if (item) {
         if (action === 'rightIntersect' || action === 'rightTriggerDown') {
           this.get('menu').setHover(item);
         }
         if (action === 'rightTriggerDown') {
           if (item.name === 'next_user') {
-            if (that.get('users').size < 1)
+            if (users.length < 1)
               return;
-  
-            // get all user that are connected
-            let users = that.get('users').keys();
-            let userArray = [];
-            for (let id of users) {
-              if (that.get('users').get(id).state === 'connected')
-                userArray.push(id);
-            }
-  
-            if (userArray.length < 1)
-              return;
-  
-            // sort them by id
-            userArray.sort();
-  
+
             if (!that.get('spectatedUser')) {
-              that.activateSpectating(userArray[0]);
-              this.get('menu').updateText('spectating_user', that.get('users').get(userArray[0]).name);
+              that.activateSpectating(users[0].get('id'));
+              this.get('menu').updateText('spectating_user', users[0].get('name'));
               return;
             }
-  
-            let index = Helper.binaryIndexOf(userArray, that.get('spectatedUser'));
-  
-            if (index !== -1) {
-              if (index === userArray.length - 1) {
+
+            let spectatedUser = users.find( (user) => {return user.get('id') === that.get('spectatedUser')});
+            let index = users.indexOf(spectatedUser);
+
+            if (spectatedUser) {
+              if (index === users.length - 1) {
                 that.deactivateSpectating();
                 this.get('menu').updateText('spectating_user', 'Spectating off');
               } else {
-                that.activateSpectating(userArray[index + 1]);
-                this.get('menu').updateText('spectating_user', that.get('users').get(userArray[index + 1]).name);
+                that.activateSpectating(users[index + 1].get('id'));
+                this.get('menu').updateText('spectating_user', users[index + 1].get('name'));
               }
             }
           } else if (item.name === 'previous_user') {
-            if (that.get('users').size < 1)
+            if (users.length < 1)
               return;
-  
-            let users = that.get('users').keys();
-            let userArray = [];
-  
-            for (let id of users) {
-              if (that.get('users').get(id).state === 'connected')
-                userArray.push(id);
-            }
-  
-            if (userArray.length < 1)
-              return;
-  
-            userArray.sort();
-  
+
             if (!that.get('spectatedUser')) {
-              that.activateSpectating(userArray[userArray.length - 1]);
-              this.get('menu').updateText('spectating_user', that.get('users').get(userArray[userArray.length - 1]).name);
+              that.activateSpectating(users[users.length - 1]);
+              this.get('menu').updateText('spectating_user', users[users.length - 1]).get('name');
               return;
             }
-  
-            let index = Helper.binaryIndexOf(userArray, that.get('spectatedUser'));
-  
+
+            let spectatedUser = users.find( (user) => {return user.get('id') === that.get('spectatedUser')});
+            let index = users.indexOf(spectatedUser);
+
             if (index !== -1) {
               if (index === 0) {
                 that.deactivateSpectating();
                 this.get('menu').updateText('spectating_user', 'Spectating off');
               } else {
-                that.activateSpectating(userArray[index - 1]);
-                this.get('menu').updateText('spectating_user', that.get('users').get(userArray[index - 1]).name);
+                that.activateSpectating(users[index - 1].get('id'));
+                this.get('menu').updateText('spectating_user', users[index - 1].get('name'));
               }
             }
           } else if (item.name === 'back') {
@@ -125,7 +107,7 @@ export default BaseMenu.extend({
   updateText(itemName, text) {
     const menu = this.get('menu');
 
-    if(menu)
+    if (menu)
       menu.updateText(itemName, text);
   }
 });

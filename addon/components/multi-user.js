@@ -3,7 +3,7 @@ import Evented from '@ember/object/evented';
 import THREE from 'three';
 import $ from 'jquery';
 import Models from '../utils/models';
-import User from '../utils/multi-user/user';
+import { getOwner } from '@ember/application';
 import Helper from '../utils/multi-user/helper';
 import VRRendering from './vr-rendering';
 import Menus, { UserListMenu, OptionsMenu, SpectateMenu, LandscapePositionMenu,
@@ -130,16 +130,21 @@ export default VRRendering.extend(Evented, {
    * @param {number} userID The id of the user to be spectated
    */
   activateSpectating(userID){
+    if (!userID){
+      return;
+    }
+
     if(this.get('state') === 'spectating'){
       this.deactivateSpectating();
     }
 
-    if(!this.get('store').peekRecord('vr-user', userID)){
+    let spectatedUser = this.get('store').peekRecord('vr-user', userID);
+
+    if(!spectatedUser){
       return;
     }
     this.set('startPosition', this.get('user.position').clone());
     this.set('spectatedUser', userID);
-    let spectatedUser = this.get('store').peekRecord('vr-user', this.get('spectatedUser'));
 
     // Other user's hmd should be invisible
     spectatedUser.set('camera.model.visible', false);
@@ -152,10 +157,15 @@ export default VRRendering.extend(Evented, {
    * Deactives spectator mode for our user
    */
   deactivateSpectating(){
+    if (!this.get('spectatedUser')){
+      return;
+    }
+
+    let spectatedUser = this.get('store').peekRecord('vr-user', this.get('spectatedUser'));
+
     if(!this.spectatedUser)
       return;
     
-    let spectatedUser = this.get('store').peekRecord('vr-user', this.get('spectatedUser'));
     spectatedUser.set('camera.model.visible', true);
     spectatedUser.set('namePlane.visible', true);
     this.set('state', 'connected');
@@ -184,7 +194,7 @@ export default VRRendering.extend(Evented, {
     this.set('connectMenu', ConnectMenu.create());
     this.set('cameraHeightMenu', CameraHeightMenu.create());
     this.set('landscapePositionMenu', LandscapePositionMenu.create());
-    this.set('spectateMenu', SpectateMenu.create());
+    this.set('spectateMenu', SpectateMenu.create(getOwner(this).ownerInjection()));
     this.set('optionsMenu', OptionsMenu.create());
 
     let host, port;
@@ -606,7 +616,7 @@ export default VRRendering.extend(Evented, {
    * @param {number} userID 
    */
   loadController1(controllerName, userID) {
-    const user = this.get('store').peekRecord(userID);
+    const user = this.get('store').peekRecord('vr-user', userID);
 
     if(!user)
       return;
@@ -624,7 +634,7 @@ export default VRRendering.extend(Evented, {
    * @param {number} userID 
    */
   loadController2(controllerName, userID) {
-    const user = this.get('store').peekRecord(userID);
+    const user = this.get('store').peekRecord('vr-user', userID);
 
     if(!user)
       return;
@@ -688,7 +698,7 @@ export default VRRendering.extend(Evented, {
 
     // Removes user and their models.
     // Informs our user about their disconnect.
-    let user = this.get('store').peekRecord(id)
+    let user = this.get('store').peekRecord('vr-user', id)
     if(user) {
 
       //unhighlight possible objects of disconnected user

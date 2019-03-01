@@ -61,7 +61,7 @@ export function open() {
     menu.addText(spectatingUsers[i].name, 'spectating', 12, { x: 50, y: yPos + i*yOffset}, Helper.rgbToHex(userColor), 'left', false);
   }
   
-  // menu.interact = (action, position) => {};
+  menu.interact = () => {};
 
   menu.createMesh();
   const mesh = menu.get('mesh');
