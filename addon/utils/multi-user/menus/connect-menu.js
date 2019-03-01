@@ -26,7 +26,7 @@ export default BaseMenu.extend({
           if(item.name === 'connect') {
             if(that.state === 'offline')
               that.connect();
-            else if(this.state === 'connected')
+            else if(that.state === 'connected')
               that.disconnect();
           } else if(item.name === 'back') {
             this.back(that);

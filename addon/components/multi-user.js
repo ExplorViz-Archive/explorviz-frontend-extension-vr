@@ -1,9 +1,9 @@
 import { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
+import { getOwner } from '@ember/application';
 import THREE from 'three';
 import $ from 'jquery';
 import Models from '../utils/models';
-import { getOwner } from '@ember/application';
 import Helper from '../utils/multi-user/helper';
 import VRRendering from './vr-rendering';
 import Menus, { UserListMenu, OptionsMenu, SpectateMenu, LandscapePositionMenu,
@@ -26,14 +26,13 @@ export default VRRendering.extend(Evented, {
   webSocket: service(),
   sender: service(),
   store: service(),
+  time: service(),
   
   users: null, // Map: UserID -> User
   userID: null, // Own userID
   state: null, // Own connection status, state in {'connecting', 'connected', 'spectating'}
   lastPositions: null, // Last positions of camera and controllers
   controllersConnected: null, // Tells which controller(s) are connected
-  lastViewTime: null, // Last time an image was rendered
-  deltaTime: null, // Time between two frames in seconds
   running: null, // Tells if main loop is executing
   spectatedUser: null, // Tells which userID (if any) is being spectated
   startPosition: null, // Position before this user starts spectating
@@ -48,10 +47,7 @@ export default VRRendering.extend(Evented, {
       return;
     }
 
-    let currentTime = Date.now() / 1000.0;
-
-    // Time difference between now and the last time updates were sent
-    this.set('deltaTime',  currentTime - this.get('lastViewTime'));
+    this.get('time').update();
 
     if(this.get('userID') && this.get('state') === 'spectating') {
       this.spectateUser(); // Follow view of spectated user
@@ -66,8 +62,6 @@ export default VRRendering.extend(Evented, {
 
     // Render scene
     this.renderScene();
-
-    this.set('lastViewTime', currentTime);
 
     // Add controller / camera updates (position changes, controller disconnect etc.)
     if(this.get('userID') && this.get('state') === 'connected' || this.get('state') === 'spectating') {
@@ -192,8 +186,8 @@ export default VRRendering.extend(Evented, {
 
     this.set('advancedMenu', AdvancedMenu.create());
     this.set('connectMenu', ConnectMenu.create());
-    this.set('cameraHeightMenu', CameraHeightMenu.create());
-    this.set('landscapePositionMenu', LandscapePositionMenu.create());
+    this.set('cameraHeightMenu', CameraHeightMenu.create(getOwner(this).ownerInjection()));
+    this.set('landscapePositionMenu', LandscapePositionMenu.create(getOwner(this).ownerInjection()));
     this.set('spectateMenu', SpectateMenu.create(getOwner(this).ownerInjection()));
     this.set('optionsMenu', OptionsMenu.create());
 
@@ -226,11 +220,9 @@ export default VRRendering.extend(Evented, {
    * Initiates properties with default values.
    */
   initVariables() {
-    this.set('deltaTime', 0);
     this.set('running', false);
     this.set('lastPositions', { camera: null, controller1: null, controller2: null });
     this.set('controllersConnected', { controller1: false, controller2: false });
-    this.set('lastViewTime', Date.now() / 1000.0);
     this.set('state', 'offline');
   },
 
@@ -1181,8 +1173,6 @@ export default VRRendering.extend(Evented, {
     this.set('state', null);
     this.set('lastPositions', null);
     this.set('controllersConnected', null);
-    this.set('lastTime', null);
-    this.set('deltaTime', null);
     this.set('running', null);
     this.set('spectatedUser', null);
     this.set('startPosition', null);

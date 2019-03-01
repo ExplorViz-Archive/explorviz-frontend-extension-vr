@@ -87,7 +87,8 @@ export default BaseMenu.extend({
       }
     };
     this.get('menu').createMesh();
-    this.get('menu').addToController(that.get('controller1'));
+    let controller = that.get('userIsLefty') ? 'controller2' : 'controller1'; 
+    this.get('menu').addToController(that.get(controller));
   },
 
   /**
