@@ -89,7 +89,7 @@ export default Component.extend(Evented, THREEPerformance, {
   userIsLefty: false,
 
   state: null,
-  layout: layout,
+  layout: layout, // Links template to component
   
   didRender() {
     this._super(...arguments);
