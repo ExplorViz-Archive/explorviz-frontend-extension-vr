@@ -165,12 +165,12 @@ export default Service.extend({
   /**
    * Informs the backend if a controller was connected/disconnected
    */
-  sendControllerUpdate(disconnect, connect) {
+  sendControllerUpdate(connect, disconnect) {
     let controllerObj = {
       "event": "receive_user_controllers",
       "time": Date.now(),
-      disconnect,
-      connect
+      "connect": connect,
+      "disconnect": disconnect
     };
 
     this.get('webSocket').enqueueIfOpen(controllerObj);
