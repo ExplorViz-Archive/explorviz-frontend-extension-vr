@@ -1,8 +1,11 @@
+import { inject as service } from '@ember/service';
+
 import BaseMenu from './menu-base';
 import Menu from '../menu';
 
 export default BaseMenu.extend({
-  
+  time: service(),
+
   /**
    * Creates and opens the Connect Menu.
    */
@@ -37,10 +40,9 @@ export default BaseMenu.extend({
           item.isActivated = false;
         }
         if(action === 'rightTriggerPressed' && item.isActivated) {
-          const deltaTime = that.get('deltaTime');
           const triggerValue = triggerController.getTriggerValue();
   
-          const moveDistance = triggerValue * deltaTime;
+          const moveDistance = triggerValue * this.get('time').getDeltaTime();
   
           if(item.name === 'height_down') {
             that.get('user').position.y -= moveDistance;
