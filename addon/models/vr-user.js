@@ -7,7 +7,7 @@ export default Model.extend({
 
   name: attr('string'),
   state: attr('string'),
-  
+
   highlightedEntity: {
     appID: null,
     entityID: null,

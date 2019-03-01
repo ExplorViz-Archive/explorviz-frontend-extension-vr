@@ -370,7 +370,7 @@ export default VRRendering.extend(Evented, {
    */
   update() {
     this.updateAndSendPositions();
-    this.get('sender').sendControllerUpdate();
+    this.sendControllerUpdate();
   },
 
   /**
@@ -535,7 +535,6 @@ export default VRRendering.extend(Evented, {
     socket.on('receive_ping', (data) => {
       this.get('webSocket').enqueueIfOpen(data);
     });
-    socket.on('receive_bad_connection', () => { this.handleBadConnection(); });
   },
 
   /**
