@@ -25,6 +25,7 @@ export default VRRendering.extend(Evented, {
   session: service(), // Session used to retrieve username
   webSocket: service(),
   sender: service(),
+  store: service(),
   
   users: null, // Map: UserID -> User
   userID: null, // Own userID
@@ -36,6 +37,7 @@ export default VRRendering.extend(Evented, {
   running: null, // Tells if main loop is executing
   spectatedUser: null, // Tells which userID (if any) is being spectated
   startPosition: null, // Position before this user starts spectating
+  color: null,
 
   /**
    * Main loop contains all methods which need to be called
@@ -92,28 +94,29 @@ export default VRRendering.extend(Evented, {
    * and set rotation such that it looks toward our camera.
    */
   updateUserNameTags() {
-    let users = this.get('users').values();
+    let users = this.get('store').peekAll('vr-user');
     let pos = new THREE.Vector3();
     this.get('camera').getWorldPosition(pos);
-    for(let user of users) {
-      if(user.get('state') === 'connected') {
-        user.get('namePlane.position').setFromMatrixPosition( user.get('camera.model').getObjectByName('dummyPlaneName').matrixWorld );
+    users.forEach((user) => {
+      if (user.get('state') === 'connected') {
+        user.get('namePlane.position').setFromMatrixPosition(user.get('camera.model').getObjectByName('dummyPlaneName').matrixWorld);
         user.get('namePlane').lookAt(pos);
         user.get('namePlane').updateMatrix();
       }
-    }
+    });
   },
 
   /**
    * Used in spectating mode to set user's camera position to the spectated user's position
    */
   spectateUser(){
-    if (this.get('spectatedUser') === null || !this.get('users').get(this.get('spectatedUser'))){
+    let spectatedUser = this.get('store').peekRecord('vr-user', this.get('spectatedUser'));
+
+    if (!spectatedUser){
       this.deactivateSpectating();
       return;
     }
 
-    let spectatedUser = this.get('users').get(this.get('spectatedUser'));
     let position = spectatedUser.get('camera.position');
 
     const cameraOffset = new THREE.Vector3();
@@ -131,12 +134,12 @@ export default VRRendering.extend(Evented, {
       this.deactivateSpectating();
     }
 
-    if(!this.get('users').has(userID)){
+    if(!this.get('store').peekRecord('vr-user', userID)){
       return;
     }
     this.set('startPosition', this.get('user.position').clone());
     this.set('spectatedUser', userID);
-    let spectatedUser = this.get('users').get(userID);
+    let spectatedUser = this.get('store').peekRecord('vr-user', this.get('spectatedUser'));
 
     // Other user's hmd should be invisible
     spectatedUser.set('camera.model.visible', false);
@@ -152,7 +155,7 @@ export default VRRendering.extend(Evented, {
     if(!this.spectatedUser)
       return;
     
-    let spectatedUser = this.get('users').get(this.get('spectatedUser'));
+    let spectatedUser = this.get('store').peekRecord('vr-user', this.get('spectatedUser'));
     spectatedUser.set('camera.model.visible', true);
     spectatedUser.set('namePlane.visible', true);
     this.set('state', 'connected');
@@ -215,7 +218,6 @@ export default VRRendering.extend(Evented, {
   initVariables() {
     this.set('deltaTime', 0);
     this.set('running', false);
-    this.set('users', new Map());
     this.set('lastPositions', { camera: null, controller1: null, controller2: null });
     this.set('controllersConnected', { controller1: false, controller2: false });
     this.set('lastViewTime', Date.now() / 1000.0);
@@ -462,8 +464,8 @@ export default VRRendering.extend(Evented, {
     this.get('connectMenu').setState('offline');
     
     // Remove other users and their corresponding models and name tags
-    let users = this.users.values();
-    for(let user of users) {
+    let users = this.get('store').peekAll('vr-user');
+    users.forEach( (user) => {
       this.get('scene').remove(user.get('controller1.model'));
       user.removeController1();
       this.get('scene').remove(user.get('controller2.model'));
@@ -472,8 +474,8 @@ export default VRRendering.extend(Evented, {
       user.removeCamera();
       this.get('scene').remove(user.get('namePlane'));
       user.removeNamePlane();
-      this.get('users').delete(user.get('id'));
-    }
+      this.get('store').unloadRecord(user);
+    });
 
     // close socket
     this.get('webSocket').closeSocket();
@@ -563,17 +565,17 @@ export default VRRendering.extend(Evented, {
     // Create User model for all users and add them to the users map
     for (let i = 0; i < data.users.length; i++) {
       const userData = data.users[i];
-      let user = new User();
-      user.set('name', userData.name);
-      user.set('id', userData.id);
-      user.set('color', userData.color);
-      user.set('state', 'connected');
-      this.get('users').set(userData.id, user);
+      let user = this.get('store').createRecord('vr-user', {
+        name: userData.name,
+        id: userData.id,
+        color: userData.color,
+        state: 'connected',
+      });
 
       // load controllers
-      if(userData.controllers.controller1)
+      if (userData.controllers.controller1)
         this.loadController1(userData.controllers.controller1, userData.id);
-      if(userData.controllers.controller2)
+      if (userData.controllers.controller2)
         this.loadController2(userData.controllers.controller2, userData.id);
 
       user.initCamera(Models.getHMDModel());
@@ -604,7 +606,7 @@ export default VRRendering.extend(Evented, {
    * @param {number} userID 
    */
   loadController1(controllerName, userID) {
-    const user = this.get('users').get(userID);
+    const user = this.get('store').peekRecord(userID);
 
     if(!user)
       return;
@@ -622,7 +624,7 @@ export default VRRendering.extend(Evented, {
    * @param {number} userID 
    */
   loadController2(controllerName, userID) {
-    const user = this.get('users').get(userID);
+    const user = this.get('store').peekRecord(userID);
 
     if(!user)
       return;
@@ -653,13 +655,14 @@ export default VRRendering.extend(Evented, {
    * @param {JSON} data - The initial data of the user connecting.
    */
   onUserConnected(data) {
-    let user = new User();
-    user.set('name', data.user.name);
-    user.set('id', data.user.id);
-    user.set('color', data.user.color);
-    user.set('state', 'connected');
+    let user = this.get('store').createRecord('vr-user', {
+      name: data.user.name,
+      id: data.user.id,
+      color: data.user.color,
+      state: 'connected',
+    });
+
     user.initCamera(Models.getHMDModel());
-    this.get('users').set(data.user.id, user);
 
     //add model for new user
     this.get('scene').add(user.get('camera.model'));
@@ -685,8 +688,8 @@ export default VRRendering.extend(Evented, {
 
     // Removes user and their models.
     // Informs our user about their disconnect.
-    if(this.get('users') && this.get('users').has(id)) {
-      let user = this.get('users').get(id);
+    let user = this.get('store').peekRecord(id)
+    if(user) {
 
       //unhighlight possible objects of disconnected user
       this.onHighlightingUpdate(id, false, user.highlightedEntity.appID, user.highlightedEntity.entityID, user.highlightedEntity.originalColor);
@@ -703,8 +706,6 @@ export default VRRendering.extend(Evented, {
       this.get('scene').remove(user.get('namePlane'));
       user.removeNamePlane();
 
-      this.get('users').delete(id);
-
       // show disconnect notification
       MessageBox.enqueueMessage.call(this, {title: 'User disconnected', text: user.get('name'), color: Helper.rgbToHex(user.get('color'))}, 3000);
     }
@@ -718,8 +719,8 @@ export default VRRendering.extend(Evented, {
   onUserPositions(data) {
     let { camera, id, controller1, controller2 } = data;
 
-    if(this.get('users').has(id)) {
-      let user = this.get('users').get(id);
+    let user = this.get('store').peekRecord('vr-user', id);
+    if(user) {
       if(controller1)
         user.updateController1(controller1);
       if(controller2)
@@ -737,10 +738,9 @@ export default VRRendering.extend(Evented, {
   onUserControllers(data) {
     let { id, disconnect, connect } = data;
 
-    if(!this.get('users').has(id))
+    let user = this.get('store').peekRecord('vr-user', id);
+    if(!user)
       return;
-
-    let user = this.get('users').get(id);
 
     // load newly connected controller(s)
     if(connect) {
@@ -832,9 +832,9 @@ export default VRRendering.extend(Evented, {
 
     let controller;
     if (isBoundToController1){
-      controller = this.get('users').get(userID).get('controller1.model');
+      controller = this.get('store').peekRecord('vr-user', userID).get('controller1.model');
     } else {
-      controller = this.get('users').get(userID).get('controller2.model');
+      controller = this.get('store').peekRecord('vr-user', userID).get('controller2.model');
     }
 
     controller.position.fromArray(controllerPosition);
@@ -855,7 +855,7 @@ export default VRRendering.extend(Evented, {
    * @param {boolean} isSpectating - True, if the user is now spectating, else false.
    */
   onSpectatingUpdate(userID, isSpectating) {
-    let user = this.get('users').get(userID);
+    let user = this.get('store').peekRecord('vr-user', userID);
     if (isSpectating) {
       user.set('state', 'spectating');
       user.setVisible(false);
@@ -883,7 +883,7 @@ export default VRRendering.extend(Evented, {
   },
 
   onHighlightingUpdate(userID, isHighlighted, appID, entityID, originalColor){
-    let user = this.get('users').get(userID);
+    let user = this.get('store').peekRecord('vr-user', userID);
 
     // Save highlighted entity
     if (isHighlighted){
@@ -951,8 +951,8 @@ export default VRRendering.extend(Evented, {
    * 
    * @param {Long} userID : user to which a username shall be added 
    */
-  addUsername(userID){
-    let user = this.get('users').get(userID);
+  addUsername(userID) {
+    let user = this.get('store').peekRecord('vr-user', userID);
     let camera = user.get('camera').model;
     let username = user.get('name');
 
@@ -1167,7 +1167,6 @@ export default VRRendering.extend(Evented, {
 
     this.set('running', false);
     this.disconnect(true);
-    this.set('users', null);
     this.set('userID', null);
     this.set('state', null);
     this.set('lastPositions', null);

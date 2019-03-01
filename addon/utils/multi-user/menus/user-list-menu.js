@@ -16,16 +16,16 @@ export function open() {
   menu.addRectangle({x: 0, y: 0}, 256, 33, '#777777');
   menu.addText('Users', 'title', 18, { x: 20, y: 10}, '#ffffff', 'left', false);
 
-  let users = this.get('users').values();
+  let users = this.get('store').peekAll('vr-user');
   let playingUsers = [];
   let spectatingUsers = [];
-  for(let user of users) {
+  users.forEach( (user) => {
     if(user.state === 'connected') {
       playingUsers.push(user);
     } else if(user.state === 'spectating') {
       spectatingUsers.push(user);
     }
-  }
+  });
 
   menu.addText('Connected', 'connected', 14, { x: 40, y: 50}, '#ffffff', 'left', false);
 
