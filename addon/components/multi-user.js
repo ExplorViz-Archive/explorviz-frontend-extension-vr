@@ -91,6 +91,7 @@ export default VRRendering.extend(Evented, {
     let users = this.get('store').peekAll('vr-user');
     let pos = new THREE.Vector3();
     this.get('camera').getWorldPosition(pos);
+
     users.forEach((user) => {
       if (user.get('state') === 'connected') {
         user.get('namePlane.position').setFromMatrixPosition(user.get('camera.model').getObjectByName('dummyPlaneName').matrixWorld);
@@ -710,6 +711,7 @@ export default VRRendering.extend(Evented, {
 
       // show disconnect notification
       MessageBox.enqueueMessage.call(this, {title: 'User disconnected', text: user.get('name'), color: Helper.rgbToHex(user.get('color'))}, 3000);
+      this.get('store').unloadRecord(user);
     }
   },
 
