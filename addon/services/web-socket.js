@@ -4,7 +4,7 @@ import Evented from '@ember/object/evented';
 export default Service.extend(Evented, {
   websockets: service(),
 
-  _socketRef: null, //websocket to send/receive messages to/from backend
+  _socketRef: null, // WebSocket to send/receive messages to/from backend
   _updateQueue: null, // Messages which are ready to be sent to backend
   
   host: null,

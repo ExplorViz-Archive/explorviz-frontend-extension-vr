@@ -1486,6 +1486,7 @@ export default Component.extend(Evented, THREEPerformance, {
       let bboxApp3D = new THREE.Box3().setFromObject(app);
       let app3DSize = new THREE.Vector3();
       bboxApp3D.getSize(app3DSize);
+      bboxApp3D.center( app.position );
       app3DSize.multiplyScalar(0.5);
 
       let newPosition = new THREE.Vector3();
@@ -1496,7 +1497,7 @@ export default Component.extend(Evented, THREEPerformance, {
       newPosition.y = intersectionPoint.y + 0.3;
       app.position.set(newPosition.x, newPosition.y, newPosition.z);
 
-      //rotate app so that it is aligned with landscape
+      // Rotate app so that it is aligned with landscape
       app.setRotationFromQuaternion(this.get('vrEnvironment.quaternion'));
       app.rotateX(1.5707963267949);
       app.rotateY(1.5707963267949);

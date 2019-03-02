@@ -870,19 +870,42 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
     }
   },
 
-  onAxisChangedPrimaryController(event){
+  /**
+   * This method handles inputs of the touchpad (HTC Vive) or analog stick (Oculus Rift) respectively.
+   * This input is used to move a potentially grabbed application towards or away from the controller.
+   */
+  onAxisChangedPrimaryController(event) {
     const controller = event.target;
 
     const axes = event.axes;
-    const xAxis = axes[0];
     const yAxis = axes[1];
 
     if (controller.userData.selected !== undefined && controller.userData.selected.name !== "textBox") {
       // Get stored application3D from controller
       let application = controller.userData.selected;
-      const maxRotation = 0.2;
-      application.rotateX(xAxis * maxRotation);
-      application.rotateZ(yAxis * maxRotation);
+
+      let appPosition = new THREE.Vector3();
+      application.getWorldPosition(appPosition);
+
+      let controllerPosition = new THREE.Vector3();
+      controller.getWorldPosition(controllerPosition);
+
+      let direction = new THREE.Vector3();
+      direction.subVectors(appPosition, controllerPosition);
+
+      // Do not move application if it is close to the controller
+      if (direction.length() < 0.5 && yAxis < 0) {
+        return;
+      }
+
+      // Adapt distance for moving according to trigger value
+      const maxTranslation = 0.05;
+      direction.normalize();
+      direction.multiplyScalar(yAxis * maxTranslation);
+
+      application.position.x += direction.x;
+      application.position.y += direction.y;
+      application.position.z += direction.z;
       this.updateObjectMatrix(application);
     }
 
@@ -1038,10 +1061,8 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
 
         // Handle no data for app3D available
         if (emberModel.get('components').get('length') === 0) {
-          // No data => show message
 
           // No application3D => message
-
           const message = "Sorry, no details for <b>" + emberModel.get('name') +
             "</b> are available.";
 
