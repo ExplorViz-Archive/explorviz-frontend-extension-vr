@@ -455,13 +455,9 @@ export default VRRendering.extend(Evented, {
   },
 
   /**
-   * Inform the backend that user leaves the session
+   * Switch to offline mode, close socket connection
    */
-  disconnect(sendMessage) {
-    if(sendMessage) {
-      this.get('sender').sendDisconnectRequest();
-    }
-
+  disconnect() {
     // Set own state to offline
     this.set('state', 'offline');
     this.get('connectMenu').setState('offline');
@@ -480,7 +476,7 @@ export default VRRendering.extend(Evented, {
       this.get('store').unloadRecord(user);
     });
 
-    // close socket
+    // Close socket
     this.get('webSocket').closeSocket();
 
     this.set('userID', null);
@@ -494,7 +490,7 @@ export default VRRendering.extend(Evented, {
       if (this.get('state') === 'connecting') {
         HintMenu.showHint.call(this, 'Could not establish connection', 3);
       }
-      this.disconnect(false);
+      this.disconnect();
     });
 
     socket.on('receive_self_connecting', (data) => { this.onSelfConnecting(data); });
@@ -1169,7 +1165,7 @@ export default VRRendering.extend(Evented, {
     this._super(...arguments);
 
     this.set('running', false);
-    this.disconnect(true);
+    this.disconnect();
     this.set('userID', null);
     this.set('state', null);
     this.set('lastPositions', null);
