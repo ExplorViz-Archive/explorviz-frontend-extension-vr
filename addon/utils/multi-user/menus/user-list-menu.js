@@ -32,9 +32,9 @@ export function open() {
   let yOffset = 20;
   let yPos = 50 + yOffset;
 
-  if(this.get('state') === 'connected') {
-    menu.addText(this.get('session.data.authenticated.username') || "ID: " + this.get('userID'), 'connected', 12,
-      { x: 50, y: yPos}, Helper.rgbToHex(this.get('color')), 'left', false);
+  if(this.get('user.state') === 'connected') {
+    menu.addText(this.get('session.data.authenticated.username') || "ID: " + this.get('user.userID'), 'connected', 12,
+      { x: 50, y: yPos}, Helper.rgbToHex(this.get('user.color')), 'left', false);
     yPos += yOffset;
   }
 
@@ -50,9 +50,9 @@ export function open() {
 
   yPos += yOffset;
 
-  if(this.get('state') === 'spectating') {
+  if(this.get('user.state') === 'spectating') {
     menu.addText(this.get('session.data.authenticated.username') || "ID: " + this.userID, 'connected', 12,
-      { x: 50, y: yPos}, Helper.rgbToHex(this.get('color')), 'left', false);
+      { x: 50, y: yPos}, Helper.rgbToHex(this.get('user.color')), 'left', false);
     yPos += yOffset;
   }
   

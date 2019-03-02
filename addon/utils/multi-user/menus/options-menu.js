@@ -57,7 +57,7 @@ export default BaseMenu.extend({
     this.get('menu').addToController(that.get(controller));
   
     // hide spectate menu item if user isn't connected the server
-    if (that.state === 'offline' || that.state === 'connecting') {
+    if (that.get('user.state') === 'offline' || that.get('user.state') === 'connecting') {
       this.get('menu').setClickable('spectate', false);
       this.get('menu').setColor('spectate', '#A8A8A8');
     }

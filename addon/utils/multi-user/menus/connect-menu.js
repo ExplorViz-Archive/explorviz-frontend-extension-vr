@@ -1,8 +1,11 @@
 import BaseMenu from './menu-base';
 import Menu from '../menu';
+import { inject as service } from '@ember/service';
 
 export default BaseMenu.extend({
   
+  user: service(), // Keeps track of key properties about user (e.g. connection state)
+
   /**
    * Creates and opens the Connect Menu.
    */
@@ -18,15 +21,17 @@ export default BaseMenu.extend({
   
     this.get('menu').interact = (action, position) => {
       let item = this.get('menu').getItem(position);
+      // TODO: Check why this.get('user.state') won't work
+      let state = that.get('user.state');
       if(item) {
         if(action === 'rightIntersect' || action === 'rightTriggerDown') {
           this.get('menu').setHover(item);
         }
         if(action === 'rightTriggerDown') {
           if(item.name === 'connect') {
-            if(that.state === 'offline')
+            if(state === 'offline')
               that.connect();
-            else if(that.state === 'connected')
+            else if(state === 'connected')
               that.disconnect();
           } else if(item.name === 'back') {
             this.back(that);
@@ -41,7 +46,7 @@ export default BaseMenu.extend({
     let controller = that.get('userIsLefty') ? 'controller2' : 'controller1'; 
     this.get('menu').addToController(that.get(controller));
   
-    this.setState(that.state);
+    this.setState(that.get('user.state'));
   },
 
   /**

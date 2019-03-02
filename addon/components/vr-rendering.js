@@ -88,7 +88,6 @@ export default Component.extend(Evented, THREEPerformance, {
 
   userIsLefty: false,
 
-  state: null,
   layout: layout, // Links template to component
   
   didRender() {
@@ -1486,7 +1485,6 @@ export default Component.extend(Evented, THREEPerformance, {
       let bboxApp3D = new THREE.Box3().setFromObject(app);
       let app3DSize = new THREE.Vector3();
       bboxApp3D.getSize(app3DSize);
-      bboxApp3D.center( app.position );
       app3DSize.multiplyScalar(0.5);
 
       let newPosition = new THREE.Vector3();
