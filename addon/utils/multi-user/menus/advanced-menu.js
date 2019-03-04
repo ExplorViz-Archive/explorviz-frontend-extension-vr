@@ -1,5 +1,6 @@
 import BaseMenu from './menu-base';
 import Menu from '../menu';
+import { getOwner } from '@ember/application';
 
 export default BaseMenu.extend({
   
@@ -9,7 +10,7 @@ export default BaseMenu.extend({
   open(lastMenu, that) {
     this._super(lastMenu, that);
 
-    this.set('menu', Menu.create({ name: 'advancedMenu' }));
+    this.set('menu', Menu.create(getOwner(that).ownerInjection(), { name: 'advancedMenu' }));
     
     this.get('menu').addTitle('Advanced Options');
     this.get('menu').addText('Lefty Mode', 'isLeftyText', 28, { x: 100, y: 148 }, '#FFFFFF', 'left', false);

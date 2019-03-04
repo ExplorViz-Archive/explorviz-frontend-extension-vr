@@ -7,7 +7,6 @@ export default Service.extend({
   sender: service(),
   store: service(),
 
-  lastPositions: null, // Last positions of camera and controllers
   spectatedUser: null, // Tells which userID (if any) is being spectated
   startPosition: null, // Position before this user starts spectating
 

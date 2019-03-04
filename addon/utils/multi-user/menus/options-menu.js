@@ -1,5 +1,6 @@
 import BaseMenu from './menu-base';
 import Menu from '../menu';
+import { getOwner } from '@ember/application';
 
 export default BaseMenu.extend({
   
@@ -9,7 +10,7 @@ export default BaseMenu.extend({
   open(lastMenu, that) {
     this._super(lastMenu, that);
 
-    this.set('menu', Menu.create({ name: 'optionsMenu' }));
+    this.set('menu', Menu.create(getOwner(that).ownerInjection(), { name: 'optionsMenu' }));
 
     this.get('menu').addTitle('Options');
     this.get('menu').addTextButton('Change Camera', 'change_height', { x: 100, y: 80 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);

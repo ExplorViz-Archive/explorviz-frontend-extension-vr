@@ -1,6 +1,7 @@
 import BaseMenu from './menu-base';
 import Menu from '../menu';
 import { inject as service } from '@ember/service';
+import { getOwner } from '@ember/application';
 
 export default BaseMenu.extend({
   
@@ -12,7 +13,7 @@ export default BaseMenu.extend({
   open(lastMenu, that) {
     this._super(lastMenu, that);
 
-    this.set('menu', Menu.create({ name: 'connectMenu' }));
+    this.set('menu', Menu.create(getOwner(this).ownerInjection(), { name: 'connectMenu' }));
     
     this.get('menu').addTitle('Connection');
     this.get('menu').addText('Status: ', 'status', 28, { x: 256, y: 140}, '#ffffff', 'center', false);

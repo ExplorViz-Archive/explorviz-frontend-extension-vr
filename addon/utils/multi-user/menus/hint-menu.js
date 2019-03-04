@@ -1,11 +1,12 @@
 import Menu from '../menu';
+import { getOwner } from '@ember/application';
 
 let menu = null;
 
 export function showHint(hint, blinks, hint2) {
   const self = this;
   close.call(this, menu);
-  menu = Menu.create({
+  menu = Menu.create(getOwner(this).ownerInjection(), {
     name: 'hintMenu',
     resolution: { width: 512, height: 128 },
     size: { width: 0.2, height: 0.05 },

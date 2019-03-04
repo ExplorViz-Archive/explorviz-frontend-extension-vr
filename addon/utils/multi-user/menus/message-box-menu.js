@@ -1,4 +1,5 @@
 import Menu from '../menu';
+import { getOwner } from '@ember/application';
 
 let messageQueue = [];
 let messageBox = null;
@@ -27,7 +28,7 @@ export function enqueueMessage(message, time) {
     setTimeout(closeAfterTime.bind(this), time);
     
     function createMessageBox(title, text, color) {
-      messageBox = Menu.create({
+      messageBox = Menu.create(getOwner(this).ownerInjection(), {
         title: 'messageBox',
         resolution: { width: 256, height: 64 },
         size: { width: 0.2, height: 0.05 },

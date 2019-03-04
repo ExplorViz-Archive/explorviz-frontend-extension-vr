@@ -1,5 +1,6 @@
 import Menu from '../menu';
 import Helper from '../helper';
+import { getOwner } from '@ember/application';
 
 let menu = null;
 
@@ -8,7 +9,7 @@ let menu = null;
  */
 export function open() {
   close.call(this); 
-  menu = Menu.create({
+  menu = Menu.create(getOwner(this).ownerInjection(), {
     name: 'userListMenu',
     resolution: { width: 256, height: 256 }
   });
