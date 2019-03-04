@@ -1,5 +1,4 @@
 import Service from '@ember/service';
-import { computed } from '@ember/object';
 
 export default Service.extend({
 
@@ -8,18 +7,18 @@ export default Service.extend({
   color: null,
   controllersConnected: null, // Tells which controller(s) is/are connected
   threeGroup: null,
-  position: computed('threeGroup.position', function() {
+  getPosition() {
     return this.get('threeGroup.position');
-  }),
-  camera: computed(function() {
+  },
+  getCamera() {
     return this.get('threeGroup').getObjectByName('camera');
-  }),
-  controller1: computed(function() {
+  },
+  getController1() {
     return this.get('threeGroup').getObjectByName('controller1');
-  }),
-  controller2: computed(function() {
+  },
+  getController2() {
     return this.get('threeGroup').getObjectByName('controller2');
-  }),
+  },
   
 
   init() {

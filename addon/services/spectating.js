@@ -26,8 +26,8 @@ export default Service.extend({
 
     const cameraOffset = new THREE.Vector3();
 
-    cameraOffset.copy(this.get('currentUser.camera.position'));
-    this.get('currentUser.position').subVectors(new THREE.Vector3(position.x, position.y, position.z), cameraOffset);
+    cameraOffset.copy(this.get('currentUser').getCamera().position);
+    this.get('currentUser').getPosition().subVectors(new THREE.Vector3(position.x, position.y, position.z), cameraOffset);
   },
 
   /**
@@ -48,7 +48,7 @@ export default Service.extend({
     if (!spectatedUser) {
       return;
     }
-    this.set('startPosition', this.get('currentUser.position').clone());
+    this.set('startPosition', this.get('currentUser').getPosition().clone());
     this.set('spectatedUser', userID);
 
     // Other user's hmd should be invisible
@@ -80,7 +80,7 @@ export default Service.extend({
     // this.get('spectateMenu').updateText('spectating_user', 'Spectating off');
 
     let position = this.get('startPosition');
-    this.get('currentUser.position').fromArray(position.toArray());
+    this.get('currentUser').getPosition().fromArray(position.toArray());
 
     this.get('sender').sendSpectatingUpdate(this.get('currentUser.userID'), this.get('currentUser.state') /* , null */);
   },
