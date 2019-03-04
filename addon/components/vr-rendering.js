@@ -45,25 +45,25 @@ export default Component.extend(Evented, THREEPerformance, {
   renderingService: service(),
   configuration: service(),
 
-  scene: null, //root element of Object3d's - contains all visble objects
-  webglrenderer: null, //renders the scene
-  camera: null, //PerspectiveCamera
-  canvas: null, //canvas of webglrenderer
-  font: null, //font used for text
-  initDone: false, //tells if initRendering() already terminated 
+  scene: null, // Root element of Object3d's - contains all visble objects
+  webglrenderer: null, // Renders the scene
+  camera: null, // PerspectiveCamera
+  canvas: null, // Canvas of webglrenderer
+  font: null, // Font used for text
+  initDone: false, // Tells if initRendering() already terminated 
 
   user: null, //THREEGROUP containing camera and controller(s) of user
 
-  raycaster: null, //raycaster for intersection checking (used in interaction)
-  interaction: null, //class which handles mouse/keyboard/controller interaction
-  labeler: null, //for labeling landscape (-> frontend)
-  labelerApp: null, //for labeling applications (-> frontend)
-  imageLoader: null, //for loading images e.g. of 'world system'
-  centerAndZoomCalculator: null, //frontend: CalcCenterAndZoom
-  initialRendering: true, //handle initial rendering in populateScene()
-  requestMaterial: null, //material for e.g. 'earth'
-  foundationBuilder: null, //imported from frontend
-  zeroValue: 0.0000000000000001 * 0.0000000000000001, //tiny number e.g. to emulate a plane with depth zeroValue
+  raycaster: null, // Raycaster for intersection checking (used in interaction)
+  interaction: null, //Class which handles mouse/keyboard/controller interaction
+  labeler: null, // For labeling landscape (-> frontend)
+  labelerApp: null, // For labeling applications (-> frontend)
+  imageLoader: null, // For loading images e.g. of 'world system'
+  centerAndZoomCalculator: null, // Frontend: CalcCenterAndZoom
+  initialRendering: true, // Handle initial rendering in populateScene()
+  requestMaterial: null, // Material for e.g. 'earth'
+  foundationBuilder: null, // Imported from frontend
+  zeroValue: 0.0000000000000001 * 0.0000000000000001, // Tiny number e.g. to emulate a plane with depth zeroValue
 
   // VR
   vrEnvironment: null, // Contains vrLandscape and vrCommunications
@@ -365,7 +365,6 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('scene').add(this.get('room'));///// End floor
 
     // Add lights
-
     this.get('scene').add( new THREE.HemisphereLight( 0x888877, 0x777788, 0.5 ) );
     var light = new THREE.DirectionalLight( 0xffffff );
     light.position.set( 0, 6, 0 );
@@ -533,7 +532,7 @@ export default Component.extend(Evented, THREEPerformance, {
     }
 
     this.get('openApps').forEach( (app) => {
-        // remove foundation for re-rendering
+        // Remove foundation for re-rendering
         this.removeFoundation(app.id, this.get('store'));
         this.set('landscapeRepo.latestApplication', null);
     });
@@ -543,7 +542,7 @@ export default Component.extend(Evented, THREEPerformance, {
     var gl = this.get('canvas').getContext('webgl');
     gl.getExtension('WEBGL_lose_context').loseContext();
 
-    //remove enter vr button
+    // Remove enter vr button
     var elem = document.getElementById('vr_button');
     elem.remove();
 
@@ -1310,20 +1309,15 @@ export default Component.extend(Evented, THREEPerformance, {
 
       const emberModelName = model.constructor.modelName;
 
-      var color = self.get('configuration.landscapeColors.' + emberModelName);
-
       const material = new THREE.MeshLambertMaterial({
-        color
+        color: self.get('configuration.landscapeColors.' + emberModelName)
       });
 
-      var height = model.get('height');
-      var depth = model.get('depth');
-      var zero = self.get('zeroValue');
+      let width = model.get('width');
+      let height = model.get('height') ? model.get('height') : self.get('zeroValue');
+      let depth = model.get('depth') ? model.get('depth') : self.get('zeroValue');
 
-      height = height ? height : zero;
-      depth = depth ? depth : zero;
-      
-      const box = new THREE.Mesh(new THREE.BoxGeometry(model.get('width'), height, depth), material);
+      let box = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
 
       box.userData['model'] = model;
       return box;

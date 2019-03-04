@@ -24,15 +24,13 @@ export default VRRendering.extend(Evented, {
 
   sender: service(), // Sends JSON update messages to backend
   session: service(), // Session used to retrieve username
+  spectating: service(), // Allows to activate and deactivate spectating mode
   store: service(),
   time: service(), // Keeps track of elapsed time between frames etc.
   user: service(), // Keeps track of key properties about user (e.g. connection state)
   webSocket: service(), // Allows communication with backend extension
   
-  lastPositions: null, // Last positions of camera and controllers
   running: null, // Tells if main loop is executing
-  spectatedUser: null, // Tells which userID (if any) is being spectated
-  startPosition: null, // Position before this user starts spectating
 
   /**
    * Main loop contains all methods which need to be called
@@ -49,7 +47,7 @@ export default VRRendering.extend(Evented, {
     let state = this.get('user.state');
 
     if(userID && state === 'spectating') {
-      this.spectateUser(); // Follow view of spectated user
+      this.get('spectating').update(); // Follow view of spectated user
     }
 
     // Handle own controller updates and ray intersections
@@ -98,80 +96,6 @@ export default VRRendering.extend(Evented, {
         user.get('namePlane').updateMatrix();
       }
     });
-  },
-
-  /**
-   * Used in spectating mode to set user's camera position to the spectated user's position
-   */
-  spectateUser(){
-    let spectatedUser = this.get('store').peekRecord('vr-user', this.get('spectatedUser'));
-
-    if (!spectatedUser){
-      this.deactivateSpectating();
-      return;
-    }
-
-    let position = spectatedUser.get('camera.position');
-
-    const cameraOffset = new THREE.Vector3();
-    
-    cameraOffset.copy(this.get('camera.position'));
-    this.get('user.position').subVectors(new THREE.Vector3(position.x, position.y, position.z), cameraOffset); 
-  },
-
-  /**
-   * Switches our user into spectator mode
-   * @param {number} userID The id of the user to be spectated
-   */
-  activateSpectating(userID){
-    if (!userID){
-      return;
-    }
-
-    if(this.get('user.state') === 'spectating'){
-      this.deactivateSpectating();
-    }
-
-    let spectatedUser = this.get('store').peekRecord('vr-user', userID);
-
-    if(!spectatedUser){
-      return;
-    }
-    this.set('startPosition', this.get('user.position').clone());
-    this.set('spectatedUser', userID);
-
-    // Other user's hmd should be invisible
-    spectatedUser.set('camera.model.visible', false);
-    spectatedUser.set('namePlane.visible', false);
-    this.set('user.state', 'spectating');
-    this.get('sender').sendSpectatingUpdate(this.get('user.userID'), this.get('user.state'), this.get('spectatedUser'));
-  },
-
-  /**
-   * Deactives spectator mode for our user
-   */
-  deactivateSpectating(){
-    if (!this.get('spectatedUser')){
-      return;
-    }
-
-    let spectatedUser = this.get('store').peekRecord('vr-user', this.get('spectatedUser'));
-
-    if(!this.spectatedUser)
-      return;
-    
-    spectatedUser.set('camera.model.visible', true);
-    spectatedUser.set('namePlane.visible', true);
-    this.set('user.state', 'connected');
-    this.get('connectMenu').setState('connected');
-    this.set('spectatedUser', null);
-
-    this.get('spectateMenu').updateText('spectating_user', 'Spectating off');
-
-    let position = this.get('startPosition');
-    this.get('user.position').fromArray(position.toArray());
-
-    this.get('sender').sendSpectatingUpdate(this.get('user.userID'), this.get('user.state') /* , null */);
   },
 
   /**
@@ -340,7 +264,7 @@ export default VRRendering.extend(Evented, {
       else
         this.get('optionsMenu').open(null, this);
     } else {
-      this.deactivateSpectating();
+      this.get('spectating').deactivate();
       this.get('spectateMenu').back(this);
     }
   },
@@ -679,7 +603,7 @@ export default VRRendering.extend(Evented, {
 
     //do not spectate a disconnected user
     if (this.get('user.state') === 'spectating' && this.get('spectatedUser') === id) {
-      this.deactivateSpectating();
+      this.get('spectating').deactivate();
     }
 
     // Removes user and their models.
@@ -857,7 +781,7 @@ export default VRRendering.extend(Evented, {
       user.set('user.state', 'spectating');
       user.setVisible(false);
       if(this.get('user.state') === 'spectating' && this.get('spectatedUser') === userID) {
-        this.deactivateSpectating();
+        this.get('spectating').deactivate();
       } else {
         MessageBox.enqueueMessage.call(this, { title: user.get('name'), text: 'is now spectating'}, 2000);
       }
@@ -1166,11 +1090,11 @@ export default VRRendering.extend(Evented, {
     this.disconnect();
     this.set('user.userID', null);
     this.set('user.state', null);
-    this.set('lastPositions', null);
     this.set('user.controllersConnected', null);
     this.set('running', null);
-    this.set('spectatedUser', null);
-    this.set('startPosition', null);
+    this.set('spectating.lastPositions', null);
+    this.set('spectating.spectatedUser', null);
+    this.set('spectating.startPosition', null);
 
     // Exit presentation on HMD
     if (navigator.getVRDisplays) {

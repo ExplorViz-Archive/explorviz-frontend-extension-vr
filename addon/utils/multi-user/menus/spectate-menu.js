@@ -5,6 +5,7 @@ import { inject as service } from "@ember/service";
 export default BaseMenu.extend({
 
   store: service(),
+  spectating: service(), 
 
   /**
    * Creates and opens the Connect Menu.
@@ -37,21 +38,21 @@ export default BaseMenu.extend({
             if (users.length < 1)
               return;
 
-            if (!that.get('spectatedUser')) {
-              that.activateSpectating(users[0].get('id'));
+            if (!this.get('spectating.spectatedUser')) {
+              this.get('spectating').activate(users[0].get('id'));
               this.get('menu').updateText('spectating_user', users[0].get('name'));
               return;
             }
 
-            let spectatedUser = users.find( (user) => {return user.get('id') === that.get('spectatedUser')});
+            let spectatedUser = users.find( (user) => {return user.get('id') === this.get('spectating.spectatedUser')});
             let index = users.indexOf(spectatedUser);
 
             if (spectatedUser) {
               if (index === users.length - 1) {
-                that.deactivateSpectating();
+                this.get('spectating').deactivate();
                 this.get('menu').updateText('spectating_user', 'Spectating off');
               } else {
-                that.activateSpectating(users[index + 1].get('id'));
+                this.get('spectating').activate(users[index + 1].get('id'));
                 this.get('menu').updateText('spectating_user', users[index + 1].get('name'));
               }
             }
@@ -59,21 +60,21 @@ export default BaseMenu.extend({
             if (users.length < 1)
               return;
 
-            if (!that.get('spectatedUser')) {
-              that.activateSpectating(users[users.length - 1]);
+            if (!that.get('spectating.spectatedUser')) {
+              this.get('spectating').activate(users[users.length - 1]);
               this.get('menu').updateText('spectating_user', users[users.length - 1]).get('name');
               return;
             }
 
-            let spectatedUser = users.find( (user) => {return user.get('id') === that.get('spectatedUser')});
+            let spectatedUser = users.find( (user) => {return user.get('id') === this.get('spectating.spectatedUser')});
             let index = users.indexOf(spectatedUser);
 
             if (index !== -1) {
               if (index === 0) {
-                that.deactivateSpectating();
+                this.get('spectating').deactivate();
                 this.get('menu').updateText('spectating_user', 'Spectating off');
               } else {
-                that.activateSpectating(users[index - 1].get('id'));
+                this.get('spectating').activate(users[index - 1].get('id'));
                 this.get('menu').updateText('spectating_user', users[index - 1].get('name'));
               }
             }
@@ -94,9 +95,9 @@ export default BaseMenu.extend({
   /**
    * Closes and removes the Spectate Menu.
    */
-  close(that) {
+  close() {
     this._super(...arguments);
-    that.deactivateSpectating();
+    this.get('spectating').deactivate();
   },
 
   /**
