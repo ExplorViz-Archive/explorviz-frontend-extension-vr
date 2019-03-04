@@ -7,7 +7,7 @@ import HoverHandlerLandscape from 'explorviz-frontend/utils/landscape-rendering/
 import AlertifyHandler from 'explorviz-frontend/mixins/alertify-handler';
 import Selector from './selector';
 import THREE from "three";
-import Menus, { HintMenu } from '../multi-user/menus';
+import Menus from '../multi-user/menus';
 import { getOwner } from '@ember/application';
 
 
@@ -16,6 +16,9 @@ import { getOwner } from '@ember/application';
  *  mouse and controller events.
  */
 export default EmberObject.extend(Evented, AlertifyHandler, {
+
+  //TODO: delete later
+  hintMenu: null,
 
   scene: null,
   canvas: null,
@@ -626,7 +629,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
           this.trigger('showApplication', emberModel, intersectedViewObj.point);
         } else if (emberModel.get('components').get('length') === 0) {
           const message = `No details available for`;
-          HintMenu.showHint.call(this, message, 3, emberModel.get('name'));
+          this.get('hintMenu').showHint(message, 3, emberModel.get('name'));
           return;
         }
 
@@ -839,7 +842,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
 
         if (this.get('boundApps').has(appID)) {
           const message = 'Application is already being moved.';
-          HintMenu.showHint.call(this, message, 3);
+          this.get('hintMenu').showHint(message, 3);
           return;
         }
 

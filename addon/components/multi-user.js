@@ -110,13 +110,17 @@ export default VRRendering.extend(Evented, {
 
     this.set('currentUser.threeGroup', this.get('user'));
 
+
     this.set('advancedMenu', AdvancedMenu.create());
     this.set('connectMenu', ConnectMenu.create(getOwner(this).ownerInjection()));
     this.set('cameraHeightMenu', CameraHeightMenu.create(getOwner(this).ownerInjection()));
     this.set('landscapePositionMenu', LandscapePositionMenu.create(getOwner(this).ownerInjection()));
     this.set('spectateMenu', SpectateMenu.create(getOwner(this).ownerInjection()));
     this.set('userListMenu', UserListMenu.create(getOwner(this).ownerInjection()));
+    this.set('hintMenu', HintMenu.create(getOwner(this).ownerInjection()));
     this.set('optionsMenu', OptionsMenu.create());
+    //TODO: delete later
+    this.set('interaction.hintMenu', this.get('hintMenu'));
 
     let host, port;
     $.getJSON('config/config_multiuser.json').then(json => {
@@ -278,7 +282,7 @@ export default VRRendering.extend(Evented, {
     if(this.get('currentUser.state') === 'connected' || this.get('currentUser.state') === 'spectating')
       this.get('userListMenu').open();
     else
-      HintMenu.showHint.call(this, 'Cannot open the user list when offline!', 3);
+      this.get('hintMenu').showHint('Cannot open the user list when offline!', 3);
   },
 
   /**
@@ -409,7 +413,7 @@ export default VRRendering.extend(Evented, {
 
     socket.on('connection_closed', () => {
       if (this.get('currentUser.state') === 'connecting') {
-        HintMenu.showHint.call(this, 'Could not establish connection', 3);
+        this.get('hintMenu').showHint('Could not establish connection', 3);
       }
       this.disconnect();
     });
