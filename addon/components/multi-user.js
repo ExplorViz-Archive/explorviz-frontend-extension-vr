@@ -108,6 +108,8 @@ export default VRRendering.extend(Evented, {
     this.initInteractions();
     this.initListeners();
 
+    this.set('currentUser.threeGroup', this.get('user'));
+
     this.set('advancedMenu', AdvancedMenu.create());
     this.set('connectMenu', ConnectMenu.create(getOwner(this).ownerInjection()));
     this.set('cameraHeightMenu', CameraHeightMenu.create(getOwner(this).ownerInjection()));

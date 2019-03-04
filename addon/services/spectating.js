@@ -18,7 +18,7 @@ export default Service.extend({
     let spectatedUser = this.get('store').peekRecord('vr-user', this.get('spectatedUser'));
 
     if (!spectatedUser) {
-      this.deactivateSpectating();
+      this.deactivate();
       return;
     }
 
@@ -26,7 +26,7 @@ export default Service.extend({
 
     const cameraOffset = new THREE.Vector3();
 
-    cameraOffset.copy(this.get('camera.position'));
+    cameraOffset.copy(this.get('currentUser.camera.position'));
     this.get('currentUser.position').subVectors(new THREE.Vector3(position.x, position.y, position.z), cameraOffset);
   },
 
@@ -34,7 +34,7 @@ export default Service.extend({
  * Switches our user into spectator mode
  * @param {number} userID The id of the user to be spectated
  */
-  activateg(userID) {
+  activate(userID) {
     if (!userID) {
       return;
     }

@@ -193,6 +193,7 @@ export default Component.extend(Evented, THREEPerformance, {
     this.set('scene.background', new THREE.Color(0xeaf4fc));
 
     this.set('camera', new THREE.PerspectiveCamera(70, width / height, 0.01, 50));
+    this.get('camera').name = 'camera';
 
     // Create and configure renderer
     this.set('webglrenderer', new THREE.WebGLRenderer({
@@ -213,12 +214,12 @@ export default Component.extend(Evented, THREEPerformance, {
     // Create left controller
     this.set('controller1', new Controller(0));
     this.set('controller1.standingMatrix', this.get('webglrenderer').vr.getStandingMatrix())
-    this.get('controller1').name = 'controller';
+    this.get('controller1').name = 'controller1';
 
     // Create right controller
     this.set('controller2', new Controller(1));
     this.set('controller2.standingMatrix', this.get('webglrenderer').vr.getStandingMatrix())
-    this.get('controller2').name = 'controller';
+    this.get('controller2').name = 'controller2';
 
     this.set('user', new THREE.Group());
     this.get('scene').add(this.get('user'));

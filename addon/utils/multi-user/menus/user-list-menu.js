@@ -20,9 +20,9 @@ export function open() {
   let playingUsers = [];
   let spectatingUsers = [];
   users.forEach( (user) => {
-    if(user.state === 'connected') {
+    if(user.get('state') === 'connected') {
       playingUsers.push(user);
-    } else if(user.state === 'spectating') {
+    } else if(user.get('state') === 'spectating') {
       spectatingUsers.push(user);
     }
   });
@@ -32,9 +32,9 @@ export function open() {
   let yOffset = 20;
   let yPos = 50 + yOffset;
 
-  if(this.get('user.state') === 'connected') {
-    menu.addText(this.get('session.data.authenticated.username') || "ID: " + this.get('user.userID'), 'connected', 12,
-      { x: 50, y: yPos}, Helper.rgbToHex(this.get('user.color')), 'left', false);
+  if(this.get('currentUser.state') === 'connected') {
+    menu.addText(this.get('session.data.authenticated.username') || "ID: " + this.get('currentUser.userID'), 'connected', 12,
+      { x: 50, y: yPos}, Helper.rgbToHex(this.get('currentUser.color')), 'left', false);
     yPos += yOffset;
   }
 
@@ -50,9 +50,9 @@ export function open() {
 
   yPos += yOffset;
 
-  if(this.get('user.state') === 'spectating') {
-    menu.addText(this.get('session.data.authenticated.username') || "ID: " + this.userID, 'connected', 12,
-      { x: 50, y: yPos}, Helper.rgbToHex(this.get('user.color')), 'left', false);
+  if(this.get('currentUser.state') === 'spectating') {
+    menu.addText(this.get('session.data.authenticated.username') || "ID: " + this.get('currentUser.userID'), 'connected', 12,
+      { x: 50, y: yPos}, Helper.rgbToHex(this.get('currentUser.color')), 'left', false);
     yPos += yOffset;
   }
   
