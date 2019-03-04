@@ -90,7 +90,7 @@ export default VRRendering.extend(Evented, {
     this.get('camera').getWorldPosition(pos);
 
     users.forEach((user) => {
-      if (user.get('currentUser.state') === 'connected') {
+      if (user.get('state') === 'connected') {
         user.get('namePlane.position').setFromMatrixPosition(user.get('camera.model').getObjectByName('dummyPlaneName').matrixWorld);
         user.get('namePlane').lookAt(pos);
         user.get('namePlane').updateMatrix();

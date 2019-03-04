@@ -442,7 +442,7 @@ export default Component.extend(Evented, THREEPerformance, {
         controller.add(Models.getViveControllerModel());
       }
     }
-  }).drop(),
+  }),
 
   /*
    * This method is used to listen for events triggered Controller.
