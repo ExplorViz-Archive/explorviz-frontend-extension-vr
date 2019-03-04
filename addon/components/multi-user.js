@@ -27,7 +27,7 @@ export default VRRendering.extend(Evented, {
   spectating: service(), // Allows to activate and deactivate spectating mode
   store: service(),
   time: service(), // Keeps track of elapsed time between frames etc.
-  user: service(), // Keeps track of key properties about user (e.g. connection state)
+  currentUser: service('user'), // Keeps track of key properties about user (e.g. connection state)
   webSocket: service(), // Allows communication with backend extension
   
   running: null, // Tells if main loop is executing
@@ -43,8 +43,8 @@ export default VRRendering.extend(Evented, {
 
     this.get('time').update();
 
-    let userID = this.get('user.userID');
-    let state = this.get('user.state');
+    let userID = this.get('currentUser.userID');
+    let state = this.get('currentUser.state');
 
     if(userID && state === 'spectating') {
       this.get('spectating').update(); // Follow view of spectated user
@@ -54,14 +54,14 @@ export default VRRendering.extend(Evented, {
     this.updateControllers();
 
     // Move name tags to right position and rotate them toward our camera
-    if(userID && state === 'connected' || state === 'spectating')
+    if(userID && (state === 'connected' || state === 'spectating'))
       this.updateUserNameTags();
 
     // Render scene
     this.renderScene();
 
     // Add controller / camera updates (position changes, controller disconnect etc.)
-    if(userID && state === 'connected' || state === 'spectating') {
+    if(userID && (state === 'connected' || state === 'spectating')) {
       this.update();
     } 
 
@@ -90,7 +90,7 @@ export default VRRendering.extend(Evented, {
     this.get('camera').getWorldPosition(pos);
 
     users.forEach((user) => {
-      if (user.get('user.state') === 'connected') {
+      if (user.get('currentUser.state') === 'connected') {
         user.get('namePlane.position').setFromMatrixPosition(user.get('camera.model').getObjectByName('dummyPlaneName').matrixWorld);
         user.get('namePlane').lookAt(pos);
         user.get('namePlane').updateMatrix();
@@ -135,7 +135,7 @@ export default VRRendering.extend(Evented, {
   },
 
   connect() {
-    this.set('user.state', 'connecting');
+    this.set('currentUser.state', 'connecting');
     this.get('connectMenu').setState('connecting');
     this.get('webSocket').initSocket();
   },
@@ -146,8 +146,6 @@ export default VRRendering.extend(Evented, {
   initVariables() {
     this.set('running', false);
     this.set('lastPositions', { camera: null, controller1: null, controller2: null });
-    this.set('user.controllersConnected', { controller1: false, controller2: false });
-    this.set('user.state', 'offline');
   },
 
   initInteractions() {
@@ -157,7 +155,7 @@ export default VRRendering.extend(Evented, {
 
     let old_checkIntersectionPrimaryController = this.get('interaction').checkIntersectionPrimaryController;
     this.get('interaction').checkIntersectionPrimaryController = function() {
-      if(self.get('user.state') !== 'spectating')
+      if(self.get('currentUser.state') !== 'spectating')
         old_checkIntersectionPrimaryController.apply(this, [this.get('raycastObjectsLandscape').concat(Menus.getVisibleMenuMeshesArray())]);
       else {
         old_checkIntersectionPrimaryController.apply(this, [Menus.getVisibleMenuMeshesArray()]);
@@ -166,7 +164,7 @@ export default VRRendering.extend(Evented, {
     
     let old_checkIntersectionSecondaryController = this.get('interaction').checkIntersectionSecondaryController;
     this.get('interaction').checkIntersectionSecondaryController = function() {
-      if(self.get('user.state') !== 'spectating')
+      if(self.get('currentUser.state') !== 'spectating')
         old_checkIntersectionSecondaryController.apply(this, [this.excludeLandscape().concat(Menus.getVisibleMenuMeshesArray())]);
       else
         self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
@@ -174,7 +172,7 @@ export default VRRendering.extend(Evented, {
 
     let old_onTriggerDownPrimaryController = this.get('interaction').onTriggerDownPrimaryController;
     this.get('interaction').onTriggerDownPrimaryController = function(event) {
-      if(self.get('user.state') !== 'spectating')
+      if(self.get('currentUser.state') !== 'spectating')
         old_onTriggerDownPrimaryController.apply(this, [event, this.get('raycastObjectsLandscape').concat(Menus.getVisibleMenuMeshesArray())]);
       else
         old_onTriggerDownPrimaryController.apply(this, [event, Menus.getVisibleMenuMeshesArray()]);
@@ -182,7 +180,7 @@ export default VRRendering.extend(Evented, {
 
     let old_onTriggerDownSecondaryController = this.get('interaction').onTriggerDownSecondaryController;
     this.get('interaction').onTriggerDownSecondaryController = function(event) {
-      if(self.get('user.state') !== 'spectating')
+      if(self.get('currentUser.state') !== 'spectating')
       old_onTriggerDownSecondaryController.apply(this, [event, this.excludeLandscape().concat(Menus.getVisibleMenuMeshesArray())]);
       else
         self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
@@ -202,7 +200,7 @@ export default VRRendering.extend(Evented, {
 
     let old_onGripDownPrimaryController = this.get('interaction').onGripDownPrimaryController;
     this.get('interaction').onGripDownPrimaryController = function(event) {
-      if(self.get('user.state') !== 'spectating')
+      if(self.get('currentUser.state') !== 'spectating')
         old_onGripDownPrimaryController.apply(this, [event]);
     };
 
@@ -238,7 +236,7 @@ export default VRRendering.extend(Evented, {
       this.get('sender').sendLandscapeUpdate(deltaPosition, this.get('vrEnvironment'), this.get('environmentOffset'));
     });
     this.get('interaction').on('entityHighlighted', (isHighlighted, appID, entityID, color) => {
-      this.get('sender').sendHighlightingUpdate(this.get('user.userID'), isHighlighted, appID, entityID, color);
+      this.get('sender').sendHighlightingUpdate(this.get('currentUser.userID'), isHighlighted, appID, entityID, color);
     });
   },
 
@@ -248,7 +246,7 @@ export default VRRendering.extend(Evented, {
   onMenuDownSecondaryController() {
     // Open options menu if no other menu is open
     // Else closes current menu or goes back one menu if possible.
-    if (this.get('user.state') !== 'spectating') {
+    if (this.get('currentUser.state') !== 'spectating') {
       if (this.get('optionsMenu').isOpen())
         this.get('optionsMenu').close();
       else if (this.get('cameraHeightMenu').isOpen())
@@ -274,7 +272,7 @@ export default VRRendering.extend(Evented, {
    * Opens user list menu if online.
    */
   onGripDownSecondaryController() {
-    if(this.get('user.state') === 'connected' || this.get('user.state') === 'spectating')
+    if(this.get('currentUser.state') === 'connected' || this.get('currentUser.state') === 'spectating')
       UserListMenu.open.call(this);
     else
       HintMenu.showHint.call(this, 'Cannot open the user list when offline!', 3);
@@ -382,7 +380,7 @@ export default VRRendering.extend(Evented, {
    */
   disconnect() {
     // Set own state to offline
-    this.set('user.state', 'offline');
+    this.set('currentUser.state', 'offline');
     this.get('connectMenu').setState('offline');
     
     // Remove other users and their corresponding models and name tags
@@ -401,15 +399,13 @@ export default VRRendering.extend(Evented, {
 
     // Close socket
     this.get('webSocket').closeSocket();
-
-    this.set('user.controllersConnected', null);
   },
 
   initListeners() {
     const socket = this.get('webSocket');
 
     socket.on('connection_closed', () => {
-      if (this.get('user.state') === 'connecting') {
+      if (this.get('currentUser.state') === 'connecting') {
         HintMenu.showHint.call(this, 'Could not establish connection', 3);
       }
       this.disconnect();
@@ -464,8 +460,8 @@ export default VRRendering.extend(Evented, {
   onSelfConnecting(data) {
     // If name is not found, use id as default name
     let name = this.get('session.data.authenticated.username') || 'ID: ' + data.id;
-    this.set('user.userID', data.id);
-    this.set('user.color', data.color);
+    this.set('currentUser.userID', data.id);
+    this.set('currentUser.color', data.color);
     this.get('interaction').set('highlightingColor', Helper.colorToString(data.color));
 
     let JSONObj = {
@@ -506,9 +502,9 @@ export default VRRendering.extend(Evented, {
       // Set name for user on top of his hmd 
       this.addUsername(userData.id);
     }
-    this.set('user.state', 'connected');
+    this.set('currentUser.state', 'connected');
     this.get('connectMenu').setState('connected');
-    this.set('user.controllersConnected', { controller1: false, controller2: false });
+    this.set('currentUser.controllersConnected', { controller1: false, controller2: false });
 
     // Remove any open apps which may still exist from offline mode
     this.removeOpenApps();
@@ -601,15 +597,14 @@ export default VRRendering.extend(Evented, {
   onUserDisconnect(data) {
     let { id } = data;
 
-    //do not spectate a disconnected user
-    if (this.get('user.state') === 'spectating' && this.get('spectatedUser') === id) {
+    // Do not spectate a disconnected user
+    if (this.get('currentUser.state') === 'spectating' && this.get('spectatedUser') === id) {
       this.get('spectating').deactivate();
     }
-
     // Removes user and their models.
     // Informs our user about their disconnect.
     let user = this.get('store').peekRecord('vr-user', id)
-    if(user) {
+    if (user) {
 
       //unhighlight possible objects of disconnected user
       this.onHighlightingUpdate(id, false, user.highlightedEntity.appID, user.highlightedEntity.entityID, user.highlightedEntity.originalColor);
@@ -627,7 +622,7 @@ export default VRRendering.extend(Evented, {
       user.removeNamePlane();
 
       // show disconnect notification
-      MessageBox.enqueueMessage.call(this, {title: 'User disconnected', text: user.get('name'), color: Helper.rgbToHex(user.get('color'))}, 3000);
+      MessageBox.enqueueMessage.call(this, { title: 'User disconnected', text: user.get('name'), color: Helper.rgbToHex(user.get('color')) }, 3000);
       this.get('store').unloadRecord(user);
     }
   },
@@ -778,15 +773,15 @@ export default VRRendering.extend(Evented, {
   onSpectatingUpdate(userID, isSpectating) {
     let user = this.get('store').peekRecord('vr-user', userID);
     if (isSpectating) {
-      user.set('user.state', 'spectating');
+      user.set('currentUser.state', 'spectating');
       user.setVisible(false);
-      if(this.get('user.state') === 'spectating' && this.get('spectatedUser') === userID) {
+      if(this.get('currentUser.state') === 'spectating' && this.get('spectatedUser') === userID) {
         this.get('spectating').deactivate();
       } else {
         MessageBox.enqueueMessage.call(this, { title: user.get('name'), text: 'is now spectating'}, 2000);
       }
     } else {
-      user.set('user.state', 'connected');
+      user.set('currentUser.state', 'connected');
       user.setVisible(true);
       MessageBox.enqueueMessage.call(this, { title: user.get('name'), text: 'is no longer spectating'}, 2000);
     }
@@ -1038,28 +1033,28 @@ export default VRRendering.extend(Evented, {
     let hasChanged = false;
 
     //handle that controller 1 has disconnected
-    if(this.get('controllersConnected.controller1') && !this.get('controller1').isConnected()) {
+    if(this.get('currentUser.controllersConnected.controller1') && !this.get('controller1').isConnected()) {
       disconnect.push('controller1');
-      this.set('controllersConnected.controller1', false);
+      this.set('currentUser.controllersConnected.controller1', false);
       hasChanged = true;
     }
     //handle that controller 1 has connected
-    else if(!this.get('controllersConnected.controller1') && this.get('controller1').isConnected()) {
+    else if(!this.get('currentUser.controllersConnected.controller1') && this.get('controller1').isConnected()) {
       connect.controller1 = this.get('controller1').getGamepad().id;
-      this.set('controllersConnected.controller1', true);
+      this.set('currentUser.controllersConnected.controller1', true);
       hasChanged = true;
     }
 
     //handle that controller 2 has disconnected
-    if(this.get('controllersConnected.controller2') && !this.get('controller2').isConnected()) {
+    if(this.get('currentUser.controllersConnected.controller2') && !this.get('controller2').isConnected()) {
       disconnect.push('controller2');
-      this.set('controllersConnected.controller2', false);
+      this.set('currentUser.controllersConnected.controller2', false);
       hasChanged = true;
     }
     //handle that controller 2 has connected
-    else if(!this.get('controllersConnected.controller2') && this.get('controller2').isConnected()) {
+    else if(!this.get('currentUser.controllersConnected.controller2') && this.get('controller2').isConnected()) {
       connect.controller2 = this.get('controller2').getGamepad().id;
-      this.set('controllersConnected.controller2', true);
+      this.set('currentUser.controllersConnected.controller2', true);
       hasChanged = true;
     }
 
@@ -1088,9 +1083,9 @@ export default VRRendering.extend(Evented, {
 
     this.set('running', false);
     this.disconnect();
-    this.set('user.userID', null);
-    this.set('user.state', null);
-    this.set('user.controllersConnected', null);
+    this.set('currentUser.userID', null);
+    this.set('currentUser.state', null);
+    this.set('currentUser.controllersConnected', null);
     this.set('running', null);
     this.set('spectating.lastPositions', null);
     this.set('spectating.spectatedUser', null);

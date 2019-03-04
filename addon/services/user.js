@@ -7,4 +7,10 @@ export default Service.extend({
   color: null,
   controllersConnected: null, // Tells which controller(s) is/are connected
 
+  init() {
+    this._super(...arguments)
+    this.set('controllersConnected', { controller1: false, controller2: false });
+    this.set('state', 'offline');
+  }
+  
 });
