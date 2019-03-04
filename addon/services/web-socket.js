@@ -72,7 +72,7 @@ export default Service.extend(Evented, {
    */
   sendUpdates() {
     // there are updates to send
-    if(this.get('_updateQueue').length > 0) {
+    if(this.get('_updateQueue') && this.get('_updateQueue').length > 0) {
       this.send(this.get('_updateQueue'));
       this.set('_updateQueue', []);
     }

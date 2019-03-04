@@ -21,8 +21,8 @@ export default BaseMenu.extend({
   
     this.get('menu').interact = (action, position) => {
       let item = this.get('menu').getItem(position);
-      // TODO: Check why this.get('user.state') won't work
-      let state = that.get('user.state');
+      
+      let state = this.get('user.state');
       if(item) {
         if(action === 'rightIntersect' || action === 'rightTriggerDown') {
           this.get('menu').setHover(item);
@@ -46,7 +46,7 @@ export default BaseMenu.extend({
     let controller = that.get('userIsLefty') ? 'controller2' : 'controller1'; 
     this.get('menu').addToController(that.get(controller));
   
-    this.setState(that.get('user.state'));
+    this.setState(this.get('user.state'));
   },
 
   /**
