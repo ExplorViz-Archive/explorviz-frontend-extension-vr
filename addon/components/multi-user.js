@@ -115,6 +115,7 @@ export default VRRendering.extend(Evented, {
     this.set('cameraHeightMenu', CameraHeightMenu.create(getOwner(this).ownerInjection()));
     this.set('landscapePositionMenu', LandscapePositionMenu.create(getOwner(this).ownerInjection()));
     this.set('spectateMenu', SpectateMenu.create(getOwner(this).ownerInjection()));
+    this.set('userListMenu', UserListMenu.create(getOwner(this).ownerInjection()));
     this.set('optionsMenu', OptionsMenu.create());
 
     let host, port;
@@ -275,7 +276,7 @@ export default VRRendering.extend(Evented, {
    */
   onGripDownSecondaryController() {
     if(this.get('currentUser.state') === 'connected' || this.get('currentUser.state') === 'spectating')
-      UserListMenu.open.call(this);
+      this.get('userListMenu').open();
     else
       HintMenu.showHint.call(this, 'Cannot open the user list when offline!', 3);
   },
@@ -285,7 +286,7 @@ export default VRRendering.extend(Evented, {
    * Closes user list menu
    */
   onGripUpSecondaryController() {
-    UserListMenu.close.call(this);
+    this.get('userListMenu').close();
   },
 
   /**
