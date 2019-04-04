@@ -6,8 +6,8 @@ import $ from 'jquery';
 import Models from '../utils/models';
 import Helper from '../utils/multi-user/helper';
 import VRRendering from './vr-rendering';
-import Menus, { UserListMenu, OptionsMenu, SpectateMenu, LandscapePositionMenu,
-  CameraHeightMenu, MessageBox, ConnectMenu, HintMenu, AdvancedMenu }  from '../utils/multi-user/menus';
+import { UserListMenu, OptionsMenu, SpectateMenu, LandscapePositionMenu,
+  CameraHeightMenu, MessageBox, ConnectMenu, HintMenu, AdvancedMenu }  from '../services/menus';
 
 /**
  * This component extends the functionalities of vr-rendering so that multiple users
@@ -22,6 +22,7 @@ export default VRRendering.extend(Evented, {
 
   tagName: '',
 
+  menus: service(), // Allows to add, get & remove menus
   sender: service(), // Sends JSON update messages to backend
   session: service(), // Session used to retrieve username
   spectating: service(), // Allows to activate and deactivate spectating mode
@@ -31,6 +32,7 @@ export default VRRendering.extend(Evented, {
   webSocket: service(), // Allows communication with backend extension
   
   running: null, // Tells if main loop is executing
+  lastPositions: null, // Last positions of camera and controllers
 
   /**
    * Main loop contains all methods which need to be called
@@ -165,16 +167,16 @@ export default VRRendering.extend(Evented, {
     let old_checkIntersectionPrimaryController = this.get('interaction').checkIntersectionPrimaryController;
     this.get('interaction').checkIntersectionPrimaryController = function() {
       if(self.get('currentUser.state') !== 'spectating')
-        old_checkIntersectionPrimaryController.apply(this, [this.get('raycastObjectsLandscape').concat(Menus.getVisibleMenuMeshesArray())]);
+        old_checkIntersectionPrimaryController.apply(this, [this.get('raycastObjectsLandscape').concat(this.get('menus').getVisibleMenuMeshesArray())]);
       else {
-        old_checkIntersectionPrimaryController.apply(this, [Menus.getVisibleMenuMeshesArray()]);
+        old_checkIntersectionPrimaryController.apply(this, [this.get('menus').getVisibleMenuMeshesArray()]);
       }
     };
     
     let old_checkIntersectionSecondaryController = this.get('interaction').checkIntersectionSecondaryController;
     this.get('interaction').checkIntersectionSecondaryController = function() {
       if(self.get('currentUser.state') !== 'spectating')
-        old_checkIntersectionSecondaryController.apply(this, [this.excludeLandscape().concat(Menus.getVisibleMenuMeshesArray())]);
+        old_checkIntersectionSecondaryController.apply(this, [this.excludeLandscape().concat(this.get('menus').getVisibleMenuMeshesArray())]);
       else
         self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
     };
@@ -182,15 +184,15 @@ export default VRRendering.extend(Evented, {
     let old_onTriggerDownPrimaryController = this.get('interaction').onTriggerDownPrimaryController;
     this.get('interaction').onTriggerDownPrimaryController = function(event) {
       if(self.get('currentUser.state') !== 'spectating')
-        old_onTriggerDownPrimaryController.apply(this, [event, this.get('raycastObjectsLandscape').concat(Menus.getVisibleMenuMeshesArray())]);
+        old_onTriggerDownPrimaryController.apply(this, [event, this.get('raycastObjectsLandscape').concat(this.get('menus').getVisibleMenuMeshesArray())]);
       else
-        old_onTriggerDownPrimaryController.apply(this, [event, Menus.getVisibleMenuMeshesArray()]);
+        old_onTriggerDownPrimaryController.apply(this, [event, this.get('menus').getVisibleMenuMeshesArray()]);
     };
 
     let old_onTriggerDownSecondaryController = this.get('interaction').onTriggerDownSecondaryController;
     this.get('interaction').onTriggerDownSecondaryController = function(event) {
       if(self.get('currentUser.state') !== 'spectating')
-      old_onTriggerDownSecondaryController.apply(this, [event, this.excludeLandscape().concat(Menus.getVisibleMenuMeshesArray())]);
+      old_onTriggerDownSecondaryController.apply(this, [event, this.excludeLandscape().concat(this.get('menus').getVisibleMenuMeshesArray())]);
       else
         self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
     };
@@ -1019,7 +1021,7 @@ export default VRRendering.extend(Evented, {
   },
 
   switchHand() {
-    Menus.removeAll();
+    this.get('menus').removeAll();
     let oldMenuController = this.get('userIsLefty') ? this.get('controller2') : this.get('controller1');
     let oldOtherController = this.get('userIsLefty') ? this.get('controller1') : this.get('controller2');
     if (oldMenuController.getObjectByName('textBox')) {
@@ -1096,7 +1098,7 @@ export default VRRendering.extend(Evented, {
     this.set('currentUser.state', null);
     this.set('currentUser.controllersConnected', null);
     this.set('running', null);
-    this.set('spectating.lastPositions', null);
+    this.set('lastPositions', null);
     this.set('spectating.spectatedUser', null);
     this.set('spectating.startPosition', null);
 

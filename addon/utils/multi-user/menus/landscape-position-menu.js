@@ -1,5 +1,5 @@
 import { inject as service } from '@ember/service';
-
+import { getOwner } from '@ember/application';
 import BaseMenu from './menu-base';
 import Menu from '../menu';
 
@@ -12,7 +12,7 @@ export default BaseMenu.extend({
   open(lastMenu, that) {
     this._super(lastMenu, that);
 
-    this.set('menu', Menu.create({ name: 'changeLandscapePositionMenu' }));
+    this.set('menu', Menu.create(getOwner(that).ownerInjection(), { name: 'changeLandscapePositionMenu' }));
 
     this.get('menu').addTitle('Move Landscape');
   

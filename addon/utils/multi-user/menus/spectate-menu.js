@@ -1,6 +1,7 @@
 import BaseMenu from './menu-base';
 import Menu from '../menu';
 import { inject as service } from "@ember/service";
+import { getOwner } from '@ember/application';
 
 export default BaseMenu.extend({
 
@@ -13,7 +14,7 @@ export default BaseMenu.extend({
   open(lastMenu, that) {
     this._super(lastMenu, that);
 
-    this.set('menu', Menu.create({ name: 'spectateMenu' }));
+    this.set('menu', Menu.create(getOwner(that).ownerInjection(), { name: 'spectateMenu' }));
 
     this.get('menu').addTitle('Spectate');
     this.get('menu').addRectangle({ x: 106, y: 182 }, 304, 60, '#666666');

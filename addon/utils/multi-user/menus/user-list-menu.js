@@ -1,6 +1,7 @@
 import Menu from '../menu';
 import EmberObject from '@ember/object';
 import Helper from '../helper';
+import { getOwner } from '@ember/application';
 import { inject as service } from "@ember/service";
 
 export default EmberObject.extend({
@@ -15,7 +16,7 @@ export default EmberObject.extend({
    */
   open() {
     this.close(); 
-    this.set('menu', Menu.create({
+    this.set('menu', Menu.create(getOwner(this).ownerInjection(), {
       name: 'userListMenu',
       resolution: { width: 256, height: 256 }
     }));

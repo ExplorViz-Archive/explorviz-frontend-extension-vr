@@ -7,8 +7,8 @@ import HoverHandlerLandscape from 'explorviz-frontend/utils/landscape-rendering/
 import AlertifyHandler from 'explorviz-frontend/mixins/alertify-handler';
 import Selector from './selector';
 import THREE from "three";
-import Menus from '../multi-user/menus';
 import { getOwner } from '@ember/application';
+import { inject as service } from '@ember/service';
 
 
 /*
@@ -73,6 +73,8 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
   highlightingColor: "rgb(255,0,0)",
 
   listeners: null, // Maps listener strings to functions, save listeners to be able to remove them later on
+
+  menus: service(),
 
   // Init handlers for interaction with landscape and applications
   initHandlers() {
@@ -269,7 +271,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       }
 
       // Handle menus
-      let menu = Menus.get(intersectedViewObj.object.name);
+      let menu = this.get('menus').getMenuByName(intersectedViewObj.object.name);
       if (menu) {
         let triggerIsPressed = controller.getButtonState('trigger');
         if (triggerIsPressed) {
@@ -437,7 +439,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       }
 
       // Handle menus
-      let menu = Menus.get(intersectedViewObj.object.name);
+      let menu = this.get('menus').getMenuByName(intersectedViewObj.object.name);
       if (menu) {
         menu.interact('rightMenuDown', intersectedViewObj.uv);
         return;
@@ -610,7 +612,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       }
 
       // Handle menus
-      let menu = Menus.get(intersectedViewObj.object.name);
+      let menu = this.get('menus').getMenuByName(intersectedViewObj.object.name);
       if (menu) {
         menu.interact('rightTriggerDown', intersectedViewObj.uv);
         return;
@@ -704,7 +706,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
     if (intersectedViewObj) {
 
       // Handle menus
-      let menu = Menus.get(intersectedViewObj.object.name);
+      let menu = this.get('menus').getMenuByName(intersectedViewObj.object.name);
       if (menu) {
         menu.interact('rightTriggerUp', intersectedViewObj.uv);
         return;
@@ -823,7 +825,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       }
 
       // Handle menus
-      let menu = Menus.get(intersectedViewObj.object.name);
+      let menu = this.get('menus').getMenuByName(intersectedViewObj.object.name);
       if (menu) {
         menu.interact('rightGripDown', intersectedViewObj.uv);
         return;

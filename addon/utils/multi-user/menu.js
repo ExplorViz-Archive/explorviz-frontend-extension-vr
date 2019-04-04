@@ -1,9 +1,12 @@
 import EmberObject from '@ember/object';
 import THREE from 'three';
 import Helper from './helper';
-import Menus from './menus';
+import { inject as service } from '@ember/service';
 
 export default EmberObject.extend({
+
+  menus: service(),
+
   name: null,
   resolution: { width: 512, height: 512 },
   size: { height: 0.3, width: 0.3},
@@ -368,7 +371,7 @@ export default EmberObject.extend({
       this.get('mesh').material.dispose();
       this.set('mesh', null);
     }
-    Menus.remove(this.get('name'));
+    this.get('menus').remove(this.get('name'));
   },
 
   /**
@@ -515,7 +518,7 @@ export default EmberObject.extend({
     // give it the texture
     this.update();
     
-    Menus.add(this);
+    this.get('menus').add(this);
   },
 
   /**

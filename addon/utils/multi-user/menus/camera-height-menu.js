@@ -1,5 +1,5 @@
 import { inject as service } from '@ember/service';
-
+import { getOwner } from '@ember/application';
 import BaseMenu from './menu-base';
 import Menu from '../menu';
 
@@ -12,7 +12,7 @@ export default BaseMenu.extend({
   open(lastMenu, that) {
     this._super(lastMenu, that);
 
-    this.set('menu', Menu.create({ name: 'changeCameraHeightMenu' }));
+    this.set('menu', Menu.create(getOwner(that).ownerInjection(), { name: 'changeCameraHeightMenu' }));
     
     this.get('menu').addTitle('Change Camera');
     this.get('menu').addArrowButton('height_down', {x: 100, y: 182}, {x: 150, y: 242}, 'arrow_down', '#ffc338');

@@ -1,4 +1,5 @@
 import Menu from '../menu';
+import { getOwner } from '@ember/application';
 import EmberObject from '@ember/object';
 import { inject as service } from "@ember/service";
 
@@ -10,7 +11,7 @@ export default EmberObject.extend({
   showHint(hint, blinks, hint2) {
     const self = this;
     this.close(this.get('menu'));
-    this.set('menu', Menu.create({
+    this.set('menu', Menu.create(getOwner(this).ownerInjection(), {
       name: 'hintMenu',
       resolution: { width: 512, height: 128 },
       size: { width: 0.2, height: 0.05 },
