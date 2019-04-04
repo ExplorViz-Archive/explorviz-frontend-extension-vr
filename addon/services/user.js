@@ -6,7 +6,14 @@ export default Service.extend({
   state: null, // Own connection status, state in {'connecting', 'connected', 'spectating'}
   color: null,
   controllersConnected: null, // Tells which controller(s) is/are connected
-  threeGroup: null,
+  threeGroup: null, // Contains camera and controller objects
+
+  init() {
+    this._super(...arguments)
+    this.set('controllersConnected', { controller1: false, controller2: false });
+    this.set('state', 'offline');
+  },
+
   getPosition() {
     return this.get('threeGroup.position');
   },
@@ -19,12 +26,5 @@ export default Service.extend({
   getController2() {
     return this.get('threeGroup').getObjectByName('controller2');
   },
-  
-
-  init() {
-    this._super(...arguments)
-    this.set('controllersConnected', { controller1: false, controller2: false });
-    this.set('state', 'offline');
-  }
   
 });
