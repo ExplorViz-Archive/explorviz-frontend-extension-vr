@@ -17,7 +17,7 @@ import { inject as service } from '@ember/service';
  */
 export default EmberObject.extend(Evented, AlertifyHandler, {
 
-  //TODO: delete later
+  // TODO: delete later
   hintMenu: null,
 
   scene: null,
@@ -38,10 +38,10 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
   colorList: null,
   colorListApp: null,
 
-  // emberModel of the selected entity
+  // EmberModel of the selected entity
   appCommunicationHighlighted: false,
   highlightedAppModel: null,
-  // mesh of the selected entity
+  // Mesh of the selected entity
   selectedEntitysMesh: null,
   selectedEntitysColor: null,
 
@@ -526,7 +526,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
           offset += tempOffset;
         }
 
-        // create texture out of canvas
+        // Create texture out of canvas
         let texture = new THREE.Texture(canvas);
         // Map texture
         let material2 = new THREE.MeshBasicMaterial({ map: texture });
@@ -654,7 +654,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
 
         let appID = intersectedViewObj.object.userData.appID;
 
-        //dont allow altering bound apps
+        // Do not allow altering bound apps
         if (this.get('boundApps').has(appID)) {
           return;
         }
@@ -848,7 +848,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
           return;
         }
 
-        // set bool for application3D binded
+        // Set bool for application3D binded
         this.set('app3DBinded', true);
         this.get('app3DBindedByController')[controller.id] = "true";
 
@@ -867,9 +867,9 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
         // Store object 
         controller.userData.selected = object;
 
-        //send information about app binding to backend
+        // Send information about app binding to backend
         let boundToSecondaryController = controller.id === this.get('secondaryController.id');
-        //let appID = intersectedViewObj.object.parent.userData.model.id;
+        // Let appID = intersectedViewObj.object.parent.userData.model.id;
         this.trigger('appBinded', appID, object.position, object.quaternion, boundToSecondaryController, controller.position, controller.quaternion);
       }
     }
@@ -1036,94 +1036,96 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       this.get('camera'), this.get('raycastObjectsLandscape'));
 
     // Check if an object is hit
-    if (intersectedViewObj) {
-      // Handle delete button
-      if (intersectedViewObj.object.name === 'deleteButton') {
-        // Delete application
-        this.deleteApplication3D(intersectedViewObj);
-        return;
+    if (!intersectedViewObj) {
+      return;
+    }
+
+    // Handle delete button
+    if (intersectedViewObj.object.name === 'deleteButton') {
+      // Delete application
+      this.deleteApplication3D(intersectedViewObj);
+      return;
+    }
+
+    // Teleport to intersection point
+    if (intersectedViewObj.object.name === 'floor') {
+      this.teleportToPosition(intersectedViewObj.point);
+      return;
+    }
+
+    // Hide tooltip
+    this.get('hoverHandlerLandscape').hideTooltip();
+    this.get('hoverHandlerApp3D').hideTooltip();
+
+    const emberModel = intersectedViewObj.object.userData.model;
+
+    if (!emberModel)
+      return;
+
+    const emberModelName = emberModel.constructor.modelName;
+
+    // Handle application hit
+    if (emberModelName === "application") {
+
+      // Handle no data for app3D available
+      if (emberModel.get('components').get('length') === 0) {
+
+        // No application3D => message
+        const message = "Sorry, no details for <b>" + emberModel.get('name') +
+          "</b> are available.";
+
+        this.showAlertifyMessage(message);
       }
-
-      // Teleport to intersection point
-      if (intersectedViewObj.object.name === 'floor') {
-        this.teleportToPosition(intersectedViewObj.point);
-        return;
-      }
-
-      // Hide tooltip
-      this.get('hoverHandlerLandscape').hideTooltip();
-      this.get('hoverHandlerApp3D').hideTooltip();
-
-      const emberModel = intersectedViewObj.object.userData.model;
-
-      if (!emberModel)
-        return;
-
-      const emberModelName = emberModel.constructor.modelName;
-
-      // Handle application hit
-      if (emberModelName === "application") {
-
-        // Handle no data for app3D available
-        if (emberModel.get('components').get('length') === 0) {
-
-          // No application3D => message
-          const message = "Sorry, no details for <b>" + emberModel.get('name') +
-            "</b> are available.";
-
-          this.showAlertifyMessage(message);
-        }
-        // Handle data for app3D available
-        else {
-          // Data available => open application-rendering
-          this.closeAlertifyMessages();
-          // trigger event in component vr-rendering
-          this.trigger('showApplication', emberModel, intersectedViewObj.point);
-        }
-      }
-      // Handle nodegroup or system hit
-      else if (emberModelName === "nodegroup" || emberModelName === "system") {
-        emberModel.setOpened(!emberModel.get('opened'));
-
-        if (emberModelName === "system") {
-          this.trigger('systemStateChanged', emberModel.id, emberModel.get('opened'));
-        } else if (emberModelName === "nodegroup") {
-          this.trigger('nodegroupStateChanged', emberModel.id, emberModel.get('opened'));
-        }
+      // Handle data for app3D available
+      else {
+        // Data available => open application-rendering
+        this.closeAlertifyMessages();
         // Trigger event in component vr-rendering
-        this.trigger('redrawScene');
+        this.trigger('showApplication', emberModel, intersectedViewObj.point);
       }
-      // Handle component of app3D hit
-      else if (emberModelName === "component") {
-        let appID = intersectedViewObj.object.userData.appID;
+    }
+    // Handle nodegroup or system hit
+    else if (emberModelName === "nodegroup" || emberModelName === "system") {
+      emberModel.setOpened(!emberModel.get('opened'));
 
-        //dont allow altering bound apps
-        if (this.get('boundApps').has(appID)) {
-          return;
+      if (emberModelName === "system") {
+        this.trigger('systemStateChanged', emberModel.id, emberModel.get('opened'));
+      } else if (emberModelName === "nodegroup") {
+        this.trigger('nodegroupStateChanged', emberModel.id, emberModel.get('opened'));
+      }
+      // Trigger event in component vr-rendering
+      this.trigger('redrawScene');
+    }
+    // Handle component of app3D hit
+    else if (emberModelName === "component") {
+      let appID = intersectedViewObj.object.userData.appID;
+
+      // Do not allow altering bound apps
+      if (this.get('boundApps').has(appID)) {
+        return;
+      }
+
+      // Toggle state and redraw app
+      emberModel.setOpenedStatus(!emberModel.get('opened'));
+      this.trigger('redrawApp', appID);
+
+      this.trigger('componentUpdate', appID, emberModel.id, emberModel.get('opened'), emberModel.get('foundation'));
+
+      // Restore selection
+      if (this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened')) {
+        this.get('selector').highlightAppCommunication(this.get('appCommunicationHighlighted'), this.get('highlightedAppModel'));
+        this.trigger('redrawAppCommunication');
+
+        let color = new THREE.Color(this.get('highlightingColor'));
+        this.get('selectedEntitysMesh').material.color = color;
+      }
+      // Open selected component
+      else {
+        if (this.get('appCommunicationHighlighted')) {
+          this.get('appCommunicationHighlighted').set('highlighted', false);
         }
-
-        // Toggle state and redraw app
-        emberModel.setOpenedStatus(!emberModel.get('opened'));
-        this.trigger('redrawApp', appID);
-
-        this.trigger('componentUpdate', appID, emberModel.id, emberModel.get('opened'), emberModel.get('foundation'));
-
-        // Restore selection
-        if (this.get('appCommunicationHighlighted') && this.get('selectedEntitysMesh') && emberModel !== this.get('appCommunicationHighlighted') && !this.get('appCommunicationHighlighted').get('opened')) {
-          this.get('selector').highlightAppCommunication(this.get('appCommunicationHighlighted'), this.get('highlightedAppModel'));
-          this.trigger('redrawAppCommunication');
-
-          let color = new THREE.Color(this.get('highlightingColor'));
-          this.get('selectedEntitysMesh').material.color = color;
-        }
-        // Open selected component
-        else {
-          if (this.get('appCommunicationHighlighted')) {
-            this.get('appCommunicationHighlighted').set('highlighted', false);
-          }
-          this.set('appCommunicationHighlighted', null);
-          this.set('selectedEntitysMesh', null);
-        }
+        this.set('appCommunicationHighlighted', null);
+        this.set('selectedEntitysMesh', null);
       }
     }
   },
@@ -1176,7 +1178,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
         return;
       }
 
-      // hide tooltip
+      // Hide tooltip
       this.get('hoverHandlerLandscape').hideTooltip();
       this.get('hoverHandlerApp3D').hideTooltip();
 
