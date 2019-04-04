@@ -118,6 +118,8 @@ export default VRRendering.extend(Evented, {
     this.set('spectateMenu', SpectateMenu.create(getOwner(this).ownerInjection()));
     this.set('userListMenu', UserListMenu.create(getOwner(this).ownerInjection()));
     this.set('hintMenu', HintMenu.create(getOwner(this).ownerInjection()));
+    this.set('messageBox', MessageBox.create(getOwner(this).ownerInjection()));
+    
     this.set('optionsMenu', OptionsMenu.create());
     //TODO: delete later
     this.set('interaction.hintMenu', this.get('hintMenu'));
@@ -593,7 +595,7 @@ export default VRRendering.extend(Evented, {
     this.addUsername(data.user.id);
 
     // show connect notification
-    MessageBox.enqueueMessage.call(this, {title: 'User connected', text: user.get('name'), color: Helper.rgbToHex(user.get('color'))}, 3000);
+    this.get('messageBox').enqueueMessage({title: 'User connected', text: user.get('name'), color: Helper.rgbToHex(user.get('color'))}, 3000);
   },
 
   /**
@@ -629,7 +631,7 @@ export default VRRendering.extend(Evented, {
       user.removeNamePlane();
 
       // show disconnect notification
-      MessageBox.enqueueMessage.call(this, { title: 'User disconnected', text: user.get('name'), color: Helper.rgbToHex(user.get('color')) }, 3000);
+      this.get('messageBox').enqueueMessage({ title: 'User disconnected', text: user.get('name'), color: Helper.rgbToHex(user.get('color')) }, 3000);
       this.get('store').unloadRecord(user);
     }
   },
@@ -785,12 +787,12 @@ export default VRRendering.extend(Evented, {
       if(this.get('currentUser.state') === 'spectating' && this.get('spectatedUser') === userID) {
         this.get('spectating').deactivate();
       } else {
-        MessageBox.enqueueMessage.call(this, { title: user.get('name'), text: 'is now spectating'}, 2000);
+        this.get('messageBox').enqueueMessage({ title: user.get('name'), text: 'is now spectating'}, 2000);
       }
     } else {
       user.set('currentUser.state', 'connected');
       user.setVisible(true);
-      MessageBox.enqueueMessage.call(this, { title: user.get('name'), text: 'is no longer spectating'}, 2000);
+      this.get('messageBox').enqueueMessage({ title: user.get('name'), text: 'is no longer spectating'}, 2000);
     }
   },
 

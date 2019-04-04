@@ -404,7 +404,7 @@ export default Component.extend(Evented, THREEPerformance, {
         this.get('controller1').remove(model);
       }
     } else {
-      this.get('loadController').perform(this.get('controller1'));
+      this.loadController(this.get('controller1'));
     }
     if(!this.get('controller2').getGamepad() || !this.get('controller2').getGamepad().pose) {
       let model = this.get('controller2').getObjectByName('controllerTexture');
@@ -412,7 +412,7 @@ export default Component.extend(Evented, THREEPerformance, {
         this.get('controller2').remove(model);
       }
     } else {
-      this.get('loadController').perform(this.get('controller2'));
+      this.loadController(this.get('controller2'));
     }
 
 
@@ -428,11 +428,11 @@ export default Component.extend(Evented, THREEPerformance, {
     }
   },
 
-  loadController: task(function * (controller) {
+  loadController(controller) {
     if(controller.getGamepad() !== undefined && controller.getGamepad().pose !== undefined
       && !controller.getObjectByName('controllerTexture')) {
 
-      let name = yield controller.getGamepad().id;
+      let name = controller.getGamepad().id;
 
       if (name === 'Oculus Touch (Left)') {
         controller.add(Models.getOculusLeftControllerModel());
@@ -442,7 +442,7 @@ export default Component.extend(Evented, THREEPerformance, {
         controller.add(Models.getViveControllerModel());
       }
     }
-  }),
+  },
 
   /*
    * This method is used to listen for events triggered Controller.

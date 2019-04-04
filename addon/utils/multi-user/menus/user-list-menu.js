@@ -82,7 +82,7 @@ export default EmberObject.extend({
   close() {
     const menu = this.get('menu');
     if(menu) {
-      this.get('currentUser').getCamera().remove(menu.get('mesh'));
+      menu.get('mesh').parent.remove(menu.get('mesh'));
       menu.close();
       this.set('menu', null);
     }
