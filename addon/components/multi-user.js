@@ -470,7 +470,7 @@ export default VRRendering.extend(Evented, {
    */
   onSelfConnecting(data) {
     // If name is not found, use id as default name
-    let name = this.get('session.data.authenticated.username') || 'ID: ' + data.id;
+    let name = this.get('session.session.content.authenticated.user.username') || 'ID: ' + data.id;
     this.set('currentUser.userID', data.id);
     this.set('currentUser.color', data.color);
     this.get('interaction').set('highlightingColor', Helper.colorToString(data.color));

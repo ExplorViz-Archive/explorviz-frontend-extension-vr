@@ -41,7 +41,7 @@ export default EmberObject.extend({
     let yPos = 50 + yOffset;
   
     if(this.get('currentUser.state') === 'connected') {
-      this.get('menu').addText(this.get('session.data.authenticated.username') || "ID: " + this.get('currentUser.userID'), 'connected', 12,
+      this.get('menu').addText(this.get('session.session.content.authenticated.user.username') || "ID: " + this.get('currentUser.userID'), 'connected', 12,
         { x: 50, y: yPos}, Helper.rgbToHex(this.get('currentUser.color')), 'left', false);
       yPos += yOffset;
     }
@@ -59,7 +59,7 @@ export default EmberObject.extend({
     yPos += yOffset;
   
     if(this.get('currentUser.state') === 'spectating') {
-      this.get('menu').addText(this.get('session.data.authenticated.username') || "ID: " + this.get('currentUser.userID'), 'connected', 12,
+      this.get('menu').addText(this.get('session.session.content.authenticated.user.username') || "ID: " + this.get('currentUser.userID'), 'connected', 12,
         { x: 50, y: yPos}, Helper.rgbToHex(this.get('currentUser.color')), 'left', false);
       yPos += yOffset;
     }

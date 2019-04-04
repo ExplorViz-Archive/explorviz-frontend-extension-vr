@@ -17,12 +17,15 @@ export default Service.extend({
   getPosition() {
     return this.get('threeGroup.position');
   },
+  
   getCamera() {
     return this.get('threeGroup').getObjectByName('camera');
   },
+
   getController1() {
     return this.get('threeGroup').getObjectByName('controller1');
   },
+  
   getController2() {
     return this.get('threeGroup').getObjectByName('controller2');
   },
