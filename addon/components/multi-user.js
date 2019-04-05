@@ -69,7 +69,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       this.update();
     } 
 
-    // actually send messages like connecting request, position updates etc.
+    // Actually send messages like connecting request, position updates etc.
     if(state !== 'offline')
       this.get('webSocket').sendUpdates();
   },
@@ -94,7 +94,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     this.get('camera').getWorldPosition(pos);
 
     users.forEach((user) => {
-      if (user.get('state') === 'connected') {
+      if (user.get('state') === 'connected' && user.get('namePlane')) {
         user.get('namePlane.position').setFromMatrixPosition(user.get('camera.model').getObjectByName('dummyPlaneName').matrixWorld);
         user.get('namePlane').lookAt(pos);
         user.get('namePlane').updateMatrix();
@@ -163,7 +163,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   initInteractions() {
     const self = this;
 
-    // override actions to prevent users in spectator mode from interacting with landscape, apps or teleport
+    // Override actions to prevent users in spectator mode from interacting with landscape, apps or teleport
 
     let old_checkIntersectionPrimaryController = this.get('interaction').checkIntersectionPrimaryController;
     this.get('interaction').checkIntersectionPrimaryController = function() {
@@ -222,7 +222,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       old_onGripUpSecondaryController.apply(this, [event]);
     };
 
-    //initialize interaction events and delegate them to the corresponding functions
+    // Initialize interaction events and delegate them to the corresponding functions
     this.get('interaction').on('systemStateChanged', (id, isOpen) => {
       this.get('sender').sendSystemUpdate(id, isOpen);
     });
@@ -310,7 +310,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
    * If changed, sends a message of new camera and controller positions and quaternions.
    */
   updateAndSendPositions() {
-    // if no last positions exist, set them to current position of camera and controllers
+    // If no last positions exist, set them to current position of camera and controllers
     if(this.get('camera') && this.get('user') && !this.get('lastPositions.camera')) {
       const pos = new THREE.Vector3();
       this.get('camera').getWorldPosition(pos);
@@ -332,7 +332,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       "time": Date.now()
     };
 
-    // get current camera and controller positions
+    // Get current camera and controller positions
     const posCamera = new THREE.Vector3();
     this.get('camera').getWorldPosition(posCamera);
 
@@ -357,7 +357,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     let hasChanged = false;
 
-    // if changed, add new positions and quaternions to message
+    // If changed, add new positions and quaternions to message
     if(JSON.stringify(currentPositions.controller1) !== JSON.stringify(this.get('lastPositions.controller1'))) {
       hasChanged = true;
       positionObj.controller1 = {
@@ -380,7 +380,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       };
     }
 
-    // send update if either position has changed
+    // Send update if either position has changed
     if(hasChanged) {
       this.set('lastPositions', currentPositions);
       this.get('webSocket').enqueueIfOpen(positionObj);
@@ -592,12 +592,12 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     user.initCamera(Models.getHMDModel());
 
-    //add model for new user
+    // Add model for new user
     this.get('scene').add(user.get('camera.model'));
 
     this.addUsername(data.user.id);
 
-    // show connect notification
+    // Show connect notification
     this.get('messageBox').enqueueMessage({title: 'User connected', text: user.get('name'), color: Helper.rgbToHex(user.get('color'))}, 3000);
   },
 
@@ -618,10 +618,10 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     let user = this.get('store').peekRecord('vr-user', id)
     if (user) {
 
-      //unhighlight possible objects of disconnected user
+      // Unhighlight possible objects of disconnected user
       this.onHighlightingUpdate(id, false, user.highlightedEntity.appID, user.highlightedEntity.entityID, user.highlightedEntity.originalColor);
 
-      // remove user's models
+      // Remove user's models
       this.get('scene').remove(user.get('controller1.model'));
       user.removeController1();
       this.get('scene').remove(user.get('controller2.model'));
@@ -629,11 +629,11 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       this.get('scene').remove(user.get('camera.model'));
       user.removeCamera();
 
-      // remove user's name tag
+      // Remove user's name tag
       this.get('scene').remove(user.get('namePlane'));
       user.removeNamePlane();
 
-      // show disconnect notification
+      // Show disconnect notification
       this.get('messageBox').enqueueMessage({ title: 'User disconnected', text: user.get('name'), color: Helper.rgbToHex(user.get('color')) }, 3000);
       this.get('store').unloadRecord(user);
     }
@@ -670,7 +670,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     if(!user)
       return;
 
-    // load newly connected controller(s)
+    // Load newly connected controller(s)
     if(connect) {
       if(connect.controller1)
         this.loadController1(connect.controller1, user.get('id'));
@@ -678,7 +678,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
         this.loadController2(connect.controller2, user.get('id'));
     }
 
-    // remove controller model(s) due to controller disconnect
+    // Remove controller model(s) due to controller disconnect
     if(disconnect) {
       for (let i = 0; i < disconnect.length; i++) {
         const controller = disconnect[i];
@@ -1044,35 +1044,35 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     let hasChanged = false;
 
-    //handle that controller 1 has disconnected
+    // Handle that controller 1 has disconnected
     if(this.get('currentUser.controllersConnected.controller1') && !this.get('controller1').isConnected()) {
       disconnect.push('controller1');
       this.set('currentUser.controllersConnected.controller1', false);
       hasChanged = true;
     }
-    //handle that controller 1 has connected
+    // Handle that controller 1 has connected
     else if(!this.get('currentUser.controllersConnected.controller1') && this.get('controller1').isConnected()) {
       connect.controller1 = this.get('controller1').getGamepad().id;
       this.set('currentUser.controllersConnected.controller1', true);
       hasChanged = true;
     }
 
-    //handle that controller 2 has disconnected
+    // Handle that controller 2 has disconnected
     if(this.get('currentUser.controllersConnected.controller2') && !this.get('controller2').isConnected()) {
       disconnect.push('controller2');
       this.set('currentUser.controllersConnected.controller2', false);
       hasChanged = true;
     }
-    //handle that controller 2 has connected
+    // Handle that controller 2 has connected
     else if(!this.get('currentUser.controllersConnected.controller2') && this.get('controller2').isConnected()) {
       connect.controller2 = this.get('controller2').getGamepad().id;
       this.set('currentUser.controllersConnected.controller2', true);
       hasChanged = true;
     }
 
-    //handle the case that either controller was connected/disconnected
+    // Handle the case that either controller was connected/disconnected
     if(hasChanged) {
-      //if status of at least one controller has changed, inform backend
+      // If status of at least one controller has changed, inform backend
       if((disconnect && disconnect.length > 0) || connect) {
         this.get('sender').sendControllerUpdate(connect, disconnect);
       }

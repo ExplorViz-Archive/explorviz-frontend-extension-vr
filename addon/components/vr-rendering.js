@@ -97,12 +97,11 @@ export default Component.extend(Evented, THREEPerformance, {
 
   // An Observer calculating the new raycastObjects
   actualizeRaycastObjects() {
-    const self = this;
 
     let result = (this.get('vrLandscape')) ? this.get('vrLandscape').children : [];
     const allowedObjects = ['node', 'system', 'nodegroup', 'application', 'communication', 'floor','component', 'clazz', 'deleteButton'];
 
-    self.get('openApps').forEach(function(app){
+    this.get('openApps').forEach(function(app){
       app.children.forEach(function(child){
         child.userData.object3D = app;
       });
@@ -147,8 +146,7 @@ export default Component.extend(Evented, THREEPerformance, {
    * @method initRendering
    */
   initRendering() {
-    const self = this;
-
+    
     // Dummy object for raycasting
     this.set('room', new THREE.Object3D());
     this.get('room').name = 'room';
@@ -389,10 +387,10 @@ export default Component.extend(Evented, THREEPerformance, {
 
     // Load font for labels and synchronously proceed with populating the scene
     new THREE.FontLoader()
-      .load('three.js/fonts/roboto_mono_bold_typeface.json', function(font) {
-        self.set('font', font);
-        self.set('initDone', true);
-        self.populateScene();
+      .load('three.js/fonts/roboto_mono_bold_typeface.json', (font) => {
+        this.set('font', font);
+        this.set('initDone', true);
+        this.populateScene();
       });
   },
 
@@ -403,7 +401,7 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('controller1').update();
     this.get('controller2').update();
 
-    // remove controller 1 model if controller disconnected
+    // Remove controller 1 model if controller disconnected
     if(!this.get('controller1').getGamepad() || !this.get('controller1').getGamepad().pose) {
       let model = this.get('controller1').getObjectByName('controllerTexture');
       if(model) {
@@ -1088,7 +1086,7 @@ export default Component.extend(Evented, THREEPerformance, {
 
       let requests = vrEnvironment.getObjectByName('earth');
 
-      // check if 'earth' exists in landscape and scale it
+      // Check if 'earth' exists in landscape and scale it
       if (requests){
       // Undo scaling requests
       requests.scale.x /= scaleX; 
@@ -1472,7 +1470,7 @@ export default Component.extend(Evented, THREEPerformance, {
      * (controller button pressed or mouse doubleclick)
      */
     this.get('interaction').on('showApplication', (emberModel, intersectionPoint) => {
-      //dont allow to open the same two apps
+      // Do not allow to open the same two apps
       if (this.get('openApps').has(emberModel.id)) {
         return;
       }
@@ -1524,7 +1522,6 @@ export default Component.extend(Evented, THREEPerformance, {
    */
   removeChildren(entity, childrenToRemove){
 
-    // Handle undefined entity
     if(!entity){
       return;
     }
@@ -1632,43 +1629,45 @@ export default Component.extend(Evented, THREEPerformance, {
    */
   addCommunicationToApp(application){
 
-    const self = this;
-
     const viewCenterPoint = this.get('centerAndZoomCalculator.centerPoint');
 
     const drawableClazzCommunications = application.get('drawableClazzCommunications');
 
     drawableClazzCommunications.forEach((drawableClazzComm) => {
-      if (drawableClazzComm.get('startPoint') && drawableClazzComm.get('endPoint')) {
-        const start = new THREE.Vector3();
-        start.subVectors(drawableClazzComm.get('startPoint'), viewCenterPoint);
-        start.multiplyScalar(0.5);
 
-        const end = new THREE.Vector3();
-        end.subVectors(drawableClazzComm.get('endPoint'), viewCenterPoint);
-        end.multiplyScalar(0.5);
-
-        let transparent = false;
-        let opacityValue = 1.0;
-
-        if(drawableClazzComm.get('state') === 'TRANSPARENT') {
-          transparent = true;
-          opacityValue = 0.4;
-        }
-
-        const material = new THREE.MeshLambertMaterial({
-          color : new THREE.Color(0xf49100),
-          opacity : opacityValue,
-          transparent : transparent
-        });
-
-        const thickness = drawableClazzComm.get('lineThickness') * 0.3;
-
-        const pipe = cylinderMesh(start, end, material, thickness);
-
-        pipe.userData.model = drawableClazzComm;
-        self.get('openApps').get(application.id).add(pipe);
+      // Skip communication with incomplete data
+      if (!drawableClazzComm.get('startPoint') || !drawableClazzComm.get('endPoint')) {
+        return;
       }
+
+      const start = new THREE.Vector3();
+      start.subVectors(drawableClazzComm.get('startPoint'), viewCenterPoint);
+      start.multiplyScalar(0.5);
+
+      const end = new THREE.Vector3();
+      end.subVectors(drawableClazzComm.get('endPoint'), viewCenterPoint);
+      end.multiplyScalar(0.5);
+
+      let transparent = false;
+      let opacityValue = 1.0;
+
+      if (drawableClazzComm.get('state') === 'TRANSPARENT') {
+        transparent = true;
+        opacityValue = 0.4;
+      }
+
+      const material = new THREE.MeshLambertMaterial({
+        color: new THREE.Color(0xf49100),
+        opacity: opacityValue,
+        transparent: transparent
+      });
+
+      const thickness = drawableClazzComm.get('lineThickness') * 0.3;
+
+      const pipe = cylinderMesh(start, end, material, thickness);
+
+      pipe.userData.model = drawableClazzComm;
+      this.get('openApps').get(application.id).add(pipe);
     });
 
     /*
@@ -1697,61 +1696,63 @@ export default Component.extend(Evented, THREEPerformance, {
    * to the landscape(3D)
    */
   add3DApplicationToLandscape(application, position, quaternion) {
+
     const self = this;
-
-    if (application.get('components').get('length') !== 0) {
-      // Create foundation for application3D
-      const foundation = this.get('foundationBuilder').createFoundation(application, this.get('store'));
-      self.get('foundations').set(application.id, foundation);
-
-      // Draw application in 3D application-view
-      applyCityLayout(application);
-
-      self.get('openApps').set(application.id, new THREE.Object3D());
-
-      self.get('openApps').get(application.id).matrixAutoUpdate = false;
-      self.get('openApps').get(application.id).name = 'app3D';
-      self.get('openApps').get(application.id).userData.model = application;
-
-      this.addCommunicationToApp(application);
-
-      addComponentToScene(foundation, 0xCECECE, application.id);
-
-      let bboxApp3D = new THREE.Box3().setFromObject(self.get('openApps').get(application.id));
-
-      // Create delete button
-      var geometryDel = new THREE.SphereGeometry(6, 32, 32);
-      var materialDel = new THREE.MeshPhongMaterial({
-        map: this.get('deleteButtonTexture')
-      });
-      this.set('deleteButton', new THREE.Mesh(geometryDel, materialDel));
-      this.get('deleteButton').geometry.rotateY(-0.3);
-      this.get('deleteButton').userData.name = 'deleteButton';
-      this.get('deleteButton').name = 'deleteButton';
-      self.get('deleteButton').position.set(
-        self.get('openApps').get(application.id).position.x,bboxApp3D.max.y*3.5,self.get('openApps').get(application.id).position.z);
-
-      // Scale application
-      self.get('openApps').get(application.id).scale.x = 0.01;
-      self.get('openApps').get(application.id).scale.y = 0.01;
-      self.get('openApps').get(application.id).scale.z = 0.01;
-
-      // Apply last position and rotation
-      self.get('openApps').get(application.id).position.set(position.x, position.y, position.z);
-      self.get('openApps').get(application.id).setRotationFromQuaternion(quaternion);
-      self.get('openApps').get(application.id).add(self.get('deleteButton'));
-      self.get('openApps').get(application.id).updateMatrix();
-
-      //add id of app to children
-      self.get('openApps').get(application.id).children.forEach(function (child){
-        child.userData.appID = application.id;
-      });
-
-      self.get('scene').add(self.get('openApps').get(application.id));
-
-      // Setup interaction for app3D
-      self.get('interaction').set('openApps', self.get('openApps'));
+    
+    if (application.get('components').get('length') === 0) {
+      return;
     }
+    // Create foundation for application3D
+    const foundation = this.get('foundationBuilder').createFoundation(application, this.get('store'));
+    this.get('foundations').set(application.id, foundation);
+
+    // Draw application in 3D application-view
+    applyCityLayout(application);
+
+    this.get('openApps').set(application.id, new THREE.Object3D());
+
+    this.get('openApps').get(application.id).matrixAutoUpdate = false;
+    this.get('openApps').get(application.id).name = 'app3D';
+    this.get('openApps').get(application.id).userData.model = application;
+
+    this.addCommunicationToApp(application);
+
+    addComponentToScene(foundation, 0xCECECE, application.id);
+
+    let bboxApp3D = new THREE.Box3().setFromObject(this.get('openApps').get(application.id));
+
+    // Create delete button
+    var geometryDel = new THREE.SphereGeometry(6, 32, 32);
+    var materialDel = new THREE.MeshPhongMaterial({
+      map: this.get('deleteButtonTexture')
+    });
+    this.set('deleteButton', new THREE.Mesh(geometryDel, materialDel));
+    this.get('deleteButton').geometry.rotateY(-0.3);
+    this.get('deleteButton').userData.name = 'deleteButton';
+    this.get('deleteButton').name = 'deleteButton';
+    this.get('deleteButton').position.set(
+      this.get('openApps').get(application.id).position.x, bboxApp3D.max.y * 3.5, this.get('openApps').get(application.id).position.z);
+
+    // Scale application
+    this.get('openApps').get(application.id).scale.x = 0.01;
+    this.get('openApps').get(application.id).scale.y = 0.01;
+    this.get('openApps').get(application.id).scale.z = 0.01;
+
+    // Apply last position and rotation
+    this.get('openApps').get(application.id).position.set(position.x, position.y, position.z);
+    this.get('openApps').get(application.id).setRotationFromQuaternion(quaternion);
+    this.get('openApps').get(application.id).add(this.get('deleteButton'));
+    this.get('openApps').get(application.id).updateMatrix();
+
+    // Add id of app to children
+    this.get('openApps').get(application.id).children.forEach(function (child) {
+      child.userData.appID = application.id;
+    });
+
+    this.get('scene').add(this.get('openApps').get(application.id));
+
+    // Setup interaction for app3D
+    this.get('interaction').set('openApps', this.get('openApps'));
 
     this.actualizeRaycastObjects();
 
