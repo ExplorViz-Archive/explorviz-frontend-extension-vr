@@ -2,7 +2,6 @@ import Component from '@ember/component';
 import Evented from '@ember/object/evented';
 import { inject as service } from '@ember/service';
 import { getOwner } from '@ember/application';
-import { task } from 'ember-concurrency';
 import $ from 'jquery';
 import THREE from 'three';
 import THREEPerformance from 'explorviz-frontend/mixins/threejs-performance';
@@ -378,6 +377,13 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('scene').add( light );
 
     Models.loadModels();
+
+    const { user } = this.get('session.data.authenticated');
+    const userSettings = user.get('settings');
+
+    if(!userSettings.booleanAttributes.showFpsCounter) {
+      this.removePerformanceMeasurement();
+    }
 
     this.get('landscapeListener').initSSE();
 

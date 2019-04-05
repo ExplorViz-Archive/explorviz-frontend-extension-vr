@@ -8,6 +8,8 @@ import Helper from '../utils/multi-user/helper';
 import VRRendering from './vr-rendering';
 import { UserListMenu, OptionsMenu, SpectateMenu, LandscapePositionMenu,
   CameraHeightMenu, MessageBox, ConnectMenu, HintMenu, AdvancedMenu }  from '../services/menus';
+import AlertifyHandler from 'explorviz-frontend/mixins/alertify-handler';
+
 
 /**
  * This component extends the functionalities of vr-rendering so that multiple users
@@ -18,7 +20,7 @@ import { UserListMenu, OptionsMenu, SpectateMenu, LandscapePositionMenu,
  * @class MULTI-USER
  * @extends vr-rendering
  */
-export default VRRendering.extend(Evented, {
+export default VRRendering.extend(Evented, AlertifyHandler, {
 
   tagName: '',
 
@@ -132,8 +134,7 @@ export default VRRendering.extend(Evented, {
       port = json.port;
 
       if(!host || !port) {
-        console.error('Config not found');
-        return;
+        this.showAlertifyError('Config not found');
       }
 
       this.set('webSocket.host', host);
