@@ -5,13 +5,14 @@ import { getOwner } from '@ember/application';
 
 export default BaseMenu.extend({
   
-  user: service(), // Keeps track of key properties about user (e.g. connection state)
+  user: service(),
+  connection: service(),
 
   /**
    * Creates and opens the Connect Menu.
    */
-  open(lastMenu, that) {
-    this._super(lastMenu, that);
+  open(lastMenu) {
+    this._super(lastMenu);
 
     this.set('menu', Menu.create(getOwner(this).ownerInjection(), { name: 'connectMenu' }));
     
@@ -30,12 +31,14 @@ export default BaseMenu.extend({
         }
         if(action === 'rightTriggerDown') {
           if(item.name === 'connect') {
-            if(state === 'offline')
-              that.connect();
-            else if(state === 'connected')
-              that.disconnect();
+            if(state === 'offline') {
+              this.get('connection').connect();
+            }
+            else if(state === 'connected') {
+              this.get('connection').disconnect();
+            }
           } else if(item.name === 'back') {
-            this.back(that);
+            this.back();
           }
         }
       } else {
@@ -44,8 +47,8 @@ export default BaseMenu.extend({
       }
     };
     this.get('menu').createMesh();
-    let controller = that.get('userIsLefty') ? 'controller2' : 'controller1'; 
-    this.get('menu').addToController(that.get(controller));
+    let controller = this.get('user.isLefty') ? this.get('user').getController2() : this.get('user').getController1();
+    this.get('menu').addToController(controller);
   
     this.setState(this.get('user.state'));
   },

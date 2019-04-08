@@ -1,23 +1,25 @@
 import BaseMenu from './menu-base';
 import Menu from '../menu';
 import { getOwner } from '@ember/application';
+import { inject as service } from '@ember/service';
 
 export default BaseMenu.extend({
   
+  currentUser: service('user'),
   /**
    * Creates and opens the Connect Menu.
    */
-  open(lastMenu, that) {
-    this._super(lastMenu, that);
+  open(lastMenu) {
+    this._super(lastMenu);
 
-    this.set('menu', Menu.create(getOwner(that).ownerInjection(), { name: 'advancedMenu' }));
+    this.set('menu', Menu.create(getOwner(this).ownerInjection(), { name: 'advancedMenu' }));
     
     this.get('menu').addTitle('Advanced Options');
     this.get('menu').addText('Lefty Mode', 'isLeftyText', 28, { x: 100, y: 148 }, '#FFFFFF', 'left', false);
-    this.get('menu').addCheckbox("isLefty", { x: 366, y: 126 }, 50, 50, '#ffc338', '#ffffff', '#00e5ff', true, that.get('userIsLefty'));
+    this.get('menu').addCheckbox("isLefty", { x: 366, y: 126 }, 50, 50, '#ffc338', '#ffffff', '#00e5ff', true, this.get('currentUser.isLefty'));
     this.get('menu').addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
   
-    let controller = that.get('userIsLefty') ? that.get('controller2') : that.get('controller1'); 
+    let controller = this.get('currentUser.isLefty') ? this.get('currentUser').getController2() : this.get('currentUser').getController1(); 
   
     this.get('menu').interact = (action, position) => {
       let item = this.get('menu').getItem(position);
@@ -28,9 +30,9 @@ export default BaseMenu.extend({
         if (action === 'rightTriggerDown') {
           if (item.name === 'isLefty') {
             this.close();
-            that.switchHand();
+            this.get('currentUser').switchHand();
           } else if (item.name === 'back') {
-            this.back(that);
+            this.back();
           }
         }
       } else {

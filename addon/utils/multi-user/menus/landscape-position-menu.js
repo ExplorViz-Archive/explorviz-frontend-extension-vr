@@ -2,17 +2,20 @@ import { inject as service } from '@ember/service';
 import { getOwner } from '@ember/application';
 import BaseMenu from './menu-base';
 import Menu from '../menu';
+import THREE from 'three';
 
 export default BaseMenu.extend({
   time: service(),
+  currentUser: service('user'),
+  world: service(),
   
   /**
    * Creates and opens the Connect Menu.
    */
-  open(lastMenu, that) {
-    this._super(lastMenu, that);
+  open(lastMenu) {
+    this._super(lastMenu);
 
-    this.set('menu', Menu.create(getOwner(that).ownerInjection(), { name: 'changeLandscapePositionMenu' }));
+    this.set('menu', Menu.create(getOwner(this).ownerInjection(), { name: 'changeLandscapePositionMenu' }));
 
     this.get('menu').addTitle('Move Landscape');
   
@@ -35,8 +38,8 @@ export default BaseMenu.extend({
     // add back button
     this.get('menu').addTextButton('Back', 'back', { x: 100, y: 402 }, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
 
-    let triggerController = that.get('userIsLefty') ? that.get('controller1') : that.get('controller2');
-    let menuController = that.get('userIsLefty') ? that.get('controller2') : that.get('controller1'); 
+    let triggerController = this.get('currentUser.isLefty') ? this.get('currentUser').getController1() : this.get('currentUser').getController2();
+    let menuController = this.get('currentUser.isLefty') ? this.get('currentUser').getController2() : this.get('currentUser').getController1(); 
   
     this.get('menu').interact = (action, position) => {
       let item = this.get('menu').getItem(position);
@@ -46,7 +49,7 @@ export default BaseMenu.extend({
         }
         if (action === 'rightTriggerDown') {
           if (item.name === 'back') {
-            this.back(that);
+            this.back();
           } else {
             item.isActivated = true;
           }
@@ -57,21 +60,21 @@ export default BaseMenu.extend({
           const moveAndRotateDistance = triggerValue * this.get('time').getDeltaTime();
   
           if (item.name === 'move_left') {
-            that.moveLandscape({ x: -moveAndRotateDistance, y: 0, z: 0 });
+            this.moveLandscape({ x: -moveAndRotateDistance, y: 0, z: 0 });
           } else if (item.name === 'move_right') {
-            that.moveLandscape({ x: moveAndRotateDistance, y: 0, z: 0 });
+            this.moveLandscape({ x: moveAndRotateDistance, y: 0, z: 0 });
           } else if (item.name === 'move_forward') {
-            that.moveLandscape({ x: 0, y: 0, z: -moveAndRotateDistance });
+            this.moveLandscape({ x: 0, y: 0, z: -moveAndRotateDistance });
           } else if (item.name === 'move_backward') {
-            that.moveLandscape({ x: 0, y: 0, z: moveAndRotateDistance });
+            this.moveLandscape({ x: 0, y: 0, z: moveAndRotateDistance });
           } else if (item.name === 'move_up') {
-            that.moveLandscape({ x: 0, y: moveAndRotateDistance, z: 0 });
+            this.moveLandscape({ x: 0, y: moveAndRotateDistance, z: 0 });
           } else if (item.name === 'move_down') {
-            that.moveLandscape({ x: 0, y: -moveAndRotateDistance, z: 0 });
+            this.moveLandscape({ x: 0, y: -moveAndRotateDistance, z: 0 });
           } else if (item.name === 'rotate_left') {
-            that.rotateLandscape({ x: -moveAndRotateDistance, y: 0, z: 0 });
+            this.rotateLandscape({ x: -moveAndRotateDistance, y: 0, z: 0 });
           } else if (item.name === 'rotate_right') {
-            that.rotateLandscape({ x: moveAndRotateDistance, y: 0, z: 0 });
+            this.rotateLandscape({ x: moveAndRotateDistance, y: 0, z: 0 });
           }
         }
       } else {
@@ -82,5 +85,49 @@ export default BaseMenu.extend({
     this.get('menu').createMesh();
   
     this.get('menu').addToController(menuController);
-  }
+  },
+
+  /**
+   * Moves landscape in all three directions.
+   * 
+   * @param {{x: number, y: number, z: number}} delta - The amounts to move the landscape by.
+   */
+  moveLandscape(delta) {
+    this.get('world.environmentOffset').x += delta.x;
+    this.get('world.environmentOffset').y += delta.y;
+    this.get('world.environmentOffset').z += delta.z;
+
+    this.get('world.vrEnvironment').position.x += delta.x;
+    this.get('world.vrEnvironment').position.y += delta.y;
+    this.get('world.vrEnvironment').position.z += delta.z;
+    this.updateObjectMatrix(this.get('world.vrEnvironment'));
+
+    let deltaPosition = new THREE.Vector3(delta.x, delta.y, delta.z);
+    this.get('world.interaction').trigger('landscapeMoved', deltaPosition);
+  },
+
+  /**
+   * Moves landscape in all three directions.
+   */
+  rotateLandscape(delta) {
+    // Apply rotattion
+    this.get('world.vrEnvironment').rotation.x += delta.x;
+    this.get('world.vrEnvironment').rotation.y += delta.y;
+    this.get('world.vrEnvironment').rotation.z += delta.z;
+    this.updateObjectMatrix(this.get('world.vrEnvironment'));
+
+    // Synchronize rotation with other users
+    this.get('world.interaction').trigger('centerVREnvironment');
+    this.get('world.interaction').trigger('landscapeMoved', new THREE.Vector3(0, 0, 0));
+  },
+
+  /*
+   * This method is used to update the matrix of
+   * a given Object3D
+   */
+  updateObjectMatrix(object) {
+    if(object) {
+      object.updateMatrix();
+    }
+  },
 });

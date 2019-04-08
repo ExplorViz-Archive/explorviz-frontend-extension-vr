@@ -5,23 +5,24 @@ import Menu from '../menu';
 
 export default BaseMenu.extend({
   time: service(),
+  currentUser: service('user'),
 
   /**
    * Creates and opens the Connect Menu.
    */
-  open(lastMenu, that) {
-    this._super(lastMenu, that);
+  open(lastMenu) {
+    this._super(lastMenu);
 
-    this.set('menu', Menu.create(getOwner(that).ownerInjection(), { name: 'changeCameraHeightMenu' }));
+    this.set('menu', Menu.create(getOwner(this).ownerInjection(), { name: 'changeCameraHeightMenu' }));
     
     this.get('menu').addTitle('Change Camera');
     this.get('menu').addArrowButton('height_down', {x: 100, y: 182}, {x: 150, y: 242}, 'arrow_down', '#ffc338');
     this.get('menu').addArrowButton('height_up', {x: 366, y: 182}, {x: 416, y: 242}, 'arrow_up', '#ffc338');
-    this.get('menu').addText(that.get('user.position.y').toFixed(2), 'camera_height', 28, { x: 256, y: 202}, '#ffffff', 'center', false);
+    this.get('menu').addText(this.get('currentUser').getPosition().y.toFixed(2), 'camera_height', 28, { x: 256, y: 202}, '#ffffff', 'center', false);
     this.get('menu').addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
   
-    let triggerController = that.get('userIsLefty') ? that.get('controller1') : that.get('controller2');
-    let menuController = that.get('userIsLefty') ? that.get('controller2') : that.get('controller1'); 
+    let triggerController = this.get('currentUser.isLefty') ? this.get('currentUser').getController1() : this.get('currentUser').getController2();
+    let menuController = this.get('currentUser.isLefty') ? this.get('currentUser').getController2() : this.get('currentUser').getController1(); 
   
     this.get('menu').interact = (action, position) => {
       let item = this.get('menu').getItem(position);
@@ -31,7 +32,7 @@ export default BaseMenu.extend({
         }
         if(action === 'rightTriggerDown'){
           if(item.name === 'back') {
-            this.back(that);
+            this.back();
           } else {
             item.isActivated = true;
           }
@@ -45,11 +46,11 @@ export default BaseMenu.extend({
           const moveDistance = triggerValue * this.get('time').getDeltaTime();
   
           if(item.name === 'height_down') {
-            that.get('user').position.y -= moveDistance;
-            this.get('menu').updateText('camera_height', that.get('user').position.y.toFixed(2));
+            this.get('currentUser').getPosition().y -= moveDistance;
+            this.get('menu').updateText('camera_height', this.get('currentUser').getPosition().y.toFixed(2));
           } else if(item.name === 'height_up') {
-            that.get('user').position.y += moveDistance;
-            this.get('menu').updateText('camera_height', that.get('user').position.y.toFixed(2));
+            this.get('currentUser').getPosition().y += moveDistance;
+            this.get('menu').updateText('camera_height', this.get('currentUser').getPosition().y.toFixed(2));
           }
         }
       } else {
