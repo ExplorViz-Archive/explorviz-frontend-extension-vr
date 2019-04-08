@@ -765,7 +765,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     // Save highlighted entity
     if (isHighlighted){
       this.onHighlightingUpdate(userID, false, user.highlightedEntity.appID, user.highlightedEntity.entityID, 
-        user.highlightedEntity.originalColor); //unhighlight possible old highlighting
+        user.highlightedEntity.originalColor); // Unhighlight possible old highlighting
       user.setHighlightedEntity(appID, entityID, originalColor); // Restore highlighted entity data
     }
 
@@ -776,8 +776,9 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       return;
     }
 
-    // Find component/clazz which shall be highlighted
+    // Apply higlighting
     app.children.forEach( child => {
+
       if (child.userData.model && child.userData.model.id === entityID){
         if(this.get('world.interaction.selectedEntitysMesh') === child && !isHighlighted){
           return;
@@ -811,7 +812,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     this.get('geometry').vertices.push(new THREE.Vector3(0, 0, 0));
     this.get('geometry').vertices.push(new THREE.Vector3(0, 0, -1));
 
-    // Create black ray for left controller
+    // Adapt length and position of ray and add to controller
     let line = new THREE.Line(this.get('geometry'));
     line.name = 'controllerLine';
     line.scale.z = 5;
@@ -875,7 +876,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     user.set('namePlane', plane);
 
-    // Username moves with user
+    // Username moves with user (camera)
     camera.add(dummy);
     this.get('world.scene').add(plane);
   },
