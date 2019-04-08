@@ -77,7 +77,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   renderScene() {
     this.get('threexStats').update(this.get('webglrenderer'));
     this.get('stats').begin();
-    this.get('webglrenderer').render(this.get('world.scene'), this.get('camera'));
+    this.get('webglrenderer').render(this.get('world.scene'), this.get('currentUser.camera'));
     this.get('stats').end();
   },
 
@@ -88,7 +88,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   updateUserNameTags() {
     let users = this.get('store').peekAll('vr-user');
     let pos = new THREE.Vector3();
-    this.get('camera').getWorldPosition(pos);
+    this.get('currentUser.camera').getWorldPosition(pos);
 
     users.forEach((user) => {
       if (user.get('state') === 'connected' && user.get('namePlane')) {
@@ -108,8 +108,6 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     this.initVariables();
     this.initInteractions();
     this.initListeners();
-
-    this.set('currentUser.threeGroup', this.get('user'));
 
     let host, port;
     $.getJSON('config/config_multiuser.json').then(json => {
@@ -156,7 +154,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       if(self.get('currentUser.state') !== 'spectating')
         old_checkIntersectionSecondaryController.apply(this, [this.excludeLandscape().concat(this.get('menus').getVisibleMenuMeshesArray())]);
       else
-        self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
+        self.get('currentUser.controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
     };
 
     let old_onTriggerDownPrimaryController = this.get('world.interaction').onTriggerDownPrimaryController;
@@ -172,7 +170,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       if(self.get('currentUser.state') !== 'spectating')
       old_onTriggerDownSecondaryController.apply(this, [event, this.excludeLandscape().concat(this.get('menus').getVisibleMenuMeshesArray())]);
       else
-        self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
+        self.get('currentUser.controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
     };
 
     let old_onMenuDownSecondaryController= this.get('world.interaction').onMenuDownSecondaryController;
@@ -288,19 +286,19 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
    */
   updateAndSendPositions() {
     // If no last positions exist, set them to current position of camera and controllers
-    if(this.get('camera') && this.get('user') && !this.get('lastPositions.camera')) {
+    if(this.get('currentUser.camera') && this.get('currentUser.threeGroup') && !this.get('lastPositions.camera')) {
       const pos = new THREE.Vector3();
-      this.get('camera').getWorldPosition(pos);
+      this.get('currentUser.camera').getWorldPosition(pos);
       this.set('lastPositions.camera', pos.toArray());
     }
-    if(this.get('controller1') && !this.get('lastPositions.controller1')) {
+    if(this.get('currentUser.controller1') && !this.get('lastPositions.controller1')) {
       const pos = new THREE.Vector3();
-      this.get('controller1').getWorldPosition(pos);
+      this.get('currentUser.controller1').getWorldPosition(pos);
       this.set('lastPositions.controller1', pos.toArray());
     }
-    if(this.get('controller2') && !this.get('lastPositions.controller2')) {
+    if(this.get('currentUser.controller2') && !this.get('lastPositions.controller2')) {
       const pos = new THREE.Vector3();
-      this.get('controller2').getWorldPosition(pos);
+      this.get('currentUser.controller2').getWorldPosition(pos);
       this.set('lastPositions.controller2', pos.toArray());
     }
 
@@ -311,13 +309,13 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     // Get current camera and controller positions
     const posCamera = new THREE.Vector3();
-    this.get('camera').getWorldPosition(posCamera);
+    this.get('currentUser.camera').getWorldPosition(posCamera);
 
     const posSecondaryController = new THREE.Vector3();
-    this.get('controller1').getWorldPosition(posSecondaryController);
+    this.get('currentUser.controller1').getWorldPosition(posSecondaryController);
 
     const posController2 = new THREE.Vector3();
-    this.get('controller2').getWorldPosition(posController2);
+    this.get('currentUser.controller2').getWorldPosition(posController2);
 
     let currentPositions = {
       controller1: posSecondaryController.toArray(),
@@ -327,10 +325,10 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     // Use world quaternions because controller can also be rotated via controllerGroup
     let controller1Quaternion = new THREE.Quaternion();
-    this.get('controller1').getWorldQuaternion(controller1Quaternion);
+    this.get('currentUser.controller1').getWorldQuaternion(controller1Quaternion);
 
     let controller2Quaternion = new THREE.Quaternion();
-    this.get('controller2').getWorldQuaternion(controller2Quaternion);
+    this.get('currentUser.controller2').getWorldQuaternion(controller2Quaternion);
 
     let hasChanged = false;
 
@@ -353,7 +351,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       hasChanged = true;
       positionObj.camera = {
         "position": currentPositions.camera,
-        "quaternion": this.get('camera.quaternion').toArray()
+        "quaternion": this.get('currentUser.camera.quaternion').toArray()
       };
     }
 
@@ -945,27 +943,27 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     let hasChanged = false;
 
     // Handle that controller 1 has disconnected
-    if(this.get('currentUser.controllersConnected.controller1') && !this.get('controller1').isConnected()) {
+    if(this.get('currentUser.controllersConnected.controller1') && !this.get('currentUser.controller1').isConnected()) {
       disconnect.push('controller1');
       this.set('currentUser.controllersConnected.controller1', false);
       hasChanged = true;
     }
     // Handle that controller 1 has connected
-    else if(!this.get('currentUser.controllersConnected.controller1') && this.get('controller1').isConnected()) {
-      connect.controller1 = this.get('controller1').getGamepad().id;
+    else if(!this.get('currentUser.controllersConnected.controller1') && this.get('currentUser.controller1').isConnected()) {
+      connect.controller1 = this.get('currentUser.controller1').getGamepad().id;
       this.set('currentUser.controllersConnected.controller1', true);
       hasChanged = true;
     }
 
     // Handle that controller 2 has disconnected
-    if(this.get('currentUser.controllersConnected.controller2') && !this.get('controller2').isConnected()) {
+    if(this.get('currentUser.controllersConnected.controller2') && !this.get('currentUser.controller2').isConnected()) {
       disconnect.push('controller2');
       this.set('currentUser.controllersConnected.controller2', false);
       hasChanged = true;
     }
     // Handle that controller 2 has connected
-    else if(!this.get('currentUser.controllersConnected.controller2') && this.get('controller2').isConnected()) {
-      connect.controller2 = this.get('controller2').getGamepad().id;
+    else if(!this.get('currentUser.controllersConnected.controller2') && this.get('currentUser.controller2').isConnected()) {
+      connect.controller2 = this.get('currentUser.controller2').getGamepad().id;
       this.set('currentUser.controllersConnected.controller2', true);
       hasChanged = true;
     }

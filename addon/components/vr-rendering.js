@@ -44,14 +44,12 @@ export default Component.extend(Evented, THREEPerformance, {
   renderingService: service(),
   configuration: service(),
   world: service(),
+  currentUser: service('user'),
 
   webglrenderer: null, // Renders the scene
-  camera: null, // PerspectiveCamera
   canvas: null, // Canvas of webglrenderer
   font: null, // Font used for text
-  initDone: false, // Tells if initRendering() already terminated 
-
-  user: null, //THREEGROUP containing camera and controller(s) of user
+  initDone: false, // Tells if initRendering() already terminated
 
   raycaster: null, // Raycaster for intersection checking (used in interaction)
   labeler: null, // For labeling landscape (-> frontend)
@@ -66,8 +64,6 @@ export default Component.extend(Evented, THREEPerformance, {
   // VR
   vrLandscape: null, // Contains systems and their children
   vrCommunications: null, // Contains communication between elements of landscape
-  controller1: null, // Secondary controller
-  controller2: null, // Primary controller
   geometry: null, // Ray for controller
   depth: 0.2, // Depth value for systems/nodegroups etc. (2D rectangles -> 3D cubes)
   room: null, // Virtual room to which a flooar is added, important for raycasting
@@ -184,8 +180,8 @@ export default Component.extend(Evented, THREEPerformance, {
     this.set('world.scene', new THREE.Scene());
     this.set('world.scene.background', new THREE.Color(0xeaf4fc));
 
-    this.set('camera', new THREE.PerspectiveCamera(70, width / height, 0.01, 50));
-    this.get('camera').name = 'camera';
+    this.set('currentUser.camera', new THREE.PerspectiveCamera(70, width / height, 0.01, 50));
+    this.get('currentUser.camera').name = 'camera';
 
     // Create and configure renderer
     this.set('webglrenderer', new THREE.WebGLRenderer({
@@ -204,20 +200,20 @@ export default Component.extend(Evented, THREEPerformance, {
     $('#vizContainer').append(WEBVR.createButton( this.get('webglrenderer') ));
 
     // Create left controller
-    this.set('controller1', new Controller(0));
-    this.set('controller1.standingMatrix', this.get('webglrenderer').vr.getStandingMatrix())
-    this.get('controller1').name = 'controller1';
+    this.set('currentUser.controller1', new Controller(0));
+    this.set('currentUser.controller1.standingMatrix', this.get('webglrenderer').vr.getStandingMatrix())
+    this.get('currentUser.controller1').name = 'controller1';
 
     // Create right controller
-    this.set('controller2', new Controller(1));
-    this.set('controller2.standingMatrix', this.get('webglrenderer').vr.getStandingMatrix())
-    this.get('controller2').name = 'controller2';
+    this.set('currentUser.controller2', new Controller(1));
+    this.set('currentUser.controller2.standingMatrix', this.get('webglrenderer').vr.getStandingMatrix())
+    this.get('currentUser.controller2').name = 'controller2';
 
-    this.set('user', new THREE.Group());
-    this.get('world.scene').add(this.get('user'));
-    this.get('user').add(this.get('camera'));
-    this.get('user').add(this.get('controller1'));
-    this.get('user').add(this.get('controller2'));
+    this.set('currentUser.threeGroup', new THREE.Group());
+    this.get('world.scene').add(this.get('currentUser.threeGroup'));
+    this.get('currentUser.threeGroup').add(this.get('currentUser.camera'));
+    this.get('currentUser.threeGroup').add(this.get('currentUser.controller1'));
+    this.get('currentUser.threeGroup').add(this.get('currentUser.controller2'));
 
     // Ray for Controller
     this.set('geometry', new THREE.Geometry());
@@ -243,8 +239,8 @@ export default Component.extend(Evented, THREEPerformance, {
     line2.position.z -= 0.02;
 
     // Add rays to controllers
-    this.get('controller1').add(line1);
-    this.get('controller2').add(line2);
+    this.get('currentUser.controller1').add(line1);
+    this.get('currentUser.controller2').add(line2);
     this.get('world.scene').add(this.get('world.vrEnvironment'));
 
     this.get('room').position.y -= 0.1;
@@ -393,35 +389,35 @@ export default Component.extend(Evented, THREEPerformance, {
     if(!Models.areLoaded())
       return;
 
-    this.get('controller1').update();
-    this.get('controller2').update();
+    this.get('currentUser.controller1').update();
+    this.get('currentUser.controller2').update();
 
     // Remove controller 1 model if controller disconnected
-    if(!this.get('controller1').getGamepad() || !this.get('controller1').getGamepad().pose) {
-      let model = this.get('controller1').getObjectByName('controllerTexture');
+    if(!this.get('currentUser.controller1').getGamepad() || !this.get('currentUser.controller1').getGamepad().pose) {
+      let model = this.get('currentUser.controller1').getObjectByName('controllerTexture');
       if(model) {
-        this.get('controller1').remove(model);
+        this.get('currentUser.controller1').remove(model);
       }
     } else {
-      this.loadController(this.get('controller1'));
+      this.loadController(this.get('currentUser.controller1'));
     }
-    if(!this.get('controller2').getGamepad() || !this.get('controller2').getGamepad().pose) {
-      let model = this.get('controller2').getObjectByName('controllerTexture');
+    if(!this.get('currentUser.controller2').getGamepad() || !this.get('currentUser.controller2').getGamepad().pose) {
+      let model = this.get('currentUser.controller2').getObjectByName('controllerTexture');
       if(model) {
-        this.get('controller2').remove(model);
+        this.get('currentUser.controller2').remove(model);
       }
     } else {
-      this.loadController(this.get('controller2'));
+      this.loadController(this.get('currentUser.controller2'));
     }
 
 
     // Check raycast for intersection
     if (this.get('world.interaction')) {
       // only if no application3D binded on controller
-      if (this.get('controller1').userData.selected === undefined) {
+      if (this.get('currentUser.controller1').userData.selected === undefined) {
         this.get('world.interaction').checkIntersectionSecondaryController();
       }
-      if (this.get('controller2').userData.selected === undefined) {
+      if (this.get('currentUser.controller2').userData.selected === undefined) {
         this.get('world.interaction').checkIntersectionPrimaryController();
       }
     }
@@ -477,12 +473,12 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('webglrenderer').dispose();
     
     this.set('world.scene', null);
-    this.set('controller1', null);
-    this.set('controller2', null);
-    this.set('user', null);
+    this.set('world.interaction', null);
+    this.set('world.vrEnvironment', null);
+    this.set('world.environmentOffset', null);
+    this.set('currentUser.controller1', null);
+    this.set('currentUser.controller2', null);
     this.set('webglrenderer', null);
-    this.set('camera', null);
-    this.set('user', null);
     this.removePerformanceMeasurement();
     //this.$(window).off('resize.visualization');
     this.get('renderingService').off('reSetupScene');
@@ -1372,35 +1368,26 @@ export default Component.extend(Evented, THREEPerformance, {
    */
   initInteraction() {
 
-    const scene = this.get('world.scene');
     const canvas = this.get('canvas');
-    const camera = this.get('camera');
     const webglrenderer = this.get('webglrenderer');
     const raycaster = this.get('raycaster');
-    const controller1 = this.get('controller1');
-    const controller2 = this.get('controller2');
-    const vrEnvironment = this.get('world.vrEnvironment');
-    const user = this.get('user');
+    const controller1 = this.get('currentUser.controller1');
+    const controller2 = this.get('currentUser.controller2');
 
     let interaction = this.get('world.interaction');
 
     // Set / Bind properties for interaction
-    interaction.set('scene', scene);
     interaction.set('canvas', canvas);
-    interaction.set('camera', camera);
     interaction.set('renderer', webglrenderer);
     interaction.set('raycaster', raycaster);
     interaction.set('raycastObjectsLandscape', this.get('vrLandscape').children);
     interaction.set('secondaryController', controller1);
     interaction.set('primaryController', controller2);
-    interaction.set('vrEnvironment', vrEnvironment);
     interaction.set('colorList', this.get('configuration.landscapeColors'));
     interaction.set('colorListApp', this.get('configuration.applicationColors'));
     interaction.set('labeler', this.get('labeler'));
     interaction.set('room', this.get('room'));
-    interaction.set('user', user);
     interaction.set('boundApps', this.get('boundApps'));
-    interaction.set('environmentOffset', this.get('world.environmentOffset'));
 
     // Init interaction handlers
     this.get('world.interaction').initHandlers();

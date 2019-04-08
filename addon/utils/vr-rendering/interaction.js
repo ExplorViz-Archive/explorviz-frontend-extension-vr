@@ -1,4 +1,4 @@
-import EmberObject from '@ember/object';
+import EmberObject, { computed } from '@ember/object';
 import Evented from '@ember/object/evented';
 import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
 import HoverHandler from './hover-handler';
@@ -17,10 +17,15 @@ import { inject as service } from '@ember/service';
  */
 export default EmberObject.extend(Evented, AlertifyHandler, {
 
-  scene: null,
+  menus: service(),
+  currentUser: service('user'),
+  world: service(),
+
+  user: computed('currentUser.threeGroup', function() {
+    return this.get('currentUser.threeGroup');
+  }),
+
   canvas: null,
-  camera: null,
-  user: null,
   room: null,
 
   renderer: null,
@@ -30,7 +35,6 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
   secondaryController: null,
 
   labeler: null,
-  vrEnvironment: null,
 
   colorList: null,
   colorListApp: null,
@@ -65,13 +69,10 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
   selector: null,
 
   boundApps: null,
-  environmentOffset: null,
 
   highlightingColor: "rgb(255,0,0)",
 
   listeners: null, // Maps listener strings to functions, save listeners to be able to remove them later on
-
-  menus: service(),
 
   // Init handlers for interaction with landscape and applications
   initHandlers() {
@@ -114,38 +115,38 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
           this.get('user').position.z -= mvDst;
           break;
         case 'w':
-          this.get('vrEnvironment').position.z -= mvDst;
-          this.get('environmentOffset').z -= mvDst;
-          this.updateObjectMatrix(this.get('vrEnvironment'));
+          this.get('world.vrEnvironment').position.z -= mvDst;
+          this.get('world.environmentOffset').z -= mvDst;
+          this.updateObjectMatrix(this.get('world.vrEnvironment'));
           this.trigger('landscapeMoved', new THREE.Vector3(0, 0, -mvDst));
           break;
         case 'a':
-          this.get('vrEnvironment').position.x -= mvDst;
-          this.get('environmentOffset').x -= mvDst;
-          this.updateObjectMatrix(this.get('vrEnvironment'));
+          this.get('world.vrEnvironment').position.x -= mvDst;
+          this.get('world.environmentOffset').x -= mvDst;
+          this.updateObjectMatrix(this.get('world.vrEnvironment'));
           this.trigger('landscapeMoved', new THREE.Vector3(0, 0, -mvDst));
           break;
         case 's':
-          this.get('vrEnvironment').position.z += mvDst;
-          this.get('environmentOffset').z += mvDst;
-          this.updateObjectMatrix(this.get('vrEnvironment'));
+          this.get('world.vrEnvironment').position.z += mvDst;
+          this.get('world.environmentOffset').z += mvDst;
+          this.updateObjectMatrix(this.get('world.vrEnvironment'));
           this.trigger('landscapeMoved', new THREE.Vector3(0, 0, mvDst));
           break;
         case 'd':
-          this.get('vrEnvironment').position.x += mvDst;
-          this.get('environmentOffset').x += mvDst;
-          this.updateObjectMatrix(this.get('vrEnvironment'));
+          this.get('world.vrEnvironment').position.x += mvDst;
+          this.get('world.environmentOffset').x += mvDst;
+          this.updateObjectMatrix(this.get('world.vrEnvironment'));
           this.trigger('landscapeMoved', new THREE.Vector3(0, 0, mvDst));
           break;
         case 'q':
-          this.get('vrEnvironment').rotation.x -= mvDst;
-          this.updateObjectMatrix(this.get('vrEnvironment'));
+          this.get('world.vrEnvironment').rotation.x -= mvDst;
+          this.updateObjectMatrix(this.get('world.vrEnvironment'));
           this.trigger('centerVREnvironment');
           this.trigger('landscapeMoved', new THREE.Vector3(0, 0, 0)); //no position change, only quaternion
           break;
         case 'e':
-          this.get('vrEnvironment').rotation.x += mvDst;
-          this.updateObjectMatrix(this.get('vrEnvironment'));
+          this.get('world.vrEnvironment').rotation.x += mvDst;
+          this.updateObjectMatrix(this.get('world.vrEnvironment'));
           this.trigger('centerVREnvironment');
           this.trigger('landscapeMoved', new THREE.Vector3(0, 0, 0)); //no position change, only quaternion
           break;
@@ -567,7 +568,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       object.matrix.decompose(object.position, object.quaternion, object.scale);
 
       // Add application3D to scene
-      this.get('scene').add(object);
+      this.get('world.scene').add(object);
       // Delete stored application3D 
       controller.userData.selected = undefined;
 
@@ -1030,7 +1031,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
 
     // Calculate hit object
     const intersectedViewObj = this.get('raycaster').raycasting(null, origin,
-      this.get('camera'), this.get('raycastObjectsLandscape'));
+      this.get('currentUser.camera'), this.get('raycastObjectsLandscape'));
 
     // Check if an object is hit
     if (!intersectedViewObj) {
@@ -1146,7 +1147,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
 
     // Calculate hit object
     const intersectedViewObj = this.get('raycaster').raycasting(null, origin,
-      this.get('camera'), this.get('raycastObjectsLandscape'));
+      this.get('currentUser.camera'), this.get('raycastObjectsLandscape'));
 
     let id = 123;
 
@@ -1254,13 +1255,13 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       let distanceYInPercent = (delta.y /
         parseFloat(this.get('renderer').domElement.clientHeight)) * 10.0;
 
-      this.get('vrEnvironment').position.x += distanceXInPercent;
-      this.get('vrEnvironment').position.z += distanceYInPercent;
+      this.get('world.vrEnvironment').position.x += distanceXInPercent;
+      this.get('world.vrEnvironment').position.z += distanceYInPercent;
 
-      this.get('environmentOffset').x += distanceXInPercent;
-      this.get('environmentOffset').z += distanceYInPercent;
+      this.get('world.environmentOffset').x += distanceXInPercent;
+      this.get('world.environmentOffset').z += distanceYInPercent;
 
-      this.updateObjectMatrix(this.get('vrEnvironment'));
+      this.updateObjectMatrix(this.get('world.vrEnvironment'));
       let deltaPosition = new THREE.Vector3(distanceXInPercent, 0, distanceYInPercent);
       this.trigger('landscapeMoved', deltaPosition);
     } else if (event.button === 3) {
@@ -1268,10 +1269,10 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       let distanceYInPercent = (delta.y /
         parseFloat(this.get('renderer').domElement.clientHeight)) * 10.0;
 
-      this.get('vrEnvironment').position.y = this.get('vrEnvironment').position.y - distanceYInPercent;
-      this.get('environmentOffset').y -= distanceYInPercent;
+      this.get('world.vrEnvironment').position.y = this.get('world.vrEnvironment').position.y - distanceYInPercent;
+      this.get('world.environmentOffset').y -= distanceYInPercent;
 
-      this.updateObjectMatrix(this.get('vrEnvironment'));
+      this.updateObjectMatrix(this.get('world.vrEnvironment'));
       let deltaPosition = new THREE.Vector3(0, -distanceYInPercent, 0);
       this.trigger('landscapeMoved', deltaPosition);
     }
@@ -1300,7 +1301,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       this.get('renderer').domElement.clientHeight) * 2 + 1;
 
     const intersectedViewObj = this.get('raycaster').raycasting(null, origin,
-      this.get('camera'), this.get('raycastObjectsLandscape'));
+      this.get('currentUser.camera'), this.get('raycastObjectsLandscape'));
 
     if (intersectedViewObj) {
       // Exclude floor and delete button
@@ -1588,9 +1589,9 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
   teleportToPosition(position) {
     const cameraOffset = new THREE.Vector3();
 
-    cameraOffset.copy(this.camera.position);
+    cameraOffset.copy(this.get('currentUser.camera.position'));
     cameraOffset.y = 0;
-    this.user.position.subVectors(new THREE.Vector3(position.x, this.user.position.y, position.z), cameraOffset);
+    this.get('user.position').subVectors(new THREE.Vector3(position.x, this.get('user.position.y'), position.z), cameraOffset);
 
   },
 

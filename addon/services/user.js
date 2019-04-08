@@ -7,6 +7,9 @@ export default Service.extend({
   state: null, // Own connection status, state in {'connecting', 'connected', 'spectating'}
   color: null,
   controllersConnected: null, // Tells which controller(s) is/are connected
+  camera: null, // PerspectiveCamera
+  controller1: null, // Secondary controller
+  controller2: null, // Primary controller
   threeGroup: null, // Contains camera and controller objects
   isLefty: null,
   menus: service(),

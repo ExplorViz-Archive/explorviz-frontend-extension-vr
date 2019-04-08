@@ -5,4 +5,5 @@ export default Service.extend({
   interaction: null, //Class which handles mouse/keyboard/controller interaction
   vrEnvironment: null, // Contains vrLandscape and vrCommunications
   environmentOffset : null, // Tells how much the environment position should differ from the floor center point
+
 });
