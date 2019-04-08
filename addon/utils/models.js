@@ -28,7 +28,6 @@ function loadHMDModel() {
 function loadOculusLeftControllerModel() {
   loader.setPath('/oculus_cv1_controller/');
   loader.load('oculus_cv1_controller_left.obj', object => {
-    console.log(object)
     const obj = object;
     obj.name = "controllerTexture";
     let loader = new THREE.TextureLoader();

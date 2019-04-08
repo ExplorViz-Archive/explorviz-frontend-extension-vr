@@ -17,9 +17,6 @@ import { inject as service } from '@ember/service';
  */
 export default EmberObject.extend(Evented, AlertifyHandler, {
 
-  // TODO: delete later
-  hintMenu: null,
-
   scene: null,
   canvas: null,
   camera: null,
@@ -631,7 +628,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
           this.trigger('showApplication', emberModel, intersectedViewObj.point);
         } else if (emberModel.get('components').get('length') === 0) {
           const message = `No details available for`;
-          this.get('hintMenu').showHint(message, 3, emberModel.get('name'));
+          this.get('menus.hintMenu').showHint(message, 3, emberModel.get('name'));
           return;
         }
 
@@ -844,7 +841,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
 
         if (this.get('boundApps').has(appID)) {
           const message = 'Application is already being moved.';
-          this.get('hintMenu').showHint(message, 3);
+          this.get('menus.hintMenu').showHint(message, 3);
           return;
         }
 

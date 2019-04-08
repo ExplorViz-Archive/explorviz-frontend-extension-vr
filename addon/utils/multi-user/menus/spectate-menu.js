@@ -6,15 +6,16 @@ import { getOwner } from '@ember/application';
 export default BaseMenu.extend({
 
   store: service(),
-  spectating: service(), 
+  spectating: service(),
+  user: service(),
 
   /**
    * Creates and opens the Connect Menu.
    */
-  open(lastMenu, that) {
-    this._super(lastMenu, that);
+  open(lastMenu) {
+    this._super(lastMenu);
 
-    this.set('menu', Menu.create(getOwner(that).ownerInjection(), { name: 'spectateMenu' }));
+    this.set('menu', Menu.create(getOwner(this).ownerInjection(), { name: 'spectateMenu' }));
 
     this.get('menu').addTitle('Spectate');
     this.get('menu').addRectangle({ x: 106, y: 182 }, 304, 60, '#666666');
@@ -61,7 +62,7 @@ export default BaseMenu.extend({
             if (users.length < 1)
               return;
 
-            if (!that.get('spectating.spectatedUser')) {
+            if (!this.get('spectating.spectatedUser')) {
               this.get('spectating').activate(users[users.length - 1]);
               this.get('menu').updateText('spectating_user', users[users.length - 1]).get('name');
               return;
@@ -80,7 +81,7 @@ export default BaseMenu.extend({
               }
             }
           } else if (item.name === 'back') {
-            this.back(that);
+            this.back();
           }
         }
       } else {
@@ -89,8 +90,8 @@ export default BaseMenu.extend({
       }
     };
     this.get('menu').createMesh();
-    let controller = that.get('userIsLefty') ? 'controller2' : 'controller1'; 
-    this.get('menu').addToController(that.get(controller));
+    let controller = this.get('user.isLefty') ? this.get('user').getController2() : this.get('user').getController1(); 
+    this.get('menu').addToController(controller);
   },
 
   /**

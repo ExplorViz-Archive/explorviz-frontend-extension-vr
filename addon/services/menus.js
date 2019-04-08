@@ -8,22 +8,24 @@ import MessageBox from '../utils/multi-user/menus/message-box-menu';
 import ConnectMenu from '../utils/multi-user/menus/connect-menu';
 import HintMenu from '../utils/multi-user/menus/hint-menu';
 import AdvancedMenu from '../utils/multi-user/menus/advanced-menu';
-
-export {
-  UserListMenu,
-  OptionsMenu,
-  SpectateMenu,
-  LandscapePositionMenu,
-  CameraHeightMenu,
-  MessageBox,
-  ConnectMenu,
-  HintMenu,
-  AdvancedMenu
-}
+import { getOwner } from '@ember/application';
 
 export default Service.extend({
 
   menus: new Map(),
+
+  init() {
+    this._super(...arguments);
+    this.set('advancedMenu', AdvancedMenu.create(getOwner(this).ownerInjection()));
+    this.set('connectMenu', ConnectMenu.create(getOwner(this).ownerInjection()));
+    this.set('cameraHeightMenu', CameraHeightMenu.create(getOwner(this).ownerInjection()));
+    this.set('landscapePositionMenu', LandscapePositionMenu.create(getOwner(this).ownerInjection()));
+    this.set('spectateMenu', SpectateMenu.create(getOwner(this).ownerInjection()));
+    this.set('userListMenu', UserListMenu.create(getOwner(this).ownerInjection()));
+    this.set('hintMenu', HintMenu.create(getOwner(this).ownerInjection()));
+    this.set('messageBox', MessageBox.create(getOwner(this).ownerInjection()));
+    this.set('optionsMenu', OptionsMenu.create(getOwner(this).ownerInjection()));
+  },
 
 
 

@@ -7,8 +7,8 @@ export default EmberObject.extend({
   /**
    * Creates and opens the Connect Menu.
    */
-  open(lastMenu, that) {
-    this.close(that);
+  open(lastMenu) {
+    this.close();
     this.set('prevMenu', lastMenu);
   },
   
@@ -27,10 +27,10 @@ export default EmberObject.extend({
   /**
    * Go back to the previous menu.
    */
-  back(that) {
-    this.close(that);
+  back() {
+    this.close();
     if(this.get('prevMenu')) {
-      this.get('prevMenu').open(null, that);
+      this.get('prevMenu').open(null);
       this.set('prevMenu', null);
     }
   },

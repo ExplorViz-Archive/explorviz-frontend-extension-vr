@@ -43,8 +43,8 @@ export default Component.extend(Evented, THREEPerformance, {
   landscapeRepo: service('repos/landscape-repository'),
   renderingService: service(),
   configuration: service(),
+  world: service(),
 
-  scene: null, // Root element of Object3d's - contains all visble objects
   webglrenderer: null, // Renders the scene
   camera: null, // PerspectiveCamera
   canvas: null, // Canvas of webglrenderer
@@ -54,7 +54,6 @@ export default Component.extend(Evented, THREEPerformance, {
   user: null, //THREEGROUP containing camera and controller(s) of user
 
   raycaster: null, // Raycaster for intersection checking (used in interaction)
-  interaction: null, //Class which handles mouse/keyboard/controller interaction
   labeler: null, // For labeling landscape (-> frontend)
   labelerApp: null, // For labeling applications (-> frontend)
   imageLoader: null, // For loading images e.g. of 'world system'
@@ -65,8 +64,6 @@ export default Component.extend(Evented, THREEPerformance, {
   zeroValue: 0.0000000000000001 * 0.0000000000000001, // Tiny number e.g. to emulate a plane with depth zeroValue
 
   // VR
-  vrEnvironment: null, // Contains vrLandscape and vrCommunications
-  environmentOffset : null, // Tells how much the environment position should differ from the floor center point
   vrLandscape: null, // Contains systems and their children
   vrCommunications: null, // Contains communication between elements of landscape
   controller1: null, // Secondary controller
@@ -84,8 +81,6 @@ export default Component.extend(Evented, THREEPerformance, {
   openApps : null, // Object3d's of opened applications
   foundations: null, // Keep track of foundations (in openApps) for foundationBuilder
   boundApps: null, // Applications which other users currently move/hold
-
-  userIsLefty: false,
 
   layout: layout, // Links template to component
   
@@ -113,7 +108,7 @@ export default Component.extend(Evented, THREEPerformance, {
 
     result = filterResult(result);
 
-    this.set('interaction.raycastObjectsLandscape',  result);
+    this.set('world.interaction.raycastObjectsLandscape',  result);
 
     function filterResult(result) {
 
@@ -162,20 +157,20 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('vrCommunications').name = 'vrCommunications';
     this.get('vrCommunications').renderOrder = 1;
 
-    this.set('vrEnvironment', new THREE.Object3D());
-    this.get('vrEnvironment').name = 'landscape';
-    this.get('vrEnvironment').add(this.get('vrCommunications'));
-    this.get('vrEnvironment').add(this.get('vrLandscape'));
+    this.set('world.vrEnvironment', new THREE.Object3D());
+    this.get('world.vrEnvironment').name = 'landscape';
+    this.get('world.vrEnvironment').add(this.get('vrCommunications'));
+    this.get('world.vrEnvironment').add(this.get('vrLandscape'));
 
-    this.set('environmentOffset', new THREE.Vector3(0, 0, 0));
+    this.set('world.environmentOffset', new THREE.Vector3(0, 0, 0));
 
-    this.get('vrEnvironment').matrixAutoUpdate = false;
+    this.get('world.vrEnvironment').matrixAutoUpdate = false;
     this.get('vrLandscape').matrixAutoUpdate = false;
     this.get('vrCommunications').matrixAutoUpdate = false;
 
     // Rotate landscape by 90 degrees (radiant)
-    this.get('vrEnvironment').rotateX(-1.5707963);
-    this.get('vrEnvironment').updateMatrix();
+    this.get('world.vrEnvironment').rotateX(-1.5707963);
+    this.get('world.vrEnvironment').updateMatrix();
 
     // Remove stored applications
     this.set('landscapeRepo.latestApplication', null);
@@ -188,8 +183,8 @@ export default Component.extend(Evented, THREEPerformance, {
 
     this.set('canvas', canvas);
 
-    this.set('scene', new THREE.Scene());
-    this.set('scene.background', new THREE.Color(0xeaf4fc));
+    this.set('world.scene', new THREE.Scene());
+    this.set('world.scene.background', new THREE.Color(0xeaf4fc));
 
     this.set('camera', new THREE.PerspectiveCamera(70, width / height, 0.01, 50));
     this.get('camera').name = 'camera';
@@ -221,7 +216,7 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('controller2').name = 'controller2';
 
     this.set('user', new THREE.Group());
-    this.get('scene').add(this.get('user'));
+    this.get('world.scene').add(this.get('user'));
     this.get('user').add(this.get('camera'));
     this.get('user').add(this.get('controller1'));
     this.get('user').add(this.get('controller2'));
@@ -252,7 +247,7 @@ export default Component.extend(Evented, THREEPerformance, {
     // Add rays to controllers
     this.get('controller1').add(line1);
     this.get('controller2').add(line2);
-    this.get('scene').add(this.get('vrEnvironment'));
+    this.get('world.scene').add(this.get('world.vrEnvironment'));
 
     this.get('room').position.y -= 0.1;
     this.get('room').updateMatrix();
@@ -302,8 +297,8 @@ export default Component.extend(Evented, THREEPerformance, {
       //this.populateScene();
     };
 
-    if (!this.get('interaction')) {
-      this.set('interaction', Interaction.create(getOwner(this).ownerInjection()));
+    if (!this.get('world.interaction')) {
+      this.set('world.interaction', Interaction.create(getOwner(this).ownerInjection()));
     }
 
     if (!this.get('imageLoader')) {
@@ -362,10 +357,10 @@ export default Component.extend(Evented, THREEPerformance, {
     floorMesh.name = 'floor';
     floorMesh.userData.name = 'floor';
     this.get('room').add(floorMesh);
-    this.get('scene').add(this.get('room'));///// End floor
+    this.get('world.scene').add(this.get('room'));///// End floor
 
     // Add lights
-    this.get('scene').add( new THREE.HemisphereLight( 0x888877, 0x777788, 0.5 ) );
+    this.get('world.scene').add( new THREE.HemisphereLight( 0x888877, 0x777788, 0.5 ) );
     var light = new THREE.DirectionalLight( 0xffffff );
     light.position.set( 0, 6, 0 );
     light.castShadow = true;
@@ -374,7 +369,7 @@ export default Component.extend(Evented, THREEPerformance, {
     light.shadow.camera.right = 2;
     light.shadow.camera.left = -2;
     light.shadow.mapSize.set( 4096, 4096 );
-    this.get('scene').add( light );
+    this.get('world.scene').add( light );
 
     Models.loadModels();
 
@@ -423,13 +418,13 @@ export default Component.extend(Evented, THREEPerformance, {
 
 
     // Check raycast for intersection
-    if (this.get('interaction')) {
+    if (this.get('world.interaction')) {
       // only if no application3D binded on controller
       if (this.get('controller1').userData.selected === undefined) {
-        this.get('interaction').checkIntersectionSecondaryController();
+        this.get('world.interaction').checkIntersectionSecondaryController();
       }
       if (this.get('controller2').userData.selected === undefined) {
-        this.get('interaction').checkIntersectionPrimaryController();
+        this.get('world.interaction').checkIntersectionPrimaryController();
       }
     }
   },
@@ -483,7 +478,7 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('webglrenderer').vr.setDevice(null);
     this.get('webglrenderer').dispose();
     
-    this.set('scene', null);
+    this.set('world.scene', null);
     this.set('controller1', null);
     this.set('controller2', null);
     this.set('user', null);
@@ -501,16 +496,16 @@ export default Component.extend(Evented, THREEPerformance, {
     this.set('labeler.textLabels', {});
     this.set('labeler.textCache', []);
 
-    this.get('interaction').off('redrawScene');
-    this.get('interaction').off('centerVREnvironment');
-    this.get('interaction').off('redrawApp');
-    this.get('interaction').off('lication');
-    this.get('interaction').off('redrawAppCommunication');
-    this.get('interaction').off('removeApplication');
-    this.get('interaction').off('showTeleportArea');
-    this.get('interaction').off('removeTeleportArea');
+    this.get('world.interaction').off('redrawScene');
+    this.get('world.interaction').off('centerVREnvironment');
+    this.get('world.interaction').off('redrawApp');
+    this.get('world.interaction').off('lication');
+    this.get('world.interaction').off('redrawAppCommunication');
+    this.get('world.interaction').off('removeApplication');
+    this.get('world.interaction').off('showTeleportArea');
+    this.get('world.interaction').off('removeTeleportArea');
 
-    this.get('interaction').removeHandlers();
+    this.get('world.interaction').removeHandlers();
 
     const emberLandscape = this.get('landscapeRepo.latestLandscape');
 
@@ -612,7 +607,7 @@ export default Component.extend(Evented, THREEPerformance, {
     // Layout landscape
     applyKlayLayout(emberLandscape);
 
-    this.set('vrEnvironment.userData.model', emberLandscape);
+    this.set('world.vrEnvironment.userData.model', emberLandscape);
 
     const systems = emberLandscape.get('systems');
 
@@ -661,7 +656,7 @@ export default Component.extend(Evented, THREEPerformance, {
           requests.position.set(centerX, centerYClosed, system.get('positionZ'));
 
           // Scale requests
-          requests.scale.x = requests.scale.x / self.get('vrEnvironment').scale.x;
+          requests.scale.x = requests.scale.x / self.get('world.vrEnvironment').scale.x;
 
           landscapeMeshes.push(requests);
         }
@@ -991,13 +986,13 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('vrLandscape').updateMatrix();
 
     // Scale landscape(3D)
-    this.get('vrEnvironment').updateMatrix();
-    scaleVREnvironment(this.get('vrEnvironment'), this.get('room'));
-    this.get('vrEnvironment').updateMatrix();
+    this.get('world.vrEnvironment').updateMatrix();
+    scaleVREnvironment(this.get('world.vrEnvironment'), this.get('room'));
+    this.get('world.vrEnvironment').updateMatrix();
     
     // Center landscape(3D) on the floor 
-    this.centerVREnvironment(this.get('vrEnvironment'), this.get('room'));
-    this.get('vrEnvironment').updateMatrix();
+    this.centerVREnvironment(this.get('world.vrEnvironment'), this.get('room'));
+    this.get('world.vrEnvironment').updateMatrix();
     this.actualizeRaycastObjects();
 
 
@@ -1356,8 +1351,8 @@ export default Component.extend(Evented, THREEPerformance, {
     bboxLandscape.getCenter(centerLandscape);
 
     // Set new position of vrEnvironment
-    vrEnvironment.position.x += centerFloor.x - centerLandscape.x + this.get('environmentOffset.x');
-    vrEnvironment.position.z += centerFloor.z - centerLandscape.z + this.get('environmentOffset.z');
+    vrEnvironment.position.x += centerFloor.x - centerLandscape.x + this.get('world.environmentOffset.x');
+    vrEnvironment.position.z += centerFloor.z - centerLandscape.z + this.get('world.environmentOffset.z');
     
 
     // Check distance between floor and landscape
@@ -1370,7 +1365,7 @@ export default Component.extend(Evented, THREEPerformance, {
       vrEnvironment.position.y += bboxFloor.max.y - bboxLandscape.min.y + 0.001;
     }
 
-    vrEnvironment.position.y += this.get('environmentOffset').y;
+    vrEnvironment.position.y += this.get('world.environmentOffset').y;
   },
 
   /*
@@ -1379,17 +1374,17 @@ export default Component.extend(Evented, THREEPerformance, {
    */
   initInteraction() {
 
-    const scene = this.get('scene');
+    const scene = this.get('world.scene');
     const canvas = this.get('canvas');
     const camera = this.get('camera');
     const webglrenderer = this.get('webglrenderer');
     const raycaster = this.get('raycaster');
     const controller1 = this.get('controller1');
     const controller2 = this.get('controller2');
-    const vrEnvironment = this.get('vrEnvironment');
+    const vrEnvironment = this.get('world.vrEnvironment');
     const user = this.get('user');
 
-    let interaction = this.get('interaction');
+    let interaction = this.get('world.interaction');
 
     // Set / Bind properties for interaction
     interaction.set('scene', scene);
@@ -1407,17 +1402,17 @@ export default Component.extend(Evented, THREEPerformance, {
     interaction.set('room', this.get('room'));
     interaction.set('user', user);
     interaction.set('boundApps', this.get('boundApps'));
-    interaction.set('environmentOffset', this.get('environmentOffset'));
+    interaction.set('environmentOffset', this.get('world.environmentOffset'));
 
     // Init interaction handlers
-    this.get('interaction').initHandlers();
+    this.get('world.interaction').initHandlers();
 
     // Set listeners
-    this.get('interaction').on('redrawScene', () => { this.populateScene(); });
+    this.get('world.interaction').on('redrawScene', () => { this.populateScene(); });
 
-    this.get('interaction').on('centerVREnvironment', () => { this.centerVREnvironment(this.get('vrEnvironment'), this.get('room')); });
+    this.get('world.interaction').on('centerVREnvironment', () => { this.centerVREnvironment(this.get('world.vrEnvironment'), this.get('room')); });
 
-    this.get('interaction').on('redrawAppCommunication', () => {
+    this.get('world.interaction').on('redrawAppCommunication', () => {
       // Delete communication lines of application3D
       this.get('openApps').forEach((app) => {
         this.removeChildren(app, ['app3DCommunication']);
@@ -1431,7 +1426,7 @@ export default Component.extend(Evented, THREEPerformance, {
     });
 
     // Show teleport area
-    this.get('interaction').on('showTeleportArea', (intersectionPoint) => {
+    this.get('world.interaction').on('showTeleportArea', (intersectionPoint) => {
       if (!this.get('teleportArea')) {
         // Create teleport area
         var geometry = new THREE.RingGeometry(0.14, 0.2, 32);
@@ -1442,7 +1437,7 @@ export default Component.extend(Evented, THREEPerformance, {
         material.transparent = true;
         material.opacity = 0.4;
         this.set('teleportArea', new THREE.Mesh(geometry, material));
-        this.get('scene').add(this.get('teleportArea'));
+        this.get('world.scene').add(this.get('teleportArea'));
       }
       this.get('teleportArea').position.x = intersectionPoint.x;
       this.get('teleportArea').position.y = intersectionPoint.y + 0.005;
@@ -1450,7 +1445,7 @@ export default Component.extend(Evented, THREEPerformance, {
     });
 
     // Remove teleport area from the scene
-    this.get('interaction').on('removeTeleportArea', () => {
+    this.get('world.interaction').on('removeTeleportArea', () => {
       if (this.get('teleportArea')) {
         let trash = new THREE.Object3D();
         trash.add(this.get('teleportArea'));
@@ -1463,7 +1458,7 @@ export default Component.extend(Evented, THREEPerformance, {
      * This interaction listener is used to redraw the application3D 
      * ('opened' value of package changed) 
      */
-    this.get('interaction').on('redrawApp', (appID) => {
+    this.get('world.interaction').on('redrawApp', (appID) => {
       this.redrawApplication(appID);
     }); ///// End redraw application3D 
 
@@ -1471,7 +1466,7 @@ export default Component.extend(Evented, THREEPerformance, {
      * This interaction listener is used to create the application3D 
      * (controller button pressed or mouse doubleclick)
      */
-    this.get('interaction').on('showApplication', (emberModel, intersectionPoint) => {
+    this.get('world.interaction').on('showApplication', (emberModel, intersectionPoint) => {
       //dont allow to open the same two apps
       if (this.get('openApps').has(emberModel.id)) {
         return;
@@ -1497,7 +1492,7 @@ export default Component.extend(Evented, THREEPerformance, {
       app.position.set(newPosition.x, newPosition.y, newPosition.z);
 
       // Rotate app so that it is aligned with landscape
-      app.setRotationFromQuaternion(this.get('vrEnvironment.quaternion'));
+      app.setRotationFromQuaternion(this.get('world.vrEnvironment.quaternion'));
       app.rotateX(1.5707963267949);
       app.rotateY(1.5707963267949);
       app.updateMatrix();
@@ -1508,7 +1503,7 @@ export default Component.extend(Evented, THREEPerformance, {
      * This interaction listener is used to delete an existing application3D 
      * (controller button pressed or mouse doubleclick)
      */
-    this.get('interaction').on('removeApplication', (appID) => {
+    this.get('world.interaction').on('removeApplication', (appID) => {
 
       // Remove 3D Application if present
       if (this.get('openApps').has(appID)) {
@@ -1580,7 +1575,7 @@ export default Component.extend(Evented, THREEPerformance, {
         // remove foundation for re-rendering
         this.removeFoundation(entity.userData.model.id, this.get('store'));
         // Update application3D in interaction
-        this.get('interaction').set('openApps', null);
+        this.get('world.interaction').set('openApps', null);
         this.set('landscapeRepo.latestApplication', null);
       }
     }
@@ -1588,7 +1583,7 @@ export default Component.extend(Evented, THREEPerformance, {
     this.actualizeRaycastObjects();
 
     // Update possible objects for intersection with controller (application3D)
-    this.set('interaction.raycastObjects', this.get('scene.children'));
+    this.set('world.interaction.raycastObjects', this.get('world.scene.children'));
 
   },
 
@@ -1747,10 +1742,10 @@ export default Component.extend(Evented, THREEPerformance, {
         child.userData.appID = application.id;
       });
 
-      self.get('scene').add(self.get('openApps').get(application.id));
+      self.get('world.scene').add(self.get('openApps').get(application.id));
 
       // Setup interaction for app3D
-      self.get('interaction').set('openApps', self.get('openApps'));
+      self.get('world.interaction').set('openApps', self.get('openApps'));
     }
 
     this.actualizeRaycastObjects();
@@ -1845,7 +1840,7 @@ export default Component.extend(Evented, THREEPerformance, {
 
       // Pass highlighted mesh
       if(component.get('highlighted')){
-        self.get('interaction').set('selectedEntitysMesh', mesh);
+        self.get('world.interaction').set('selectedEntitysMesh', mesh);
       }
 
       self.get('openApps').get(appID).add(mesh);

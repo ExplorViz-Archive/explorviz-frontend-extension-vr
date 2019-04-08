@@ -1,13 +1,10 @@
 import { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
-import { getOwner } from '@ember/application';
 import THREE from 'three';
 import $ from 'jquery';
 import Models from '../utils/models';
 import Helper from '../utils/multi-user/helper';
 import VRRendering from './vr-rendering';
-import { UserListMenu, OptionsMenu, SpectateMenu, LandscapePositionMenu,
-  CameraHeightMenu, MessageBox, ConnectMenu, HintMenu, AdvancedMenu }  from '../services/menus';
 import AlertifyHandler from 'explorviz-frontend/mixins/alertify-handler';
 
 
@@ -80,7 +77,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   renderScene() {
     this.get('threexStats').update(this.get('webglrenderer'));
     this.get('stats').begin();
-    this.get('webglrenderer').render(this.get('scene'), this.get('camera'));
+    this.get('webglrenderer').render(this.get('world.scene'), this.get('camera'));
     this.get('stats').end();
   },
 
@@ -114,20 +111,6 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     this.set('currentUser.threeGroup', this.get('user'));
 
-
-    this.set('advancedMenu', AdvancedMenu.create());
-    this.set('connectMenu', ConnectMenu.create(getOwner(this).ownerInjection()));
-    this.set('cameraHeightMenu', CameraHeightMenu.create(getOwner(this).ownerInjection()));
-    this.set('landscapePositionMenu', LandscapePositionMenu.create(getOwner(this).ownerInjection()));
-    this.set('spectateMenu', SpectateMenu.create(getOwner(this).ownerInjection()));
-    this.set('userListMenu', UserListMenu.create(getOwner(this).ownerInjection()));
-    this.set('hintMenu', HintMenu.create(getOwner(this).ownerInjection()));
-    this.set('messageBox', MessageBox.create(getOwner(this).ownerInjection()));
-    
-    this.set('optionsMenu', OptionsMenu.create());
-    //TODO: delete later
-    this.set('interaction.hintMenu', this.get('hintMenu'));
-
     let host, port;
     $.getJSON('config/config_multiuser.json').then(json => {
       host = json.host;
@@ -140,16 +123,10 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       this.set('webSocket.host', host);
       this.set('webSocket.port', port);
 
-      this.get('connectMenu').open(this.get('optionsMenu'), this);
+      this.get('menus.connectMenu').open(this.get('menus.optionsMenu'));
       this.set('running', true);
       this.get('webglrenderer').setAnimationLoop(this.mainLoop.bind(this));
     });
-  },
-
-  connect() {
-    this.set('currentUser.state', 'connecting');
-    this.get('connectMenu').setState('connecting');
-    this.get('webSocket').initSocket();
   },
 
   /**
@@ -165,8 +142,8 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     // override actions to prevent users in spectator mode from interacting with landscape, apps or teleport
 
-    let old_checkIntersectionPrimaryController = this.get('interaction').checkIntersectionPrimaryController;
-    this.get('interaction').checkIntersectionPrimaryController = function() {
+    let old_checkIntersectionPrimaryController = this.get('world.interaction').checkIntersectionPrimaryController;
+    this.get('world.interaction').checkIntersectionPrimaryController = function() {
       if(self.get('currentUser.state') !== 'spectating')
         old_checkIntersectionPrimaryController.apply(this, [this.get('raycastObjectsLandscape').concat(this.get('menus').getVisibleMenuMeshesArray())]);
       else {
@@ -174,80 +151,80 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       }
     };
     
-    let old_checkIntersectionSecondaryController = this.get('interaction').checkIntersectionSecondaryController;
-    this.get('interaction').checkIntersectionSecondaryController = function() {
+    let old_checkIntersectionSecondaryController = this.get('world.interaction').checkIntersectionSecondaryController;
+    this.get('world.interaction').checkIntersectionSecondaryController = function() {
       if(self.get('currentUser.state') !== 'spectating')
         old_checkIntersectionSecondaryController.apply(this, [this.excludeLandscape().concat(this.get('menus').getVisibleMenuMeshesArray())]);
       else
         self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
     };
 
-    let old_onTriggerDownPrimaryController = this.get('interaction').onTriggerDownPrimaryController;
-    this.get('interaction').onTriggerDownPrimaryController = function(event) {
+    let old_onTriggerDownPrimaryController = this.get('world.interaction').onTriggerDownPrimaryController;
+    this.get('world.interaction').onTriggerDownPrimaryController = function(event) {
       if(self.get('currentUser.state') !== 'spectating')
         old_onTriggerDownPrimaryController.apply(this, [event, this.get('raycastObjectsLandscape').concat(this.get('menus').getVisibleMenuMeshesArray())]);
       else
         old_onTriggerDownPrimaryController.apply(this, [event, this.get('menus').getVisibleMenuMeshesArray()]);
     };
 
-    let old_onTriggerDownSecondaryController = this.get('interaction').onTriggerDownSecondaryController;
-    this.get('interaction').onTriggerDownSecondaryController = function(event) {
+    let old_onTriggerDownSecondaryController = this.get('world.interaction').onTriggerDownSecondaryController;
+    this.get('world.interaction').onTriggerDownSecondaryController = function(event) {
       if(self.get('currentUser.state') !== 'spectating')
       old_onTriggerDownSecondaryController.apply(this, [event, this.excludeLandscape().concat(this.get('menus').getVisibleMenuMeshesArray())]);
       else
         self.get('controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
     };
 
-    let old_onMenuDownSecondaryController= this.get('interaction').onMenuDownSecondaryController;
-    this.get('interaction').onMenuDownSecondaryController = function(event) {
+    let old_onMenuDownSecondaryController= this.get('world.interaction').onMenuDownSecondaryController;
+    this.get('world.interaction').onMenuDownSecondaryController = function(event) {
       self.onMenuDownSecondaryController();
       old_onMenuDownSecondaryController.apply(this, [event]);
     };
 
-    let old_onGripDownSecondaryController = this.get('interaction').onGripDownSecondaryController;
-    this.get('interaction').onGripDownSecondaryController = function(event) {
+    let old_onGripDownSecondaryController = this.get('world.interaction').onGripDownSecondaryController;
+    this.get('world.interaction').onGripDownSecondaryController = function(event) {
       self.onGripDownSecondaryController();
       old_onGripDownSecondaryController.apply(this, [event]);
     };
 
-    let old_onGripDownPrimaryController = this.get('interaction').onGripDownPrimaryController;
-    this.get('interaction').onGripDownPrimaryController = function(event) {
+    let old_onGripDownPrimaryController = this.get('world.interaction').onGripDownPrimaryController;
+    this.get('world.interaction').onGripDownPrimaryController = function(event) {
       if(self.get('currentUser.state') !== 'spectating')
         old_onGripDownPrimaryController.apply(this, [event]);
     };
 
-    let old_onGripUpSecondaryController = this.get('interaction').onGripUpSecondaryController;
-    this.get('interaction').onGripUpSecondaryController = function(event) {
+    let old_onGripUpSecondaryController = this.get('world.interaction').onGripUpSecondaryController;
+    this.get('world.interaction').onGripUpSecondaryController = function(event) {
       self.onGripUpSecondaryController();
       old_onGripUpSecondaryController.apply(this, [event]);
     };
 
     //initialize interaction events and delegate them to the corresponding functions
-    this.get('interaction').on('systemStateChanged', (id, isOpen) => {
+    this.get('world.interaction').on('systemStateChanged', (id, isOpen) => {
       this.get('sender').sendSystemUpdate(id, isOpen);
     });
-    this.get('interaction').on('nodegroupStateChanged', (id, isOpen) => {
+    this.get('world.interaction').on('nodegroupStateChanged', (id, isOpen) => {
       this.get('sender').sendNodegroupUpdate(id, isOpen);
     });
     this.on('applicationOpened', (id, app) => {
       this.get('sender').sendAppOpened(id, app);
     });
-    this.get('interaction').on('removeApplication',(appID) => {
+    this.get('world.interaction').on('removeApplication',(appID) => {
       this.get('sender').sendAppClosed(appID);
     });
-    this.get('interaction').on('appReleased',(appID, position, quaternion) => {
+    this.get('world.interaction').on('appReleased',(appID, position, quaternion) => {
       this.get('sender').sendAppReleased(appID, position, quaternion);
     });
-    this.get('interaction').on('appBinded',(appID, appPosition, appQuaternion, isBoundToSecondaryController, controllerPosition, controllerQuaternion) => {
+    this.get('world.interaction').on('appBinded',(appID, appPosition, appQuaternion, isBoundToSecondaryController, controllerPosition, controllerQuaternion) => {
       this.get('sender').sendAppBinded(appID, appPosition, appQuaternion, isBoundToSecondaryController, controllerPosition, controllerQuaternion);
     });
-    this.get('interaction').on('componentUpdate', (appID , componentID, isOpened, isFoundation) => {
+    this.get('world.interaction').on('componentUpdate', (appID , componentID, isOpened, isFoundation) => {
       this.get('sender').sendComponentUpdate(appID, componentID, isOpened, isFoundation);
     });
-    this.get('interaction').on('landscapeMoved', (deltaPosition) => {
-      this.get('sender').sendLandscapeUpdate(deltaPosition, this.get('vrEnvironment'), this.get('environmentOffset'));
+    this.get('world.interaction').on('landscapeMoved', (deltaPosition) => {
+      this.get('sender').sendLandscapeUpdate(deltaPosition, this.get('world.vrEnvironment'), this.get('world.environmentOffset'));
     });
-    this.get('interaction').on('entityHighlighted', (isHighlighted, appID, entityID, color) => {
+    this.get('world.interaction').on('entityHighlighted', (isHighlighted, appID, entityID, color) => {
       this.get('sender').sendHighlightingUpdate(this.get('currentUser.userID'), isHighlighted, appID, entityID, color);
     });
   },
@@ -259,23 +236,23 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     // Open options menu if no other menu is open
     // Else closes current menu or goes back one menu if possible.
     if (this.get('currentUser.state') !== 'spectating') {
-      if (this.get('optionsMenu').isOpen())
-        this.get('optionsMenu').close();
-      else if (this.get('cameraHeightMenu').isOpen())
-        this.get('cameraHeightMenu').back(this);
-      else if (this.get('landscapePositionMenu').isOpen())
-        this.get('landscapePositionMenu').back(this);
-      else if (this.get('spectateMenu').isOpen())
-        this.get('spectateMenu').back(this);
-      else if (this.get('connectMenu').isOpen())
-        this.get('connectMenu').back(this);
-      else if (this.get('advancedMenu').isOpen())
-        this.get('advancedMenu').back(this);
+      if (this.get('menus.optionsMenu').isOpen())
+        this.get('menus.optionsMenu').close();
+      else if (this.get('menus.cameraHeightMenu').isOpen())
+        this.get('menus.cameraHeightMenu').back();
+      else if (this.get('menus.landscapePositionMenu').isOpen())
+        this.get('menus.landscapePositionMenu').back();
+      else if (this.get('menus.spectateMenu').isOpen())
+        this.get('menus.spectateMenu').back();
+      else if (this.get('menus.connectMenu').isOpen())
+        this.get('menus.connectMenu').back();
+      else if (this.get('menus.advancedMenu').isOpen())
+        this.get('menus.advancedMenu').back();
       else
-        this.get('optionsMenu').open(null, this);
+        this.get('menus.optionsMenu').open(null);
     } else {
       this.get('spectating').deactivate();
-      this.get('spectateMenu').back(this);
+      this.get('menus.spectateMenu').back();
     }
   },
 
@@ -285,9 +262,9 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
    */
   onGripDownSecondaryController() {
     if(this.get('currentUser.state') === 'connected' || this.get('currentUser.state') === 'spectating')
-      this.get('userListMenu').open();
+      this.get('menus.userListMenu').open();
     else
-      this.get('hintMenu').showHint('Cannot open the user list when offline!', 3);
+      this.get('menus.hintMenu').showHint('Cannot open the user list when offline!', 3);
   },
 
   /**
@@ -295,7 +272,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
    * Closes user list menu
    */
   onGripUpSecondaryController() {
-    this.get('userListMenu').close();
+    this.get('menus.userListMenu').close();
   },
 
   /**
@@ -387,40 +364,14 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     }
   },
 
-  /**
-   * Switch to offline mode, close socket connection
-   */
-  disconnect() {
-    // Set own state to offline
-    this.set('currentUser.state', 'offline');
-    this.get('connectMenu').setState('offline');
-    
-    // Remove other users and their corresponding models and name tags
-    let users = this.get('store').peekAll('vr-user');
-    users.forEach( (user) => {
-      this.get('scene').remove(user.get('controller1.model'));
-      user.removeController1();
-      this.get('scene').remove(user.get('controller2.model'));
-      user.removeController2();
-      this.get('scene').remove(user.get('camera.model'));
-      user.removeCamera();
-      this.get('scene').remove(user.get('namePlane'));
-      user.removeNamePlane();
-      this.get('store').unloadRecord(user);
-    });
-
-    // Close socket
-    this.get('webSocket').closeSocket();
-  },
-
   initListeners() {
     const socket = this.get('webSocket');
 
     socket.on('connection_closed', () => {
       if (this.get('currentUser.state') === 'connecting') {
-        this.get('hintMenu').showHint('Could not establish connection', 3);
+        this.get('menus.hintMenu').showHint('Could not establish connection', 3);
       }
-      this.disconnect();
+      this.get('connection').disconnect();
     });
 
     socket.on('receive_self_connecting', (data) => { this.onSelfConnecting(data); });
@@ -442,7 +393,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     socket.on('receive_app_released', ({ id, position, quaternion }) => {
       this.get('boundApps').delete(id);
       this.updateAppPosition(id, position, quaternion);
-      this.get('scene').add(this.get('openApps').get(id));
+      this.get('world.scene').add(this.get('openApps').get(id));
     });
     socket.on('receive_component_update', ({ isFoundation, appID, componentID, isOpened }) => {
       if (isFoundation) {
@@ -474,7 +425,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     let name = this.get('session.session.content.authenticated.user.username') || 'ID: ' + data.id;
     this.set('currentUser.userID', data.id);
     this.set('currentUser.color', data.color);
-    this.get('interaction').set('highlightingColor', Helper.colorToString(data.color));
+    this.get('world.interaction').set('highlightingColor', Helper.colorToString(data.color));
 
     let JSONObj = {
       "event": "receive_connect_request",
@@ -509,22 +460,22 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       user.initCamera(Models.getHMDModel());
 
       // Add models for other users
-      this.get('scene').add(user.get('camera.model'));
+      this.get('world.scene').add(user.get('camera.model'));
 
       // Set name for user on top of his hmd 
       this.addUsername(userData.id);
     }
     this.set('currentUser.state', 'connected');
-    this.get('connectMenu').setState('connected');
+    this.get('menus.connectMenu').setState('connected');
     this.set('currentUser.controllersConnected', { controller1: false, controller2: false });
 
     // Remove any open apps which may still exist from offline mode
     this.removeOpenApps();
 
     // Reset landscape position
-    this.set('environmentOffset', new THREE.Vector3(0, 0, 0));
-    this.get('vrEnvironment').rotation.x =  -1.5708;
-    this.updateObjectMatrix(this.get('vrEnvironment'));
+    this.set('world.environmentOffset', new THREE.Vector3(0, 0, 0));
+    this.get('world.vrEnvironment').rotation.x =  -1.5708;
+    this.updateObjectMatrix(this.get('world.vrEnvironment'));
   },
 
   /**
@@ -541,7 +492,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     user.initController1(controllerName, this.getControllerModelByName(controllerName));
 
-    this.get('scene').add(user.get('controller1.model'));
+    this.get('world.scene').add(user.get('controller1.model'));
     this.addLineToControllerModel(user.get('controller1'), user.get('color'));
   },
 
@@ -559,7 +510,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     user.initController2(controllerName, this.getControllerModelByName(controllerName));
 
-    this.get('scene').add(user.get('controller2.model'));
+    this.get('world.scene').add(user.get('controller2.model'));
     this.addLineToControllerModel(user.get('controller2'), user.get('color'));
   },
 
@@ -593,7 +544,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     user.initCamera(Models.getHMDModel());
 
     //add model for new user
-    this.get('scene').add(user.get('camera.model'));
+    this.get('world.scene').add(user.get('camera.model'));
 
     this.addUsername(data.user.id);
 
@@ -622,15 +573,15 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       this.onHighlightingUpdate(id, false, user.highlightedEntity.appID, user.highlightedEntity.entityID, user.highlightedEntity.originalColor);
 
       // remove user's models
-      this.get('scene').remove(user.get('controller1.model'));
+      this.get('world.scene').remove(user.get('controller1.model'));
       user.removeController1();
-      this.get('scene').remove(user.get('controller2.model'));
+      this.get('world.scene').remove(user.get('controller2.model'));
       user.removeController2();
-      this.get('scene').remove(user.get('camera.model'));
+      this.get('world.scene').remove(user.get('camera.model'));
       user.removeCamera();
 
       // remove user's name tag
-      this.get('scene').remove(user.get('namePlane'));
+      this.get('world.scene').remove(user.get('namePlane'));
       user.removeNamePlane();
 
       // show disconnect notification
@@ -683,10 +634,10 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       for (let i = 0; i < disconnect.length; i++) {
         const controller = disconnect[i];
         if(controller === 'controller1') {
-          this.get('scene').remove(user.get('controller1.model'));
+          this.get('world.scene').remove(user.get('controller1.model'));
           user.removeController1();
         } else if(controller === 'controller2') {
-          this.get('scene').remove(user.get('controller2.model'));
+          this.get('world.scene').remove(user.get('controller2.model'));
           user.removeController2();
         }
       }
@@ -708,7 +659,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     });
     
     if(data.hasOwnProperty('landscape')){
-      this.set('environmentOffset', new THREE.Vector3(0, 0, 0));
+      this.set('world.environmentOffset', new THREE.Vector3(0, 0, 0));
       let position = data.landscape.position;
       let quaternion = data.landscape.quaternion;
       this.onLandscapePosition(position, quaternion);
@@ -716,19 +667,19 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   },
 
   onLandscapePosition(deltaPosition, quaternion){
-    this.get('environmentOffset').x += deltaPosition[0];
-    this.get('environmentOffset').y += deltaPosition[1];
-    this.get('environmentOffset').z += deltaPosition[2];
+    this.get('world.environmentOffset').x += deltaPosition[0];
+    this.get('world.environmentOffset').y += deltaPosition[1];
+    this.get('world.environmentOffset').z += deltaPosition[2];
 
-    this.get('vrEnvironment').position.x += deltaPosition[0];
-    this.get('vrEnvironment').position.y += deltaPosition[1];
-    this.get('vrEnvironment').position.z += deltaPosition[2];
+    this.get('world.vrEnvironment').position.x += deltaPosition[0];
+    this.get('world.vrEnvironment').position.y += deltaPosition[1];
+    this.get('world.vrEnvironment').position.z += deltaPosition[2];
 
-    this.get('vrEnvironment').quaternion.fromArray(quaternion);
+    this.get('world.vrEnvironment').quaternion.fromArray(quaternion);
 
-    this.updateObjectMatrix(this.get('vrEnvironment'));
-    this.centerVREnvironment(this.get('vrEnvironment'), this.get('room'));
-    this.updateObjectMatrix(this.get('vrEnvironment'));
+    this.updateObjectMatrix(this.get('world.vrEnvironment'));
+    this.centerVREnvironment(this.get('world.vrEnvironment'), this.get('room'));
+    this.updateObjectMatrix(this.get('world.vrEnvironment'));
   },
 
   onLandscapeUpdate(id, isOpen){
@@ -830,12 +781,12 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     // Find component/clazz which shall be highlighted
     app.children.forEach( child => {
       if (child.userData.model && child.userData.model.id === entityID){
-        if(this.get('interaction.selectedEntitysMesh') === child && !isHighlighted){
+        if(this.get('world.interaction.selectedEntitysMesh') === child && !isHighlighted){
           return;
         }
 
-        if(this.get('interaction.selectedEntitysMesh') === child){
-          this.get('interaction').set('selectedEntitysMesh', null);
+        if(this.get('world.interaction.selectedEntitysMesh') === child){
+          this.get('world.interaction').set('selectedEntitysMesh', null);
         }
 
         if (isHighlighted){
@@ -928,7 +879,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     // Username moves with user
     camera.add(dummy);
-    this.get('scene').add(plane);
+    this.get('world.scene').add(plane);
   },
 
   setEntityState(id, isOpen) {
@@ -987,57 +938,6 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     this.get('openApps').get(emberModel.id).updateMatrix();
   },
 
-  /**
-   * Moves landscape in all three directions.
-   * 
-   * @param {{x: number, y: number, z: number}} delta - The amounts to move the landscape by.
-   */
-  moveLandscape(delta) {
-    this.get('environmentOffset').x += delta.x;
-    this.get('environmentOffset').y += delta.y;
-    this.get('environmentOffset').z += delta.z;
-
-    this.get('vrEnvironment').position.x += delta.x;
-    this.get('vrEnvironment').position.y += delta.y;
-    this.get('vrEnvironment').position.z += delta.z;
-    this.updateObjectMatrix(this.get('vrEnvironment'));
-
-    let deltaPosition = new THREE.Vector3(delta.x, delta.y, delta.z);
-    this.get('interaction').trigger('landscapeMoved', deltaPosition);
-  },
-
-  /**
-   * Moves landscape in all three directions.
-   */
-  rotateLandscape(delta) {
-    // Apply rotattion
-    this.get('vrEnvironment').rotation.x += delta.x;
-    this.get('vrEnvironment').rotation.y += delta.y;
-    this.get('vrEnvironment').rotation.z += delta.z;
-    this.updateObjectMatrix(this.get('vrEnvironment'));
-
-    // Synchronize rotation with other users
-    this.get('interaction').trigger('centerVREnvironment');
-    this.get('interaction').trigger('landscapeMoved', new THREE.Vector3(0, 0, 0));
-  },
-
-  switchHand() {
-    this.get('menus').removeAll();
-    let oldMenuController = this.get('userIsLefty') ? this.get('controller2') : this.get('controller1');
-    let oldOtherController = this.get('userIsLefty') ? this.get('controller1') : this.get('controller2');
-    if (oldMenuController.getObjectByName('textBox')) {
-      oldMenuController.remove(oldMenuController.getObjectByName('textBox'));
-    }
-    this.set('userIsLefty', !this.get('userIsLefty'));
-    this.get('interaction').removeControllerHandlers();
-    this.set('interaction.primaryController', oldMenuController);
-    this.set('interaction.secondaryController', oldOtherController);
-    this.get('interaction').addControllerHandlers();
-    oldMenuController.getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,204,51)');
-    oldOtherController.getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,0,0)');
-    this.get('advancedMenu').open(this.get('optionsMenu'), this);
-  },
-
   sendControllerUpdate() {
     let disconnect = [];
     let connect = {};
@@ -1094,7 +994,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     this._super(...arguments);
 
     this.set('running', false);
-    this.disconnect();
+    this.get('connection').disconnect();
     this.set('currentUser.userID', null);
     this.set('currentUser.state', null);
     this.set('currentUser.controllersConnected', null);

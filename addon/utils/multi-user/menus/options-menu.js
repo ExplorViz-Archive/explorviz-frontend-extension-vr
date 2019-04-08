@@ -1,16 +1,19 @@
 import BaseMenu from './menu-base';
 import Menu from '../menu';
 import { getOwner } from '@ember/application';
+import { inject as service } from '@ember/service';
 
 export default BaseMenu.extend({
-  
+  user: service(),
+  menus: service(),
+
   /**
    * Creates and opens the Connect Menu.
    */
-  open(lastMenu, that) {
-    this._super(lastMenu, that);
+  open(lastMenu) {
+    this._super(lastMenu);
 
-    this.set('menu', Menu.create(getOwner(that).ownerInjection(), { name: 'optionsMenu' }));
+    this.set('menu', Menu.create(getOwner(this).ownerInjection(), { name: 'optionsMenu' }));
 
     this.get('menu').addTitle('Options');
     this.get('menu').addTextButton('Change Camera', 'change_height', { x: 100, y: 80 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
@@ -31,19 +34,19 @@ export default BaseMenu.extend({
             this.close();
           } else if (item.name === 'change_height') {
             this.close();
-            that.get('cameraHeightMenu').open(this, that);
+            this.get('menus.cameraHeightMenu').open(this);
           } else if (item.name === 'change_landscape_position') {
             this.close();
-            that.get('landscapePositionMenu').open(this, that);
+            this.get('menus.landscapePositionMenu').open(this);
           } else if (item.name === 'spectate') {
             this.close();
-            that.get('spectateMenu').open(this, that);
+            this.get('menus.spectateMenu').open(this);
           } else if (item.name === 'connection') {
             this.close();
-            that.get('connectMenu').open(this, that);
+            this.get('menus.connectMenu').open(this);
           } else if (item.name === 'advanced') {
             this.close();
-            that.get('advancedMenu').open(this, that);
+            this.get('menus.advancedMenu').open(this);
           }
         }
       } else {
@@ -54,11 +57,11 @@ export default BaseMenu.extend({
   
     this.get('menu').createMesh();
   
-    let controller = that.get('userIsLefty') ? 'controller2' : 'controller1'; 
-    this.get('menu').addToController(that.get(controller));
+    let controller = this.get('user.isLefty') ? this.get('user').getController2() : this.get('user').getController1(); 
+    this.get('menu').addToController(controller);
   
     // hide spectate menu item if user isn't connected the server
-    if (that.get('user.state') === 'offline' || that.get('user.state') === 'connecting') {
+    if (this.get('user.state') === 'offline' || this.get('user.state') === 'connecting') {
       this.get('menu').setClickable('spectate', false);
       this.get('menu').setColor('spectate', '#A8A8A8');
     }
