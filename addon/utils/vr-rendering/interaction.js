@@ -69,8 +69,14 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
 
   boundApps: null,
   environmentOffset: null,
+  highlightingColor: null,
 
   listeners: null, // Maps listener strings to functions, save listeners to be able to remove them later on
+
+  init() {
+    this._super(...arguments);
+    this.set('highlightingColor', this.get('configuration.applicationColors.highlightedEntity'));
+  },
 
   // Init handlers for interaction with landscape and applications
   initHandlers() {
@@ -653,8 +659,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
         this.get('selector').highlightAppCommunication(this.get('appCommunicationHighlighted'), this.get('highlightedAppModel'));
         this.trigger('redrawAppCommunication');
 
-        let highlightingColor = this.get('configuration.applicationColors.highlightedEntity');
-        let color = new THREE.Color(highlightingColor);
+        let color = new THREE.Color(this.get('highlightingColor'));
         this.get('selectedEntitysMesh').material.color = color;
       }
       // Open selected component
@@ -768,8 +773,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
         this.trigger("entityHighlighted", true, appID, emberModel.id, this.get('selectedEntitysColor'));
 
         // Set new color
-        let highlightingColor = this.get('configuration.applicationColors.highlightedEntity');
-        let color = new THREE.Color(highlightingColor);
+        let color = new THREE.Color(this.get('highlightingColor'));
         intersectedViewObj.object.material.color = color;
         // Highlight communication lines
         this.get('appCommunicationHighlighted').set('highlighted', true);
@@ -1089,8 +1093,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
         this.get('selector').highlightAppCommunication(this.get('appCommunicationHighlighted'), this.get('highlightedAppModel'));
         this.trigger('redrawAppCommunication');
 
-        let highlightingColor = this.get('configuration.applicationColors.highlightedEntity');
-        let color = new THREE.Color(highlightingColor);
+        let color = new THREE.Color(this.get('highlightingColor'));
         this.get('selectedEntitysMesh').material.color = color;
       }
       // Open selected component
@@ -1194,8 +1197,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
           this.saveSelectedEntity(intersectedViewObj, emberModel);
 
           this.trigger('entityHighlighted', true, appID, emberModel.id, this.get('selectedEntitysColor'));
-          let highlightingColor = this.get('configuration.applicationColors.highlightedEntity');
-          let color = new THREE.Color(highlightingColor);
+          let color = new THREE.Color(this.get('highlightingColor'));
           intersectedViewObj.object.material.color = color;
           this.get('appCommunicationHighlighted').set('highlighted', true);
 
