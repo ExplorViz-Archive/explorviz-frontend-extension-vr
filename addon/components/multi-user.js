@@ -546,7 +546,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     this.addUsername(data.user.id);
 
     // Show connect notification
-    this.get('messageBox').enqueueMessage({title: 'User connected', text: user.get('name'), color: Helper.rgbToHex(user.get('color'))}, 3000);
+    this.get('menus.messageBox').enqueueMessage({title: 'User connected', text: user.get('name'), color: Helper.rgbToHex(user.get('color'))}, 3000);
   },
 
   /**
@@ -582,7 +582,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       user.removeNamePlane();
 
       // Show disconnect notification
-      this.get('messageBox').enqueueMessage({ title: 'User disconnected', text: user.get('name'), color: Helper.rgbToHex(user.get('color')) }, 3000);
+      this.get('menus.messageBox').enqueueMessage({ title: 'User disconnected', text: user.get('name'), color: Helper.rgbToHex(user.get('color')) }, 3000);
       this.get('store').unloadRecord(user);
     }
   },
@@ -675,7 +675,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     this.get('world.vrEnvironment').quaternion.fromArray(quaternion);
 
     this.updateObjectMatrix(this.get('world.vrEnvironment'));
-    this.centerVREnvironment(this.get('world.vrEnvironment'), this.get('room'));
+    this.get('world').centerVREnvironment();
     this.updateObjectMatrix(this.get('world.vrEnvironment'));
   },
 
@@ -738,12 +738,12 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       if(this.get('currentUser.state') === 'spectating' && this.get('spectatedUser') === userID) {
         this.get('spectating').deactivate();
       } else {
-        this.get('messageBox').enqueueMessage({ title: user.get('name'), text: 'is now spectating'}, 2000);
+        this.get('menus.messageBox').enqueueMessage({ title: user.get('name'), text: 'is now spectating'}, 2000);
       }
     } else {
       user.set('currentUser.state', 'connected');
       user.setVisible(true);
-      this.get('messageBox').enqueueMessage({ title: user.get('name'), text: 'is no longer spectating'}, 2000);
+      this.get('menus.messageBox').enqueueMessage({ title: user.get('name'), text: 'is no longer spectating'}, 2000);
     }
   },
 

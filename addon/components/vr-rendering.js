@@ -940,7 +940,7 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('world.vrEnvironment').updateMatrix();
 
     // Center landscape(3D) on the floor 
-    this.centerVREnvironment(this.get('world.vrEnvironment'), this.get('room'));
+    this.get('world').centerVREnvironment();
     this.get('world.vrEnvironment').updateMatrix();
     this.actualizeRaycastObjects();
 
@@ -1261,44 +1261,6 @@ export default Component.extend(Evented, THREEPerformance, {
   },
   //////////// END populateScene
 
-  /* 
-   *  This function is used to center the landscape(3D) on the floor.
-   *  The object3D which contains the landscape(3D) and communication
-   *  is centered relative to the floor.
-   */
-  centerVREnvironment(vrEnvironment, floor) {
-    // Compute bounding box of the floor
-    const bboxFloor = new THREE.Box3().setFromObject(floor);
-
-    // Calculate center of the floor 
-    const centerFloor = new THREE.Vector3();
-    bboxFloor.getCenter(centerFloor);
-
-    // Compute bounding box of the vrEnvironment
-    const bboxLandscape = new THREE.Box3().setFromObject(vrEnvironment);
-
-    // Calculate center of the landscape(3D) (vrEnvironment) 
-    const centerLandscape = new THREE.Vector3();
-    bboxLandscape.getCenter(centerLandscape);
-
-    // Set new position of vrEnvironment
-    vrEnvironment.position.x += centerFloor.x - centerLandscape.x + this.get('world.environmentOffset.x');
-    vrEnvironment.position.z += centerFloor.z - centerLandscape.z + this.get('world.environmentOffset.z');
-
-
-    // Check distance between floor and landscape
-    if (bboxLandscape.min.y > bboxFloor.max.y) {
-      vrEnvironment.position.y += bboxFloor.max.y - bboxLandscape.min.y + 0.001;
-    }
-
-    // Check if landscape is underneath the floor
-    if (bboxLandscape.min.y < bboxFloor.min.y) {
-      vrEnvironment.position.y += bboxFloor.max.y - bboxLandscape.min.y + 0.001;
-    }
-
-    vrEnvironment.position.y += this.get('world.environmentOffset').y;
-  },
-
   /*
    *  This method is used to setup the landscape(3D) interaction 
    *  and listen for events triggered in interaction
@@ -1331,7 +1293,7 @@ export default Component.extend(Evented, THREEPerformance, {
     // Set listeners
     this.get('world.interaction').on('redrawScene', () => { this.populateScene(); });
 
-    this.get('world.interaction').on('centerVREnvironment', () => { this.centerVREnvironment(this.get('world.vrEnvironment'), this.get('room')); });
+    this.get('world.interaction').on('centerVREnvironment', () => { this.get('world').centerVREnvironment(); });
 
     this.get('world.interaction').on('redrawAppCommunication', () => {
       // Delete communication lines of application3D

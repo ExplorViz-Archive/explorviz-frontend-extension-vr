@@ -37,6 +37,8 @@ export default BaseMenu.extend({
     // add back button
     this.get('menu').addTextButton('Back', 'back', { x: 100, y: 402 }, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
 
+    this.get('menu').addTextButton('Reset', 'reset_landscape', { x: 420, y: 13 }, 65, 40, 22, '#aaaaaa', '#ffffff', '#dc3b00', true);
+
     let triggerController = this.get('user.primaryController');
   
     this.get('menu').interact = (action, position) => {
@@ -48,7 +50,9 @@ export default BaseMenu.extend({
         if (action === 'rightTriggerDown') {
           if (item.name === 'back') {
             this.back();
-          } else {
+          } else if(item.name === 'reset_landscape') {
+            this.get('world').resetLandscape();
+          }  else {
             item.isActivated = true;
           }
         }
