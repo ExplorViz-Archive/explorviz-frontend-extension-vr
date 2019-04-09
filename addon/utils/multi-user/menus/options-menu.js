@@ -4,7 +4,6 @@ import { getOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
 
 export default BaseMenu.extend({
-  user: service(),
   menus: service(),
 
   /**
@@ -56,9 +55,7 @@ export default BaseMenu.extend({
     };
   
     this.get('menu').createMesh();
-  
-    let controller = this.get('user.secondaryController'); 
-    this.get('menu').addToController(controller);
+    this.addToSecondaryController();
   
     // hide spectate menu item if user isn't connected the server
     if (this.get('user.state') === 'offline' || this.get('user.state') === 'connecting') {

@@ -464,7 +464,6 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       this.addUsername(userData.id);
     }
     this.set('currentUser.state', 'connected');
-    this.get('menus.connectMenu').setState('connected');
     this.set('currentUser.controllersConnected', { controller1: false, controller2: false });
 
     // Remove any open apps which may still exist from offline mode

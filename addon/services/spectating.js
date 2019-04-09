@@ -73,7 +73,6 @@ export default Service.extend({
     spectatedUser.set('camera.model.visible', true);
     spectatedUser.set('namePlane.visible', true);
     this.set('currentUser.state', 'connected');
-    // this.get('connectMenu').setState('connected');
     this.set('spectatedUser', null);
 
     // this.get('spectateMenu').updateText('spectating_user', 'Spectating off');

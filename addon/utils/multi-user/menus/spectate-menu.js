@@ -7,7 +7,6 @@ export default BaseMenu.extend({
 
   store: service(),
   spectating: service(),
-  user: service(),
 
   /**
    * Creates and opens the Connect Menu.
@@ -90,8 +89,7 @@ export default BaseMenu.extend({
       }
     };
     this.get('menu').createMesh();
-    let controller = this.get('user.secondaryController'); 
-    this.get('menu').addToController(controller);
+    this.addToSecondaryController();
   },
 
   /**

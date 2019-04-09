@@ -6,7 +6,6 @@ import THREE from 'three';
 
 export default BaseMenu.extend({
   time: service(),
-  currentUser: service('user'),
   world: service(),
   
   /**
@@ -38,8 +37,7 @@ export default BaseMenu.extend({
     // add back button
     this.get('menu').addTextButton('Back', 'back', { x: 100, y: 402 }, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
 
-    let triggerController = this.get('currentUser.primaryController');
-    let menuController = this.get('currentUser.secondaryController'); 
+    let triggerController = this.get('user.primaryController');
   
     this.get('menu').interact = (action, position) => {
       let item = this.get('menu').getItem(position);
@@ -84,7 +82,7 @@ export default BaseMenu.extend({
     };
     this.get('menu').createMesh();
   
-    this.get('menu').addToController(menuController);
+    this.addToSecondaryController();
   },
 
   /**

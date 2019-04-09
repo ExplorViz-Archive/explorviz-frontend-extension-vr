@@ -1,11 +1,8 @@
 import BaseMenu from './menu-base';
 import Menu from '../menu';
 import { getOwner } from '@ember/application';
-import { inject as service } from '@ember/service';
 
 export default BaseMenu.extend({
-  
-  currentUser: service('user'),
   /**
    * Creates and opens the Connect Menu.
    */
@@ -16,10 +13,8 @@ export default BaseMenu.extend({
     
     this.get('menu').addTitle('Advanced Options');
     this.get('menu').addText('Lefty Mode', 'isLeftyText', 28, { x: 100, y: 148 }, '#FFFFFF', 'left', false);
-    this.get('menu').addCheckbox("isLefty", { x: 366, y: 126 }, 50, 50, '#ffc338', '#ffffff', '#00e5ff', true, this.get('currentUser.isLefty'));
+    this.get('menu').addCheckbox("isLefty", { x: 366, y: 126 }, 50, 50, '#ffc338', '#ffffff', '#00e5ff', true, this.get('user.isLefty'));
     this.get('menu').addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
-  
-    let controller = this.get('currentUser.secondaryController'); 
   
     this.get('menu').interact = (action, position) => {
       let item = this.get('menu').getItem(position);
@@ -30,7 +25,7 @@ export default BaseMenu.extend({
         if (action === 'rightTriggerDown') {
           if (item.name === 'isLefty') {
             this.close();
-            this.get('currentUser').switchHand();
+            this.get('user').switchHand();
           } else if (item.name === 'back') {
             this.back();
           }
@@ -41,6 +36,6 @@ export default BaseMenu.extend({
       }
     };
     this.get('menu').createMesh();
-    this.get('menu').addToController(controller);
+    this.addToSecondaryController();
   }
 });

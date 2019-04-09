@@ -10,7 +10,6 @@ export default Service.extend({
 
   connect() {
     this.set('currentUser.state', 'connecting');
-    this.get('menus.connectMenu').setState('connecting');
     this.get('webSocket').initSocket();
   },
 
@@ -20,7 +19,6 @@ export default Service.extend({
   disconnect() {
     // Set own state to offline
     this.set('currentUser.state', 'offline');
-    this.get('menus.connectMenu').setState('offline');
     
     // Remove other users and their corresponding models and name tags
     let users = this.get('store').peekAll('vr-user');

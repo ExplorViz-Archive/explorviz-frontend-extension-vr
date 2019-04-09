@@ -2,11 +2,14 @@ import BaseMenu from './menu-base';
 import Menu from '../menu';
 import { inject as service } from '@ember/service';
 import { getOwner } from '@ember/application';
+import { observer } from '@ember/object';
 
 export default BaseMenu.extend({
   
-  user: service(),
   connection: service(),
+  userStateChanged: observer('user.state', function() {
+    this._setState(this.get('user.state'));
+  }),
 
   /**
    * Creates and opens the Connect Menu.
@@ -47,10 +50,8 @@ export default BaseMenu.extend({
       }
     };
     this.get('menu').createMesh();
-    let controller = this.get('user.secondaryController');
-    this.get('menu').addToController(controller);
-  
-    this.setState(this.get('user.state'));
+    this.addToSecondaryController();
+    this._setState(this.get('user.state'));
   },
 
   /**
@@ -65,8 +66,8 @@ export default BaseMenu.extend({
     if(menu)
       menu.updateText(itemName, text);
   },
-  
-  setState(state) {
+
+  _setState(state) {
     const menu = this.get('menu');
   
     if(!menu)

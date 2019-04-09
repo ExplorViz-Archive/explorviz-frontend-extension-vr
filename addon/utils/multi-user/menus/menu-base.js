@@ -1,6 +1,10 @@
 import EmberObject from '@ember/object';
+import { inject as service } from '@ember/service';
 
 export default EmberObject.extend({
+  
+  user: service(),
+
   menu: null,
   prevMenu: null,
   
@@ -40,5 +44,12 @@ export default EmberObject.extend({
    */
   isOpen() {
     return this.get('menu') ? true : false;
+  },
+  
+  /**
+   * Adds the mesh of the menu to the secondary controller
+   */
+  addToSecondaryController() {
+    this.get('menu').addToController(this.get('user.secondaryController'));
   }
 });
