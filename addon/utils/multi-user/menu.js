@@ -146,6 +146,16 @@ export default EmberObject.extend({
   },
 
   /**
+   * This function is called when the user interacts with the menu using their controller(s).
+   * In most cases, this function should be overriden.
+   * 
+   * @param {string} action 
+   * @param {{x: number, y: number}} position - The uv position.
+   */
+  // eslint-disable-next-line no-unused-vars
+  interact(action, position) { },
+
+  /**
    * Completely redraws the menu and creates a new and updates THREE.Mesh.
    */
   update() {

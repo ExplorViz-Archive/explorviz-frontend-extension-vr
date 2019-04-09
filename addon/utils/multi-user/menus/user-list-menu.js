@@ -68,8 +68,6 @@ export default EmberObject.extend({
       let userColor = spectatingUsers[i].color;
       this.get('menu').addText(spectatingUsers[i].name, 'spectating', 12, { x: 50, y: yPos + i*yOffset}, Helper.rgbToHex(userColor), 'left', false);
     }
-    
-    this.get('menu').interact = () => {};
   
     this.get('menu').createMesh();
     const mesh = this.get('menu.mesh');
