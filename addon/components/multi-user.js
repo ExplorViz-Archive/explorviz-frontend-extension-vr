@@ -29,6 +29,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   time: service(), // Keeps track of elapsed time between frames etc.
   currentUser: service('user'), // Keeps track of key properties about user (e.g. connection state)
   webSocket: service(), // Allows communication with backend extension
+  connection: service(),
   
   running: null, // Tells if main loop is executing
   lastPositions: null, // Last positions of camera and controllers
