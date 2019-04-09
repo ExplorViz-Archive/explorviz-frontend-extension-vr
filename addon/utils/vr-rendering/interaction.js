@@ -9,6 +9,7 @@ import Selector from './selector';
 import THREE from "three";
 import { getOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
+import Helper from '../multi-user/helper';
 
 
 /*
@@ -294,7 +295,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
     const emberModelName = emberModel.constructor.modelName;
 
     // Calculate darker color
-    let darkerColor = this.calculateDarkerColor(intersectedViewObj.object);
+    let darkerColor = Helper.calculateDarkerColor(intersectedViewObj.object);
 
     // Handle hit system, nodegroup or application and change color
     this.highlightLandscape(emberModel, emberModelName, intersectedViewObj, primaryControllerId, darkerColor);
@@ -374,7 +375,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       const emberModelName = emberModel.constructor.modelName;
 
       // Calculate darker color
-      let darkerColor = this.calculateDarkerColor(intersectedViewObj.object);
+      let darkerColor = Helper.calculateDarkerColor(intersectedViewObj.object);
 
       // Show teleport area on opened systems
       if (emberModelName === "system" && intersectedViewObj.object.name === "systemOpened") {
@@ -729,7 +730,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
 
     // Handle floor (teleport)
     if (intersectedViewObj.object.name === 'floor') {
-      this.teleportToPosition(intersectedViewObj.point);
+      this.get('currentUser').teleportToPosition(intersectedViewObj.point);
       return;
     }
 
@@ -1025,7 +1026,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
 
     // Teleport to intersection point
     if (intersectedViewObj.object.name === 'floor') {
-      this.teleportToPosition(intersectedViewObj.point);
+      this.get('currentUser').teleportToPosition(intersectedViewObj.point);
       return;
     }
 
@@ -1165,7 +1166,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       const emberModelName = emberModel.constructor.modelName;
 
       // Calculate darker color
-      let darkerColor = this.calculateDarkerColor(intersectedViewObj.object);
+      let darkerColor = Helper.calculateDarkerColor(intersectedViewObj.object);
 
       // Handle hit system, nodegroup or application and change color
       this.highlightLandscape(emberModel, emberModelName, intersectedViewObj, id, darkerColor);
@@ -1422,7 +1423,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
 
     // Check if entity is highlighted by the other controller and change color
     if (this.get('highlightedEntitiesApp')[id] && this.get('selectedEntitysMesh') && this.get('highlightedEntitiesApp')[id] === this.get('selectedEntitysMesh')) {
-      this.get('highlightedEntitiesApp')[id].material.color = new THREE.Color(this.calculateDarkerColor(this.get('selectedEntitysMesh')));
+      this.get('highlightedEntitiesApp')[id].material.color = new THREE.Color(Helper.calculateDarkerColor(this.get('selectedEntitysMesh')));
     }
 
     this.get('appCommunicationHighlighted').set('highlighted', false);
@@ -1457,12 +1458,12 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
 
     // Handle packages
     if (condition1 && condition3) {
-      let originalColor = this.calculateLighterColor(this.get('highlightedEntitiesApp')[id]);
+      let originalColor = Helper.calculateLighterColor(this.get('highlightedEntitiesApp')[id]);
       this.get('highlightedEntitiesApp')[id].material.color = new THREE.Color(originalColor);
     }
     // Handle clazzes
     if (condition2 && condition3) {
-      let originalColor = this.calculateLighterColor(this.get('highlightedEntitiesApp')[id]);
+      let originalColor = Helper.calculateLighterColor(this.get('highlightedEntitiesApp')[id]);
       this.get('highlightedEntitiesApp')[id].material.color = new THREE.Color(originalColor);
     }
     this.get('highlightedEntitiesApp')[id] = null;
@@ -1556,19 +1557,6 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
   },
 
   /*
-   *  This method is used to adapt the users view to 
-   *  the new position
-   */
-  teleportToPosition(position) {
-    const cameraOffset = new THREE.Vector3();
-
-    cameraOffset.copy(this.get('currentUser.camera.position'));
-    cameraOffset.y = 0;
-    
-    this.get('user.position').subVectors(new THREE.Vector3(position.x, this.get('user.position.y'), position.z), cameraOffset);
-  },
-
-  /*
    *  This method is used to update the matrix of
    *  a given Object3D
    */
@@ -1589,47 +1577,5 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       }
     });
     return raycastingObjects;
-  },
-
-  /*
-   *  The method is used to calculate a 35 percent 
-   *  darker color
-   */
-  calculateDarkerColor(object) {
-    let actualColor = null;
-
-    if (object.material.length) {
-      actualColor = object.material[0].color;
-    }
-    else {
-      actualColor = object.material.color;
-    }
-
-    let r = Math.floor(actualColor.r * 0.625 * 255);
-    let g = Math.floor(actualColor.g * 0.625 * 255);
-    let b = Math.floor(actualColor.b * 0.625 * 255);
-
-    return "rgb(" + r + ", " + g + ", " + b + ")";
-  },
-
-  /*
- * The method is used to reverse the effect of
- * calculateDarkerColor()
- */
-  calculateLighterColor(object) {
-    let actualColor = null;
-
-    if (object.material.length) {
-      actualColor = object.material[0].color;
-    }
-    else {
-      actualColor = object.material.color;
-    }
-
-    let r = Math.floor(actualColor.r * 1.6 * 255);
-    let g = Math.floor(actualColor.g * 1.6 * 255);
-    let b = Math.floor(actualColor.b * 1.6 * 255);
-
-    return "rgb(" + r + ", " + g + ", " + b + ")";
   }
 });

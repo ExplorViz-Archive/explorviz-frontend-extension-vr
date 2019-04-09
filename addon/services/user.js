@@ -50,5 +50,18 @@ export default Service.extend({
     oldOtherController.getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,0,0)');
     this.get('menus.advancedMenu').open(this.get('menus.optionsMenu'));
   },
+
+  /*
+   *  This method is used to adapt the users view to 
+   *  the new position
+   */
+  teleportToPosition(position) {
+    const cameraOffset = new THREE.Vector3();
+
+    cameraOffset.copy(this.get('camera.position'));
+    cameraOffset.y = 0;
+    
+    this.get('threeGroup.position').subVectors(new THREE.Vector3(position.x, this.get('threeGroup.position.y'), position.z), cameraOffset);
+  },
   
 });

@@ -33,3 +33,45 @@ export function rgbToHex(rgbArray) {
 export function colorToString(colorArray){
   return 'rgb(' + colorArray[0] + ',' + colorArray[1] + ',' + colorArray[2] + ')'; 
 }
+
+/*
+  *  The method is used to calculate a 35 percent 
+  *  darker color of an Object3D's material
+  */
+ export function calculateDarkerColor(object) {
+  let actualColor = null;
+
+  if (object.material.length) {
+    actualColor = object.material[0].color;
+  }
+  else {
+    actualColor = object.material.color;
+  }
+
+  let r = Math.floor(actualColor.r * 0.625 * 255);
+  let g = Math.floor(actualColor.g * 0.625 * 255);
+  let b = Math.floor(actualColor.b * 0.625 * 255);
+
+  return "rgb(" + r + ", " + g + ", " + b + ")";
+}
+
+/*
+* The method is used to reverse the effect of
+* calculateDarkerColor()
+*/
+export function calculateLighterColor(object) {
+  let actualColor = null;
+
+  if (object.material.length) {
+    actualColor = object.material[0].color;
+  }
+  else {
+    actualColor = object.material.color;
+  }
+
+  let r = Math.floor(actualColor.r * 1.6 * 255);
+  let g = Math.floor(actualColor.g * 1.6 * 255);
+  let b = Math.floor(actualColor.b * 1.6 * 255);
+
+  return "rgb(" + r + ", " + g + ", " + b + ")";
+}
