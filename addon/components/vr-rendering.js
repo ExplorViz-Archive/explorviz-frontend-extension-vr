@@ -37,7 +37,6 @@ export default Component.extend(Evented, THREEPerformance, {
   tagName: '',
 
   store: service(),
-
   landscapeListener: service(),
   reloadHandler: service(),
   landscapeRepo: service('repos/landscape-repository'),
@@ -50,7 +49,6 @@ export default Component.extend(Evented, THREEPerformance, {
   canvas: null, // Canvas of webglrenderer
   font: null, // Font used for text
   initDone: false, // Tells if initRendering() already terminated
-
   raycaster: null, // Raycaster for intersection checking (used in interaction)
   labeler: null, // For labeling landscape (-> frontend)
   labelerApp: null, // For labeling applications (-> frontend)
@@ -69,17 +67,15 @@ export default Component.extend(Evented, THREEPerformance, {
   room: null, // Virtual room to which a flooar is added, important for raycasting
   initialPositions: {}, // Initial positions of systems/nodegroups/..
   deleteButton: null, // Delete Button of 3d application
-
-  // Storage for mesh data
-  teleportArea: null,
+  teleportArea: null, // Storage for mesh data
 
   // Application
-  openApps : null, // Object3d's of opened applications
+  openApps: null, // Object3d's of opened applications
   foundations: null, // Keep track of foundations (in openApps) for foundationBuilder
   boundApps: null, // Applications which other users currently move/hold
 
   layout: layout, // Links template to component
-  
+
   didRender() {
     this._super(...arguments);
     this.initRendering();
@@ -88,12 +84,11 @@ export default Component.extend(Evented, THREEPerformance, {
 
   // An Observer calculating the new raycastObjects
   actualizeRaycastObjects() {
-
     let result = (this.get('vrLandscape')) ? this.get('vrLandscape').children : [];
-    const allowedObjects = ['node', 'system', 'nodegroup', 'application', 'communication', 'floor','component', 'clazz', 'deleteButton'];
+    const allowedObjects = ['node', 'system', 'nodegroup', 'application', 'communication', 'floor', 'component', 'clazz', 'deleteButton'];
 
-    this.get('openApps').forEach(function(app){
-      app.children.forEach(function(child){
+    this.get('openApps').forEach(function (app) {
+      app.children.forEach(function (child) {
         child.userData.object3D = app;
       });
       result = result.concat(app.children);
@@ -103,21 +98,21 @@ export default Component.extend(Evented, THREEPerformance, {
 
     result = filterResult(result);
 
-    this.set('world.interaction.raycastObjectsLandscape',  result);
+    this.set('world.interaction.raycastObjectsLandscape', result);
 
     function filterResult(result) {
 
-      let help = result.filter(function(obj) {
+      let help = result.filter(function (obj) {
         if (obj.userData.model) {
           const modelName = obj.userData.model.constructor.modelName;
           return allowedObjects.includes(modelName);
         }
-        else if(obj.userData.name){
+        else if (obj.userData.name) {
           const modelName = obj.userData.name;
           return allowedObjects.includes(modelName);
         }
-        else{
-         return false;
+        else {
+          return false;
         }
       });
       return help;
@@ -137,7 +132,6 @@ export default Component.extend(Evented, THREEPerformance, {
    * @method initRendering
    */
   initRendering() {
-    
     // Dummy object for raycasting
     this.set('room', new THREE.Object3D());
     this.get('room').name = 'room';
@@ -197,7 +191,7 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('webglrenderer').gammaOutput = true;
 
     // Add VR button
-    $('#vizContainer').append(WEBVR.createButton( this.get('webglrenderer') ));
+    $('#vizContainer').append(WEBVR.createButton(this.get('webglrenderer')));
 
     // Create left controller
     this.set('currentUser.controller1', new Controller(0));
@@ -245,14 +239,14 @@ export default Component.extend(Evented, THREEPerformance, {
 
     this.get('room').position.y -= 0.1;
     this.get('room').updateMatrix();
-    
+
     // Load image for requests
-    var requestTexture = new THREE.TextureLoader().load('images/logos/requests.png');
-    var requestMaterial = new THREE.MeshPhongMaterial({
+    let requestTexture = new THREE.TextureLoader().load('images/logos/requests.png');
+    let requestMaterial = new THREE.MeshPhongMaterial({
       map: requestTexture
     });
-    this.set('requestMaterial',requestMaterial);
-    
+    this.set('requestMaterial', requestMaterial);
+
     this.set('openApps', new Map());
     this.set('foundations', new Map());
     this.set('boundApps', new Set());
@@ -262,33 +256,23 @@ export default Component.extend(Evented, THREEPerformance, {
 
     ////////////////////
 
-
-    // this.debug('init vr-rendering');
-
-    this.onReSetupScene = function() {
+    this.onReSetupScene = function () {
       this.set('centerAndZoomCalculator.centerPoint', null);
       this.populateScene();
     };
 
-    this.onResizeCanvas = function() {
+    this.onResizeCanvas = function () {
       const height = Math.round($('#vizContainer').height());
       const width = Math.round($('#vizContainer').width());
-      
+
       $("#threeCanvas").height(height);
       $("#threeCanvas").width(width);
-
-      this.onResized();
     };
 
-    this.onUpdated = function() {
+    this.onUpdated = function () {
       if (this.get('initDone')) {
         this.populateScene();
       }
-    };
-
-    this.onResized = function() {
-      //this.set('centerAndZoomCalculator.centerPoint', null);
-      //this.populateScene();
     };
 
     if (!this.get('world.interaction')) {
@@ -313,7 +297,7 @@ export default Component.extend(Evented, THREEPerformance, {
 
     if (!this.get('foundationBuilder')) {
       this.set('foundationBuilder', FoundationBuilder.create());
-    } 
+    }
 
     if (!this.get('centerAndZoomCalculator')) {
       this.set('centerAndZoomCalculator', CalcCenterAndZoom.create());
@@ -337,16 +321,16 @@ export default Component.extend(Evented, THREEPerformance, {
      * Title: Seamless Dark Texture With Small Grid
      * Source: https://tiled-bg.blogspot.com/2014/08/seamless-dark-texture-with-small-grid.html
      */
-    var floorTexture = new THREE.TextureLoader().load('images/materials/floor.jpg');
+    let floorTexture = new THREE.TextureLoader().load('images/materials/floor.jpg');
     floorTexture.wrapS = THREE.MirroredRepeatWrapping;
     floorTexture.wrapT = THREE.MirroredRepeatWrapping;
-    floorTexture.repeat.set( 6, 5 );
+    floorTexture.repeat.set(6, 5);
 
-    var floorGeometry = new THREE.BoxGeometry(6, this.get('zeroValue'), 5);
-    var floorMaterial = new THREE.MeshLambertMaterial({
+    let floorGeometry = new THREE.BoxGeometry(6, this.get('zeroValue'), 5);
+    let floorMaterial = new THREE.MeshLambertMaterial({
       map: floorTexture
     });
-    var floorMesh = new THREE.Mesh(floorGeometry, floorMaterial);
+    let floorMesh = new THREE.Mesh(floorGeometry, floorMaterial);
     floorMesh.receiveShadow = true;
     floorMesh.name = 'floor';
     floorMesh.userData.name = 'floor';
@@ -354,23 +338,23 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('world.scene').add(this.get('room'));///// End floor
 
     // Add lights
-    this.get('world.scene').add( new THREE.HemisphereLight( 0x888877, 0x777788, 0.5 ) );
-    var light = new THREE.DirectionalLight( 0xffffff );
-    light.position.set( 0, 6, 0 );
+    this.get('world.scene').add(new THREE.HemisphereLight(0x888877, 0x777788, 0.5));
+    let light = new THREE.DirectionalLight(0xffffff);
+    light.position.set(0, 6, 0);
     light.castShadow = true;
     light.shadow.camera.top = 2;
     light.shadow.camera.bottom = -2;
     light.shadow.camera.right = 2;
     light.shadow.camera.left = -2;
-    light.shadow.mapSize.set( 4096, 4096 );
-    this.get('world.scene').add( light );
+    light.shadow.mapSize.set(4096, 4096);
+    this.get('world.scene').add(light);
 
     Models.loadModels();
 
     const { user } = this.get('session.data.authenticated');
     const userSettings = user.get('settings');
 
-    if(!userSettings.booleanAttributes.showFpsCounter) {
+    if (!userSettings.booleanAttributes.showFpsCounter) {
       this.removePerformanceMeasurement();
     }
 
@@ -386,24 +370,24 @@ export default Component.extend(Evented, THREEPerformance, {
   },
 
   updateControllers() {
-    if(!Models.areLoaded())
+    if (!Models.areLoaded())
       return;
 
     this.get('currentUser.controller1').update();
     this.get('currentUser.controller2').update();
 
     // Remove controller 1 model if controller disconnected
-    if(!this.get('currentUser.controller1').getGamepad() || !this.get('currentUser.controller1').getGamepad().pose) {
+    if (!this.get('currentUser.controller1').getGamepad() || !this.get('currentUser.controller1').getGamepad().pose) {
       let model = this.get('currentUser.controller1').getObjectByName('controllerTexture');
-      if(model) {
+      if (model) {
         this.get('currentUser.controller1').remove(model);
       }
     } else {
       this.loadController(this.get('currentUser.controller1'));
     }
-    if(!this.get('currentUser.controller2').getGamepad() || !this.get('currentUser.controller2').getGamepad().pose) {
+    if (!this.get('currentUser.controller2').getGamepad() || !this.get('currentUser.controller2').getGamepad().pose) {
       let model = this.get('currentUser.controller2').getObjectByName('controllerTexture');
-      if(model) {
+      if (model) {
         this.get('currentUser.controller2').remove(model);
       }
     } else {
@@ -413,7 +397,7 @@ export default Component.extend(Evented, THREEPerformance, {
 
     // Check raycast for intersection
     if (this.get('world.interaction')) {
-      // only if no application3D binded on controller
+      // Only if no application3D binded on controller
       if (this.get('currentUser.controller1').userData.selected === undefined) {
         this.get('world.interaction').checkIntersectionSecondaryController();
       }
@@ -424,7 +408,7 @@ export default Component.extend(Evented, THREEPerformance, {
   },
 
   loadController(controller) {
-    if(controller.getGamepad() !== undefined && controller.getGamepad().pose !== undefined
+    if (controller.getGamepad() !== undefined && controller.getGamepad().pose !== undefined
       && !controller.getObjectByName('controllerTexture')) {
 
       let name = controller.getGamepad().id;
@@ -445,16 +429,14 @@ export default Component.extend(Evented, THREEPerformance, {
    * But they can used as templates in the future.
    */
   initListener() {
-    const self = this;
-
     window.addEventListener('resize', this.onResizeCanvas.bind(this));
 
-    this.get('renderingService').on('reSetupScene', function() {
-      self.onReSetupScene();
+    this.get('renderingService').on('reSetupScene', () => {
+      this.onReSetupScene();
     });
 
-    this.get('landscapeRepo').on('updated', function() {
-      self.onUpdated();
+    this.get('landscapeRepo').on('updated', () => {
+      this.onUpdated();
     });
   },
 
@@ -465,13 +447,10 @@ export default Component.extend(Evented, THREEPerformance, {
    * @method cleanup
    */
   cleanup() {
-
-    const self = this;
-
     // Stop rendering
     this.get('webglrenderer').vr.setDevice(null);
     this.get('webglrenderer').dispose();
-    
+
     this.set('world.scene', null);
     this.set('world.interaction', null);
     this.set('world.vrEnvironment', null);
@@ -480,11 +459,8 @@ export default Component.extend(Evented, THREEPerformance, {
     this.set('currentUser.controller2', null);
     this.set('webglrenderer', null);
     this.removePerformanceMeasurement();
-    //this.$(window).off('resize.visualization');
     this.get('renderingService').off('reSetupScene');
     this.get('landscapeRepo').off('updated');
-
-    // this.debug('cleanup vr rendering');
 
     this.set('imageLoader.logos', {});
     this.set('labeler.textLabels', {});
@@ -505,21 +481,21 @@ export default Component.extend(Evented, THREEPerformance, {
 
     // Open all systems for 2D visualization and restore z-position
     if (emberLandscape) {
-      emberLandscape.get('systems').forEach(function(system) {
+      emberLandscape.get('systems').forEach((system) => {
         system.setOpened(true);
-        system.set('positionZ', self.get('initialPositions')[system.get('id')]);
+        system.set('positionZ', this.get('initialPositions')[system.get('id')]);
 
         const nodegroups = system.get('nodegroups');
-        nodegroups.forEach(function(nodegroup) {
-          nodegroup.set('positionZ', self.get('initialPositions')[nodegroup.get('id')]);
+        nodegroups.forEach((nodegroup) => {
+          nodegroup.set('positionZ', this.get('initialPositions')[nodegroup.get('id')]);
 
           const nodes = nodegroup.get('nodes');
-          nodes.forEach(function(node) {
-            node.set('positionZ', self.get('initialPositions')[node.get('id')]);
+          nodes.forEach((node) => {
+            node.set('positionZ', this.get('initialPositions')[node.get('id')]);
 
             const applications = node.get('applications');
-            applications.forEach(function(application) {
-              application.set('positionZ', self.get('initialPositions')[application.get('id')]);
+            applications.forEach((application) => {
+              application.set('positionZ', this.get('initialPositions')[application.get('id')]);
             });
           });
         });
@@ -527,21 +503,20 @@ export default Component.extend(Evented, THREEPerformance, {
       this.set('initialRendering', true);
     }
 
-    this.get('openApps').forEach( (app) => {
-        // Remove foundation for re-rendering
-        this.removeFoundation(app.id, this.get('store'));
-        this.set('landscapeRepo.latestApplication', null);
+    this.get('openApps').forEach((app) => {
+      // Remove foundation for re-rendering
+      this.removeFoundation(app.id, this.get('store'));
+      this.set('landscapeRepo.latestApplication', null);
     });
 
 
     // Clean up Webgl contexts
-    var gl = this.get('canvas').getContext('webgl');
+    let gl = this.get('canvas').getContext('webgl');
     gl.getExtension('WEBGL_lose_context').loseContext();
 
     // Remove enter vr button
-    var elem = document.getElementById('vr_button');
+    let elem = document.getElementById('vr_button');
     elem.remove();
-
   },
 
   /**
@@ -554,7 +529,6 @@ export default Component.extend(Evented, THREEPerformance, {
    * @method populateScene
    */
   populateScene() {
-
     const self = this;
     let landscapeMeshes = [];
     let communicationMeshes = [];
@@ -571,23 +545,23 @@ export default Component.extend(Evented, THREEPerformance, {
      */
     if (emberLandscape) {
       if (this.get('initialRendering')) {
-        emberLandscape.get('systems').forEach(function(system) {
+        emberLandscape.get('systems').forEach(function (system) {
           system.setOpened(false);
           self.get('initialPositions')[system.get('id')] = system.get('positionZ');
           system.set('depth', self.get('depth'));
 
           const nodegroups = system.get('nodegroups');
-          nodegroups.forEach(function(nodegroup) {
+          nodegroups.forEach(function (nodegroup) {
             self.get('initialPositions')[nodegroup.get('id')] = nodegroup.get('positionZ');
             nodegroup.set('depth', self.get('depth'));
 
             const nodes = nodegroup.get('nodes');
-            nodes.forEach(function(node) {
+            nodes.forEach(function (node) {
               self.get('initialPositions')[node.get('id')] = node.get('positionZ');
               node.set('depth', self.get('depth'));
 
               const applications = node.get('applications');
-              applications.forEach(function(application) {
+              applications.forEach(function (application) {
                 self.get('initialPositions')[application.get('id')] = application.get('positionZ');
                 application.set('depth', 0);
               });
@@ -604,32 +578,30 @@ export default Component.extend(Evented, THREEPerformance, {
     this.set('world.vrEnvironment.userData.model', emberLandscape);
 
     const systems = emberLandscape.get('systems');
-
     const scaleFactor = {
       width: 0.5,
       height: 0.5
     };
 
     let isRequestObject = false;
+    let centerPoint;
 
     if (systems) {
+      // TODO: Compute the amount of requests for every id
+      let allRequests = null; //computeRequests(emberLandscape.get('outgoingApplicationCommunications'));
+
       // Calculate new center and update zoom
       if (!this.get('centerAndZoomCalculator.centerPoint')) {
         this.get('centerAndZoomCalculator').calculateLandscapeCenterAndZZoom(emberLandscape,
           this.get('webglrenderer'));
       }
-
-      // TODO: Compute the amount of requests for every id
-      let allRequests = null; //computeRequests(emberLandscape.get('outgoingApplicationCommunications'));
-
-      var centerPoint = this.get('centerAndZoomCalculator.centerPoint');
+      centerPoint = this.get('centerAndZoomCalculator.centerPoint');
 
       // Create landscape
-      systems.forEach(function(system) {
-
+      systems.forEach(function (system) {
         isRequestObject = false;
 
-        var extensionX, extensionY, centerX, centerYClosed, centerYOpened;
+        let extensionX, extensionY, centerX, centerYClosed, centerYOpened;
 
         // Create earth
         if (!isRequestObject && system.get('name') === 'Requests') {
@@ -644,8 +616,8 @@ export default Component.extend(Evented, THREEPerformance, {
           centerYOpened = system.get('positionY') - extensionY - centerPoint.y;
 
           // Create mesh for earth
-          var requestGeometry = new THREE.SphereGeometry(0.1, 32, 32);
-          var requests = new THREE.Mesh(requestGeometry, self.get('requestMaterial'));
+          let requestGeometry = new THREE.SphereGeometry(0.1, 32, 32);
+          let requests = new THREE.Mesh(requestGeometry, self.get('requestMaterial'));
           requests.name = 'earth';
           requests.position.set(centerX, centerYClosed, system.get('positionZ'));
 
@@ -657,7 +629,6 @@ export default Component.extend(Evented, THREEPerformance, {
 
         // Create systems
         if (!isRequestObject) {
-
           extensionX = system.get('width') * scaleFactor.width;
           extensionY = system.get('height') * scaleFactor.height;
 
@@ -666,7 +637,7 @@ export default Component.extend(Evented, THREEPerformance, {
           centerYOpened = system.get('positionY') - extensionY - centerPoint.y;
 
           // Save old depth
-          var oldSystemDepth = system.get('depth');
+          let oldSystemDepth = system.get('depth');
 
           // Calculate system depth (height) depending on the amount of traget requests
           if (allRequests && allRequests[system.get('id')]) {
@@ -674,17 +645,17 @@ export default Component.extend(Evented, THREEPerformance, {
           }
 
           // Draw box for closed and plane for opened systems
-          var systemMesh;
-          if(system.get('opened')) {
+          let systemMesh;
+          if (system.get('opened')) {
             systemMesh = createPlane(system);
             systemMesh.name = 'systemOpened';
             // Transform z-position of closed system to opened system 
-            systemMesh.position.set(centerX, centerYOpened, 
+            systemMesh.position.set(centerX, centerYOpened,
               system.get('positionZ') - system.get('depth') / 2);
-          } 
+          }
           else {
             // New depth only influences closed boxes
-            var diffSystemDepth = system.get('depth') - oldSystemDepth;
+            let diffSystemDepth = system.get('depth') - oldSystemDepth;
             systemMesh = createBox(system);
             systemMesh.name = 'systemClosed';
             // Store new position
@@ -705,14 +676,12 @@ export default Component.extend(Evented, THREEPerformance, {
           let emberModelName = system.constructor.modelName;
           let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
           self.get('labeler').saveTextForLabeling(null, systemMesh, textColor, boxColor);
-
         }
 
         const nodegroups = system.get('nodegroups');
 
         // Draw nodegroups 
-        nodegroups.forEach(function(nodegroup) {
-
+        nodegroups.forEach(function (nodegroup) {
           if (!nodegroup.get('visible')) {
             return;
           }
@@ -722,9 +691,7 @@ export default Component.extend(Evented, THREEPerformance, {
 
           // Add box for nodegroup if it contains more than one node
           if (nodes.content.length > 1) {
-
             if (!isRequestObject) {
-
               extensionX = nodegroup.get('width') * scaleFactor.width;
               extensionY = nodegroup.get('height') * scaleFactor.height;
 
@@ -749,7 +716,7 @@ export default Component.extend(Evented, THREEPerformance, {
                 nodegroupMesh = createPlane(nodegroup);
                 nodegroupMesh.name = 'nodegroupOpened';
                 // Transform z-position of closed system to opened system 
-                nodegroupMesh.position.set(centerX, centerYOpened, 
+                nodegroupMesh.position.set(centerX, centerYOpened,
                   nodegroup.get('positionZ') - nodegroup.get('depth') / 2 + 0.001);
               }
               // Create box for closed nodegroup
@@ -772,7 +739,7 @@ export default Component.extend(Evented, THREEPerformance, {
           }
 
           // Draw nodes  
-          nodes.forEach(function(node) {
+          nodes.forEach(function (node) {
             if (nodes.content.length === 1 || nodegroup.get('opened')) {
 
               if (!node.get('visible')) {
@@ -819,18 +786,15 @@ export default Component.extend(Evented, THREEPerformance, {
               const applications = node.get('applications');
 
               // Draw applications
-              applications.forEach(function(application) {
-
+              applications.forEach(function (application) {
                 extensionX = application.get('width') * scaleFactor.width;
                 extensionY = application.get('height') * scaleFactor.width;
 
                 centerX = application.get('positionX') + extensionX - centerPoint.x;
-
                 centerYOpened = application.get('positionY') - extensionY - centerPoint.y;
 
                 // Draw application in landscape(3D)-view 
                 if (!isRequestObject) {
-
                   let applicationMesh = createBox(application);
 
                   applicationMesh.type = 'application';
@@ -850,7 +814,6 @@ export default Component.extend(Evented, THREEPerformance, {
                     height: 0.4
                   };
                   const appBBox = applicationMesh.geometry.boundingBox;
-
                   const logoPos = {
                     x: 0,
                     y: 0,
@@ -858,12 +821,11 @@ export default Component.extend(Evented, THREEPerformance, {
                   };
 
                   const logoRightPadding = logoSize.width * 0.7;
-
                   logoPos.x = appBBox.max.x - logoRightPadding;
 
                   const texturePartialPath = application.get('database') ?
                     'database2' : application.get('programmingLanguage')
-                    .toLowerCase();
+                      .toLowerCase();
 
                   self.get('imageLoader').createPicture(logoPos.x, logoPos.y,
                     logoPos.z + 0.001, logoSize.width, logoSize.height,
@@ -872,10 +834,10 @@ export default Component.extend(Evented, THREEPerformance, {
                   // Create text labels 
                   let textColor =
                     self.get('configuration.landscapeColors.textapp');
-                  
+
                   let emberModelName = application.constructor.modelName;
                   let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
-                  
+
                   self.get('labeler').saveTextForLabeling(null, applicationMesh,
                     textColor, boxColor);
                 }
@@ -888,7 +850,7 @@ export default Component.extend(Evented, THREEPerformance, {
               let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
 
               textColor = self.get('configuration.landscapeColors.textnode');
-              self.get('labeler').saveTextForLabeling(node.getDisplayName(), 
+              self.get('labeler').saveTextForLabeling(node.getDisplayName(),
                 nodegroupMesh, textColor, boxColor);
             }
           });
@@ -899,25 +861,19 @@ export default Component.extend(Evented, THREEPerformance, {
     self.set('configuration.landscapeColors.textchanged', false);
 
     const appCommunications = emberLandscape.get('totalApplicationCommunications');
-
     const tiles = [];
-
     let tile;
 
     // Draw communication lines
     if (appCommunications) {
-
       let color = self.get('configuration.landscapeColors.communication');
 
       appCommunications.forEach((communication) => {
-
         // Calculate communication points
         const points = communication.get('points');
 
         if (points.length > 0) {
-
-          for (var i = 1; i < points.length; i++) {
-
+          for (let i = 1; i < points.length; i++) {
             const lastPoint = points[i - 1];
             const thisPoint = points[i];
 
@@ -927,7 +883,6 @@ export default Component.extend(Evented, THREEPerformance, {
             };
 
             let id = tiles.findIndex(isSameTile, tileWay);
-
 
             if (id !== -1) {
               tile = tiles[id];
@@ -964,8 +919,8 @@ export default Component.extend(Evented, THREEPerformance, {
     // Delete and redraw communication lines
     this.removeChildren(this.get('vrCommunications'));
     this.get('vrCommunications').updateMatrix();
-    
-    communicationMeshes.forEach(function(mesh) {
+
+    communicationMeshes.forEach(function (mesh) {
       this.get('vrCommunications').add(mesh);
     }.bind(this));
     this.get('vrCommunications').updateMatrix();
@@ -974,7 +929,7 @@ export default Component.extend(Evented, THREEPerformance, {
     this.removeChildren(this.get('vrLandscape'));
     this.get('vrLandscape').updateMatrix();
 
-    landscapeMeshes.forEach(function(mesh) {
+    landscapeMeshes.forEach(function (mesh) {
       this.get('vrLandscape').add(mesh);
     }.bind(this));
     this.get('vrLandscape').updateMatrix();
@@ -983,7 +938,7 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('world.vrEnvironment').updateMatrix();
     scaleVREnvironment(this.get('world.vrEnvironment'), this.get('room'));
     this.get('world.vrEnvironment').updateMatrix();
-    
+
     // Center landscape(3D) on the floor 
     this.centerVREnvironment(this.get('world.vrEnvironment'), this.get('room'));
     this.get('world.vrEnvironment').updateMatrix();
@@ -997,7 +952,6 @@ export default Component.extend(Evented, THREEPerformance, {
      *  entities depending on the amount of requests
      */
     function assignDepth(requests) {
-
       switch (true) {
         case (requests <= 100):
           return 0.2;
@@ -1040,7 +994,6 @@ export default Component.extend(Evented, THREEPerformance, {
 
         default:
           return 0.2;
-
       }
     }
 
@@ -1049,13 +1002,12 @@ export default Component.extend(Evented, THREEPerformance, {
      *  the landscape(3D) so it fits on the floor
      */
     function scaleVREnvironment(vrEnvironment, floor) {
-
       // Save rotation
       let tempRotation = new THREE.Vector3();
-      tempRotation.set(vrEnvironment.rotation.x,vrEnvironment.rotation.y,vrEnvironment.rotation.z);
+      tempRotation.set(vrEnvironment.rotation.x, vrEnvironment.rotation.y, vrEnvironment.rotation.z);
 
       // Reset rotation to default value for scaling 
-      vrEnvironment.rotation.set(-1.5707963000000003,0,0);
+      vrEnvironment.rotation.set(-1.5707963000000003, 0, 0);
       vrEnvironment.updateMatrix();
 
       // Compute bounding box of the floor and landscape
@@ -1078,17 +1030,16 @@ export default Component.extend(Evented, THREEPerformance, {
       let requests = vrEnvironment.getObjectByName('earth');
 
       // Check if 'earth' exists in landscape and scale it
-      if (requests){
-      // Undo scaling requests
-      requests.scale.x /= scaleX; 
-      requests.scale.y /= vrEnvironment.scale.y; 
+      if (requests) {
+        // Undo scaling requests
+        requests.scale.x /= scaleX;
+        requests.scale.y /= vrEnvironment.scale.y;
       }
 
       // Restore rotation
       vrEnvironment.rotation.set(tempRotation.x, tempRotation.y, tempRotation.z);
       vrEnvironment.updateMatrix();
     }
-
 
     // This function is only neccessary to find the right index
     function isSameTile(tile) {
@@ -1101,7 +1052,6 @@ export default Component.extend(Evented, THREEPerformance, {
      *  to the landscape(3D)
      */
     function addCommunicationLineDrawing(tiles, meshes) {
-
       const requestsList = {};
 
       tiles.forEach((tile) => {
@@ -1121,13 +1071,11 @@ export default Component.extend(Evented, THREEPerformance, {
       }
 
       function getCategories(list, linear) {
-
         if (linear) {
           useLinear(list);
         } else {
           useThreshholds(list);
         }
-
         return list;
 
         // Inner helper functions
@@ -1152,7 +1100,6 @@ export default Component.extend(Evented, THREEPerformance, {
 
         }
 
-
         function getCategoryFromValues(value, t1, t2) {
           value = parseInt(value);
           if (value === 0) {
@@ -1169,7 +1116,6 @@ export default Component.extend(Evented, THREEPerformance, {
             return 4.0;
           }
         }
-
 
         function useLinear(list) {
           let max = 1;
@@ -1190,9 +1136,7 @@ export default Component.extend(Evented, THREEPerformance, {
               t3);
             list[requests] = categoryValue;
           }
-
         }
-
 
         function getCategoryFromLinearValues(value, t1, t2, t3) {
           value = parseInt(value);
@@ -1210,7 +1154,6 @@ export default Component.extend(Evented, THREEPerformance, {
         }
 
       } // END getCategories
-
     } // END addCommunicationLineDrawing
 
 
@@ -1225,29 +1168,27 @@ export default Component.extend(Evented, THREEPerformance, {
      * This function is used to create the lines for th communication
      */
     function createLine(tile, parent) {
-
-
-      let firstVector = new THREE.Vector3(tile.startPoint.x - centerPoint.x, 
+      let firstVector = new THREE.Vector3(tile.startPoint.x - centerPoint.x,
         tile.startPoint.y - centerPoint.y, tile.positionZ);
       let secondVector = new THREE.Vector3(tile.endPoint.x - centerPoint.x,
-          tile.endPoint.y - centerPoint.y, tile.positionZ);
-     
+        tile.endPoint.y - centerPoint.y, tile.positionZ);
+
       // Euclidean distance
       const lengthPlane = Math.sqrt(
-        Math.pow((firstVector.x - secondVector.x),2) + 
-        Math.pow((firstVector.y - secondVector.y),2));      
+        Math.pow((firstVector.x - secondVector.x), 2) +
+        Math.pow((firstVector.y - secondVector.y), 2));
 
-      const geometryPlane = new THREE.PlaneGeometry(lengthPlane, 
+      const geometryPlane = new THREE.PlaneGeometry(lengthPlane,
         tile.lineThickness * 3);
 
-      const materialPlane = new THREE.MeshLambertMaterial({color: tile.pipeColor});
+      const materialPlane = new THREE.MeshLambertMaterial({ color: tile.pipeColor });
       const plane = new THREE.Mesh(geometryPlane, materialPlane);
 
       let isDiagonalPlane = false;
       const diagonalPos = new THREE.Vector3();
 
       // Rotate plane => diagonal plane (diagonal commu line)
-      if(Math.abs(firstVector.y - secondVector.y) > 0.1) {
+      if (Math.abs(firstVector.y - secondVector.y) > 0.1) {
         isDiagonalPlane = true;
 
         const distanceVector = new THREE.Vector3()
@@ -1265,7 +1206,7 @@ export default Component.extend(Evented, THREEPerformance, {
         const posZ = firstVector.z;
 
         plane.position.set(posX, posY, posZ);
-      } 
+      }
       else {
         plane.position.copy(diagonalPos);
       }
@@ -1280,10 +1221,9 @@ export default Component.extend(Evented, THREEPerformance, {
      * 3D-plane (for example closed components)
      */
     function createPlane(model) {
-
       const emberModelName = model.constructor.modelName;
 
-      var color = self.get('configuration.landscapeColors.' + emberModelName);
+      let color = self.get('configuration.landscapeColors.' + emberModelName);
 
       const material = new THREE.MeshLambertMaterial({
         color
@@ -1294,7 +1234,6 @@ export default Component.extend(Evented, THREEPerformance, {
 
       plane.userData['model'] = model;
       return plane;
-
     }
 
     /*
@@ -1302,7 +1241,6 @@ export default Component.extend(Evented, THREEPerformance, {
      * 3D-boxes (for example opened components)
      */
     function createBox(model) {
-
       const emberModelName = model.constructor.modelName;
 
       const material = new THREE.MeshLambertMaterial({
@@ -1328,8 +1266,7 @@ export default Component.extend(Evented, THREEPerformance, {
    *  The object3D which contains the landscape(3D) and communication
    *  is centered relative to the floor.
    */
-   centerVREnvironment(vrEnvironment, floor) {
-
+  centerVREnvironment(vrEnvironment, floor) {
     // Compute bounding box of the floor
     const bboxFloor = new THREE.Box3().setFromObject(floor);
 
@@ -1347,13 +1284,13 @@ export default Component.extend(Evented, THREEPerformance, {
     // Set new position of vrEnvironment
     vrEnvironment.position.x += centerFloor.x - centerLandscape.x + this.get('world.environmentOffset.x');
     vrEnvironment.position.z += centerFloor.z - centerLandscape.z + this.get('world.environmentOffset.z');
-    
+
 
     // Check distance between floor and landscape
-    if(bboxLandscape.min.y > bboxFloor.max.y){
+    if (bboxLandscape.min.y > bboxFloor.max.y) {
       vrEnvironment.position.y += bboxFloor.max.y - bboxLandscape.min.y + 0.001;
     }
-    
+
     // Check if landscape is underneath the floor
     if (bboxLandscape.min.y < bboxFloor.min.y) {
       vrEnvironment.position.y += bboxFloor.max.y - bboxLandscape.min.y + 0.001;
@@ -1367,7 +1304,6 @@ export default Component.extend(Evented, THREEPerformance, {
    *  and listen for events triggered in interaction
    */
   initInteraction() {
-
     const canvas = this.get('canvas');
     const webglrenderer = this.get('webglrenderer');
     const raycaster = this.get('raycaster');
@@ -1414,9 +1350,9 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('world.interaction').on('showTeleportArea', (intersectionPoint) => {
       if (!this.get('teleportArea')) {
         // Create teleport area
-        var geometry = new THREE.RingGeometry(0.14, 0.2, 32);
+        let geometry = new THREE.RingGeometry(0.14, 0.2, 32);
         geometry.rotateX(-1.5707963);
-        var material = new THREE.MeshLambertMaterial({
+        let material = new THREE.MeshLambertMaterial({
           color: new THREE.Color(0x0000dc)
         });
         material.transparent = true;
@@ -1461,7 +1397,6 @@ export default Component.extend(Evented, THREEPerformance, {
       this.add3DApplicationToLandscape(emberModel,
         intersectionPoint, new THREE.Quaternion());
 
-
       let app = this.get('openApps').get(emberModel.id);
       let bboxApp3D = new THREE.Box3().setFromObject(app);
       let app3DSize = new THREE.Vector3();
@@ -1489,7 +1424,6 @@ export default Component.extend(Evented, THREEPerformance, {
      * (controller button pressed or mouse doubleclick)
      */
     this.get('world.interaction').on('removeApplication', (appID) => {
-
       // Remove 3D Application if present
       if (this.get('openApps').has(appID)) {
         this.removeChildren(this.get('openApps').get(appID));
@@ -1502,9 +1436,8 @@ export default Component.extend(Evented, THREEPerformance, {
    *  This method is used to remove the given children of an object3D.
    *  'null' or 'undefined' passed => delete all children 
    */
-  removeChildren(entity, childrenToRemove){
-
-    if(!entity){
+  removeChildren(entity, childrenToRemove) {
+    if (!entity) {
       return;
     }
 
@@ -1520,21 +1453,21 @@ export default Component.extend(Evented, THREEPerformance, {
 
         // Remove all children
         if (!childrenToRemove) {
-          removeObject = true; 
+          removeObject = true;
         }
         // Remove passed children only
-        else{
+        else {
           removeObject = childrenToRemove.includes(child.name);
         }
-        
-        if(removeObject){
+
+        if (removeObject) {
           if (child.type !== 'Object3D') {
             child.geometry.dispose();
             // Dispose array of material
             if (child.material.length) {
               for (let i = 0; i < child.material.length; i++) {
                 let tempMaterial = child.material[i];
-                if(tempMaterial.map){
+                if (tempMaterial.map) {
                   tempMaterial.map.dispose();
                 }
                 tempMaterial.dispose();
@@ -1542,7 +1475,7 @@ export default Component.extend(Evented, THREEPerformance, {
             }
             // Dispose material 
             else {
-              if(child.material.map){
+              if (child.material.map) {
                 child.material.map.dispose();
               }
               child.material.dispose();
@@ -1552,11 +1485,11 @@ export default Component.extend(Evented, THREEPerformance, {
         }
       }
     }
-    if(!childrenToRemove){
+    if (!childrenToRemove) {
       // Handle removing whole application3D
-      if(entity.name === 'app3D'){
+      if (entity.name === 'app3D') {
 
-        // remove foundation for re-rendering
+        // Remove foundation for re-rendering
         this.removeFoundation(entity.userData.model.id, this.get('store'));
         // Update application3D in interaction
         this.get('world.interaction').set('openApps', null);
@@ -1568,14 +1501,13 @@ export default Component.extend(Evented, THREEPerformance, {
 
     // Update possible objects for intersection with controller (application3D)
     this.set('world.interaction.raycastObjects', this.get('world.scene.children'));
-
   },
 
-  removeOpenApps(){
-    this.get('openApps').forEach( app => {
-      app.children.forEach( child => {
+  removeOpenApps() {
+    this.get('openApps').forEach(app => {
+      app.children.forEach(child => {
         const emberModel = child.userData.model;
-        if (emberModel !== undefined){
+        if (emberModel !== undefined) {
           const emberModelName = emberModel.constructor.modelName;
           if (emberModelName === 'component')
             child.userData.model.setOpenedStatus(false);
@@ -1586,10 +1518,10 @@ export default Component.extend(Evented, THREEPerformance, {
     this.set('openApps', new Map());
   },
 
-  removeFoundation(appID, store){
+  removeFoundation(appID, store) {
     const foundation = this.get('foundations').get(appID);
 
-    if(!foundation) {
+    if (!foundation) {
       return false;
     }
 
@@ -1599,24 +1531,21 @@ export default Component.extend(Evented, THREEPerformance, {
     emberApplication.get('components').forEach((component) => {
       component.set('parentComponent', null);
     });
-    
+
     store.unloadRecord(foundation);
 
-    return true; 
+    return true;
   },
 
-  
+
   /*
    *  This method is used to add commuication lines to application3D
    */
-  addCommunicationToApp(application){
-
+  addCommunicationToApp(application) {
     const viewCenterPoint = this.get('centerAndZoomCalculator.centerPoint');
-
     const drawableClazzCommunications = application.get('drawableClazzCommunications');
 
     drawableClazzCommunications.forEach((drawableClazzComm) => {
-
       // Skip communication with incomplete data
       if (!drawableClazzComm.get('startPoint') || !drawableClazzComm.get('endPoint')) {
         return;
@@ -1665,7 +1594,7 @@ export default Component.extend(Evented, THREEPerformance, {
         direction.length(), 20, 1);
       const pipe = new THREE.Mesh(edgeGeometry, material);
       pipe.applyMatrix(orientation);
-  
+
       pipe.position.x = (pointY.x + pointX.x) / 2.0;
       pipe.position.y = (pointY.y + pointX.y) / 2.0;
       pipe.position.z = (pointY.z + pointX.z) / 2.0;
@@ -1678,9 +1607,8 @@ export default Component.extend(Evented, THREEPerformance, {
    * to the landscape(3D)
    */
   add3DApplicationToLandscape(application, position, quaternion) {
-
     const self = this;
-    
+
     if (application.get('components').get('length') === 0) {
       return;
     }
@@ -1704,8 +1632,8 @@ export default Component.extend(Evented, THREEPerformance, {
     let bboxApp3D = new THREE.Box3().setFromObject(this.get('openApps').get(application.id));
 
     // Create delete button
-    var geometryDel = new THREE.SphereGeometry(6, 32, 32);
-    var materialDel = new THREE.MeshPhongMaterial({
+    let geometryDel = new THREE.SphereGeometry(6, 32, 32);
+    let materialDel = new THREE.MeshPhongMaterial({
       map: this.get('deleteButtonTexture')
     });
     this.set('deleteButton', new THREE.Mesh(geometryDel, materialDel));
@@ -1742,7 +1670,6 @@ export default Component.extend(Evented, THREEPerformance, {
       This function is used to create all boxes for application3D
     */
     function addComponentToScene(component, color, appID) {
-
       const grey = 0xCECECE;
       const lightGreen = 0x00BB41;
       const darkGreen = 0x169E2B;
@@ -1775,9 +1702,9 @@ export default Component.extend(Evented, THREEPerformance, {
             if (component.get('color') === grey) {
               addComponentToScene(child, lightGreen, appID);
             } else if (component.get('color') === darkGreen) {
-              addComponentToScene(child, lightGreen,appID);
+              addComponentToScene(child, lightGreen, appID);
             } else {
-              addComponentToScene(child, darkGreen,appID);
+              addComponentToScene(child, darkGreen, appID);
             }
           }
         }
@@ -1788,7 +1715,6 @@ export default Component.extend(Evented, THREEPerformance, {
      *  This function is used to create the meshes for th application3D
      */
     function createBoxApp(component, color, isClass, appID) {
-
       let centerPoint = new THREE.Vector3(component.get('positionX') +
         component.get('width') / 2.0, component.get('positionY') +
         component.get('height') / 2.0,
@@ -1827,26 +1753,22 @@ export default Component.extend(Evented, THREEPerformance, {
       }
 
       // Pass highlighted mesh
-      if(component.get('highlighted')){
+      if (component.get('highlighted')) {
         self.get('world.interaction').set('selectedEntitysMesh', mesh);
       }
 
       self.get('openApps').get(appID).add(mesh);
-
     } // END createBoxApp
-
-
   }, // END add 3D application to the landscape(3D)
 
-  
-  redrawApplication(appID){
+  redrawApplication(appID) {
     // Only redraw if app is opened
-    if (!this.get('openApps').has(appID)){
+    if (!this.get('openApps').has(appID)) {
       return;
     }
     // Store app3D Data because application3D is removed in the next step
-    var appPosition = this.get('openApps').get(appID).position;
-    var appQuaternion = this.get('openApps').get(appID).quaternion;
+    let appPosition = this.get('openApps').get(appID).position;
+    let appQuaternion = this.get('openApps').get(appID).quaternion;
     let app3DModel = this.get('openApps').get(appID).userData.model;
 
     // Empty application 3D (remove app3D)
