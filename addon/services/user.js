@@ -1,7 +1,11 @@
 import Service, { inject as service } from '@ember/service';
+import { computed } from '@ember/object';
 import THREE from 'three';
 
 export default Service.extend({
+
+  menus: service(),
+  world: service(),
 
   userID: null, // Own userID
   state: null, // Own connection status, state in {'connecting', 'connected', 'spectating'}
@@ -12,8 +16,14 @@ export default Service.extend({
   controller2: null, // Primary controller
   threeGroup: null, // Contains camera and controller objects
   isLefty: null,
-  menus: service(),
-  world: service(),
+
+  primaryController: computed('isLefty', function() {
+    return this.get('isLefty') ? this.get('controller1') : this.get('controller2');
+  }),
+
+  secondaryController: computed('isLefty', function() {
+    return this.get('isLefty') ? this.get('controller2') : this.get('controller1');
+  }),
 
   init() {
     this._super(...arguments)
@@ -25,30 +35,16 @@ export default Service.extend({
   getPosition() {
     return this.get('threeGroup.position');
   },
-  
-  getCamera() {
-    return this.get('threeGroup').getObjectByName('camera');
-  },
-
-  getController1() {
-    return this.get('threeGroup').getObjectByName('controller1');
-  },
-  
-  getController2() {
-    return this.get('threeGroup').getObjectByName('controller2');
-  },
 
   switchHand() {
     this.get('menus').removeAll();
-    let oldMenuController = this.get('isLefty') ? this.getController2() : this.getController1();
-    let oldOtherController = this.get('isLefty') ? this.getController1() : this.getController2();
+    let oldMenuController = this.get('primaryController');
+    let oldOtherController = this.get('secondaryController');
     if (oldMenuController.getObjectByName('textBox')) {
       oldMenuController.remove(oldMenuController.getObjectByName('textBox'));
     }
-    this.toggleProperty('isLefty');
     this.get('world.interaction').removeControllerHandlers();
-    this.set('world.interaction.primaryController', oldMenuController);
-    this.set('world.interaction.secondaryController', oldOtherController);
+    this.toggleProperty('isLefty');
     this.get('world.interaction').addControllerHandlers();
     oldMenuController.getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,204,51)');
     oldOtherController.getObjectByName('controllerLine').material.color = new THREE.Color('rgb(0,0,0)');

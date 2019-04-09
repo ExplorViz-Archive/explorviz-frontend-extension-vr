@@ -44,7 +44,7 @@ export default EmberObject.extend({
     let moved = 0.0;
     let counter = 0;
 
-    this.get('currentUser').getCamera().add(mesh);
+    this.get('currentUser.camera').add(mesh);
 
     // menu's stretch-open animation
     function animateOpen() {

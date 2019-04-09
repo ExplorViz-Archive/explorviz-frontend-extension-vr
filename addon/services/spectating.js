@@ -25,7 +25,7 @@ export default Service.extend({
 
     const cameraOffset = new THREE.Vector3();
 
-    cameraOffset.copy(this.get('currentUser').getCamera().position);
+    cameraOffset.copy(this.get('currentUser.camera.position'));
     this.get('currentUser').getPosition().subVectors(new THREE.Vector3(position.x, position.y, position.z), cameraOffset);
   },
 

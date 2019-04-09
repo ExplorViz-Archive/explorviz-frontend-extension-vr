@@ -21,8 +21,8 @@ export default BaseMenu.extend({
     this.get('menu').addText(this.get('currentUser').getPosition().y.toFixed(2), 'camera_height', 28, { x: 256, y: 202}, '#ffffff', 'center', false);
     this.get('menu').addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
   
-    let triggerController = this.get('currentUser.isLefty') ? this.get('currentUser').getController1() : this.get('currentUser').getController2();
-    let menuController = this.get('currentUser.isLefty') ? this.get('currentUser').getController2() : this.get('currentUser').getController1(); 
+    let triggerController = this.get('currentUser.primaryController');
+    let menuController = this.get('currentUser.secondaryController');
   
     this.get('menu').interact = (action, position) => {
       let item = this.get('menu').getItem(position);

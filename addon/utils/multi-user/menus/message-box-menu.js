@@ -64,7 +64,7 @@ export default EmberObject.extend({
         mesh.position.z -= 0.3;
         mesh.rotateX(0.45);
   
-        this.get('currentUser').getCamera().add(mesh);
+        this.get('currentUser.camera').add(mesh);
         let y = 0;
         function animate() {
           y -= 0.015;
@@ -91,7 +91,7 @@ export default EmberObject.extend({
          * Remove text message on top edge of user's view
          */
         function deleteMessageBox() {
-          this.get('currentUser').getCamera().remove(this.get('messageBox').get('mesh'));
+          this.get('currentUser.camera').remove(this.get('messageBox').get('mesh'));
           this.get('messageBox').close();
           this.set('messageBox', null);
         }

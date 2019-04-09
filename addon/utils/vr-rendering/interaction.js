@@ -32,8 +32,6 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
   renderer: null,
   raycaster: null,
   raycastObjectsLandscape: null,
-  primaryController: null,
-  secondaryController: null,
 
   labeler: null,
 
@@ -200,12 +198,12 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
     this.get('listeners').set('onAxisChangedPrimaryController', (event) => { this.onAxisChangedPrimaryController(event) });
 
     // Setup listeners for primary controller (interaction with landscape etc.)
-    this.get('primaryController').addEventListener('triggerdown', this.get('listeners').get('onTriggerDownPrimaryController'));
-    this.get('primaryController').addEventListener('triggerup', this.get('listeners').get('onTriggerUpPrimaryController'));
-    this.get('primaryController').addEventListener('menudown', this.get('listeners').get('onMenuDownPrimaryController'));
-    this.get('primaryController').addEventListener('gripdown', this.get('listeners').get('onGripDownPrimaryController'));
-    this.get('primaryController').addEventListener('gripup', this.get('listeners').get('onGripUpPrimaryController'));
-    this.get('primaryController').addEventListener('axischanged', this.get('listeners').get('onAxisChangedPrimaryController'));
+    this.get('currentUser.primaryController').addEventListener('triggerdown', this.get('listeners').get('onTriggerDownPrimaryController'));
+    this.get('currentUser.primaryController').addEventListener('triggerup', this.get('listeners').get('onTriggerUpPrimaryController'));
+    this.get('currentUser.primaryController').addEventListener('menudown', this.get('listeners').get('onMenuDownPrimaryController'));
+    this.get('currentUser.primaryController').addEventListener('gripdown', this.get('listeners').get('onGripDownPrimaryController'));
+    this.get('currentUser.primaryController').addEventListener('gripup', this.get('listeners').get('onGripUpPrimaryController'));
+    this.get('currentUser.primaryController').addEventListener('axischanged', this.get('listeners').get('onAxisChangedPrimaryController'));
 
     // Save listeners for secondary controller to be able to later remove them
     this.get('listeners').set('onTriggerDownSecondaryController', (event) => { this.onTriggerDownSecondaryController(event) });
@@ -214,10 +212,10 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
     this.get('listeners').set('onMenuDownSecondaryController', (event) => { this.onMenuDownSecondaryController(event) });
 
     // Setup listeners for secondary controller (teleport, highlight etc.)
-    this.get('secondaryController').addEventListener('triggerdown', this.get('listeners').get('onTriggerDownSecondaryController'));
-    this.get('secondaryController').addEventListener('gripdown', this.get('listeners').get('onGripDownSecondaryController'));
-    this.get('secondaryController').addEventListener('gripup', this.get('listeners').get('onGripUpSecondaryController'));
-    this.get('secondaryController').addEventListener('menudown', this.get('listeners').get('onMenuDownSecondaryController'));
+    this.get('currentUser.secondaryController').addEventListener('triggerdown', this.get('listeners').get('onTriggerDownSecondaryController'));
+    this.get('currentUser.secondaryController').addEventListener('gripdown', this.get('listeners').get('onGripDownSecondaryController'));
+    this.get('currentUser.secondaryController').addEventListener('gripup', this.get('listeners').get('onGripUpSecondaryController'));
+    this.get('currentUser.secondaryController').addEventListener('menudown', this.get('listeners').get('onMenuDownSecondaryController'));
 
     // Unused events: triggerup, thumbpadup, menuup, axischanged
   },
@@ -231,12 +229,12 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
    * Furthermore this method scales the ray relative to distance of intersection
    */
   checkIntersectionPrimaryController(objects) {
-    let controller = this.get('primaryController')
+    let controller = this.get('currentUser.primaryController')
     let controllerLine = controller.getObjectByName('controllerLine');
 
     // Id to verfify which controller triggered the event
     let primaryControllerId = controller.id;
-    let secondaryControllerId = this.get('secondaryController.id');
+    let secondaryControllerId = this.get('currentUser.secondaryController.id');
 
     // Calculate hit object
     const intersectedViewObj = this.calculateIntersectedViewObject(controller, objects);
@@ -325,7 +323,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
    * Furthermore this method scales the ray relative to distance of intersection
    */
   checkIntersectionSecondaryController(objects) {
-    let controller = this.get('secondaryController')
+    let controller = this.get('currentUser.secondaryController')
     let controllerLine = controller.getObjectByName('controllerLine');
 
     // Id to verfify which controller triggered the event
@@ -334,7 +332,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
     const intersectedViewObj = this.calculateIntersectedViewObject(controller, objects);
 
     // Verify controllers
-    let primaryControllerId = this.get('primaryController.id');
+    let primaryControllerId = this.get('currentUser.primaryController.id');
 
     // Stop if entity is already highlighted by a controller
     if (this.isEntityHighlighted(intersectedViewObj, controller, primaryControllerId)) {
@@ -754,7 +752,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
 
           // If identical to intersected object unhighlight and return
           if (this.get('selectedEntitysMesh') === intersectedViewObj.object) {
-            this.restoreSelectedEntity(this.get('primaryController.id'));
+            this.restoreSelectedEntity(this.get('currentUser.primaryController.id'));
             this.set('selectedEntitysMesh', null);
             this.trigger("entityHighlighted", false, appID, emberModel.id, this.get('selectedEntitysColor'));
             this.set('selectedEntitysColor', null);
@@ -763,7 +761,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
           // Reset communication lines
           this.get('selector').highlightAppCommunication(null, this.get('highlightedAppModel'));
           // Restore old color
-          this.restoreSelectedEntity(this.get('primaryController.id'));
+          this.restoreSelectedEntity(this.get('currentUser.primaryController.id'));
 
           this.get('appCommunicationHighlighted').set('highlighted', false);
         }
@@ -852,7 +850,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
         controller.userData.selected = object;
 
         // Send information about app binding to backend
-        let boundToSecondaryController = controller.id === this.get('secondaryController.id');
+        let boundToSecondaryController = controller.id === this.get('currentUser.secondaryController.id');
 
         this.trigger('appBinded', appID, object.position, object.quaternion, boundToSecondaryController, controller.position, controller.quaternion);
       }
@@ -977,18 +975,18 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
 
   removeControllerHandlers() {
     // Remove listeners for primary controller
-    this.get('primaryController').removeEventListener('triggerdown', this.get('listeners').get('onTriggerDownPrimaryController'));
-    this.get('primaryController').removeEventListener('triggerup', this.get('listeners').get('onTriggerUpPrimaryController'));
-    this.get('primaryController').removeEventListener('menudown', this.get('listeners').get('onMenuDownPrimaryController'));
-    this.get('primaryController').removeEventListener('gripdown', this.get('listeners').get('onGripDownPrimaryController'));
-    this.get('primaryController').removeEventListener('gripup', this.get('listeners').get('onGripUpPrimaryController'));
-    this.get('primaryController').removeEventListener('axischanged', this.get('listeners').get('onAxisChangedPrimaryController'));
+    this.get('currentUser.primaryController').removeEventListener('triggerdown', this.get('listeners').get('onTriggerDownPrimaryController'));
+    this.get('currentUser.primaryController').removeEventListener('triggerup', this.get('listeners').get('onTriggerUpPrimaryController'));
+    this.get('currentUser.primaryController').removeEventListener('menudown', this.get('listeners').get('onMenuDownPrimaryController'));
+    this.get('currentUser.primaryController').removeEventListener('gripdown', this.get('listeners').get('onGripDownPrimaryController'));
+    this.get('currentUser.primaryController').removeEventListener('gripup', this.get('listeners').get('onGripUpPrimaryController'));
+    this.get('currentUser.primaryController').removeEventListener('axischanged', this.get('listeners').get('onAxisChangedPrimaryController'));
 
     // Remove listeners for secondary controller
-    this.get('secondaryController').removeEventListener('triggerdown', this.get('listeners').get('onTriggerDownSecondaryController'));
-    this.get('secondaryController').removeEventListener('gripdown', this.get('listeners').get('onGripDownSecondaryController'));
-    this.get('secondaryController').removeEventListener('gripup', this.get('listeners').get('onGripUpSecondaryController'));
-    this.get('secondaryController').removeEventListener('menudown', this.get('listeners').get('onMenuDownSecondaryController'));
+    this.get('currentUser.secondaryController').removeEventListener('triggerdown', this.get('listeners').get('onTriggerDownSecondaryController'));
+    this.get('currentUser.secondaryController').removeEventListener('gripdown', this.get('listeners').get('onGripDownSecondaryController'));
+    this.get('currentUser.secondaryController').removeEventListener('gripup', this.get('listeners').get('onGripUpSecondaryController'));
+    this.get('currentUser.secondaryController').removeEventListener('menudown', this.get('listeners').get('onMenuDownSecondaryController'));
 
     this.set('listeners', null);
   },

@@ -19,7 +19,7 @@ export default BaseMenu.extend({
     this.get('menu').addCheckbox("isLefty", { x: 366, y: 126 }, 50, 50, '#ffc338', '#ffffff', '#00e5ff', true, this.get('currentUser.isLefty'));
     this.get('menu').addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
   
-    let controller = this.get('currentUser.isLefty') ? this.get('currentUser').getController2() : this.get('currentUser').getController1(); 
+    let controller = this.get('currentUser.secondaryController'); 
   
     this.get('menu').interact = (action, position) => {
       let item = this.get('menu').getItem(position);

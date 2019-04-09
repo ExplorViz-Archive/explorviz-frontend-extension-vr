@@ -74,7 +74,7 @@ export default EmberObject.extend({
     this.get('menu').createMesh();
     const mesh = this.get('menu.mesh');
     mesh.position.z -= 0.5;
-    this.get('currentUser').getCamera().add(mesh);
+    this.get('currentUser.camera').add(mesh);
   },
 
   /**

@@ -137,7 +137,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
   initInteractions() {
     const self = this;
-
+    
     // Override actions to prevent users in spectator mode from interacting with landscape, apps or teleport
 
     let old_checkIntersectionPrimaryController = this.get('world.interaction').checkIntersectionPrimaryController;

@@ -47,7 +47,7 @@ export default BaseMenu.extend({
       }
     };
     this.get('menu').createMesh();
-    let controller = this.get('user.isLefty') ? this.get('user').getController2() : this.get('user').getController1();
+    let controller = this.get('user.secondaryController');
     this.get('menu').addToController(controller);
   
     this.setState(this.get('user.state'));
