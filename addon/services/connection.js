@@ -1,6 +1,7 @@
 import Service, { inject as service } from '@ember/service';
 
 export default Service.extend({
+  
   currentUser: service('user'),
   menus: service(),
   world: service(),
