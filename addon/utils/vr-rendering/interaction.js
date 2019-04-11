@@ -745,7 +745,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
         }
 
         // Save selected entity and communication highlighting
-        this.saveSelectedEntity(intersectedViewObj, emberModel);
+        this.saveSelectedEntity(intersectedViewObj);
 
         this.trigger("entityHighlighted", true, appID, emberModel.id, this.get('selectedEntitysColor'));
 
@@ -843,29 +843,28 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       // Get stored application3D from controller
       let application = controller.userData.selected;
 
-      let appPosition = new THREE.Vector3();
-      application.getWorldPosition(appPosition);
+      let appPosition = application.position;
+      let appPositionWorld = new THREE.Vector3();
+      application.getWorldPosition(appPositionWorld);
 
       let controllerPosition = new THREE.Vector3();
       controller.getWorldPosition(controllerPosition);
+      let controllerPositionLocal = controllerPosition.clone();
+      application.worldToLocal(controllerPositionLocal);
 
       let direction = new THREE.Vector3();
-      direction.subVectors(appPosition, controllerPosition);
+      direction.subVectors(appPosition, controllerPositionLocal);
 
-      // Do not move application if it is close to the controller
-      if (direction.length() < 0.5 && yAxis < 0) {
-        return;
+      let worldDirection = new THREE.Vector3().subVectors(controllerPosition, appPositionWorld);
+      // Only move application if it is not too close and above the floor
+      if (worldDirection.length() > 1 && yAxis > 0) {
+        // Adapt distance for moving according to trigger value
+        const maxTranslation = 0.05;
+        direction.normalize();
+        application.translateOnAxis(direction, yAxis * maxTranslation);
+
+        this.updateObjectMatrix(application);
       }
-
-      // Adapt distance for moving according to trigger value
-      const maxTranslation = 0.05;
-      direction.normalize();
-      direction.multiplyScalar(yAxis * maxTranslation);
-
-      application.position.x += direction.x;
-      application.position.y += direction.y;
-      application.position.z += direction.z;
-      this.updateObjectMatrix(application);
     }
   },
 
@@ -1152,7 +1151,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
           }
 
           // Save selected entity and communication highlighting
-          this.saveSelectedEntity(intersectedViewObj, emberModel);
+          this.saveSelectedEntity(intersectedViewObj);
 
           this.trigger('entityHighlighted', true, appID, emberModel.id, this.get('selectedEntitysColor'));
           let color = new THREE.Color(this.get('highlightingColor'));
@@ -1347,7 +1346,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
    *  This method is used to save the selected entity
    *  and the highlighted communication lines
    */
-  saveSelectedEntity(intersectedViewObj, emberModel) {
+  saveSelectedEntity(intersectedViewObj) {
     this.set('highlightedAppModel', intersectedViewObj.object.parent.userData.model);
     this.set('selectedEntitysMesh', intersectedViewObj.object);
     if (intersectedViewObj.object.userData.type === 'clazz') {
@@ -1364,7 +1363,6 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
    *  communication lines
    */
   restoreSelectedEntity(id) {
-
     // Restore old color (clazz)
     if (this.get('selectedEntitysMesh').userData.type === 'clazz') {
       this.get('selectedEntitysMesh').material.color = new THREE.Color(this.get('colorListApp')[this.get('selectedEntitysMesh').userData.type]);
