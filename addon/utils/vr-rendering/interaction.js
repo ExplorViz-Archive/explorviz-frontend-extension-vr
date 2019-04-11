@@ -856,8 +856,8 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       direction.subVectors(appPosition, controllerPositionLocal);
 
       let worldDirection = new THREE.Vector3().subVectors(controllerPosition, appPositionWorld);
-      // Only move application if it is not too close and above the floor
-      if (worldDirection.length() > 1 && yAxis > 0) {
+      // Only move application if it is not too close
+      if (worldDirection.length() > 1 || yAxis > 0) {
         // Adapt distance for moving according to trigger value
         const maxTranslation = 0.05;
         direction.normalize();
