@@ -188,8 +188,9 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     let old_onGripDownPrimaryController = this.get('world.interaction').onGripDownPrimaryController;
     this.get('world.interaction').onGripDownPrimaryController = function(event) {
-      if(self.get('currentUser.state') !== 'spectating')
-        old_onGripDownPrimaryController.apply(this, [event]);
+      if(self.get('currentUser.state') !== 'spectating') {
+        old_onGripDownPrimaryController.apply(this, [event, this.get('raycastObjectsLandscape').concat(this.get('menus').getVisibleMenuMeshesArray())]);
+      }
     };
 
     let old_onGripUpSecondaryController = this.get('world.interaction').onGripUpSecondaryController;

@@ -21,6 +21,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
   currentUser: service('user'),
   world: service(),
   configuration: service(),
+  time: service(),
 
   user: computed('currentUser.threeGroup', function () {
     return this.get('currentUser.threeGroup');
@@ -833,7 +834,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
    * This method handles inputs of the touchpad (HTC Vive) or analog stick (Oculus Rift) respectively.
    * This input is used to move a potentially grabbed application towards or away from the controller.
    */
-  onAxisChangedPrimaryController(event) {
+  onAxisChangedPrimaryController(event, objects) {
     const controller = event.target;
 
     const axes = event.axes;
@@ -843,9 +844,16 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       // Get stored application3D from controller
       let application = controller.userData.selected;
 
-      let appPosition = application.position;
-      let appPositionWorld = new THREE.Vector3();
-      application.getWorldPosition(appPositionWorld);
+      if(!objects)
+        objects = this.get('raycastObjectsLandscape')
+
+      // Necessary, since we need the point of intersection
+      const intersectedViewObj = this.calculateIntersectedViewObject(controller, objects);
+      
+      // position where ray hits the application
+      const intersectionPosWorld = intersectedViewObj.point;
+      const intersectionPosLocal = intersectionPosWorld.clone();
+      application.worldToLocal(intersectionPosLocal);
 
       let controllerPosition = new THREE.Vector3();
       controller.getWorldPosition(controllerPosition);
@@ -853,18 +861,19 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       application.worldToLocal(controllerPositionLocal);
 
       let direction = new THREE.Vector3();
-      direction.subVectors(appPosition, controllerPositionLocal);
+      direction.subVectors(intersectionPosLocal, controllerPositionLocal);
 
-      let worldDirection = new THREE.Vector3().subVectors(controllerPosition, appPositionWorld);
+      let worldDirection = new THREE.Vector3().subVectors(controllerPosition, intersectionPosWorld);
+
       // Only move application if it is not too close
-      if (worldDirection.length() > 1 || yAxis > 0) {
+      if ((worldDirection.length() > 0.5 && Math.abs(yAxis) > 0.1) || (worldDirection.length() <= 0.5 && yAxis > 0.1)) {
         // Adapt distance for moving according to trigger value
-        const maxTranslation = 0.05;
         direction.normalize();
-        application.translateOnAxis(direction, yAxis * maxTranslation);
+        application.translateOnAxis(direction, yAxis * this.get('time').getDeltaTime());
 
         this.updateObjectMatrix(application);
       }
+      controller.getObjectByName('controllerLine').scale.z = intersectedViewObj.distance;
     }
   },
 
