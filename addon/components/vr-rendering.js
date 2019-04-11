@@ -470,7 +470,6 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('world.interaction').off('centerVREnvironment');
     this.get('world.interaction').off('redrawApp');
     this.get('world.interaction').off('lication');
-    this.get('world.interaction').off('redrawAppCommunication');
     this.get('world.interaction').off('removeApplication');
     this.get('world.interaction').off('showTeleportArea');
     this.get('world.interaction').off('removeTeleportArea');
@@ -1294,19 +1293,6 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('world.interaction').on('redrawScene', () => { this.populateScene(); });
 
     this.get('world.interaction').on('centerVREnvironment', () => { this.get('world').centerVREnvironment(); });
-
-    this.get('world.interaction').on('redrawAppCommunication', () => {
-      // Delete communication lines of application3D
-      this.get('openApps').forEach((app) => {
-        this.removeChildren(app, ['app3DCommunication']);
-        app.updateMatrix();
-      });
-
-      this.get('openApps').forEach((app) => {
-        this.addCommunicationToApp(app.userData.model);
-        app.updateMatrix();
-      });
-    });
 
     // Show teleport area
     this.get('world.interaction').on('showTeleportArea', (intersectionPoint) => {
