@@ -224,6 +224,9 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     this.get('world.interaction').on('landscapeMoved', (deltaPosition) => {
       this.get('sender').sendLandscapeUpdate(deltaPosition, this.get('world.vrEnvironment'), this.get('world.environmentOffset'));
     });
+    this.get('world.interaction').on('applicationMoved', (appId, appDelta) => {
+      this.get('sender').sendAppPositionUpdate(appId, appDelta);
+    });
     this.get('world.interaction').on('entityHighlighted', (isHighlighted, appID, entityID, color) => {
       this.get('sender').sendHighlightingUpdate(this.get('currentUser.userID'), isHighlighted, appID, entityID, color);
     });
@@ -383,6 +386,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     socket.on('receive_user_disconnect', (data) => { this.onUserDisconnect(data); });
     socket.on('receive_landscape', (data) => { this.onInitialLandscape(data); });
     socket.on('receive_landscape_position', ({ deltaPosition, quaternion }) => { this.onLandscapePosition(deltaPosition, quaternion); });
+    socket.on('receive_application_position', ({ appId, deltaPosition }) => { this.onLandscapePosition(appId, deltaPosition); });
     socket.on('receive_system_update', ({ id, isOpen }) => { this.onLandscapeUpdate(id, isOpen); });
     socket.on('receive_nodegroup_update', ({ id, isOpen }) => { this.onLandscapeUpdate(id, isOpen); });
     socket.on('receive_app_opened', ({ id, position, quaternion }) => { this.onAppOpened(id, position, quaternion); });
@@ -679,6 +683,17 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     this.updateObjectMatrix(this.get('world.vrEnvironment'));
     this.get('world').centerVREnvironment();
     this.updateObjectMatrix(this.get('world.vrEnvironment'));
+  },
+
+  onAppPosition(appId, deltaPosition){
+    if (!this.get('openApps').has(appId)) {
+      return;
+    }
+    let app = this.get('openApps').get(appId);
+
+    app.position.x += deltaPosition[0];
+    app.position.y += deltaPosition[1];
+    app.position.z += deltaPosition[2];
   },
 
   onLandscapeUpdate(id, isOpen){

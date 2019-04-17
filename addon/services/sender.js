@@ -9,17 +9,29 @@ export default Service.extend({
    * Send update of position + quaternion of the
    * landscape (vrEnvironment)
    */
-  sendLandscapeUpdate(deltaPosition, vrEnvironment, environmentOffset){
-    let quaternion =  vrEnvironment.quaternion;
+  sendLandscapeUpdate(deltaPosition, vrEnvironment, environmentOffset) {
+    let quaternion = vrEnvironment.quaternion;
 
     let landscapeObj = {
       "event": "receive_landscape_position",
-      "time": Date.now(),
-      "deltaPosition" : deltaPosition.toArray(),
-      "offset" : environmentOffset.toArray(),
-      "quaternion" : quaternion.toArray()
+      "deltaPosition": deltaPosition.toArray(),
+      "offset": environmentOffset.toArray(),
+      "quaternion": quaternion.toArray()
     }
     this.get('webSocket').enqueueIfOpen(landscapeObj);
+  },
+
+  /**
+   * Send update of position + quaternion of the
+   * landscape (vrEnvironment)
+   */
+  sendAppPositionUpdate(appId, deltaPosition) {
+    let applicationObj = {
+      "event": "receive_app_position",
+      "appId": appId,
+      "deltaPosition": deltaPosition.toArray()
+    }
+    this.get('webSocket').enqueueIfOpen(applicationObj);
   },
 
   /**
@@ -28,10 +40,9 @@ export default Service.extend({
    * @param {Long} id ID of system which was opened/closed
    * @param {boolean} isOpen State of the system
    */
-  sendSystemUpdate(id, isOpen){
+  sendSystemUpdate(id, isOpen) {
     let systemObj = {
       "event": "receive_system_update",
-      "time": Date.now(),
       "id": id,
       "isOpen": isOpen
     }
@@ -44,10 +55,9 @@ export default Service.extend({
    * @param {Long} id ID of nodegroup which was opened/closed
    * @param {boolean} isOpen State of the nodegroup
    */
-  sendNodegroupUpdate(id, isOpen){
+  sendNodegroupUpdate(id, isOpen) {
     let nodeGroupObj = {
       "event": "receive_nodegroup_update",
-      "time": Date.now(),
       "id": id,
       "isOpen": isOpen
     }
@@ -59,10 +69,9 @@ export default Service.extend({
    * by this user
    * @param {Long} appID ID of the closed application
    */
-  sendAppClosed(appID){
+  sendAppClosed(appID) {
     let appObj = {
       "event": "receive_app_closed",
-      "time": Date.now(),
       "id": appID
     }
     this.get('webSocket').enqueueIfOpen(appObj);
@@ -77,16 +86,15 @@ export default Service.extend({
    * @param {Vector3} controllerPosition Position of the controller which holds the application
    * @param {Quaternion} controllerQuaternion Quaternion of the controller which holds the application
    */
-  sendAppBinded(appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion){
+  sendAppBinded(appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion) {
     let appObj = {
       "event": "receive_app_binded",
-      "time": Date.now(),
       "appID": appID,
-      "appPosition" : appPosition.toArray(),
-      "appQuaternion" : appQuaternion.toArray(),
-      "isBoundToController1" : isBoundToController1,
-      "controllerPosition" : controllerPosition.toArray(),
-      "controllerQuaternion" : controllerQuaternion.toArray()
+      "appPosition": appPosition.toArray(),
+      "appQuaternion": appQuaternion.toArray(),
+      "isBoundToController1": isBoundToController1,
+      "controllerPosition": controllerPosition.toArray(),
+      "controllerQuaternion": controllerQuaternion.toArray()
     }
     this.get('webSocket').enqueueIfOpen(appObj);
   },
@@ -97,13 +105,12 @@ export default Service.extend({
    * @param {Vector3} position Position of the app (x, y, z)
    * @param {Quaternion} quaternion Quaternion of the app (x, y, z, w)
    */
-  sendAppReleased(appID, position, quaternion){
+  sendAppReleased(appID, position, quaternion) {
     let appObj = {
       "event": "receive_app_released",
-      "time": Date.now(),
       "id": appID,
-      "position" : position.toArray(),
-      "quaternion" : quaternion.toArray()
+      "position": position.toArray(),
+      "quaternion": quaternion.toArray()
     }
     this.get('webSocket').enqueueIfOpen(appObj);
   },
@@ -114,10 +121,9 @@ export default Service.extend({
    * @param {Long} componentID ID of the component which was opened or closed
    * @param {boolean} isOpened Tells whether the component is now open or closed (current state)
    */
-  sendComponentUpdate(appID, componentID, isOpened, isFoundation){
+  sendComponentUpdate(appID, componentID, isOpened, isFoundation) {
     let appObj = {
       "event": "receive_component_update",
-      "time": Date.now(),
       "appID": appID,
       "componentID": componentID,
       "isOpened": isOpened,
@@ -134,11 +140,10 @@ export default Service.extend({
    * @param {Long} entityID ID of the highlighted/unhighlighted component/clazz
    * @param {string} color Original color of the entity as hex value
    */
-  sendHighlightingUpdate(userID, isHighlighted, appID, entityID, color){
+  sendHighlightingUpdate(userID, isHighlighted, appID, entityID, color) {
     let hightlightObj = {
       "event": "receive_hightlight_update",
-      "time": Date.now(),
-      "userID" : userID,
+      "userID": userID,
       "appID": appID,
       "entityID": entityID,
       "isHighlighted": isHighlighted,
@@ -151,13 +156,12 @@ export default Service.extend({
    * Informs backend that this user entered or left spectating mode
    * and additionally adds who is spectating who
    */
-  sendSpectatingUpdate(userID, state, spectatedUser){
+  sendSpectatingUpdate(userID, state, spectatedUser) {
     let spectateObj = {
       "event": "receive_spectating_update",
       "userID": userID,
       "isSpectating": state === 'spectating',
       "spectatedUser": spectatedUser,
-      "time": Date.now()
     }
     this.get('webSocket').enqueueIfOpen(spectateObj);
   },
@@ -168,7 +172,6 @@ export default Service.extend({
   sendControllerUpdate(connect, disconnect) {
     let controllerObj = {
       "event": "receive_user_controllers",
-      "time": Date.now(),
       "connect": connect,
       "disconnect": disconnect
     };
@@ -182,7 +185,7 @@ export default Service.extend({
    * @param {Long} id ID of nodegroup which was opened/closed
    * @param {boolean} isOpen State of the nodegroup
    */
-  sendAppOpened(id, app){
+  sendAppOpened(id, app) {
     let position = new THREE.Vector3();
     app.getWorldPosition(position);
 
@@ -191,10 +194,9 @@ export default Service.extend({
 
     let appObj = {
       "event": "receive_app_opened",
-      "time": Date.now(),
       "id": id,
-      "position" : position.toArray(),
-      "quaternion" : quaternion.toArray()
+      "position": position.toArray(),
+      "quaternion": quaternion.toArray()
     }
     this.get('webSocket').enqueueIfOpen(appObj);
   }

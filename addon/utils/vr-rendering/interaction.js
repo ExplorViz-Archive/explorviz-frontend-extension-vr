@@ -872,6 +872,8 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
         application.translateOnAxis(direction, yAxis * this.get('time').getDeltaTime());
 
         this.updateObjectMatrix(application);
+        let appDelta = direction.multiplyScalar(yAxis * this.get('time').getDeltaTime());
+        this.trigger('applicationMoved', application.get('id'), appDelta);
       }
       controller.getObjectByName('controllerLine').scale.z = intersectedViewObj.distance;
     }
@@ -1087,7 +1089,6 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
     // Get mouse origin (2D)
     origin.x = ((mouse.x - (this.get('renderer').domElement.offsetLeft + 0.66)) /
       this.get('renderer').domElement.clientWidth) * 2 - 1;
-
     origin.y = -((mouse.y - (this.get('renderer').domElement.offsetTop + 0.665)) /
       this.get('renderer').domElement.clientHeight) * 2 + 1;
 
@@ -1095,17 +1096,17 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
     const intersectedViewObj = this.get('raycaster').raycasting(null, origin,
       this.get('currentUser.camera'), this.get('raycastObjectsLandscape'));
 
-    let id = 123;
+    // Assign mouse an identifier, to associate highlighted entities with mouse
+    let mouseId = 123;
 
     // Restore old color of landscape
-    this.unhighlightLandscape(id);
+    this.unhighlightLandscape(mouseId);
 
     // Restore old color of application3D
-    this.unhighlightApplication3D(id);
+    this.unhighlightApplication3D(mouseId);
 
     // Case for intersection object present
     if (intersectedViewObj) {
-
       // Handle floor (teleport)
       if (intersectedViewObj.object.name === 'floor') {
         this.trigger('showTeleportArea', intersectedViewObj.point);
@@ -1118,7 +1119,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
 
       // Handle delete button
       if (intersectedViewObj.object.name === 'deleteButton') {
-        this.highlightDeleteButton(intersectedViewObj, id);
+        this.highlightDeleteButton(intersectedViewObj, mouseId);
         return;
       }
 
@@ -1137,7 +1138,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       let darkerColor = Helper.calculateDarkerColor(intersectedViewObj.object);
 
       // Handle hit system, nodegroup or application and change color
-      this.highlightLandscape(emberModel, emberModelName, intersectedViewObj, id, darkerColor);
+      this.highlightLandscape(emberModel, emberModelName, intersectedViewObj, mouseId, darkerColor);
 
       // Handle hit component/clazz of app3D 
       if (emberModelName === "component" || emberModelName === "clazz") {
@@ -1149,16 +1150,15 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
           if (this.get('selectedEntitysMesh') && this.get('selectedEntitysColor')) {
             // Return if identical to intersected object
             if (this.get('selectedEntitysMesh') === intersectedViewObj.object) {
-              this.restoreSelectedEntity(id);
+              this.restoreSelectedEntity(mouseId);
               this.set('selectedEntitysMesh', null);
 
               this.trigger("entityHighlighted", false, appID, emberModel.id, this.get('selectedEntitysColor'));
               return;
             }
             // Restore selected entity and communication lines
-            this.restoreSelectedEntity(id);
+            this.restoreSelectedEntity(mouseId);
           }
-
           // Save selected entity and communication highlighting
           this.saveSelectedEntity(intersectedViewObj);
 
@@ -1168,8 +1168,8 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
         }
       }
       // Unhighlight delete button if app3D or landscape is highlighted 
-      let additionalCondition = (this.get('highlightedEntitiesApp')[id] || this.get('highlightedEntities')[id]);
-      this.unhighlightedDeleteButton(id, additionalCondition);
+      let additionalCondition = (this.get('highlightedEntitiesApp')[mouseId] || this.get('highlightedEntities')[mouseId]);
+      this.unhighlightedDeleteButton(mouseId, additionalCondition);
     }
     // Nothing hit 
     else {
@@ -1177,7 +1177,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       this.trigger('removeTeleportArea');
 
       // Unhighlight delete button
-      this.unhighlightedDeleteButton(id, true);
+      this.unhighlightedDeleteButton(mouseId, true);
     }
   },
 
