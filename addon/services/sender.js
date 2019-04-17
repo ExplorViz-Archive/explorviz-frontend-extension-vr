@@ -25,11 +25,12 @@ export default Service.extend({
    * Send update of position + quaternion of the
    * landscape (vrEnvironment)
    */
-  sendAppPositionUpdate(appId, deltaPosition) {
+  sendAppPositionUpdate(appId, direction, length) {
     let applicationObj = {
       "event": "receive_app_position",
       "appId": appId,
-      "deltaPosition": deltaPosition.toArray()
+      "direction": direction.toArray(),
+      "length": length
     }
     this.get('webSocket').enqueueIfOpen(applicationObj);
   },

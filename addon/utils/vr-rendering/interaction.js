@@ -869,11 +869,13 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
       if ((worldDirection.length() > 0.5 && Math.abs(yAxis) > 0.1) || (worldDirection.length() <= 0.5 && yAxis > 0.1)) {
         // Adapt distance for moving according to trigger value
         direction.normalize();
-        application.translateOnAxis(direction, yAxis * this.get('time').getDeltaTime());
+        let length = yAxis * this.get('time').getDeltaTime();
+        application.translateOnAxis(direction, length);
 
         this.updateObjectMatrix(application);
-        let appDelta = direction.multiplyScalar(yAxis * this.get('time').getDeltaTime());
-        this.trigger('applicationMoved', application.get('id'), appDelta);
+        let appId = application.userData.model.id;
+
+        this.trigger('applicationMoved', appId, direction, length);
       }
       controller.getObjectByName('controllerLine').scale.z = intersectedViewObj.distance;
     }
