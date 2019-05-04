@@ -17,18 +17,23 @@ export default Service.extend({
   threeGroup: null, // Contains camera and controller objects
   isLefty: null,
 
-  primaryController: computed('isLefty', function() {
+  primaryController: computed('isLefty', 'controller1', 'controller2', function() {
     return this.get('isLefty') ? this.get('controller1') : this.get('controller2');
   }),
 
-  secondaryController: computed('isLefty', function() {
+  secondaryController: computed('isLefty', 'controller1', 'controller2', function() {
     return this.get('isLefty') ? this.get('controller2') : this.get('controller1');
   }),
 
-  init() {
-    this._super(...arguments)
+  reset() {
+    this.set('userID', null);
+    this.set('state', null);
+    this.set('color', null);
     this.set('controllersConnected', { controller1: false, controller2: false });
-    this.set('state', 'offline');
+    this.set('camera', null);
+    this.set('controller1', null);
+    this.set('controller2', null);
+    this.set('threeGroup', null);
     this.set('isLefty', false);
   },
 

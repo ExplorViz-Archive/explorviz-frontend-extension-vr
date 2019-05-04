@@ -120,8 +120,8 @@ export default Component.extend(Evented, THREEPerformance, {
   },
 
   willDestroyElement() {
-    this._super(...arguments);
     this.cleanup();
+    this._super(...arguments);
   },
 
   /**
@@ -451,12 +451,18 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('webglrenderer').vr.setDevice(null);
     this.get('webglrenderer').dispose();
 
-    this.set('world.scene', null);
-    this.set('world.interaction', null);
-    this.set('world.vrEnvironment', null);
-    this.set('world.environmentOffset', null);
-    this.set('currentUser.controller1', null);
-    this.set('currentUser.controller2', null);
+    this.get('world.interaction').off('redrawScene');
+    this.get('world.interaction').off('centerVREnvironment');
+    this.get('world.interaction').off('redrawApp');
+    this.get('world.interaction').off('lication');
+    this.get('world.interaction').off('removeApplication');
+    this.get('world.interaction').off('showTeleportArea');
+    this.get('world.interaction').off('removeTeleportArea');
+    this.get('world.interaction').removeHandlers();
+
+    this.get('currentUser').reset();
+    this.get('world').reset();
+
     this.set('webglrenderer', null);
     this.removePerformanceMeasurement();
     this.get('renderingService').off('reSetupScene');
@@ -465,16 +471,6 @@ export default Component.extend(Evented, THREEPerformance, {
     this.set('imageLoader.logos', {});
     this.set('labeler.textLabels', {});
     this.set('labeler.textCache', []);
-
-    this.get('world.interaction').off('redrawScene');
-    this.get('world.interaction').off('centerVREnvironment');
-    this.get('world.interaction').off('redrawApp');
-    this.get('world.interaction').off('lication');
-    this.get('world.interaction').off('removeApplication');
-    this.get('world.interaction').off('showTeleportArea');
-    this.get('world.interaction').off('removeTeleportArea');
-
-    this.get('world.interaction').removeHandlers();
 
     const emberLandscape = this.get('landscapeRepo.latestLandscape');
 
@@ -1268,8 +1264,6 @@ export default Component.extend(Evented, THREEPerformance, {
     const canvas = this.get('canvas');
     const webglrenderer = this.get('webglrenderer');
     const raycaster = this.get('raycaster');
-    const controller1 = this.get('currentUser.controller1');
-    const controller2 = this.get('currentUser.controller2');
 
     let interaction = this.get('world.interaction');
 
@@ -1278,8 +1272,6 @@ export default Component.extend(Evented, THREEPerformance, {
     interaction.set('renderer', webglrenderer);
     interaction.set('raycaster', raycaster);
     interaction.set('raycastObjectsLandscape', this.get('vrLandscape').children);
-    interaction.set('secondaryController', controller1);
-    interaction.set('primaryController', controller2);
     interaction.set('colorList', this.get('configuration.landscapeColors'));
     interaction.set('colorListApp', this.get('configuration.applicationColors'));
     interaction.set('labeler', this.get('labeler'));

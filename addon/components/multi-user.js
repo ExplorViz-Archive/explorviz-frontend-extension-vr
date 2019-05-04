@@ -30,6 +30,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   currentUser: service('user'), // Keeps track of key properties about user (e.g. connection state)
   webSocket: service(), // Allows communication with backend extension
   connection: service(),
+  world: service(),
   
   running: null, // Tells if main loop is executing
   lastPositions: null, // Last positions of camera and controllers
@@ -109,6 +110,8 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     this.initVariables();
     this.initInteractions();
     this.initListeners();
+    this.get('menus').createMenus();
+    this.set('currentUser.state', 'offline');
 
     let host, port;
     $.getJSON('config/config_multiuser.json').then(json => {
@@ -1010,13 +1013,9 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     this.set('running', false);
     this.get('connection').disconnect();
-    this.set('currentUser.userID', null);
-    this.set('currentUser.state', null);
-    this.set('currentUser.controllersConnected', null);
-    this.set('running', null);
+    this.get('spectating').reset();
+    this.get('webSocket').reset();
     this.set('lastPositions', null);
-    this.set('spectating.spectatedUser', null);
-    this.set('spectating.startPosition', null);
 
     // Exit presentation on HMD
     if (navigator.getVRDisplays) {

@@ -94,5 +94,13 @@ export default Service.extend(Evented, {
       return false;
 
     return this.get('_socketRef').readyState() === 1;
+  },
+
+  reset() {
+    this.set('_socketRef', null);
+    this.set('_updateQueue', null);
+    this.set('host', null);
+    this.set('port', null);
   }
+  
 });

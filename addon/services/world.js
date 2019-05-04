@@ -14,6 +14,14 @@ export default Service.extend({
    *  The object3D which contains the landscape(3D) and communication
    *  is centered relative to the floor.
    */
+
+  reset() {
+    this.set('scene', null);
+    this.set('interaction', null);
+    this.set('vrEnvironment', null);
+    this.set('environmentOffset', null);
+  },
+
   centerVREnvironment() {
     const floor = this.get('scene').getObjectByName('room');
     const vrEnvironment = this.get('vrEnvironment');

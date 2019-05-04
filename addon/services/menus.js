@@ -14,8 +14,7 @@ export default Service.extend({
 
   menus: new Map(),
 
-  init() {
-    this._super(...arguments);
+  createMenus() {
     this.set('advancedMenu', AdvancedMenu.create(getOwner(this).ownerInjection()));
     this.set('connectMenu', ConnectMenu.create(getOwner(this).ownerInjection()));
     this.set('cameraHeightMenu', CameraHeightMenu.create(getOwner(this).ownerInjection()));
@@ -26,7 +25,6 @@ export default Service.extend({
     this.set('messageBox', MessageBox.create(getOwner(this).ownerInjection()));
     this.set('optionsMenu', OptionsMenu.create(getOwner(this).ownerInjection()));
   },
-
 
 
   /**

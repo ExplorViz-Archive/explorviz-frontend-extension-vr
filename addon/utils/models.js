@@ -99,6 +99,8 @@ export function areLoaded() {
 }
 
 export function loadModels() {
+  loadCount = 0;
+
   loadHMDModel();
   loadViveControllerModel();
   loadOculusLeftControllerModel();

@@ -83,5 +83,8 @@ export default Service.extend({
     this.get('sender').sendSpectatingUpdate(this.get('currentUser.userID'), this.get('currentUser.state') /* , null */);
   },
 
-
+  reset() {
+    this.set('spectatedUser', null);
+    this.set('startPosition', null);
+  }
 });
