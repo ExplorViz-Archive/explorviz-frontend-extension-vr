@@ -35,6 +35,8 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   running: null, // Tells if main loop is executing
   lastPositions: null, // Last positions of camera and controllers
 
+  socketFunctions: new Map(),
+
   /**
    * Main loop contains all methods which need to be called
    * for every rendering iteration
@@ -372,53 +374,59 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
   initListeners() {
     const socket = this.get('webSocket');
+    let socketFunctions = this.get('socketFunctions');
 
-    socket.on('connection_closed', () => {
-      if (this.get('currentUser.state') === 'connecting') {
-        this.get('menus.hintMenu').showHint('Could not establish connection', 3);
-      }
-      this.get('connection').disconnect();
-    });
+    socketFunctions.set('connection_closed', () => { this.onConnectionClosed() });
+    socketFunctions.set('receive_self_connecting', (data) => { this.onSelfConnecting(data); });
+    socketFunctions.set('receive_self_connected', (data) => { this.onSelfConnected(data); });
+    socketFunctions.set('receive_user_connected', (data) => { this.onUserConnected(data); });
+    socketFunctions.set('receive_user_positions', (data) => { this.onUserPositions(data); });
+    socketFunctions.set('receive_user_controllers', (data) => { this.onUserControllers(data); });
+    socketFunctions.set('receive_user_disconnect', (data) => { this.onUserDisconnect(data); });
+    socketFunctions.set('receive_landscape', (data) => { this.onInitialLandscape(data); });
+    socketFunctions.set('receive_landscape_position', (data) => { this.onLandscapePosition(data); });
+    socketFunctions.set('receive_app_position', (data) => { this.onAppPosition(data); });
+    socketFunctions.set('receive_system_update', (data) => { this.onLandscapeUpdate(data); });
+    socketFunctions.set('receive_nodegroup_update', (data) => { this.onLandscapeUpdate(data); });
+    socketFunctions.set('receive_app_opened', (data) => { this.onAppOpened(data); });
+    socketFunctions.set('receive_app_closed', (data) => { this.onAppClosed(data); });
+    socketFunctions.set('receive_app_binded', (data) => { this.onAppBinded(data); });
+    socketFunctions.set('receive_app_released', (data) => { this.onAppReleased(data); });
+    socketFunctions.set('receive_component_update', (data) => { this.onComponentUpdate(data); });
+    socketFunctions.set('receive_hightlight_update', (data) => { this.onHighlightingUpdate(data); });
+    socketFunctions.set('receive_spectating_update', (data) => { this.onSpectatingUpdate(data); });
+    socketFunctions.set('receive_ping', (data) => { this.onReceivePing(data); });
 
-    socket.on('receive_self_connecting', (data) => { this.onSelfConnecting(data); });
-    socket.on('receive_self_connected', (data) => { this.onSelfConnected(data); });
-    socket.on('receive_user_connecting', () => { });
-    socket.on('receive_user_connected', (data) => { this.onUserConnected(data); });
-    socket.on('receive_user_positions', (data) => { this.onUserPositions(data); });
-    socket.on('receive_user_controllers', (data) => { this.onUserControllers(data); });
-    socket.on('receive_user_disconnect', (data) => { this.onUserDisconnect(data); });
-    socket.on('receive_landscape', (data) => { this.onInitialLandscape(data); });
-    socket.on('receive_landscape_position', ({ deltaPosition, quaternion }) => { this.onLandscapePosition(deltaPosition, quaternion); });
-    socket.on('receive_app_position', ({ appId, direction, length }) => { this.onAppPosition(appId, direction, length); });
-    socket.on('receive_system_update', ({ id, isOpen }) => { this.onLandscapeUpdate(id, isOpen); });
-    socket.on('receive_nodegroup_update', ({ id, isOpen }) => { this.onLandscapeUpdate(id, isOpen); });
-    socket.on('receive_app_opened', ({ id, position, quaternion }) => { this.onAppOpened(id, position, quaternion); });
-    socket.on('receive_app_closed', ({ id }) => { this.onAppClosed(id); });
-    socket.on('receive_app_binded', ({ userID, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion }) => {
-      this.onAppBinded(userID, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion);
-    });
-    socket.on('receive_app_released', ({ id, position, quaternion }) => {
-      this.get('boundApps').delete(id);
-      this.updateAppPosition(id, position, quaternion);
-      this.get('world.scene').add(this.get('openApps').get(id));
-    });
-    socket.on('receive_component_update', ({ isFoundation, appID, componentID, isOpened }) => {
-      if (isFoundation) {
-        this.get('foundations').get(appID).setOpenedStatus(isOpened);
-      } else {
-        this.get('store').peekRecord('component', componentID).setOpenedStatus(isOpened);
-      }
-      this.redrawApplication(appID);
-    });
-    socket.on('receive_hightlight_update', ({ userID, isHighlighted, appID, entityID, color }) => {
-      this.onHighlightingUpdate(userID, isHighlighted, appID, entityID, color);
-    });
-    socket.on('receive_spectating_update', ({ userID, isSpectating }) => {
-      this.onSpectatingUpdate(userID, isSpectating);
-    });
-    socket.on('receive_ping', (data) => {
-      this.get('webSocket').enqueueIfOpen(data);
-    });
+    for (const [eventName, fct] of socketFunctions.entries()) {
+      socket.on(eventName, fct);
+    }
+    
+  },
+
+  onConnectionClosed() {
+    if (this.get('currentUser.state') === 'connecting') {
+      this.get('menus.hintMenu').showHint('Could not establish connection', 3);
+    }
+    this.get('connection').disconnect();
+  },
+
+  onAppReleased({ id, position, quaternion }) {
+    this.get('boundApps').delete(id);
+    this.updateAppPosition(id, position, quaternion);
+    this.get('world.scene').add(this.get('openApps').get(id));
+  },
+
+  onComponentUpdate({ isFoundation, appID, componentID, isOpened }) {
+    if (isFoundation) {
+      this.get('foundations').get(appID).setOpenedStatus(isOpened);
+    } else {
+      this.get('store').peekRecord('component', componentID).setOpenedStatus(isOpened);
+    }
+    this.redrawApplication(appID);
+  },
+
+  onReceivePing(data) {
+    this.get('webSocket').enqueueIfOpen(data);
   },
 
   /**
@@ -574,9 +582,14 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     // Informs our user about their disconnect.
     let user = this.get('store').peekRecord('vr-user', id)
     if (user) {
-
       // Unhighlight possible objects of disconnected user
-      this.onHighlightingUpdate(id, false, user.highlightedEntity.appID, user.highlightedEntity.entityID, user.highlightedEntity.originalColor);
+      this.onHighlightingUpdate({
+        userID:id,
+        isHighlighted:false,
+        appID:user.highlightedEntity.appID,
+        entityID:user.highlightedEntity.entityID,
+        originalColor:user.highlightedEntity.originalColor
+      });
 
       // Remove user's models
       this.get('world.scene').remove(user.get('controller1.model'));
@@ -651,6 +664,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   },
   
   onInitialLandscape(data){
+    console.log('asd')
     let systems = data.systems;
     let nodeGroups = data.nodeGroups;
     let openApps = data.openApps;
@@ -668,11 +682,11 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       this.set('world.environmentOffset', new THREE.Vector3(0, 0, 0));
       let position = data.landscape.position;
       let quaternion = data.landscape.quaternion;
-      this.onLandscapePosition(position, quaternion);
+      this.onLandscapePosition({deltaPosition:position, quaternion});
     }
   },
 
-  onLandscapePosition(deltaPosition, quaternion){
+  onLandscapePosition({ deltaPosition, quaternion }){
     this.get('world.environmentOffset').x += deltaPosition[0];
     this.get('world.environmentOffset').y += deltaPosition[1];
     this.get('world.environmentOffset').z += deltaPosition[2];
@@ -688,7 +702,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     this.updateObjectMatrix(this.get('world.vrEnvironment'));
   },
 
-  onAppPosition(appId, directionArray, length){
+  onAppPosition({ appId, direction:directionArray, length }){
     if (!this.get('openApps').has(appId)) {
       return;
     }
@@ -699,23 +713,23 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     app.updateMatrix();
   },
 
-  onLandscapeUpdate(id, isOpen){
+  onLandscapeUpdate({ id, isOpen }){
     this.setEntityState(id, isOpen);
   },
 
-  onAppOpened(id, position, quaternion){
+  onAppOpened({ id, position, quaternion }){
     this.showApplication(id, position, quaternion);
   },
 
-  onAppClosed(appID){
-    if (this.get('openApps').has(appID)) {
-      this.get('boundApps').delete(appID);
-      this.removeChildren(this.get('openApps').get(appID));
-      this.get('openApps').delete(appID);
+  onAppClosed({ id }){
+    if (this.get('openApps').has(id)) {
+      this.get('boundApps').delete(id);
+      this.removeChildren(this.get('openApps').get(id));
+      this.get('openApps').delete(id);
     } 
   },
 
-  onAppBinded(userID, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion){
+  onAppBinded({ userID, appID, appPosition, appQuaternion, isBoundToController1, controllerPosition, controllerQuaternion }){
     this.get('boundApps').add(appID);
 
     this.updateAppPosition(appID, appPosition, appQuaternion);
@@ -750,7 +764,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
    * @param {number} userID - The user's id.
    * @param {boolean} isSpectating - True, if the user is now spectating, else false.
    */
-  onSpectatingUpdate(userID, isSpectating) {
+  onSpectatingUpdate({ userID, isSpectating }) {
     let user = this.get('store').peekRecord('vr-user', userID);
     if (isSpectating) {
       user.set('currentUser.state', 'spectating');
@@ -778,7 +792,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
      }       
   },
 
-  onHighlightingUpdate(userID, isHighlighted, appID, entityID, originalColor){
+  onHighlightingUpdate({ userID, isHighlighted, appID, entityID, originalColor }){
     let user = this.get('store').peekRecord('vr-user', userID);
 
     // Save highlighted entity
@@ -1009,13 +1023,21 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
   // Called when user closes the site / tab
   willDestroyElement() {
-    this._super(...arguments);
 
     this.set('running', false);
     this.get('connection').disconnect();
     this.get('spectating').reset();
     this.get('webSocket').reset();
     this.set('lastPositions', null);
+
+    let users = this.get('store').peekAll('vr-user');
+    users.forEach((user) => {
+      this.get('store').deleteRecord(user);
+    });
+    
+    for (const [eventName, fct] of this.get('socketFunctions').entries()) {
+      this.get('webSocket').off(eventName, fct);
+    }
 
     // Exit presentation on HMD
     if (navigator.getVRDisplays) {
@@ -1024,6 +1046,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
           displays[0].exitPresent();
       });
     }
+    this._super(...arguments);
   },
 
 });
