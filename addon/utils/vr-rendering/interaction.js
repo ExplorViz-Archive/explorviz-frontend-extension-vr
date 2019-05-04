@@ -156,13 +156,13 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
 
     // Init Hammer
     if (!this.get('hammerHandler')) {
-      this.set('hammerHandler', HammerInteraction.create());
+      this.set('hammerHandler', HammerInteraction.create(getOwner(this).ownerInjection()));
       this.get('hammerHandler').setupHammer(canvas);
     }
 
     // Init HoverHandler for Controller
     if (!this.get('hoverHandler')) {
-      this.set('hoverHandler', HoverHandler.create());
+      this.set('hoverHandler', HoverHandler.create(getOwner(this).ownerInjection()));
     }
 
     // Init HoverHandler for mouse (Landscape)

@@ -280,27 +280,27 @@ export default Component.extend(Evented, THREEPerformance, {
     }
 
     if (!this.get('imageLoader')) {
-      this.set('imageLoader', ImageLoader.create());
+      this.set('imageLoader', ImageLoader.create(getOwner(this).ownerInjection()));
     }
 
     if (!this.get('labeler')) {
-      this.set('labeler', Labeler.create());
+      this.set('labeler', Labeler.create(getOwner(this).ownerInjection()));
     }
 
     if (!this.get('labelerApp')) {
-      this.set('labelerApp', LabelerApp.create());
+      this.set('labelerApp', LabelerApp.create(getOwner(this).ownerInjection()));
     }
 
     if (!this.get('raycaster')) {
-      this.set('raycaster', Raycaster.create());
+      this.set('raycaster', Raycaster.create(getOwner(this).ownerInjection()));
     }
 
     if (!this.get('foundationBuilder')) {
-      this.set('foundationBuilder', FoundationBuilder.create());
+      this.set('foundationBuilder', FoundationBuilder.create(getOwner(this).ownerInjection()));
     }
 
     if (!this.get('centerAndZoomCalculator')) {
-      this.set('centerAndZoomCalculator', CalcCenterAndZoom.create());
+      this.set('centerAndZoomCalculator', CalcCenterAndZoom.create(getOwner(this).ownerInjection()));
     }
 
     this.initInteraction();
