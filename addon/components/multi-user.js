@@ -664,7 +664,6 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   },
   
   onInitialLandscape(data){
-    console.log('asd')
     let systems = data.systems;
     let nodeGroups = data.nodeGroups;
     let openApps = data.openApps;
