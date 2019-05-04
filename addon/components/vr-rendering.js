@@ -324,9 +324,9 @@ export default Component.extend(Evented, THREEPerformance, {
     let floorTexture = new THREE.TextureLoader().load('images/materials/floor.jpg');
     floorTexture.wrapS = THREE.MirroredRepeatWrapping;
     floorTexture.wrapT = THREE.MirroredRepeatWrapping;
-    floorTexture.repeat.set(6, 5);
+    floorTexture.repeat.set(30, 25);
 
-    let floorGeometry = new THREE.BoxGeometry(6, this.get('zeroValue'), 5);
+    let floorGeometry = new THREE.BoxGeometry(30, this.get('zeroValue'), 25);
     let floorMaterial = new THREE.MeshLambertMaterial({
       map: floorTexture
     });
@@ -1015,20 +1015,18 @@ export default Component.extend(Evented, THREEPerformance, {
       bboxLandscape.getSize(landscapeSize);
 
       // Scale x
-      let scaleX = (floorSize.x - 2.2) / landscapeSize.x;
-      vrEnvironment.scale.x *= scaleX;
+      vrEnvironment.scale.x = 0.12;
 
       // Scale z
-      let scaleZ = (floorSize.z - 3.2) / landscapeSize.z;
-      vrEnvironment.scale.y *= scaleZ;
+      vrEnvironment.scale.y = 0.18;
 
       let requests = vrEnvironment.getObjectByName('earth');
 
       // Check if 'earth' exists in landscape and scale it
       if (requests) {
         // Undo scaling requests
-        requests.scale.x /= scaleX;
-        requests.scale.y /= vrEnvironment.scale.y;
+        requests.scale.x = 9;
+        requests.scale.y = 6;
       }
 
       // Restore rotation
