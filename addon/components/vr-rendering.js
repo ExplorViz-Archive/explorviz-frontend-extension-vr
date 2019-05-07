@@ -1475,6 +1475,14 @@ export default Component.extend(Evented, THREEPerformance, {
     return true;
   },
 
+  resetLanscape() {
+    const allSystems = this.get('store').peekAll('system');
+    allSystems.forEach(system => {
+      system.setOpened(false);
+    });
+    this.populateScene();
+  },
+
 
   /*
    *  This method is used to add commuication lines to application3D

@@ -486,6 +486,8 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     // Remove any open apps which may still exist from offline mode
     this.removeOpenApps();
 
+    this.resetLanscape();
+
     // Reset landscape position
     this.set('world.environmentOffset', new THREE.Vector3(0, 0, 0));
     this.get('world.vrEnvironment').rotation.x =  -1.5708;
@@ -939,7 +941,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       let id = nodegroup.id;
       let isOpen = nodegroup.opened;
       vrLandscape.forEach(entity => {
-        if (entity.userData.model && entity.userData.model.id === id) {
+        if (entity.userData.model && entity.userData.model.id == id) {
           entity.userData.model.setOpened(isOpen);
         }
       });
