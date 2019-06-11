@@ -667,7 +667,7 @@ export default Component.extend(Evented, THREEPerformance, {
 
           // Create text labels for systems
           const textColor =
-            self.get('configuration.landscapeColors.textsystem');
+            self.get('configuration.landscapeColors.systemText');
           let emberModelName = system.constructor.modelName;
           let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
           self.get('labeler').saveTextForLabeling(null, systemMesh, textColor, boxColor);
@@ -772,7 +772,7 @@ export default Component.extend(Evented, THREEPerformance, {
               node.set('threeJSModel', nodeMesh);
 
               // Create text labels 
-              let textColor = self.get('configuration.landscapeColors.textnode');
+              let textColor = self.get('configuration.landscapeColors.nodeText');
               let emberModelName = node.constructor.modelName;
               let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
               self.get('labeler').saveTextForLabeling(node.getDisplayName(),
@@ -828,7 +828,7 @@ export default Component.extend(Evented, THREEPerformance, {
 
                   // Create text labels 
                   let textColor =
-                    self.get('configuration.landscapeColors.textapp');
+                    self.get('configuration.landscapeColors.applicationText');
 
                   let emberModelName = application.constructor.modelName;
                   let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
@@ -840,11 +840,11 @@ export default Component.extend(Evented, THREEPerformance, {
             }
             // Closed nodegroup => dont draw nodes+applications, just add text label
             else {
-              let textColor = self.get('configuration.landscapeColors.textapp');
+              let textColor = self.get('configuration.landscapeColors.applicationText');
               let emberModelName = nodegroup.constructor.modelName;
               let boxColor = self.get('configuration.landscapeColors.' + emberModelName);
 
-              textColor = self.get('configuration.landscapeColors.textnode');
+              textColor = self.get('configuration.landscapeColors.nodeText');
               self.get('labeler').saveTextForLabeling(node.getDisplayName(),
                 nodegroupMesh, textColor, boxColor);
             }
@@ -852,8 +852,6 @@ export default Component.extend(Evented, THREEPerformance, {
         });
       });
     } // END if(systems)
-
-    self.set('configuration.landscapeColors.textchanged', false);
 
     const appCommunications = emberLandscape.get('totalApplicationCommunications');
     const tiles = [];
