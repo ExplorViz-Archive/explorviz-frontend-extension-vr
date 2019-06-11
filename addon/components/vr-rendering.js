@@ -41,9 +41,10 @@ export default Component.extend(Evented, THREEPerformance, {
   reloadHandler: service(),
   landscapeRepo: service('repos/landscape-repository'),
   renderingService: service(),
+  currentUser: service(),
   configuration: service(),
   world: service(),
-  currentUser: service('user'),
+  localUser: service('user'),
 
   webglrenderer: null, // Renders the scene
   canvas: null, // Canvas of webglrenderer
@@ -174,8 +175,8 @@ export default Component.extend(Evented, THREEPerformance, {
     this.set('world.scene', new THREE.Scene());
     this.set('world.scene.background', new THREE.Color(0xeaf4fc));
 
-    this.set('currentUser.camera', new THREE.PerspectiveCamera(70, width / height, 0.01, 50));
-    this.get('currentUser.camera').name = 'camera';
+    this.set('localUser.camera', new THREE.PerspectiveCamera(70, width / height, 0.01, 50));
+    this.get('localUser.camera').name = 'camera';
 
     // Create and configure renderer
     this.set('webglrenderer', new THREE.WebGLRenderer({
@@ -194,20 +195,20 @@ export default Component.extend(Evented, THREEPerformance, {
     $('#vizContainer').append(WEBVR.createButton(this.get('webglrenderer')));
 
     // Create left controller
-    this.set('currentUser.controller1', new Controller(0));
-    this.set('currentUser.controller1.standingMatrix', this.get('webglrenderer').vr.getStandingMatrix())
-    this.get('currentUser.controller1').name = 'controller1';
+    this.set('localUser.controller1', new Controller(0));
+    this.set('localUser.controller1.standingMatrix', this.get('webglrenderer').vr.getStandingMatrix())
+    this.get('localUser.controller1').name = 'controller1';
 
     // Create right controller
-    this.set('currentUser.controller2', new Controller(1));
-    this.set('currentUser.controller2.standingMatrix', this.get('webglrenderer').vr.getStandingMatrix())
-    this.get('currentUser.controller2').name = 'controller2';
+    this.set('localUser.controller2', new Controller(1));
+    this.set('localUser.controller2.standingMatrix', this.get('webglrenderer').vr.getStandingMatrix())
+    this.get('localUser.controller2').name = 'controller2';
 
-    this.set('currentUser.threeGroup', new THREE.Group());
-    this.get('world.scene').add(this.get('currentUser.threeGroup'));
-    this.get('currentUser.threeGroup').add(this.get('currentUser.camera'));
-    this.get('currentUser.threeGroup').add(this.get('currentUser.controller1'));
-    this.get('currentUser.threeGroup').add(this.get('currentUser.controller2'));
+    this.set('localUser.threeGroup', new THREE.Group());
+    this.get('world.scene').add(this.get('localUser.threeGroup'));
+    this.get('localUser.threeGroup').add(this.get('localUser.camera'));
+    this.get('localUser.threeGroup').add(this.get('localUser.controller1'));
+    this.get('localUser.threeGroup').add(this.get('localUser.controller2'));
 
     // Ray for Controller
     this.set('geometry', new THREE.Geometry());
@@ -233,8 +234,8 @@ export default Component.extend(Evented, THREEPerformance, {
     line2.position.z -= 0.02;
 
     // Add rays to controllers
-    this.get('currentUser.controller1').add(line1);
-    this.get('currentUser.controller2').add(line2);
+    this.get('localUser.controller1').add(line1);
+    this.get('localUser.controller2').add(line2);
     this.get('world.scene').add(this.get('world.vrEnvironment'));
 
     this.get('room').position.y -= 0.1;
@@ -351,10 +352,9 @@ export default Component.extend(Evented, THREEPerformance, {
 
     Models.loadModels();
 
-    const { user } = this.get('session.data.authenticated');
-    const userSettings = user.get('settings');
+    let showFpsCounter = this.get('currentUser').getPreferenceOrDefaultValue('flagsetting', 'showFpsCounter');
 
-    if (!userSettings.booleanAttributes.showFpsCounter) {
+    if (!showFpsCounter) {
       this.removePerformanceMeasurement();
     }
 
@@ -373,35 +373,35 @@ export default Component.extend(Evented, THREEPerformance, {
     if (!Models.areLoaded())
       return;
 
-    this.get('currentUser.controller1').update();
-    this.get('currentUser.controller2').update();
+    this.get('localUser.controller1').update();
+    this.get('localUser.controller2').update();
 
     // Remove controller 1 model if controller disconnected
-    if (!this.get('currentUser.controller1').getGamepad() || !this.get('currentUser.controller1').getGamepad().pose) {
-      let model = this.get('currentUser.controller1').getObjectByName('controllerTexture');
+    if (!this.get('localUser.controller1').getGamepad() || !this.get('localUser.controller1').getGamepad().pose) {
+      let model = this.get('localUser.controller1').getObjectByName('controllerTexture');
       if (model) {
-        this.get('currentUser.controller1').remove(model);
+        this.get('localUser.controller1').remove(model);
       }
     } else {
-      this.loadController(this.get('currentUser.controller1'));
+      this.loadController(this.get('localUser.controller1'));
     }
-    if (!this.get('currentUser.controller2').getGamepad() || !this.get('currentUser.controller2').getGamepad().pose) {
-      let model = this.get('currentUser.controller2').getObjectByName('controllerTexture');
+    if (!this.get('localUser.controller2').getGamepad() || !this.get('localUser.controller2').getGamepad().pose) {
+      let model = this.get('localUser.controller2').getObjectByName('controllerTexture');
       if (model) {
-        this.get('currentUser.controller2').remove(model);
+        this.get('localUser.controller2').remove(model);
       }
     } else {
-      this.loadController(this.get('currentUser.controller2'));
+      this.loadController(this.get('localUser.controller2'));
     }
 
 
     // Check raycast for intersection
     if (this.get('world.interaction')) {
       // Only if no application3D binded on controller
-      if (this.get('currentUser.controller1').userData.selected === undefined) {
+      if (this.get('localUser.controller1').userData.selected === undefined) {
         this.get('world.interaction').checkIntersectionSecondaryController();
       }
-      if (this.get('currentUser.controller2').userData.selected === undefined) {
+      if (this.get('localUser.controller2').userData.selected === undefined) {
         this.get('world.interaction').checkIntersectionPrimaryController();
       }
     }
@@ -460,7 +460,7 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('world.interaction').off('removeTeleportArea');
     this.get('world.interaction').removeHandlers();
 
-    this.get('currentUser').reset();
+    this.get('localUser').reset();
     this.get('world').reset();
 
     this.set('webglrenderer', null);
@@ -852,6 +852,8 @@ export default Component.extend(Evented, THREEPerformance, {
         });
       });
     } // END if(systems)
+
+    self.set('configuration.landscapeColors.textchanged', true);
 
     const appCommunications = emberLandscape.get('totalApplicationCommunications');
     const tiles = [];

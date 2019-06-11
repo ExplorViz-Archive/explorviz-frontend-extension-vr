@@ -27,7 +27,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   spectating: service(), // Allows to activate and deactivate spectating mode
   store: service(),
   time: service(), // Keeps track of elapsed time between frames etc.
-  currentUser: service('user'), // Keeps track of key properties about user (e.g. connection state)
+  localUser: service('user'), // Keeps track of key properties about user (e.g. connection state)
   webSocket: service(), // Allows communication with backend extension
   connection: service(),
   world: service(),
@@ -48,8 +48,8 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     this.get('time').update();
 
-    let userID = this.get('currentUser.userID');
-    let state = this.get('currentUser.state');
+    let userID = this.get('localUser.userID');
+    let state = this.get('localUser.state');
 
     if(userID && state === 'spectating') {
       this.get('spectating').update(); // Follow view of spectated user
@@ -81,7 +81,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   renderScene() {
     this.get('threexStats').update(this.get('webglrenderer'));
     this.get('stats').begin();
-    this.get('webglrenderer').render(this.get('world.scene'), this.get('currentUser.camera'));
+    this.get('webglrenderer').render(this.get('world.scene'), this.get('localUser.camera'));
     this.get('stats').end();
   },
 
@@ -92,7 +92,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   updateUserNameTags() {
     let users = this.get('store').peekAll('vr-user');
     let pos = new THREE.Vector3();
-    this.get('currentUser.camera').getWorldPosition(pos);
+    this.get('localUser.camera').getWorldPosition(pos);
 
     users.forEach((user) => {
       if (user.get('state') === 'connected' && user.get('namePlane')) {
@@ -113,7 +113,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     this.initInteractions();
     this.initListeners();
     this.get('menus').createMenus();
-    this.set('currentUser.state', 'offline');
+    this.set('localUser.state', 'offline');
 
     let host, port;
     $.getJSON('config/config_multiuser.json').then(json => {
@@ -148,7 +148,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     let old_checkIntersectionPrimaryController = this.get('world.interaction').checkIntersectionPrimaryController;
     this.get('world.interaction').checkIntersectionPrimaryController = function() {
-      if(self.get('currentUser.state') !== 'spectating')
+      if(self.get('localUser.state') !== 'spectating')
         old_checkIntersectionPrimaryController.apply(this, [this.get('raycastObjectsLandscape').concat(this.get('menus').getVisibleMenuMeshesArray())]);
       else {
         old_checkIntersectionPrimaryController.apply(this, [this.get('menus').getVisibleMenuMeshesArray()]);
@@ -157,15 +157,15 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     
     let old_checkIntersectionSecondaryController = this.get('world.interaction').checkIntersectionSecondaryController;
     this.get('world.interaction').checkIntersectionSecondaryController = function() {
-      if(self.get('currentUser.state') !== 'spectating')
+      if(self.get('localUser.state') !== 'spectating')
         old_checkIntersectionSecondaryController.apply(this, [this.excludeLandscape().concat(this.get('menus').getVisibleMenuMeshesArray())]);
       else
-        self.get('currentUser.controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
+        self.get('localUser.controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
     };
 
     let old_onTriggerDownPrimaryController = this.get('world.interaction').onTriggerDownPrimaryController;
     this.get('world.interaction').onTriggerDownPrimaryController = function(event) {
-      if(self.get('currentUser.state') !== 'spectating')
+      if(self.get('localUser.state') !== 'spectating')
         old_onTriggerDownPrimaryController.apply(this, [event, this.get('raycastObjectsLandscape').concat(this.get('menus').getVisibleMenuMeshesArray())]);
       else
         old_onTriggerDownPrimaryController.apply(this, [event, this.get('menus').getVisibleMenuMeshesArray()]);
@@ -173,10 +173,10 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     let old_onTriggerDownSecondaryController = this.get('world.interaction').onTriggerDownSecondaryController;
     this.get('world.interaction').onTriggerDownSecondaryController = function(event) {
-      if(self.get('currentUser.state') !== 'spectating')
+      if(self.get('localUser.state') !== 'spectating')
       old_onTriggerDownSecondaryController.apply(this, [event, this.excludeLandscape().concat(this.get('menus').getVisibleMenuMeshesArray())]);
       else
-        self.get('currentUser.controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
+        self.get('localUser.controller1').getObjectByName('controllerLine').scale.z = self.zeroValue;
     };
 
     let old_onMenuDownSecondaryController= this.get('world.interaction').onMenuDownSecondaryController;
@@ -193,7 +193,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     let old_onGripDownPrimaryController = this.get('world.interaction').onGripDownPrimaryController;
     this.get('world.interaction').onGripDownPrimaryController = function(event) {
-      if(self.get('currentUser.state') !== 'spectating') {
+      if(self.get('localUser.state') !== 'spectating') {
         old_onGripDownPrimaryController.apply(this, [event, this.get('raycastObjectsLandscape').concat(this.get('menus').getVisibleMenuMeshesArray())]);
       }
     };
@@ -233,7 +233,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       this.get('sender').sendAppPositionUpdate(appId, direction, length);
     });
     this.get('world.interaction').on('entityHighlighted', (isHighlighted, appID, entityID, color) => {
-      this.get('sender').sendHighlightingUpdate(this.get('currentUser.userID'), isHighlighted, appID, entityID, color);
+      this.get('sender').sendHighlightingUpdate(this.get('localUser.userID'), isHighlighted, appID, entityID, color);
     });
   },
 
@@ -243,7 +243,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   onMenuDownSecondaryController() {
     // Open options menu if no other menu is open
     // Else closes current menu or goes back one menu if possible.
-    if (this.get('currentUser.state') !== 'spectating') {
+    if (this.get('localUser.state') !== 'spectating') {
       if (this.get('menus.optionsMenu').isOpen())
         this.get('menus.optionsMenu').close();
       else if (this.get('menus.cameraHeightMenu').isOpen())
@@ -269,7 +269,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
    * Opens user list menu if online.
    */
   onGripDownSecondaryController() {
-    if(this.get('currentUser.state') === 'connected' || this.get('currentUser.state') === 'spectating')
+    if(this.get('localUser.state') === 'connected' || this.get('localUser.state') === 'spectating')
       this.get('menus.userListMenu').open();
     else
       this.get('menus.hintMenu').showHint('Cannot open the user list when offline!', 3);
@@ -296,19 +296,19 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
    */
   updateAndSendPositions() {
     // If no last positions exist, set them to current position of camera and controllers
-    if(this.get('currentUser.camera') && this.get('currentUser.threeGroup') && !this.get('lastPositions.camera')) {
+    if(this.get('localUser.camera') && this.get('localUser.threeGroup') && !this.get('lastPositions.camera')) {
       const pos = new THREE.Vector3();
-      this.get('currentUser.camera').getWorldPosition(pos);
+      this.get('localUser.camera').getWorldPosition(pos);
       this.set('lastPositions.camera', pos.toArray());
     }
-    if(this.get('currentUser.controller1') && !this.get('lastPositions.controller1')) {
+    if(this.get('localUser.controller1') && !this.get('lastPositions.controller1')) {
       const pos = new THREE.Vector3();
-      this.get('currentUser.controller1').getWorldPosition(pos);
+      this.get('localUser.controller1').getWorldPosition(pos);
       this.set('lastPositions.controller1', pos.toArray());
     }
-    if(this.get('currentUser.controller2') && !this.get('lastPositions.controller2')) {
+    if(this.get('localUser.controller2') && !this.get('lastPositions.controller2')) {
       const pos = new THREE.Vector3();
-      this.get('currentUser.controller2').getWorldPosition(pos);
+      this.get('localUser.controller2').getWorldPosition(pos);
       this.set('lastPositions.controller2', pos.toArray());
     }
 
@@ -319,13 +319,13 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     // Get current camera and controller positions
     const posCamera = new THREE.Vector3();
-    this.get('currentUser.camera').getWorldPosition(posCamera);
+    this.get('localUser.camera').getWorldPosition(posCamera);
 
     const posSecondaryController = new THREE.Vector3();
-    this.get('currentUser.controller1').getWorldPosition(posSecondaryController);
+    this.get('localUser.controller1').getWorldPosition(posSecondaryController);
 
     const posController2 = new THREE.Vector3();
-    this.get('currentUser.controller2').getWorldPosition(posController2);
+    this.get('localUser.controller2').getWorldPosition(posController2);
 
     let currentPositions = {
       controller1: posSecondaryController.toArray(),
@@ -335,10 +335,10 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
 
     // Use world quaternions because controller can also be rotated via controllerGroup
     let controller1Quaternion = new THREE.Quaternion();
-    this.get('currentUser.controller1').getWorldQuaternion(controller1Quaternion);
+    this.get('localUser.controller1').getWorldQuaternion(controller1Quaternion);
 
     let controller2Quaternion = new THREE.Quaternion();
-    this.get('currentUser.controller2').getWorldQuaternion(controller2Quaternion);
+    this.get('localUser.controller2').getWorldQuaternion(controller2Quaternion);
 
     let hasChanged = false;
 
@@ -361,7 +361,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       hasChanged = true;
       positionObj.camera = {
         "position": currentPositions.camera,
-        "quaternion": this.get('currentUser.camera.quaternion').toArray()
+        "quaternion": this.get('localUser.camera.quaternion').toArray()
       };
     }
 
@@ -404,7 +404,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   },
 
   onConnectionClosed() {
-    if (this.get('currentUser.state') === 'connecting') {
+    if (this.get('localUser.state') === 'connecting') {
       this.get('menus.hintMenu').showHint('Could not establish connection', 3);
     }
     this.get('connection').disconnect();
@@ -438,8 +438,8 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   onSelfConnecting(data) {
     // If name is not found, use id as default name
     let name = this.get('session.session.content.authenticated.user.username') || 'ID: ' + data.id;
-    this.set('currentUser.userID', data.id);
-    this.set('currentUser.color', data.color);
+    this.set('localUser.userID', data.id);
+    this.set('localUser.color', data.color);
     this.get('world.interaction').set('highlightingColor', Helper.colorToString(data.color));
 
     let JSONObj = {
@@ -480,8 +480,8 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       // Set name for user on top of his hmd 
       this.addUsername(userData.id);
     }
-    this.set('currentUser.state', 'connected');
-    this.set('currentUser.controllersConnected', { controller1: false, controller2: false });
+    this.set('localUser.state', 'connected');
+    this.set('localUser.controllersConnected', { controller1: false, controller2: false });
 
     // Remove any open apps which may still exist from offline mode
     this.removeOpenApps();
@@ -577,7 +577,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     let { id } = data;
 
     // Do not spectate a disconnected user
-    if (this.get('currentUser.state') === 'spectating' && this.get('spectatedUser') === id) {
+    if (this.get('localUser.state') === 'spectating' && this.get('spectatedUser') === id) {
       this.get('spectating').deactivate();
     }
     // Removes user and their models.
@@ -768,15 +768,15 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
   onSpectatingUpdate({ userID, isSpectating }) {
     let user = this.get('store').peekRecord('vr-user', userID);
     if (isSpectating) {
-      user.set('currentUser.state', 'spectating');
+      user.set('localUser.state', 'spectating');
       user.setVisible(false);
-      if(this.get('currentUser.state') === 'spectating' && this.get('spectatedUser') === userID) {
+      if(this.get('localUser.state') === 'spectating' && this.get('spectatedUser') === userID) {
         this.get('spectating').deactivate();
       } else {
         this.get('menus.messageBox').enqueueMessage({ title: user.get('name'), text: 'is now spectating'}, 2000);
       }
     } else {
-      user.set('currentUser.state', 'connected');
+      user.set('localUser.state', 'connected');
       user.setVisible(true);
       this.get('menus.messageBox').enqueueMessage({ title: user.get('name'), text: 'is no longer spectating'}, 2000);
     }
@@ -978,28 +978,28 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
     let hasChanged = false;
 
     // Handle that controller 1 has disconnected
-    if(this.get('currentUser.controllersConnected.controller1') && !this.get('currentUser.controller1').isConnected()) {
+    if(this.get('localUser.controllersConnected.controller1') && !this.get('localUser.controller1').isConnected()) {
       disconnect.push('controller1');
-      this.set('currentUser.controllersConnected.controller1', false);
+      this.set('localUser.controllersConnected.controller1', false);
       hasChanged = true;
     }
     // Handle that controller 1 has connected
-    else if(!this.get('currentUser.controllersConnected.controller1') && this.get('currentUser.controller1').isConnected()) {
-      connect.controller1 = this.get('currentUser.controller1').getGamepad().id;
-      this.set('currentUser.controllersConnected.controller1', true);
+    else if(!this.get('localUser.controllersConnected.controller1') && this.get('localUser.controller1').isConnected()) {
+      connect.controller1 = this.get('localUser.controller1').getGamepad().id;
+      this.set('localUser.controllersConnected.controller1', true);
       hasChanged = true;
     }
 
     // Handle that controller 2 has disconnected
-    if(this.get('currentUser.controllersConnected.controller2') && !this.get('currentUser.controller2').isConnected()) {
+    if(this.get('localUser.controllersConnected.controller2') && !this.get('localUser.controller2').isConnected()) {
       disconnect.push('controller2');
-      this.set('currentUser.controllersConnected.controller2', false);
+      this.set('localUser.controllersConnected.controller2', false);
       hasChanged = true;
     }
     // Handle that controller 2 has connected
-    else if(!this.get('currentUser.controllersConnected.controller2') && this.get('currentUser.controller2').isConnected()) {
-      connect.controller2 = this.get('currentUser.controller2').getGamepad().id;
-      this.set('currentUser.controllersConnected.controller2', true);
+    else if(!this.get('localUser.controllersConnected.controller2') && this.get('localUser.controller2').isConnected()) {
+      connect.controller2 = this.get('localUser.controller2').getGamepad().id;
+      this.set('localUser.controllersConnected.controller2', true);
       hasChanged = true;
     }
 
