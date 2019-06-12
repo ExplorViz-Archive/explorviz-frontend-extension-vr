@@ -1299,16 +1299,16 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
 
       if (intersectedViewObj.object.type === "system" || intersectedViewObj.object.type === "nodegroup" || intersectedViewObj.object.type === "application") {
 
-        let index = "text" + intersectedViewObj.object.type;
+        let index = intersectedViewObj.object.type + "Text";
 
         let name;
 
         if (intersectedViewObj.object.type === "nodegroup") {
-          index = "textnode";
+          index = "nodeText";
           name = intersectedViewObj.object.userData.model.get('name');
         }
         else if (intersectedViewObj.object.type === "application") {
-          index = "textapp";
+          index = "applicationText";
           name = intersectedViewObj.object.userData.model.get('name');
         }
         else {
@@ -1334,14 +1334,14 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
     if (this.get('highlightedEntities')[id] && this.get('highlightedEntities')[id].type && this.get('colorList')[this.get('highlightedEntities')[id].type]) {
 
       let entity = this.get('highlightedEntities')[id];
-      let index = "text" + entity.type;
+      let index = entity.type + "Text";
 
       // Identify enity
       if (entity.type === "nodegroup") {
-        index = "textnode";
+        index = "nodeText";
       }
       else if (entity.type === "application") {
-        index = "textapp";
+        index = "applicationText";
       }
       let name = entity.userData.model.get('name');
 
