@@ -12,6 +12,6 @@ export function initialize(app) {
 }
 
 export default {
-  name: 'explorviz-frontend-plugin-vr',
+  name: 'explorviz-frontend-extension-vr',
   initialize
 };

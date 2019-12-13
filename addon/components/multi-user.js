@@ -5,7 +5,7 @@ import $ from 'jquery';
 import Models from '../utils/models';
 import Helper from '../utils/multi-user/helper';
 import VRRendering from './vr-rendering';
-import AlertifyHandler from 'explorviz-frontend/mixins/alertify-handler';
+import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 
 
 /**
@@ -17,7 +17,7 @@ import AlertifyHandler from 'explorviz-frontend/mixins/alertify-handler';
  * @class MULTI-USER
  * @extends vr-rendering
  */
-export default VRRendering.extend(Evented, AlertifyHandler, {
+export default VRRendering.extend(Evented, {
 
   tagName: '',
 
@@ -79,10 +79,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
    * Main rendering method.
    */
   renderScene() {
-    this.get('threexStats').update(this.get('webglrenderer'));
-    this.get('stats').begin();
     this.get('webglrenderer').render(this.get('world.scene'), this.get('localUser.camera'));
-    this.get('stats').end();
   },
 
   /**
@@ -121,7 +118,7 @@ export default VRRendering.extend(Evented, AlertifyHandler, {
       port = json.port;
 
       if(!host || !port) {
-        this.showAlertifyError('Config not found');
+        AlertifyHandler.showAlertifyError('Config not found');
       }
 
       this.set('webSocket.host', host);

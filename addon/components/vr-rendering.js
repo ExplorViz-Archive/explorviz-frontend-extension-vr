@@ -4,7 +4,6 @@ import { inject as service } from '@ember/service';
 import { getOwner } from '@ember/application';
 import $ from 'jquery';
 import THREE from 'three';
-import THREEPerformance from 'explorviz-frontend/mixins/threejs-performance';
 import Raycaster from '../utils/vr-rendering/raycaster';
 import applyKlayLayout from 'explorviz-frontend/utils/landscape-rendering/klay-layouter';
 import Interaction from '../utils/vr-rendering/interaction';
@@ -16,9 +15,10 @@ import applyCityLayout from 'explorviz-frontend/utils/application-rendering/city
 import FoundationBuilder from 'explorviz-frontend/utils/application-rendering/foundation-builder';
 import layout from '../templates/components/vr-rendering';
 import Models from '../utils/models';
+import debugLogger from 'ember-debug-logger';
 
 // Declare globals
-/*global WEBVR*/
+/*global VRButton*/
 /*global Controller*/
 
 /**
@@ -32,9 +32,12 @@ import Models from '../utils/models';
  * @class VR-Rendering
  * @extends Component
  */
-export default Component.extend(Evented, THREEPerformance, {
+export default Component.extend(Evented, {
 
+  // No Ember generated container
   tagName: '',
+
+  debug: debugLogger(),
 
   store: service(),
   landscapeListener: service(),
@@ -133,6 +136,7 @@ export default Component.extend(Evented, THREEPerformance, {
    * @method initRendering
    */
   initRendering() {
+    this.debug("init vr rendering");
     // Dummy object for raycasting
     this.set('room', new THREE.Object3D());
     this.get('room').name = 'room';
@@ -185,14 +189,14 @@ export default Component.extend(Evented, THREEPerformance, {
     }));
     this.get('webglrenderer').setPixelRatio(window.devicePixelRatio);
     this.get('webglrenderer').setSize(width, height);
-    this.get('webglrenderer').vr.enabled = true;
 
     this.get('webglrenderer').shadowMap.enabled = true;
     this.get('webglrenderer').gammaInput = true;
     this.get('webglrenderer').gammaOutput = true;
 
-    // Add VR button
-    $('#vizContainer').append(WEBVR.createButton(this.get('webglrenderer')));
+    // Add VR button and enable VR rendering
+    $('#vizContainer').append(VRButton.createButton(this.get('webglrenderer')));
+    this.get('webglrenderer').vr.enabled = true;
 
     // Create left controller
     this.set('localUser.controller1', new Controller(0));
@@ -352,12 +356,6 @@ export default Component.extend(Evented, THREEPerformance, {
 
     Models.loadModels();
 
-    let showFpsCounter = this.get('currentUser').getPreferenceOrDefaultValue('flagsetting', 'showFpsCounter');
-
-    if (!showFpsCounter) {
-      this.removePerformanceMeasurement();
-    }
-
     this.get('landscapeListener').initSSE();
 
     // Load font for labels and synchronously proceed with populating the scene
@@ -447,6 +445,8 @@ export default Component.extend(Evented, THREEPerformance, {
    * @method cleanup
    */
   cleanup() {
+
+    this.debug("cleanup vr rendering");
     // Stop rendering
     this.get('webglrenderer').vr.setDevice(null);
     this.get('webglrenderer').dispose();
@@ -464,7 +464,6 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('world').reset();
 
     this.set('webglrenderer', null);
-    this.removePerformanceMeasurement();
     this.get('renderingService').off('reSetupScene');
     this.get('landscapeRepo').off('updated');
 

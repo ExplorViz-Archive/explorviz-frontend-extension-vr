@@ -17,5 +17,10 @@ export default Controller.extend({
     resetView() {
       this.get('renderingService').reSetupScene();
     }
+  },
+
+  // @Override
+  cleanup() {
+    this._super(...arguments);
   }
 });
