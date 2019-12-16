@@ -206,9 +206,11 @@ export default Component.extend(Evented, {
       this.threePerformance = new THREEPerformance();
     }
 
-    // Add VR button and enable VR rendering
-    let vrButton = $('#vizContainer').append(VRButton.createButton(this.get('webglrenderer')));
-    vrButton.attr('id', 'vrButton');
+    // Add VR button if it does not exist and enable VR rendering
+    if($('#vrButton').length == 0) {
+      $('#vizContainer').append("<div id='vrButton'></div>");
+    }
+    $('#vrButton').append(VRButton.createButton(this.get('webglrenderer')));
 
     this.get('webglrenderer').vr.enabled = true;
 
@@ -468,6 +470,30 @@ export default Component.extend(Evented, {
       }
     ]);
 
+    this.get('listeners').add([
+      'world.interaction',
+      'redrawScene',
+      () => {
+        this.populateScene();
+      }
+    ]);
+
+    this.get('listeners').add([
+      'world.interaction',
+      'centerVREnvironment',
+      () => {
+        this.get('world').centerVREnvironment();
+      }
+    ]);
+
+    this.get('listeners').add([
+      'world.interaction',
+      'redrawApp',
+      (appID) => {
+        this.redrawApplication(appID);
+      }
+    ]);
+
     // start subscriptions
     this.get('listeners').forEach(([service, event, listenerFunction]) => {
         this.get(service).on(event, listenerFunction);
@@ -497,13 +523,12 @@ export default Component.extend(Evented, {
       this.threePerformance.removePerformanceMeasurement();
     }
 
-    this.get('world.interaction').off('redrawScene');
-    this.get('world.interaction').off('centerVREnvironment');
-    this.get('world.interaction').off('redrawApp');
-    this.get('world.interaction').off('lication');
-    this.get('world.interaction').off('removeApplication');
-    this.get('world.interaction').off('showTeleportArea');
-    this.get('world.interaction').off('removeTeleportArea');
+    /// TODO removing event handlers needs to be fixed
+
+    // this.get('world.interaction').off('showApplication');
+    // this.get('world.interaction').off('removeApplication');
+    // this.get('world.interaction').off('showTeleportArea');
+    // this.get('world.interaction').off('removeTeleportArea');
     this.get('world.interaction').removeHandlers();
 
     this.get('localUser').reset();
@@ -1321,10 +1346,6 @@ export default Component.extend(Evented, {
     this.get('world.interaction').initHandlers();
 
     // Set listeners
-    this.get('world.interaction').on('redrawScene', () => { this.populateScene(); });
-
-    this.get('world.interaction').on('centerVREnvironment', () => { this.get('world').centerVREnvironment(); });
-
     // Show teleport area
     this.get('world.interaction').on('showTeleportArea', (intersectionPoint) => {
       if (!this.get('teleportArea')) {
@@ -1353,14 +1374,6 @@ export default Component.extend(Evented, {
         this.set('teleportArea', null);
       }
     });
-
-    /*
-     * This interaction listener is used to redraw the application3D 
-     * ('opened' value of package changed) 
-     */
-    this.get('world.interaction').on('redrawApp', (appID) => {
-      this.redrawApplication(appID);
-    }); ///// End redraw application3D 
 
     /*
      * This interaction listener is used to create the application3D 
