@@ -86,6 +86,8 @@ export default EmberObject.extend(Evented, {
     canvas.addEventListener('mouseout', (event) => { this.onMouseOut(event) });
     canvas.addEventListener('mouseenter', (event) => { this.onMouseEnter(event) });
     canvas.addEventListener('wheel', (event) => { this.onMouseWheelStart(event) });
+    // zoom handler (firefox)
+    canvas.addEventListener('DOMMouseScroll', (event) => { this.onMouseWheelStart(event) });
 
     // Load texture for delete button highlighted
     this.set('textureHighlighted', new THREE.TextureLoader().load('images/x_white.png'));
@@ -952,6 +954,7 @@ export default EmberObject.extend(Evented, {
     this.removeControllerHandlers();
 
     this.get('canvas').removeEventListener('mousewheel', this.onMouseWheelStart);
+    this.get('canvas').removeEventListener('DOMMouseScroll', this.onMouseWheelStart);
     this.get('canvas').removeEventListener('mousestop', this.handleHover);
     this.get('canvas').removeEventListener('mouseenter', this.onMouseEnter);
     this.get('canvas').removeEventListener('mouseout', this.onMouseOut);

@@ -1,26 +1,33 @@
-import { inject as service } from '@ember/service';
-import { computed } from '@ember/object';
 import Controller from '@ember/controller';
+import { inject as service } from '@ember/service';
+import { computed, action, get, set, observer } from '@ember/object';
 
-export default Controller.extend({
+export default class VRController extends Controller.extend({}) 
+{
+  @service("reload-handler") reloadHandler;
+  @service("rendering-service") renderingService;
+  @service("repos/landscape-repository") landscapeRepo;
+  @service("additional-data") additionalData;
 
-  reloadHandler: service(),
-  renderingService: service(),
-  landscapeRepo: service("repos/landscape-repository"),
-  additionalData: service(),
+  @computed('landscapeRepo.latestApplication')
+  get showLandscape() {
+    return !get(this, 'landscapeRepo.latestApplication');
+  }
 
-  showLandscape: computed('landscapeRepo.latestApplication', function() {
-    return !this.get('landscapeRepo.latestApplication');
-  }),
+  @action
+  resize() {
+    get(this, 'renderingService').resizeCanvas();
+  }
 
-  actions: {
-    resetView() {
-      this.get('renderingService').reSetupScene();
-    }
-  },
+  @action
+  resetView() {
+    get(this, 'renderingService').reSetupScene();
+    get(this, 'plotlyTimelineRef').continueTimeline(get(this, "selectedTimestampRecords"));
+  }
 
   // @Override
   cleanup() {
     this._super(...arguments);
   }
-});
+
+}

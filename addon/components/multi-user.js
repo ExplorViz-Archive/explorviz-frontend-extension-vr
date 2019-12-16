@@ -79,7 +79,19 @@ export default VRRendering.extend(Evented, {
    * Main rendering method.
    */
   renderScene() {
+
+    const self = this;
+
+    if (this.get('showFpsCounter')) {
+      self.threePerformance.threexStats.update(self.get('webglrenderer'));
+      self.threePerformance.stats.begin();
+    }
+
     this.get('webglrenderer').render(this.get('world.scene'), this.get('localUser.camera'));
+
+    if (this.get('showFpsCounter')) {
+      self.threePerformance.stats.end();
+    }
   },
 
   /**

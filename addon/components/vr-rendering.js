@@ -4,6 +4,7 @@ import { inject as service } from '@ember/service';
 import { getOwner } from '@ember/application';
 import $ from 'jquery';
 import THREE from 'three';
+import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
 import Raycaster from '../utils/vr-rendering/raycaster';
 import applyKlayLayout from 'explorviz-frontend/utils/landscape-rendering/klay-layouter';
 import Interaction from '../utils/vr-rendering/interaction';
@@ -48,6 +49,11 @@ export default Component.extend(Evented, {
   configuration: service(),
   world: service(),
   localUser: service('user'),
+
+  threePerformance: null,
+  showFpsCounter: null,
+
+  listeners: null,
 
   webglrenderer: null, // Renders the scene
   canvas: null, // Canvas of webglrenderer
@@ -194,8 +200,16 @@ export default Component.extend(Evented, {
     this.get('webglrenderer').gammaInput = true;
     this.get('webglrenderer').gammaOutput = true;
 
+    this.set('showFpsCounter', this.get('currentUser').getPreferenceOrDefaultValue('flagsetting', 'showFpsCounter'));
+
+    if (this.get('showFpsCounter')) {
+      this.threePerformance = new THREEPerformance();
+    }
+
     // Add VR button and enable VR rendering
-    $('#vizContainer').append(VRButton.createButton(this.get('webglrenderer')));
+    let vrButton = $('#vizContainer').append(VRButton.createButton(this.get('webglrenderer')));
+    vrButton.attr('id', 'vrButton');
+
     this.get('webglrenderer').vr.enabled = true;
 
     // Create left controller
@@ -427,14 +441,36 @@ export default Component.extend(Evented, {
    * But they can used as templates in the future.
    */
   initListener() {
-    window.addEventListener('resize', this.onResizeCanvas.bind(this));
 
-    this.get('renderingService').on('reSetupScene', () => {
-      this.onReSetupScene();
-    });
+    this.set('listeners', new Set());
 
-    this.get('landscapeRepo').on('updated', () => {
-      this.onUpdated();
+    this.get('listeners').add([
+      'renderingService',
+      'reSetupScene',
+      () => {
+        this.onReSetupScene();
+      }
+    ]);
+
+    this.get('listeners').add([
+      'renderingService',
+      'resizeCanvas',
+      () => {
+        this.updateCanvasSize();
+      }
+    ]);
+
+    this.get('listeners').add([
+      'landscapeRepo',
+      'updated',
+      () => {
+        this.onUpdated();
+      }
+    ]);
+
+    // start subscriptions
+    this.get('listeners').forEach(([service, event, listenerFunction]) => {
+        this.get(service).on(event, listenerFunction);
     });
   },
 
@@ -451,6 +487,16 @@ export default Component.extend(Evented, {
     this.get('webglrenderer').vr.setDevice(null);
     this.get('webglrenderer').dispose();
 
+    // unsubscribe from all services
+    this.get('listeners').forEach(([service, event, listenerFunction]) => {
+      this.get(service).off(event, listenerFunction);
+    });
+    this.set('listeners', null);
+
+    if(this.get('threePerformance')) {
+      this.threePerformance.removePerformanceMeasurement();
+    }
+
     this.get('world.interaction').off('redrawScene');
     this.get('world.interaction').off('centerVREnvironment');
     this.get('world.interaction').off('redrawApp');
@@ -464,8 +510,6 @@ export default Component.extend(Evented, {
     this.get('world').reset();
 
     this.set('webglrenderer', null);
-    this.get('renderingService').off('reSetupScene');
-    this.get('landscapeRepo').off('updated');
 
     this.set('imageLoader.logos', {});
     this.set('labeler.textLabels', {});
@@ -503,14 +547,12 @@ export default Component.extend(Evented, {
       this.set('landscapeRepo.latestApplication', null);
     });
 
-
     // Clean up Webgl contexts
     let gl = this.get('canvas').getContext('webgl');
     gl.getExtension('WEBGL_lose_context').loseContext();
 
     // Remove enter vr button
-    let elem = document.getElementById('vr_button');
-    elem.remove();
+    document.getElementById('vrButton').remove();
   },
 
   /**
