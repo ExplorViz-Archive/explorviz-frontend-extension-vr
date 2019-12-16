@@ -1,6 +1,6 @@
 {
   "name": "explorviz-frontend-extension-vr",
-  "version": "2.0.0",
+  "version": "1.4.1",
   "description": "VR mode extension for ExplorViz",
   "keywords": [
     "ember-addon"

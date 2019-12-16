@@ -4,7 +4,7 @@ import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
 import HoverHandler from './hover-handler';
 import HoverHandlerApp3D from 'explorviz-frontend/utils/application-rendering/popup-handler';
 import HoverHandlerLandscape from 'explorviz-frontend/utils/landscape-rendering/popup-handler';
-import AlertifyHandler from 'explorviz-frontend/mixins/alertify-handler';
+import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import THREE from "three";
 import { getOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
@@ -15,7 +15,7 @@ import Helper from '../multi-user/helper';
  *  This util is used to realize the interaction by handeling
  *  mouse and controller events.
  */
-export default EmberObject.extend(Evented, AlertifyHandler, {
+export default EmberObject.extend(Evented, {
 
   menus: service(),
   currentUser: service('user'),
@@ -86,6 +86,8 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
     canvas.addEventListener('mouseout', (event) => { this.onMouseOut(event) });
     canvas.addEventListener('mouseenter', (event) => { this.onMouseEnter(event) });
     canvas.addEventListener('wheel', (event) => { this.onMouseWheelStart(event) });
+    // zoom handler (firefox)
+    canvas.addEventListener('DOMMouseScroll', (event) => { this.onMouseWheelStart(event) });
 
     // Load texture for delete button highlighted
     this.set('textureHighlighted', new THREE.TextureLoader().load('images/x_white.png'));
@@ -952,6 +954,7 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
     this.removeControllerHandlers();
 
     this.get('canvas').removeEventListener('mousewheel', this.onMouseWheelStart);
+    this.get('canvas').removeEventListener('DOMMouseScroll', this.onMouseWheelStart);
     this.get('canvas').removeEventListener('mousestop', this.handleHover);
     this.get('canvas').removeEventListener('mouseenter', this.onMouseEnter);
     this.get('canvas').removeEventListener('mouseout', this.onMouseOut);
@@ -1034,12 +1037,12 @@ export default EmberObject.extend(Evented, AlertifyHandler, {
         const message = "Sorry, no details for <b>" + emberModel.get('name') +
           "</b> are available.";
 
-        this.showAlertifyMessage(message);
+        AlertifyHandler.showAlertifyMessage(message);
       }
       // Handle data for app3D available
       else {
         // Data available => open application-rendering
-        this.closeAlertifyMessages();
+        AlertifyHandler.closeAlertifyMessages();
         // Trigger event in component vr-rendering
         this.trigger('showApplication', emberModel, intersectedViewObj.point);
       }

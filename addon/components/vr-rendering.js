@@ -4,7 +4,7 @@ import { inject as service } from '@ember/service';
 import { getOwner } from '@ember/application';
 import $ from 'jquery';
 import THREE from 'three';
-import THREEPerformance from 'explorviz-frontend/mixins/threejs-performance';
+import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
 import Raycaster from '../utils/vr-rendering/raycaster';
 import applyKlayLayout from 'explorviz-frontend/utils/landscape-rendering/klay-layouter';
 import Interaction from '../utils/vr-rendering/interaction';
@@ -16,9 +16,10 @@ import applyCityLayout from 'explorviz-frontend/utils/application-rendering/city
 import FoundationBuilder from 'explorviz-frontend/utils/application-rendering/foundation-builder';
 import layout from '../templates/components/vr-rendering';
 import Models from '../utils/models';
+import debugLogger from 'ember-debug-logger';
 
 // Declare globals
-/*global WEBVR*/
+/*global VRButton*/
 /*global Controller*/
 
 /**
@@ -32,9 +33,12 @@ import Models from '../utils/models';
  * @class VR-Rendering
  * @extends Component
  */
-export default Component.extend(Evented, THREEPerformance, {
+export default Component.extend(Evented, {
 
+  // No Ember generated container
   tagName: '',
+
+  debug: debugLogger(),
 
   store: service(),
   landscapeListener: service(),
@@ -45,6 +49,11 @@ export default Component.extend(Evented, THREEPerformance, {
   configuration: service(),
   world: service(),
   localUser: service('user'),
+
+  threePerformance: null,
+  showFpsCounter: null,
+
+  listeners: null,
 
   webglrenderer: null, // Renders the scene
   canvas: null, // Canvas of webglrenderer
@@ -133,6 +142,7 @@ export default Component.extend(Evented, THREEPerformance, {
    * @method initRendering
    */
   initRendering() {
+    this.debug("init vr rendering");
     // Dummy object for raycasting
     this.set('room', new THREE.Object3D());
     this.get('room').name = 'room';
@@ -185,14 +195,24 @@ export default Component.extend(Evented, THREEPerformance, {
     }));
     this.get('webglrenderer').setPixelRatio(window.devicePixelRatio);
     this.get('webglrenderer').setSize(width, height);
-    this.get('webglrenderer').vr.enabled = true;
 
     this.get('webglrenderer').shadowMap.enabled = true;
     this.get('webglrenderer').gammaInput = true;
     this.get('webglrenderer').gammaOutput = true;
 
-    // Add VR button
-    $('#vizContainer').append(WEBVR.createButton(this.get('webglrenderer')));
+    this.set('showFpsCounter', this.get('currentUser').getPreferenceOrDefaultValue('flagsetting', 'showFpsCounter'));
+
+    if (this.get('showFpsCounter')) {
+      this.threePerformance = new THREEPerformance();
+    }
+
+    // Add VR button if it does not exist and enable VR rendering
+    if($('#vrButton').length == 0) {
+      $('#vizContainer').append("<div id='vrButton'></div>");
+    }
+    $('#vrButton').append(VRButton.createButton(this.get('webglrenderer')));
+
+    this.get('webglrenderer').vr.enabled = true;
 
     // Create left controller
     this.set('localUser.controller1', new Controller(0));
@@ -352,12 +372,6 @@ export default Component.extend(Evented, THREEPerformance, {
 
     Models.loadModels();
 
-    let showFpsCounter = this.get('currentUser').getPreferenceOrDefaultValue('flagsetting', 'showFpsCounter');
-
-    if (!showFpsCounter) {
-      this.removePerformanceMeasurement();
-    }
-
     this.get('landscapeListener').initSSE();
 
     // Load font for labels and synchronously proceed with populating the scene
@@ -429,14 +443,60 @@ export default Component.extend(Evented, THREEPerformance, {
    * But they can used as templates in the future.
    */
   initListener() {
-    window.addEventListener('resize', this.onResizeCanvas.bind(this));
 
-    this.get('renderingService').on('reSetupScene', () => {
-      this.onReSetupScene();
-    });
+    this.set('listeners', new Set());
 
-    this.get('landscapeRepo').on('updated', () => {
-      this.onUpdated();
+    this.get('listeners').add([
+      'renderingService',
+      'reSetupScene',
+      () => {
+        this.onReSetupScene();
+      }
+    ]);
+
+    this.get('listeners').add([
+      'renderingService',
+      'resizeCanvas',
+      () => {
+        this.updateCanvasSize();
+      }
+    ]);
+
+    this.get('listeners').add([
+      'landscapeRepo',
+      'updated',
+      () => {
+        this.onUpdated();
+      }
+    ]);
+
+    this.get('listeners').add([
+      'world.interaction',
+      'redrawScene',
+      () => {
+        this.populateScene();
+      }
+    ]);
+
+    this.get('listeners').add([
+      'world.interaction',
+      'centerVREnvironment',
+      () => {
+        this.get('world').centerVREnvironment();
+      }
+    ]);
+
+    this.get('listeners').add([
+      'world.interaction',
+      'redrawApp',
+      (appID) => {
+        this.redrawApplication(appID);
+      }
+    ]);
+
+    // start subscriptions
+    this.get('listeners').forEach(([service, event, listenerFunction]) => {
+        this.get(service).on(event, listenerFunction);
     });
   },
 
@@ -447,26 +507,34 @@ export default Component.extend(Evented, THREEPerformance, {
    * @method cleanup
    */
   cleanup() {
+
+    this.debug("cleanup vr rendering");
     // Stop rendering
     this.get('webglrenderer').vr.setDevice(null);
     this.get('webglrenderer').dispose();
 
-    this.get('world.interaction').off('redrawScene');
-    this.get('world.interaction').off('centerVREnvironment');
-    this.get('world.interaction').off('redrawApp');
-    this.get('world.interaction').off('lication');
-    this.get('world.interaction').off('removeApplication');
-    this.get('world.interaction').off('showTeleportArea');
-    this.get('world.interaction').off('removeTeleportArea');
+    // unsubscribe from all services
+    this.get('listeners').forEach(([service, event, listenerFunction]) => {
+      this.get(service).off(event, listenerFunction);
+    });
+    this.set('listeners', null);
+
+    if(this.get('threePerformance')) {
+      this.threePerformance.removePerformanceMeasurement();
+    }
+
+    /// TODO removing event handlers needs to be fixed
+
+    // this.get('world.interaction').off('showApplication');
+    // this.get('world.interaction').off('removeApplication');
+    // this.get('world.interaction').off('showTeleportArea');
+    // this.get('world.interaction').off('removeTeleportArea');
     this.get('world.interaction').removeHandlers();
 
     this.get('localUser').reset();
     this.get('world').reset();
 
     this.set('webglrenderer', null);
-    this.removePerformanceMeasurement();
-    this.get('renderingService').off('reSetupScene');
-    this.get('landscapeRepo').off('updated');
 
     this.set('imageLoader.logos', {});
     this.set('labeler.textLabels', {});
@@ -504,14 +572,12 @@ export default Component.extend(Evented, THREEPerformance, {
       this.set('landscapeRepo.latestApplication', null);
     });
 
-
     // Clean up Webgl contexts
     let gl = this.get('canvas').getContext('webgl');
     gl.getExtension('WEBGL_lose_context').loseContext();
 
     // Remove enter vr button
-    let elem = document.getElementById('vr_button');
-    elem.remove();
+    document.getElementById('vrButton').remove();
   },
 
   /**
@@ -1280,10 +1346,6 @@ export default Component.extend(Evented, THREEPerformance, {
     this.get('world.interaction').initHandlers();
 
     // Set listeners
-    this.get('world.interaction').on('redrawScene', () => { this.populateScene(); });
-
-    this.get('world.interaction').on('centerVREnvironment', () => { this.get('world').centerVREnvironment(); });
-
     // Show teleport area
     this.get('world.interaction').on('showTeleportArea', (intersectionPoint) => {
       if (!this.get('teleportArea')) {
@@ -1312,14 +1374,6 @@ export default Component.extend(Evented, THREEPerformance, {
         this.set('teleportArea', null);
       }
     });
-
-    /*
-     * This interaction listener is used to redraw the application3D 
-     * ('opened' value of package changed) 
-     */
-    this.get('world.interaction').on('redrawApp', (appID) => {
-      this.redrawApplication(appID);
-    }); ///// End redraw application3D 
 
     /*
      * This interaction listener is used to create the application3D 

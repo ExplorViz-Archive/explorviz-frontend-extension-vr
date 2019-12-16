@@ -21,7 +21,8 @@ module.exports = {
 
     app.import('vendor/vr/OBJLoader.js');
     app.import('vendor/vr/Controller.js');
-    app.import('vendor/vr/WebVR.js');
+    //app.import('vendor/vr/WebVR.js');
+    app.import('vendor/vr/VRButton.js');
   }
 
 };
