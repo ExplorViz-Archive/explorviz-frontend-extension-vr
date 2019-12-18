@@ -7,8 +7,8 @@ This extension adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mo
 - A powerful computer that can handle VR
 - Latest version of [Mozilla Firefox](https://www.mozilla.org/)
 - [ExplorViz Backend](https://github.com/ExplorViz/explorviz-backend)
-- [ExplorViz Frontend](https://github.com/ExplorViz/explorviz-frontend)
 - [ExplorViz Backend Extension VR](https://github.com/ExplorViz/explorviz-backend-extension-vr)
+- [ExplorViz Frontend](https://github.com/ExplorViz/explorviz-frontend)
 
 ## Installation
 
