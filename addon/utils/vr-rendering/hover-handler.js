@@ -1,4 +1,5 @@
-import Ember from 'ember';
+import EmberObject from '@ember/object';
+import Evented from '@ember/object/evented';
 
 /*
  *  This util is used to define the important information  
@@ -6,10 +7,9 @@ import Ember from 'ember';
  *  and return them as an array.
  *
  */
-export default Ember.Object.extend(Ember.Evented, {
+export default EmberObject.extend(Evented, {
 
   alreadyDestroyed: true,
-
   enableTooltips: true,
 
   /*
@@ -17,47 +17,46 @@ export default Ember.Object.extend(Ember.Evented, {
    *  type of entity and handle it
    */
   buildContent(emberModel) {
-    let content = {title: '', innerContent: ""};
+    let content = { title: '', innerContent: "" };
 
     const modelType = emberModel.constructor.modelName;
 
     // Build information for landscape 
-    if(modelType === 'application') {
+    if (modelType === 'application') {
       content = buildApplicationContent(emberModel);
     }
-    else if(modelType === 'system') {
+    else if (modelType === 'system') {
       content = buildSystemContent(emberModel);
     }
-    else if(modelType === 'node') {
+    else if (modelType === 'node') {
       content = buildNodeContent(emberModel);
     }
-    else if(modelType === 'nodegroup') {
+    else if (modelType === 'nodegroup') {
       content = buildNodegroupContent(emberModel);
-    } 
+    }
     // Build information for application3D
-    else if(modelType === 'component') {
+    else if (modelType === 'component') {
       content = buildComponentContent(emberModel);
     }
-    else if(modelType === 'clazz') {
+    else if (modelType === 'clazz') {
       content = buildClazzContent(emberModel);
-    }     
+    }
 
     return content;
 
     // Helper functions landscape
-    
+
     /*
      *  This function is used to build the information about 
      *  applications
-     */    
+     */
     function buildApplicationContent(application) {
+      let content = { title: '', innerContent: "" };
 
-      let content = {title: '', innerContent: ""};
+      content.innerContent = { entry1: '', entry2: "" };
 
-      content.innerContent = {entry1: '', entry2: ""};
-
-      content.innerContent.entry1 = {name1: 'Last Usage:', value1: ""};
-      content.innerContent.entry2 = {name2: 'Language:', value2: ""};
+      content.innerContent.entry1 = { name1: 'Last Usage:', value1: "" };
+      content.innerContent.entry2 = { name2: 'Language:', value2: "" };
 
       content.title = application.get('name');
 
@@ -72,15 +71,14 @@ export default Ember.Object.extend(Ember.Evented, {
     /*
      *  This function is used to build the information about 
      *  systems
-     */   
+     */
     function buildSystemContent(system) {
+      let content = { title: '', innerContent: "" };
 
-      let content = {title: '', innerContent: ""};
+      content.innerContent = { entry1: '', entry2: "" };
 
-      content.innerContent = {entry1: '', entry2: ""};
-
-      content.innerContent.entry1 = {name1: 'Nodes:', value1: ""};
-      content.innerContent.entry2 = {name2: 'Applications:', value2: ""};
+      content.innerContent.entry1 = { name1: 'Nodes:', value1: "" };
+      content.innerContent.entry2 = { name2: 'Applications:', value2: "" };
 
       content.title = system.get('name');
 
@@ -111,22 +109,21 @@ export default Ember.Object.extend(Ember.Evented, {
     /*
      *  This function is used to build the information about 
      *  nodes
-     */   
+     */
     function buildNodeContent(node) {
+      let content = { title: '', innerContent: "" };
 
-      let content = {title: '', innerContent: ""};
+      content.innerContent = { entry1: '', entry2: "", entry3: "" };
 
-      content.innerContent = {entry1: '', entry2: "", entry3: ""};
-
-      content.innerContent.entry1 = {name1: 'CPU Utilization(%):', value1: ""};
-      content.innerContent.entry2 = {name2: 'Total RAM(GB):', value2: ""};
-      content.innerContent.entry3 = {name3: 'Free RAM(%):', value3: ""};
+      content.innerContent.entry1 = { name1: 'CPU Utilization(%):', value1: "" };
+      content.innerContent.entry2 = { name2: 'Total RAM(GB):', value2: "" };
+      content.innerContent.entry3 = { name3: 'Free RAM(%):', value3: "" };
 
       content.title = node.getDisplayName();
 
       content.innerContent.entry1.value1 = node.get('cpuUtilization');
-      content.innerContent.entry2.value2 = node.get('freeRAM');  
-      content.innerContent.entry3.value3 = node.get('usedRAM'); 
+      content.innerContent.entry2.value2 = node.get('freeRAM');
+      content.innerContent.entry3.value3 = node.get('usedRAM');
 
       return content;
     }
@@ -134,16 +131,15 @@ export default Ember.Object.extend(Ember.Evented, {
     /*
      *  This function is used to build the information about 
      *  nodegroups
-     */   
+     */
     function buildNodegroupContent(nodeGroup) {
+      let content = { title: '', innerContent: "" };
 
-      let content = {title: '', innerContent: ""};
+      content.innerContent = { entry1: '', entry2: "", entry3: "" };
 
-      content.innerContent = {entry1: '', entry2: "", entry3: ""};
-
-      content.innerContent.entry1 = {name1: 'Nodes:', value1: ""};
-      content.innerContent.entry2 = {name2: 'Applications:', value2: ""};
-      content.innerContent.entry3 = {name3: 'Avg. CPU Utilization:', value3: ""};
+      content.innerContent.entry1 = { name1: 'Nodes:', value1: "" };
+      content.innerContent.entry2 = { name2: 'Applications:', value2: "" };
+      content.innerContent.entry3 = { name3: 'Avg. CPU Utilization:', value3: "" };
 
       content.title = nodeGroup.get('name');
 
@@ -174,18 +170,17 @@ export default Ember.Object.extend(Ember.Evented, {
     /*
      *  This function is used to build the information about 
      *  packages
-     */   
+     */
     function buildComponentContent(component) {
+      let content = { title: '', innerContent: "" };
 
-      let content = {title: '', innerContent: ""};
+      content.innerContent = { entry1: '', entry2: "" };
 
-      content.innerContent = {entry1: '', entry2: ""};
-
-      content.innerContent.entry1 = {name1: 'Contained Classes:', value1: ""};
-      content.innerContent.entry2 = {name2: 'Contained Packages:', value2: ""};
+      content.innerContent.entry1 = { name1: 'Contained Classes:', value1: "" };
+      content.innerContent.entry2 = { name2: 'Contained Packages:', value2: "" };
 
       content.title = component.get('name');
-      
+
       const clazzesCount = getClazzesCount(component);
       const packageCount = getPackagesCount(component);
 
@@ -202,7 +197,7 @@ export default Ember.Object.extend(Ember.Evented, {
           result += getClazzesCount(child);
         });
 
-        return result;   
+        return result;
       }
 
       function getPackagesCount(component) {
@@ -214,7 +209,7 @@ export default Ember.Object.extend(Ember.Evented, {
           result += getPackagesCount(child);
         });
 
-        return result;   
+        return result;
       } // END inner helper functions landscape
 
       return content;
@@ -223,22 +218,21 @@ export default Ember.Object.extend(Ember.Evented, {
     /*
      *  This function is used to build the information about 
      *  clazzes
-     */   
+     */
     function buildClazzContent(clazz) {
+      let content = { title: '', innerContent: "" };
 
-      let content = {title: '', innerContent: ""};
+      content.innerContent = { entry1: '', entry2: "" };
 
-      content.innerContent = {entry1: '', entry2: ""};
-
-      content.innerContent.entry1 = {name1: 'Active Instances:', value1: ""};
-      content.innerContent.entry2 = {name2: 'Called Methods:', value2: ""};
+      content.innerContent.entry1 = { name1: 'Active Instances:', value1: "" };
+      content.innerContent.entry2 = { name2: 'Called Methods:', value2: "" };
 
       content.title = clazz.get('name');
 
       const calledMethods = getCalledMethods();
 
       content.innerContent.entry1.value1 = clazz.get('instanceCount');
-      content.innerContent.entry2.value2 = calledMethods; 
+      content.innerContent.entry2.value2 = calledMethods;
 
       return content;
 

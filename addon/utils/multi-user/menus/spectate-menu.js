@@ -1,156 +1,115 @@
+import BaseMenu from './menu-base';
 import Menu from '../menu';
-import Helper from '../helper';
+import { inject as service } from "@ember/service";
+import { getOwner } from '@ember/application';
 
-let menu = null;
-let prevMenu = null;
+export default BaseMenu.extend({
 
-/**
- * Creates and opens the Spectate Menu.
- * 
- * @param {Object} lastMenu - The menu to go back to on back button pressed.
- */
-export function open(lastMenu) {
-  close.call(this);
-  menu = new Menu({
-    name: 'spectateMenu'
-  });
+  store: service(),
+  spectating: service(),
 
-  menu.addTitle('Spectate');
-  menu.addRectangle({x: 106, y: 182}, 304, 60, '#666666');
-  menu.addArrowButton('previous_user', {x: 60, y: 182}, {x: 100, y: 242}, 'arrow_left', '#ffc338');
-  menu.addArrowButton('next_user', {x: 416, y: 182}, {x: 456, y: 242}, 'arrow_right', '#ffc338');
-  menu.addText('Spectating off', 'spectating_user', 28, { x: 256, y: 202}, '#ffffff', 'center', false);
-  menu.addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
-  prevMenu = lastMenu;
+  /**
+   * Creates and opens the Connect Menu.
+   */
+  open(lastMenu) {
+    this._super(lastMenu);
 
-  menu.interact = (action, position) => {
-    let item = menu.getItem(position);
-    if(item) {
-      if(action === 'rightIntersect') {
-        menu.setHover(item);
-      }
-      if(action === 'rightTrigger') {
-        if(item.name === 'next_user') {
-          if(this.get('users').size < 1)
-            return;
+    this.set('menu', Menu.create(getOwner(this).ownerInjection(), { name: 'spectateMenu' }));
 
-          // get all user that are connected
-          let users = this.get('users').keys();
-          let userArray = [];
-          for(let id of users) {
-            if(this.get('users').get(id).state === 'connected')
-              userArray.push(id);
-          }
+    this.get('menu').addTitle('Spectate');
+    this.get('menu').addRectangle({ x: 106, y: 182 }, 304, 60, '#666666');
+    this.get('menu').addArrowButton('previous_user', { x: 60, y: 182 }, { x: 100, y: 242 }, 'arrow_left', '#ffc338');
+    this.get('menu').addArrowButton('next_user', { x: 416, y: 182 }, { x: 456, y: 242 }, 'arrow_right', '#ffc338');
+    this.get('menu').addText('Spectating off', 'spectating_user', 28, { x: 256, y: 202 }, '#ffffff', 'center', false);
+    this.get('menu').addTextButton('Back', 'back', { x: 100, y: 402 }, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
 
-          if(userArray.length < 1)
-            return;
+    this.get('menu').interact = (action, position) => {
+      let item = this.get('menu').getItem(position);
+      let users = this.get('store').peekAll('vr-user').toArray();
 
-          // sort them by id
-          userArray.sort();
+      // Sort users by Id
+      users.sort( (a,b) => (a.id > b.id) ? 1 : -1); 
 
-          if(!this.get('spectatedUser')) {
-            this.activateSpectating(userArray[0]);
-            menu.updateText('spectating_user', this.get('users').get(userArray[0]).name);
-            return;
-          }
-          
-          let index = Helper.binaryIndexOf(userArray, this.get('spectatedUser'));
-
-          if(index !== -1) {
-            if(index === userArray.length - 1) {
-              this.deactivateSpectating();
-              menu.updateText('spectating_user', 'Spectating off');
-            } else {
-              this.activateSpectating(userArray[index+1]);
-              menu.updateText('spectating_user', this.get('users').get(userArray[index+1]).name);
-            }
-          }
-        } else if(item.name === 'previous_user') {
-          if(this.get('users').size < 1)
-            return;
-
-          let users = this.get('users').keys();
-          let userArray = [];
-          
-          for(let id of users) {
-            if(this.get('users').get(id).state === 'connected')
-              userArray.push(id);
-          }
-
-          if(userArray.length < 1)
-            return;
-
-          userArray.sort();
-
-          if(!this.get('spectatedUser')) {
-            this.activateSpectating(userArray[userArray.length-1]);
-            menu.updateText('spectating_user', this.get('users').get(userArray[userArray.length-1]).name);
-            return;
-          }
-        
-          let index = Helper.binaryIndexOf(userArray, this.get('spectatedUser'));
-
-          if(index !== -1) {
-            if(index === 0) {
-              this.deactivateSpectating();
-              menu.updateText('spectating_user', 'Spectating off');
-            } else {
-              this.activateSpectating(userArray[index-1]);
-              menu.updateText('spectating_user', this.get('users').get(userArray[index-1]).name);
-            }
-          }
-        } else if(item.name === 'back') {
-          back.call(this);
+      if (item) {
+        if (action === 'rightIntersect' || action === 'rightTriggerDown') {
+          this.get('menu').setHover(item);
         }
+        if (action === 'rightTriggerDown') {
+          if (item.name === 'next_user') {
+            if (users.length < 1)
+              return;
+
+            if (!this.get('spectating.spectatedUser')) {
+              this.get('spectating').activate(users[0].get('id'));
+              this.get('menu').updateText('spectating_user', users[0].get('name'));
+              return;
+            }
+
+            let spectatedUser = users.find( (user) => {return user.get('id') === this.get('spectating.spectatedUser')});
+            let index = users.indexOf(spectatedUser);
+
+            if (spectatedUser) {
+              if (index === users.length - 1) {
+                this.get('spectating').deactivate();
+                this.get('menu').updateText('spectating_user', 'Spectating off');
+              } else {
+                this.get('spectating').activate(users[index + 1].get('id'));
+                this.get('menu').updateText('spectating_user', users[index + 1].get('name'));
+              }
+            }
+          } else if (item.name === 'previous_user') {
+            if (users.length < 1)
+              return;
+
+            if (!this.get('spectating.spectatedUser')) {
+              this.get('spectating').activate(users[users.length - 1]);
+              this.get('menu').updateText('spectating_user', users[users.length - 1]).get('name');
+              return;
+            }
+
+            let spectatedUser = users.find( (user) => {return user.get('id') === this.get('spectating.spectatedUser')});
+            let index = users.indexOf(spectatedUser);
+
+            if (index !== -1) {
+              if (index === 0) {
+                this.get('spectating').deactivate();
+                this.get('menu').updateText('spectating_user', 'Spectating off');
+              } else {
+                this.get('spectating').activate(users[index - 1].get('id'));
+                this.get('menu').updateText('spectating_user', users[index - 1].get('name'));
+              }
+            }
+          } else if (item.name === 'back') {
+            this.back();
+          }
+        }
+      } else {
+        this.get('menu').setHover(null);
+        this.get('menu').deactivateItems();
       }
-    } else {
-      menu.setHover(null);
-    }
-  };
-  menu.createMesh();
-  const mesh = menu.getMesh();
-  mesh.position.x += 0.2;
-  mesh.geometry.rotateX(-1.5707963267949);
-  this.get('controller1').add(mesh);
-}
+    };
+    this.get('menu').createMesh();
+    this.addToSecondaryController();
+  },
 
-/**
- * Closes and removes the Spectate Menu.
- */
-export function close() {
-  if(menu) {
-    this.deactivateSpectating();
-    this.get('controller1').remove(menu.getMesh());
-    menu.close();
-    menu = null;
+  /**
+   * Closes and removes the Spectate Menu.
+   */
+  close() {
+    this._super(...arguments);
+    this.get('spectating').deactivate();
+  },
+
+  /**
+   * Changes the text of a text item and updates the mesh.
+   * 
+   * @param {string} itemName - The unique identifier of the item.
+   * @param {string} text - The new text of the item.
+   */
+  updateText(itemName, text) {
+    const menu = this.get('menu');
+
+    if (menu)
+      menu.updateText(itemName, text);
   }
-}
-
-/**
- * Go back to the previous menu.
- */
-export function back() {
-  close.call(this);
-  if(prevMenu) {
-    prevMenu.call(this);
-    prevMenu = null;
-  }
-}
-
-/**
- * Return whether the menu is opened or not.
- */
-export function isOpen() {
-  return menu ? true : false;
-}
-
-/**
- * Changes the text of a text item and updates the mesh.
- * 
- * @param {string} itemName - The unique identifier of the item.
- * @param {string} text - The new text of the item.
- */
-export function updateText(itemName, text) {
-  if(menu)
-    menu.updateText(itemName, text);
-}
+});

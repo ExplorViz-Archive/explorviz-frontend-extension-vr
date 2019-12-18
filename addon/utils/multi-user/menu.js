@@ -1,15 +1,18 @@
 import EmberObject from '@ember/object';
 import THREE from 'three';
 import Helper from './helper';
-import Menus from './menus';
+import { inject as service } from '@ember/service';
 
 export default EmberObject.extend({
+
+  menus: service(),
+
   name: null,
   resolution: { width: 512, height: 512 },
   size: { height: 0.3, width: 0.3},
   items: null,
   color: '#444444',
-  opacity: 0.8,
+  opacity: 1,
   mesh: null,
   hoverColor: '#00e5ff',
   hoveredItem: null,
@@ -30,7 +33,7 @@ export default EmberObject.extend({
   /**
    * Adds a new text to the menu.
    * @example
-   * let menu = new Menu();
+   * let menu = Menu.create();
    * 
    * menu.addText('Hello World', 'title', 18, {x: 50 y: 10}, '#a412b6', 'center');
    * 
@@ -50,13 +53,13 @@ export default EmberObject.extend({
     align = align || 'left';
     clickable = clickable || false;
 
-    this.get('items').push({ type: 'text', name, text, size, position, color, align, clickable, hover: false });
+    this.get('items').push({ type: 'text', name, text, size, position, color, align, clickable, hover: false, isActivated: false });
   },
   
   /**
    * Add a clickable arrow button to the menu.
    * @example
-   * let menu = new Menu();
+   * let menu = Menu.create();
    * 
    * menu.addArrowButton('next_user', {x: 10, y: 10}, {x: 20, y: 20}, 'arrow_right', '#d3f4aa');
    * 
@@ -73,13 +76,13 @@ export default EmberObject.extend({
     style = style || 'arrow_right';
     color = color || '#ffffff';
 
-    this.get('items').push({ type: 'button', style, name, position, to, color, hover: false });
+    this.get('items').push({ type: 'button', style, name, position, to, color, hover: false, isActivated: false });
   },
   
   /**
    * Add a clickable arrow button to the menu.
    * @example
-   * let menu = new Menu();
+   * let menu = Menu.create();
    * 
    * menu.addCurvedArrowButton('rotate_right', {x: 10, y: 10}, {x: 20, y: 20}, 'curved_arrow_right', '#d3f4aa');
    * 
@@ -96,7 +99,7 @@ export default EmberObject.extend({
     style = style || 'curved_arrow_left';
     color = color || '#ffffff';
 
-    this.get('items').push({ type: 'button', style, name, position, size, color, hover: false });
+    this.get('items').push({ type: 'button', style, name, position, size, color, hover: false, isActivated: false });
   },
 
   /**
@@ -114,10 +117,17 @@ export default EmberObject.extend({
    * @param {boolean} clickable - If true, button can be clicked, else it can't and is grayed out.
    */
   addTextButton(text, name, position, width, height, textSize, buttonColor, textColor, hoverColor, clickable) {
-    if(!this.get('items'))
+    if (!this.get('items'))
       this.set('items', new Array());
 
-    this.get('items').push({ type: 'textButton', name, text, position, width, height, textSize, buttonColor, textColor, hoverColor, clickable, hover: false });
+    this.get('items').push({ type: 'textButton', name, text, position, width, height, textSize, buttonColor, textColor, hoverColor, clickable, hover: false, isActivated: false });
+  },
+
+  addCheckbox(name, position, width, height, color, contentColor, hoverColor, clickable, isChecked) {
+    if (!this.get('items'))
+      this.set('items', new Array());
+
+    this.get('items').push({ type: 'checkbox', name, position, width, height, color, contentColor, hoverColor, clickable, hover: false, isActivated: false, isChecked });
   },
 
   /**
@@ -134,6 +144,16 @@ export default EmberObject.extend({
 
     this.get('items').push({ type: 'background', position, width, height, color});
   },
+
+  /**
+   * This function is called when the user interacts with the menu using their controller(s).
+   * In most cases, this function should be overriden.
+   * 
+   * @param {string} action 
+   * @param {{x: number, y: number}} position - The uv position.
+   */
+  // eslint-disable-next-line no-unused-vars
+  interact(action, position) { },
 
   /**
    * Completely redraws the menu and creates a new and updates THREE.Mesh.
@@ -187,9 +207,24 @@ export default EmberObject.extend({
           }
           this.drawArrowhead(ctx, item.position, item.to, item.style);
         }
-      } else if(item.type === 'textButton') {
+      } else if (item.type === 'checkbox') {
+        if (item.clickable && item.hover)
+          ctx.strokeStyle = item.hoverColor;
+        else
+          ctx.strokeStyle = item.color;
+        ctx.lineWidth = 5;
+        ctx.strokeRect(item.position.x, item.position.y, item.width, item.height);
+        if (item.isChecked) {
+          ctx.strokeStyle = item.contentColor;
+          ctx.beginPath();
+          ctx.moveTo(item.position.x + 10, item.position.y + (item.height / 2));
+          ctx.lineTo(item.position.x + (item.width / 2), item.position.y + item.height - 10);
+          ctx.lineTo(item.position.x + item.width - 10, item.position.y + 10);
+          ctx.stroke();
+        }
+      } else if (item.type === 'textButton') {
         // draw button background
-        if(item.clickable && item.hover)
+        if (item.clickable && item.hover)
           ctx.fillStyle = item.hoverColor;
         else
           ctx.fillStyle = item.buttonColor;
@@ -346,7 +381,7 @@ export default EmberObject.extend({
       this.get('mesh').material.dispose();
       this.set('mesh', null);
     }
-    Menus.remove(this.getName());
+    this.get('menus').remove(this.get('name'));
   },
 
   /**
@@ -394,13 +429,20 @@ export default EmberObject.extend({
             return item;
           }
         }
-      } else if(item.type === 'textButton' && item.clickable) {
+      } else if ((item.type === 'textButton' || item.type === 'checkbox') && item.clickable) {
         let itemX = item.position.x;
         let itemY = item.position.y;
 
-        if(x >= itemX && y >= itemY && x <= itemX + item.width && y <= itemY  + item.height)
+        if (x >= itemX && y >= itemY && x <= itemX + item.width && y <= itemY + item.height)
           return item;
       }
+    }
+  },
+
+  deactivateItems() {
+    for (let i = 0; i < this.get('items').length; i++) {
+      let item = this.get('items')[i];
+      item.isActivated = false;
     }
   },
 
@@ -486,22 +528,18 @@ export default EmberObject.extend({
     // give it the texture
     this.update();
     
-    Menus.add(this);
-  },
-
-
-  /**
-   * Returns menu mesh.
-   */
-  getMesh() {
-    return this.get('mesh');
+    this.get('menus').add(this);
   },
 
   /**
-   * Returns the menu name.
+   * Adds this menu in form of a mesh to the given controller
    */
-  getName() {
-    return this.get('name');
+  addToController(controller){
+    const mesh = this.get('mesh');
+    mesh.position.y += 0.11;
+    mesh.position.z -= 0.15;
+    mesh.geometry.rotateX(-0.785);
+    controller.add(mesh);
   }
 
 });

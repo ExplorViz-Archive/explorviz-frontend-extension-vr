@@ -67,6 +67,13 @@ Controller = function (id) {
     if(button === 'axes') return axes;
   };
 
+  this.getTriggerValue = function () {
+    if(gamepad) {
+      return gamepad.buttons[1].value;
+    }
+    return 0.0;
+  };
+
   this.update = function () {
 
     gamepad = findGamepad(id);

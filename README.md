@@ -50,6 +50,11 @@ The ray of the left controller is colored black and that of the right one is col
 
 Press this button to open the options menu. If in a menu, pressing the button can be used to navigate back through previous menus.
 
+&#10122;:
+(Right Controller):
+
+Press this button to display information about the targeted entity.
+
 &#10123;:
 (Left Controller):
 
@@ -76,11 +81,6 @@ create 3D applications out of targeted 2D applications.
 Target the red "X" above a 3D application with the ray of the controller and press this button to delete the 3D application.
 This button can also the used to navigate through menus.
 
-&#10125;:
-(Right Controller):
-
-Press this button to display information about the targeted entity.
-
 ### Keyboard:
 
 - :arrow_up:: Move the camera upwards 
@@ -89,5 +89,9 @@ Press this button to display information about the targeted entity.
 - :arrow_right:: Move the camera rightwards
 - <kbd>+</kbd>: Move camera forwards (Zoom in)
 - <kbd>-</kbd>: Move camera backward (Zoom out)
-- <kbd>q</kbd>: Rotate the environment forwards
-- <kbd>w</kbd>: Rotate the environment backwards
+- <kbd>w</kbd>: Move landscape forwards
+- <kbd>s</kbd>: Move landscape backwards
+- <kbd>a</kbd>: Move landscape leftwards
+- <kbd>d</kbd>: Move landscape rightwards
+- <kbd>q</kbd>: Rotate landscape forwards
+- <kbd>w</kbd>: Rotate landscape backwards

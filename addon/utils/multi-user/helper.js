@@ -25,37 +25,6 @@ export function rgbToHex(rgbArray) {
   return "#" + ((1 << 24) + (rgbArray[0] << 16) + (rgbArray[1] << 8) + rgbArray[2]).toString(16).slice(1);
 }
 
-    /**
- * Performs a binary search on the given array.
- * 
- * @param {Array} array The array to search through.
- * @param {*} searchElement The item to search for within the array.
- * @return {Number} The index of the element which defaults to -1 when not found.
- */
-export function binaryIndexOf(array, searchElement) {
-  let minIndex = 0;
-  let maxIndex = array.length - 1;
-  let currentIndex;
-  let currentElement;
-
-  while (minIndex <= maxIndex) {
-    currentIndex = (minIndex + maxIndex) / 2 | 0;
-    currentElement = array[currentIndex];
-
-    if (currentElement < searchElement) {
-      minIndex = currentIndex + 1;
-    }
-    else if (currentElement > searchElement) {
-      maxIndex = currentIndex - 1;
-    }
-    else {
-      return currentIndex;
-    }
-  }
-
-  return -1;
-}
-
 /**
  * Turns an rgb color array to its string representation.
  * 
@@ -63,4 +32,46 @@ export function binaryIndexOf(array, searchElement) {
  */
 export function colorToString(colorArray){
   return 'rgb(' + colorArray[0] + ',' + colorArray[1] + ',' + colorArray[2] + ')'; 
+}
+
+/*
+  *  The method is used to calculate a 35 percent 
+  *  darker color of an Object3D's material
+  */
+ export function calculateDarkerColor(object) {
+  let actualColor = null;
+
+  if (object.material.length) {
+    actualColor = object.material[0].color;
+  }
+  else {
+    actualColor = object.material.color;
+  }
+
+  let r = Math.floor(actualColor.r * 0.625 * 255);
+  let g = Math.floor(actualColor.g * 0.625 * 255);
+  let b = Math.floor(actualColor.b * 0.625 * 255);
+
+  return "rgb(" + r + ", " + g + ", " + b + ")";
+}
+
+/*
+* The method is used to reverse the effect of
+* calculateDarkerColor()
+*/
+export function calculateLighterColor(object) {
+  let actualColor = null;
+
+  if (object.material.length) {
+    actualColor = object.material[0].color;
+  }
+  else {
+    actualColor = object.material.color;
+  }
+
+  let r = Math.floor(actualColor.r * 1.6 * 255);
+  let g = Math.floor(actualColor.g * 1.6 * 255);
+  let b = Math.floor(actualColor.b * 1.6 * 255);
+
+  return "rgb(" + r + ", " + g + ", " + b + ")";
 }

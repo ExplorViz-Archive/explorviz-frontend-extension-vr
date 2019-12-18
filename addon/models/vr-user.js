@@ -1,20 +1,23 @@
-import EmberObject from '@ember/object';
+import DS from 'ember-data';
 import THREE from 'three';
 
-export default EmberObject.extend({
-  name: null,
-  id: null,
-  state: null,
+const { Model, attr } = DS;
+
+export default Model.extend({
+
+  name: attr('string'),
+  state: attr('string'),
+
   highlightedEntity: {
-    appID : null,
+    appID: null,
     entityID: null,
-    originalColor : null
+    originalColor: null
   },
   controller1: null,
   controller2: null,
   camera: null,
   color: null, // [r,g,b], r,g,b = 0,...,255
-  namePlane: null, //PlaneGeometry containing username
+  namePlane: null, // PlaneGeometry containing username
 
   initCamera(obj) {
     this.set('camera', {
@@ -62,42 +65,42 @@ export default EmberObject.extend({
   removeNamePlane() {
     this.set('namePlane', null);
   },
-  
+
   /**
    * Updates the camera model's position and rotation.
    * 
    * @param {{position: number[], quaternion: number[]}} camera - Object containing the new camera position and quaterion.
    */
   updateCamera(camera) {
-    if(this.get('camera')) {
+    if (this.get('camera')) {
       this.get('camera').position.fromArray([camera.position[0], camera.position[1] - 0.01, camera.position[2]]);
       this.get('camera').quaternion.fromArray(camera.quaternion);
       this.get('camera').model.position.copy(this.get('camera').position);
       this.get('camera').model.quaternion.copy(this.get('camera').quaternion);
     }
   },
-  
+
   /**
    * Updates the controller1 model's position and rotation.
    * 
    * @param {{position: number[], quaternion: number[]}} controller - Object containing the new controller1 position and quaterion.
    */
   updateController1(controller) {
-    if(this.get('controller1')) {
+    if (this.get('controller1')) {
       this.get('controller1').position.fromArray(controller.position);
       this.get('controller1').quaternion.fromArray(controller.quaternion);
       this.get('controller1').model.position.copy(this.get('controller1').position);
       this.get('controller1').model.quaternion.copy(this.get('controller1').quaternion);
     }
   },
-  
+
   /**
    * Updates the controller2 model's position and rotation.
    * 
    * @param {{position: number[], quaternion: number[]}} controller - Object containing the new controller2 position and quaterion.
    */
   updateController2(controller) {
-    if(this.get('controller2')) {
+    if (this.get('controller2')) {
       this.get('controller2').position.fromArray(controller.position);
       this.get('controller2').quaternion.fromArray(controller.quaternion);
       this.get('controller2').model.position.copy(this.get('controller2').position);
@@ -105,7 +108,7 @@ export default EmberObject.extend({
     }
   },
 
-  setHighlightedEntity(appID, entityID, originalColor){
+  setHighlightedEntity(appID, entityID, originalColor) {
     this.set('highlightedEntity.appID', appID);
     this.set('highlightedEntity.entityID', entityID);
     this.set('highlightedEntity.originalColor', originalColor);
@@ -116,19 +119,18 @@ export default EmberObject.extend({
    * 
    * @param {boolean} bool - If false, hides user's controllers, camera and name tag. Shows them if true.
    */
-  setVisible(bool){
-    if(this.get('camera')) {
+  setVisible(bool) {
+    if (this.get('camera')) {
       this.set('camera.model.visible', bool);
     }
-    if(this.get('controller1')) {
+    if (this.get('controller1')) {
       this.set('controller1.model.visible', bool);
     }
-    if(this.get('controller2')) {
+    if (this.get('controller2')) {
       this.set('controller2.model.visible', bool);
     }
-    if(this.get('namePlane')) {
+    if (this.get('namePlane')) {
       this.set('namePlane.visible', bool);
     }
   }
-
 });
