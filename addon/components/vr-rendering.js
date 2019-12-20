@@ -540,7 +540,7 @@ export default Component.extend(Evented, {
     this.set('labeler.textLabels', {});
     this.set('labeler.textCache', []);
 
-    const emberLandscape = this.get('landscapeRepo.latestLandscape');
+    const emberLandscape = this.get('landscapeRepo.replayLandscape');
 
     // Open all systems for 2D visualization and restore z-position
     if (emberLandscape) {
@@ -594,7 +594,7 @@ export default Component.extend(Evented, {
     let landscapeMeshes = [];
     let communicationMeshes = [];
 
-    const emberLandscape = this.get('landscapeRepo.latestLandscape');
+    const emberLandscape = this.get('landscapeRepo.replayLandscape');
 
     if (!emberLandscape || !this.get('font')) {
       return;

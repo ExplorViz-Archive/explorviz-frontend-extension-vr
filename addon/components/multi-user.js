@@ -969,7 +969,7 @@ export default VRRendering.extend(Evented, {
     }
 
     // Note that this property is still only working for one app at a time
-    this.set('landscapeRepo.latestApplication', emberModel); 
+    this.set('landscapeRepo.replayApplication', emberModel); 
     // Position and quaternion where the application shall be displayed
     let position = new THREE.Vector3().fromArray(posArray);
     let quaternion = new THREE.Quaternion().fromArray(quatArray);
