@@ -18,7 +18,9 @@ export default BaseMenu.extend({
     this.get('menu').addArrowButton('height_down', {x: 100, y: 182}, {x: 150, y: 242}, 'arrow_down', '#ffc338');
     this.get('menu').addArrowButton('height_up', {x: 366, y: 182}, {x: 416, y: 242}, 'arrow_up', '#ffc338');
     this.get('menu').addText(this.get('user').getPosition().y.toFixed(2), 'camera_height', 28, { x: 256, y: 202}, '#ffffff', 'center', false);
-    this.get('menu').addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
+    this.get('menu').addTextButton('Back', 'back', { x: 100, y: 402 }, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
+
+    this.get('menu').addTextButton('Reset', 'reset_camera', { x: 420, y: 13 }, 65, 40, 22, '#aaaaaa', '#ffffff', '#dc3b00', true);
   
     let triggerController = this.get('user.primaryController');
   
@@ -31,6 +33,9 @@ export default BaseMenu.extend({
         if(action === 'rightTriggerDown'){
           if(item.name === 'back') {
             this.back();
+          } else if (item.name === 'reset_camera') {
+            this.get('user').getPosition().y = 0;
+            this.get('menu').updateText('camera_height', this.get('user').getPosition().y.toFixed(2));
           } else {
             item.isActivated = true;
           }
