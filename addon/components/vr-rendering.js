@@ -95,7 +95,8 @@ export default Component.extend(Evented, {
   // An Observer calculating the new raycastObjects
   actualizeRaycastObjects() {
     let result = (this.get('vrLandscape')) ? this.get('vrLandscape').children : [];
-    const allowedObjects = ['node', 'system', 'nodegroup', 'application', 'communication', 'floor', 'component', 'clazz', 'deleteButton'];
+    const allowedObjects = ['node', 'system', 'nodegroup', 'application', 'applicationcommunication'
+      , 'drawableclazzcommunication', 'floor', 'component', 'clazz', 'deleteButton'];
 
     this.get('openApps').forEach(function (app) {
       app.children.forEach(function (child) {

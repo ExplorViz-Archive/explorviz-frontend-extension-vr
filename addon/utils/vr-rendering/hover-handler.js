@@ -41,6 +41,12 @@ export default EmberObject.extend(Evented, {
     else if (modelType === 'clazz') {
       content = buildClazzContent(emberModel);
     }
+    else if (modelType === 'drawableclazzcommunication') {
+      content = buildDrawableclasscommunicationContent(emberModel);
+    }
+    else if (modeltype === 'applicationcommunication') {
+      content = buildApplicationcommunicationContent(emberModel);
+    }
 
     return content;
 
@@ -240,7 +246,56 @@ export default EmberObject.extend(Evented, {
         return 0;
       }
 
-    } // END helper functions application 3D
+    }
+
+    /*
+     *  This function is used to build the information about 
+     *  application communication lines
+     */
+    function buildApplicationcommunicationContent(communication) {
+      let content = { title: '', innerContent: "" };
+
+      content.innerContent = { entry1: '', entry2: "", entry3: "" };
+
+      content.innerContent.entry1 = { name1: 'Requests:', value1: "" };
+      content.innerContent.entry2 = { name2: 'Technology:', value2: "" };
+      content.innerContent.entry2 = { name3: 'Avg. Response Time:', value2: "" };
+
+      content.title = communication.get('sourceApplication').get('name') + " - " + communication.get('targetApplication').get('name');
+
+      content.innerContent.entry1.value1 = communication.get('requests');
+      content.innerContent.entry2.value2 = communication.get('technology');
+      content.innerContent.entry3.value3 = communication.get('averageResponseTime');
+
+      return content;
+
+    }
+
+    /*
+     *  This function is used to build the information about 
+     *  class communication lines
+     */
+    function buildDrawableclasscommunicationContent(communication) {
+      let content = { title: '', innerContent: "" };
+
+      content.innerContent = { entry1: '', entry2: "" };
+
+      content.innerContent.entry1 = { name1: 'Requests:', value1: "" };
+      content.innerContent.entry2 = { name2: 'Avg. Response Time:', value2: "" };
+
+      content.title = communication.get('sourceClazz').get('name') + " - " + communication.get('targetClazz').get('name');
+
+      content.innerContent.entry1.value1 = communication.get('requests');
+      content.innerContent.entry2.value2 = communication.get('averageResponseTime');
+
+      return content;
+
+    }
+
+
+
+
+    // END helper functions application 3D
 
   } // END build Content
 
