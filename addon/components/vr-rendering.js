@@ -245,7 +245,7 @@ export default Component.extend(Evented, {
     line1.position.y -= 0.005;
     line1.position.z -= 0.02;
 
-    // Create green ray for left controller
+    // Create green ray for right controller
     let line2 = new THREE.Line(this.get('geometry'));
     line2.name = 'controllerLine';
     line2.scale.z = 5;
@@ -1543,6 +1543,9 @@ export default Component.extend(Evented, {
    *  This method is used to add commuication lines to application3D
    */
   addCommunicationToApp(application) {
+    
+    const self = this;
+    
     const viewCenterPoint = this.get('centerAndZoomCalculator.centerPoint');
     const drawableClazzCommunications = application.get('drawableClazzCommunications');
 
@@ -1569,7 +1572,7 @@ export default Component.extend(Evented, {
       }
 
       const material = new THREE.MeshLambertMaterial({
-        color: new THREE.Color(0xf49100),
+        color: self.get('configuration.applicationColors.communication'),
         opacity: opacityValue,
         transparent: transparent
       });
@@ -1671,10 +1674,11 @@ export default Component.extend(Evented, {
       This function is used to create all boxes for application3D
     */
     function addComponentToScene(component, color, appID) {
-      const grey = 0xCECECE;
-      const lightGreen = 0x00BB41;
-      const darkGreen = 0x169E2B;
-      const clazzColor = 0x3E14A0;
+      
+      const grey = self.get('configuration.applicationColors.foundation');
+      const lightGreen = self.get('configuration.applicationColors.componentEven');
+      const darkGreen = self.get('configuration.applicationColors.componentOdd');
+      const clazzColor = self.get('configuration.applicationColors.clazz');
 
       createBoxApp(component, color, false, appID);
 

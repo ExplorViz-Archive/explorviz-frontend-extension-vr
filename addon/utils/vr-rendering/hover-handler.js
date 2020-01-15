@@ -44,7 +44,7 @@ export default EmberObject.extend(Evented, {
     else if (modelType === 'drawableclazzcommunication') {
       content = buildDrawableclasscommunicationContent(emberModel);
     }
-    else if (modeltype === 'applicationcommunication') {
+    else if (modelType === 'applicationcommunication') {
       content = buildApplicationcommunicationContent(emberModel);
     }
 

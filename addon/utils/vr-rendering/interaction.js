@@ -376,8 +376,10 @@ export default EmberObject.extend(Evented, {
       if (emberModelName === "system" && intersectedViewObj.object.name === "systemOpened") {
         this.trigger('showTeleportArea', intersectedViewObj.point);
       }
+
       // Handle closed component/clazz of app3D
       else if (((emberModelName === "component" && !emberModel.get('opened')) || emberModelName === "clazz") && !this.get('app3DBinded')) {
+
         // New color 
         let color = new THREE.Color(darkerColor);
         intersectedViewObj.object.material.color = color;
@@ -725,12 +727,13 @@ export default EmberObject.extend(Evented, {
 
     const emberModelName = emberModel.constructor.modelName;
 
+    // TODO need to make an exception for the foundation (to be highlightable)
+
     // Handle component of app3D hit
     if ((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded')) {
       let appID = intersectedViewObj.object.parent.userData.model.id;
 
-      // Just highlight entity and communication lines if component closed or clazz
-      if (!emberModel.get('opened') || emberModelName === "clazz") {
+      // Just highlight entity and communication lines if component or clazz is hit
 
         // Check if a component is already highlighted and restore color
         if (this.get('selectedEntitysMesh') && this.get('selectedEntitysColor')) {
@@ -759,7 +762,6 @@ export default EmberObject.extend(Evented, {
         // Reset highlighting for selected component
         this.get('highlightedEntitiesApp')[controller.id] = null;
       }
-    }
   },
 
   /* 
