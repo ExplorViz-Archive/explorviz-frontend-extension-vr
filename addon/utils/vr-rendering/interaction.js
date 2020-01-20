@@ -727,10 +727,9 @@ export default EmberObject.extend(Evented, {
 
     const emberModelName = emberModel.constructor.modelName;
 
-    // TODO need to make an exception for the foundation (to be highlightable)
 
     // Handle component of app3D hit
-    if ((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded')) {
+    if (((emberModelName === "component" && !emberModel.get("foundation")) || emberModelName === "clazz") && !this.get('app3DBinded')) {
       let appID = intersectedViewObj.object.parent.userData.model.id;
 
       // Just highlight entity and communication lines if component or clazz is hit
