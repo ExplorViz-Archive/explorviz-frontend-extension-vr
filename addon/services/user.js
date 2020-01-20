@@ -68,5 +68,11 @@ export default Service.extend({
     
     this.get('threeGroup.position').subVectors(new THREE.Vector3(position.x, this.get('threeGroup.position.y'), position.z), cameraOffset);
   },
+
+  resetPosition() {
+    this.getPosition.x = 0;
+    this.getPosition.y = 0;
+    this.getPosition.z = 0;
+  }
   
 });

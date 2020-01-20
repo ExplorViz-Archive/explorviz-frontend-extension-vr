@@ -78,5 +78,18 @@ export default Service.extend({
     this.get('vrEnvironment').updateMatrix();
 
     this.get('sender').sendLandscapeUpdate(delta, this.get('vrEnvironment'), this.get('environmentOffset'));
+  },
+
+  closeAndUnhighlightAllEntities() {
+    /** 
+    const landscape = this.get('vrEnvironment.userData.model');
+
+    landscape.get('systems').forEach( system => {
+      system.setOpened(false);
+    })
+
   }
+  */
+
+
 });
