@@ -424,8 +424,14 @@ export default EmberObject.extend(Evented, {
     if (intersectedViewObj) {
 
       // Handle delete button and floor exception
-      if (intersectedViewObj.object.name === 'deleteButton' || intersectedViewObj.object.name === 'floor') {
+      if (intersectedViewObj.object.name === 'deleteButton') {
         return;
+      }
+
+      if (intersectedViewObj.object.name === 'floor') {
+        // Remove stored text box
+        controller.remove(controller.getObjectByName('textBox'));
+        this.get('previousToolTipObjects')[id] = null;
       }
 
       // Handle menus
