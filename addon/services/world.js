@@ -81,15 +81,34 @@ export default Service.extend({
   },
 
   closeAndUnhighlightAllEntities() {
-    /** 
+     
     const landscape = this.get('vrEnvironment.userData.model');
 
     landscape.get('systems').forEach( system => {
       system.setOpened(false);
-    })
+
+      system.get('nodegroups').forEach( nodegroup => {
+        nodegroup.get('nodes').forEach( node => {
+          node.get('applications').forEach( application => {
+
+              application.get('components').forEach(component => {
+                //const emberModel = component.userData.model;
+                //if (emberModel !== undefined) {
+                  //const emberModelName = emberModel.constructor.modelName;
+                  //if (emberModelName === 'component')
+                    //component.setOpenedStatus(false);
+                //}
+              });
+           
+          });
+
+        });
+      });
+
+    });
 
   }
-  */
-  }
+  
+ 
 
 });

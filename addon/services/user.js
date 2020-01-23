@@ -70,9 +70,9 @@ export default Service.extend({
   },
 
   resetPosition() {
-    this.getPosition.x = 0;
-    this.getPosition.y = 0;
-    this.getPosition.z = 0;
+    this.getPosition().x = 0;
+    this.getPosition().y = 0;
+    this.getPosition().z = 0;
   }
   
 });

@@ -1,8 +1,14 @@
 import BaseMenu from './menu-base';
 import Menu from '../menu';
 import { getOwner } from '@ember/application';
+import { inject as service } from '@ember/service';
 
 export default BaseMenu.extend({
+
+  
+  world: service(),
+  user: service(),
+
   /**
    * Creates and opens the Connect Menu.
    */
@@ -15,6 +21,9 @@ export default BaseMenu.extend({
     this.get('menu').addText('Lefty Mode', 'isLeftyText', 28, { x: 100, y: 148 }, '#FFFFFF', 'left', false);
     this.get('menu').addCheckbox("isLefty", { x: 366, y: 126 }, 50, 50, '#ffc338', '#ffffff', '#00e5ff', true, this.get('user.isLefty'));
     this.get('menu').addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
+
+    this.get('menu').addTextButton('Reset All', 'resetAll', { x: 100, y: 226 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+    
   
     this.get('menu').interact = (action, position) => {
       let item = this.get('menu').getItem(position);
@@ -26,6 +35,14 @@ export default BaseMenu.extend({
           if (item.name === 'isLefty') {
             this.close();
             this.get('user').switchHand();
+          } else if (item.name === 'resetAll') {
+
+          //TODO Reset Landscape position, reset user position, close applications, close system, unhighlight all entities
+          this.get('user').resetPosition();
+          this.get('world').resetLandscape();
+          this.get('world').closeAndUnhighlightAllEntities();
+
+
           } else if (item.name === 'back') {
             this.back();
           }
