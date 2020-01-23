@@ -459,7 +459,7 @@ export default EmberObject.extend(Evented, {
         // Get information to display for hit object
         let content = this.get('hoverHandler').buildContent(emberModel);
 
-        let textBox = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2));
+        let textBox = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.2));
         textBox.name = 'textBox';
 
         // Position box for tooltip
@@ -471,7 +471,7 @@ export default EmberObject.extend(Evented, {
 
         // Define dimension of canvas for infotext
         let canvas = document.createElement('canvas');
-        canvas.width = 256;
+        canvas.width = 2*256;
         canvas.height = 128;
 
         // Fill context of canvas with color and text
@@ -488,7 +488,7 @@ export default EmberObject.extend(Evented, {
         ctx.fillText(content.title, canvas.width / 2, 20);
 
         // draw line
-        ctx.fillText("-------------------------------------------------", canvas.width / 2, 32);
+        ctx.fillText("---------------------------------------------------------------------------------------------", canvas.width / 2, 32);
 
         // Spilt up remaining canvas for each entry
         let offset = (canvas.height - 52) / 3;
