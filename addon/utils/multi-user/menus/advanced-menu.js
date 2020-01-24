@@ -9,6 +9,7 @@ export default BaseMenu.extend(Evented, {
   
   world: service(),
   user: service(),
+  menus: service(),
 
   /**
    * Creates and opens the Connect Menu.
@@ -41,7 +42,9 @@ export default BaseMenu.extend(Evented, {
 
             this.get('world').resetAll();
 
-          //} else if (item.name === 'controls') {
+          } else if (item.name === 'controls') {
+            this.close();
+            this.get('menus.controlsMenu').open(this);
 
           }else if (item.name === 'back') {
             this.back();
@@ -55,4 +58,8 @@ export default BaseMenu.extend(Evented, {
     this.get('menu').createMesh();
     this.addToSecondaryController();
   }
+
+
+  
+
 });

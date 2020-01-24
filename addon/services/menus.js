@@ -8,6 +8,7 @@ import MessageBox from '../utils/multi-user/menus/message-box-menu';
 import ConnectMenu from '../utils/multi-user/menus/connect-menu';
 import HintMenu from '../utils/multi-user/menus/hint-menu';
 import AdvancedMenu from '../utils/multi-user/menus/advanced-menu';
+import ControlsMenu from '../utils/multi-user/menus/controls-menu';
 import { getOwner } from '@ember/application';
 
 export default Service.extend({
@@ -16,6 +17,7 @@ export default Service.extend({
 
   createMenus() {
     this.set('advancedMenu', AdvancedMenu.create(getOwner(this).ownerInjection()));
+    this.set('controlsMenu', ControlsMenu.create(getOwner(this).ownerInjection()));
     this.set('connectMenu', ConnectMenu.create(getOwner(this).ownerInjection()));
     this.set('cameraHeightMenu', CameraHeightMenu.create(getOwner(this).ownerInjection()));
     this.set('landscapePositionMenu', LandscapePositionMenu.create(getOwner(this).ownerInjection()));
