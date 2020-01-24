@@ -55,6 +55,13 @@ export default EmberObject.extend({
 
     this.get('items').push({ type: 'text', name, text, size, position, color, align, clickable, hover: false, isActivated: false });
   },
+
+  addImage(url) {
+    if(!this.get('items'))
+      this.set('items', new Array());
+
+      this.get('items').push({ type: 'image', url});
+  },
   
   /**
    * Add a clickable arrow button to the menu.
@@ -248,9 +255,21 @@ export default EmberObject.extend({
       } else if(item.type === 'background') {
         ctx.fillStyle = item.color;
         ctx.fillRect(item.position.x, item.position.y, item.width, item.height);
-      }
-    }
-       
+      } else if(item.type === 'image') {
+        //let loader = new THREE.ImageLoader();
+        //loader.load('images/x_white.png',
+          //function (image) {
+            //ctx.drawImage(image, 0, 0);
+
+          //});
+          let image = new Image();
+          image.src = 'images/x_white.png';
+          image.onload = function () {
+            ctx.drawImage(image, 0, 0);
+          };
+      }                                                                                                   
+    }                                                                       
+                               
     // create texture out of canvas
     let texture = new THREE.CanvasTexture(canvas);
     // Map texture
