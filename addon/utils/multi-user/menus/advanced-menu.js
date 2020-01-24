@@ -22,7 +22,8 @@ export default BaseMenu.extend({
     this.get('menu').addCheckbox("isLefty", { x: 366, y: 126 }, 50, 50, '#ffc338', '#ffffff', '#00e5ff', true, this.get('user.isLefty'));
     this.get('menu').addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
 
-    this.get('menu').addTextButton('Reset All', 'resetAll', { x: 100, y: 226 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+    this.get('menu').addTextButton('Controls', 'controls', { x: 100, y: 208 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+    this.get('menu').addTextButton('Reset All', 'resetAll', { x: 100, y: 266 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
     
   
     this.get('menu').interact = (action, position) => {
@@ -43,7 +44,9 @@ export default BaseMenu.extend({
           this.get('world').closeAndUnhighlightAllEntities();
 
 
-          } else if (item.name === 'back') {
+          } else if (item.name === 'controls') {
+
+          }else if (item.name === 'back') {
             this.back();
           }
         }
