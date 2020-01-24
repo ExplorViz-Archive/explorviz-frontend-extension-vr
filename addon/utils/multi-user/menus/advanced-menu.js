@@ -1,9 +1,10 @@
 import BaseMenu from './menu-base';
 import Menu from '../menu';
+import Evented from '@ember/object/evented';
 import { getOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
 
-export default BaseMenu.extend({
+export default BaseMenu.extend(Evented, {
 
   
   world: service(),
@@ -38,19 +39,15 @@ export default BaseMenu.extend({
             this.get('user').switchHand();
           } else if (item.name === 'resetAll') {
 
-          //TODO Reset Landscape position, reset user position, close applications, close system, unhighlight all entities
-          this.get('user').resetPosition();
-          this.get('world').resetLandscape();
-          this.get('world').closeAndUnhighlightAllEntities();
+            this.get('world').resetAll();
 
-
-          } else if (item.name === 'controls') {
+          //} else if (item.name === 'controls') {
 
           }else if (item.name === 'back') {
             this.back();
           }
         }
-      } else {
+      } else { 
         this.get('menu').setHover(null);
         this.get('menu').deactivateItems();
       }

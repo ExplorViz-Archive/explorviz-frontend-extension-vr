@@ -1,7 +1,8 @@
 import Service, { inject as service } from '@ember/service';
 import THREE from 'three';
+import Evented from '@ember/object/evented';
 
-export default Service.extend({
+export default Service.extend( Evented, {
 
   sender: service(),
   scene: null, // Root element of Object3d's - contains all visble objects
@@ -80,33 +81,8 @@ export default Service.extend({
     this.get('sender').sendLandscapeUpdate(delta, this.get('vrEnvironment'), this.get('environmentOffset'));
   },
 
-  closeAndUnhighlightAllEntities() {
-     
-    const landscape = this.get('vrEnvironment.userData.model');
-
-    landscape.get('systems').forEach( system => {
-      system.setOpened(false);
-
-      system.get('nodegroups').forEach( nodegroup => {
-        nodegroup.get('nodes').forEach( node => {
-          node.get('applications').forEach( application => {
-
-              application.get('components').forEach(component => {
-                //const emberModel = component.userData.model;
-                //if (emberModel !== undefined) {
-                  //const emberModelName = emberModel.constructor.modelName;
-                  //if (emberModelName === 'component')
-                    //component.setOpenedStatus(false);
-                //}
-              });
-           
-          });
-
-        });
-      });
-
-    });
-
+  resetAll() {
+    this.trigger('resetAll');
   }
   
  

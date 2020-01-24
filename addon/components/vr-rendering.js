@@ -49,6 +49,7 @@ export default Component.extend(Evented, {
   configuration: service(),
   world: service(),
   localUser: service('user'),
+  menus: service(),
 
   threePerformance: null,
   showFpsCounter: null,
@@ -326,6 +327,8 @@ export default Component.extend(Evented, {
     }
 
     this.initInteraction();
+
+    this.initWorldListener();
 
     // Set default model
     this.set('imageLoader.logos', {});
@@ -1376,6 +1379,7 @@ export default Component.extend(Evented, {
       }
     });
 
+
     /*
      * This interaction listener is used to create the application3D 
      * (controller button pressed or mouse doubleclick)
@@ -1425,6 +1429,19 @@ export default Component.extend(Evented, {
     });
   }, // END initInteraction
 
+  initWorldListener() {
+
+    this.get('world').on('resetAll', () => {
+      this.resetLanscape();
+      this.get('world').resetLandscape();
+      this.get('localUser').resetPosition();
+      this.removeOpenApps();
+      return;
+    });
+    
+  },
+
+  
   /*
    *  This method is used to remove the given children of an object3D.
    *  'null' or 'undefined' passed => delete all children 
