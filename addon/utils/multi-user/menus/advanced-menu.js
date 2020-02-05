@@ -40,6 +40,7 @@ export default BaseMenu.extend(Evented, {
             this.get('user').switchHand();
           } else if (item.name === 'resetAll') {
 
+            this.close();
             this.get('world').resetAll();
 
           } else if (item.name === 'controls') {

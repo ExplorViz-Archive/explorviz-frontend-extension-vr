@@ -56,11 +56,16 @@ export default EmberObject.extend({
     this.get('items').push({ type: 'text', name, text, size, position, color, align, clickable, hover: false, isActivated: false });
   },
 
-  addImage(url) {
+  addImage(url, dx, dy, dWidth, dHeight) {
     if(!this.get('items'))
       this.set('items', new Array());
 
-      this.get('items').push({ type: 'image', url});
+    let image = new Image();
+    image.src = url;
+    image.onload = () => {
+      this.update();
+    };
+    this.get('items').push({ type: 'image', image, dx, dy, dWidth, dHeight});
   },
   
   /**
@@ -262,11 +267,8 @@ export default EmberObject.extend({
             //ctx.drawImage(image, 0, 0);
 
           //});
-          let image = new Image();
-          image.src = 'images/x_white.png';
-          image.onload = function () {
-            ctx.drawImage(image, 0, 0);
-          };
+          
+          ctx.drawImage(item.image, item.dx, item.dy, item.dWidth, item.dHeight);
       }                                                                                                   
     }                                                                       
                                
