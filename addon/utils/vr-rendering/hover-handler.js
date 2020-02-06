@@ -263,11 +263,11 @@ export default EmberObject.extend(Evented, {
       content.innerContent.entry2 = { name2: 'Technology:', value2: "" };
       content.innerContent.entry2 = { name3: 'Avg. Response Time (ms):', value2: "" };
 
-      content.title = communication.get('sourceApplication').get('name') + " \u2192 \n" + communication.get('targetApplication').get('name');
+      content.title = communication.get('sourceApplication').get('name') + " \u2192 " + communication.get('targetApplication').get('name');
 
       content.innerContent.entry1.value1 = communication.get('requests');
       content.innerContent.entry2.value2 = communication.get('technology');
-      content.innerContent.entry3.value3 = round(communication.get('averageResponseTime'), 2);
+      content.innerContent.entry3.value3 = round(communication.get('averageResponseTime') / 1000000, 4);
 
       return content;
 
@@ -285,10 +285,11 @@ export default EmberObject.extend(Evented, {
       content.innerContent.entry1 = { name1: 'Requests:', value1: "" };
       content.innerContent.entry2 = { name2: 'Avg. Response Time (ms):', value2: "" };
 
-      content.title = communication.get('sourceClazz').get('name') + " \u2192 \n" + communication.get('targetClazz').get('name');
+      content.title = communication.get('sourceClazz').get('name') + " \u2192 " + communication.get('targetClazz').get('name');
 
       content.innerContent.entry1.value1 = communication.get('requests');
-      content.innerContent.entry2.value2 = round(communication.get('averageResponseTime'), 2);
+      //content.innerContent.entry2.value2 = round(communication.get('averageResponseTime'), 2);
+      content.innerContent.entry2.value2 = round(communication.get('averageResponseTime') / 1000000, 4);
 
       return content;
 
@@ -298,8 +299,6 @@ export default EmberObject.extend(Evented, {
       let multiplier = Math.pow(10, precision || 0);
       return Math.round(value * multiplier) / multiplier;
     }
-
-
 
 
     // END helper functions application 3D
