@@ -22,21 +22,13 @@ export default BaseMenu.extend({
 
     this.get('menu').addRectangle({x: 0, y: 0}, 2*512, 66, '#777777');
     this.get('menu').addText('Controls', 'title', 36, { x: 2*256, y: 20}, '#ffffff', 'center', false);
-    //this.get('menu').addTextButton('Back', 'back', { x: 2*100, y: 1.5*402 }, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
     this.get('menu').addTextButton('Back', 'back', { x: 2*512 - 92, y: 13 }, 65, 40, 22, '#aaaaaa', '#ffffff', '#dc3b00', true);
 
-    const factor = 1 / (3828 / (2 * 512 - 66)); 
-    
-    let controller = this.get('currentUser').get('primaryController').getGamepad().id;
-    let url = null;
+    const imageHeight = 1518;
+    const imageWidth = 3828;
+    const factor = 1 / (imageWidth / (2 * 512 - 66)); 
 
-    if(!(controller === 'Oculus Touch (Right)' )) {
-      url = 'images/oculus_controls.png';
-    } else {
-      url = 'images/vive_controls.png';
-    }
-
-    this.get('menu').addImage(url, 33, 99, factor * 3828, factor * 1392);
+    this.get('menu').addImage(this.getControlsImageUrl(), 33, 99, factor * imageWidth, factor * imageHeight);
   
   
     this.get('menu').interact = (action, position) => {
@@ -72,5 +64,25 @@ export default BaseMenu.extend({
     //mesh.geometry.rotateX(-0.785);
     this.addToSecondaryController();
 
+  },
+
+  getControlsImageUrl() {
+
+    let controller = this.get('currentUser').get('primaryController').getGamepad().id;
+
+    if(controller === 'Oculus Touch (Right)' || controller === 'Oculus Touch (Left)') {
+      if(this.currentUser.get('isLefty')) {
+        return 'images/oculus_controls_lefty.png';
+      } else {
+        return 'images/oculus_controls_righty.png'
+      }
+    } else {
+      if(this.currentUser.get('isLefty')) {
+        return 'images/vive_controls_lefty.png';
+      } else {
+        return 'images/vive_controls_righty.png';
+      }
+      
+    }
   }
 });
