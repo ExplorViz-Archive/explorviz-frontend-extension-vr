@@ -802,13 +802,40 @@ export default VRRendering.extend(Evented, {
      }       
   },
 
-  onHighlightingUpdate({ userID, isHighlighted, appID, entityID, originalColor }){
+  onHighlightingUpdate({ userID, isHighlighted, appID, entityID, color }){
+    
+    let originalColor = color;
     let user = this.get('store').peekRecord('vr-user', userID);
 
     // Save highlighted entity
     if (isHighlighted){
-      this.onHighlightingUpdate(userID, false, user.highlightedEntity.appID, user.highlightedEntity.entityID, 
-        user.highlightedEntity.originalColor); // Unhighlight possible old highlighting
+      if (user.highlightedEntity.originalColor != null) {
+        // Unhighlight possible old highlighting
+        // this.onHighlightingUpdate(userID, false, user.highlightedEntity.appID, user.highlightedEntity.entityID, user.highlightedEntity.originalColor);
+        // Apply higlighting
+
+        let app = this.get('openApps').get(user.highlightedEntity.appID);
+
+    // Return if app is not opened
+    if(!app){
+      return;
+    }
+    app.children.forEach( child => {
+
+      if (child.userData.model && child.userData.model.id === user.highlightedEntity.entityID){
+        if(this.get('world.interaction.selectedEntitysMesh') === child && !isHighlighted){
+          return;
+        }
+
+        if(this.get('world.interaction.selectedEntitysMesh') === child){
+          this.get('world.interaction').set('selectedEntitysMesh', null);
+        }
+ 
+        child.material.color = new THREE.Color(user.highlightedEntity.originalColor);
+        return;
+      }
+    });
+      }
       user.setHighlightedEntity(appID, entityID, originalColor); // Restore highlighted entity data
     }
 
