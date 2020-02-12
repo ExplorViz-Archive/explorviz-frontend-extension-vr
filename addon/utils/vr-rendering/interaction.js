@@ -296,8 +296,9 @@ export default EmberObject.extend(Evented, {
     this.highlightLandscape(emberModel, emberModelName, intersectedViewObj, primaryControllerId, darkerColor);
 
     // Handle hit component/clazz of app3D if its not binded to a Controller
-    if ((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded')) {
+    if ((emberModelName === "component" && !emberModel.get("foundation")) && !this.get('app3DBinded')) {
       // New color 
+      
       let color = new THREE.Color(darkerColor);
       intersectedViewObj.object.material.color = color;
 
@@ -378,7 +379,7 @@ export default EmberObject.extend(Evented, {
       }
 
       // Handle closed component/clazz of app3D
-      else if (((emberModelName === "component" && !emberModel.get('opened')) || emberModelName === "clazz") && !this.get('app3DBinded')) {
+      else if (((emberModelName === "component" && !emberModel.get("foundation")) || emberModelName === "clazz" || emberModelName === "drawableclazzcommunication") && !this.get('app3DBinded')) {
 
         // New color 
         let color = new THREE.Color(darkerColor);
@@ -737,7 +738,7 @@ export default EmberObject.extend(Evented, {
     // Handle component of app3D hit
     if (((emberModelName === "component" && !emberModel.get("foundation")) || emberModelName === "clazz" || emberModelName === "drawableclazzcommunication") && !this.get('app3DBinded')) {
       let appID = intersectedViewObj.object.parent.userData.model.id;
-      
+
       // Just highlight entity and communication lines if component or clazz is hit
 
         // Check if a component is already highlighted and restore color
