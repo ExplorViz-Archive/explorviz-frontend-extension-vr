@@ -735,9 +735,9 @@ export default EmberObject.extend(Evented, {
 
 
     // Handle component of app3D hit
-    if (((emberModelName === "component" && !emberModel.get("foundation")) || emberModelName === "clazz") && !this.get('app3DBinded')) {
+    if (((emberModelName === "component" && !emberModel.get("foundation")) || emberModelName === "clazz" || emberModelName === "drawableclazzcommunication") && !this.get('app3DBinded')) {
       let appID = intersectedViewObj.object.parent.userData.model.id;
-
+      
       // Just highlight entity and communication lines if component or clazz is hit
 
         // Check if a component is already highlighted and restore color
@@ -1370,7 +1370,7 @@ export default EmberObject.extend(Evented, {
   saveSelectedEntity(intersectedViewObj) {
     this.set('highlightedAppModel', intersectedViewObj.object.parent.userData.model);
     this.set('selectedEntitysMesh', intersectedViewObj.object);
-    if (intersectedViewObj.object.userData.type === 'clazz') {
+    if (intersectedViewObj.object.userData.type === 'clazz' || intersectedViewObj.object.userData.type === 'communication') {
       this.set('selectedEntitysColor', new THREE.Color(this.get('colorListApp')[this.get('selectedEntitysMesh').userData.type]));
     }
     else {
@@ -1385,7 +1385,7 @@ export default EmberObject.extend(Evented, {
    */
   restoreSelectedEntity(id) {
     // Restore old color (clazz)
-    if (this.get('selectedEntitysMesh').userData.type === 'clazz') {
+    if (this.get('selectedEntitysMesh').userData.type === 'clazz' || this.get('selectedEntitysMesh').userData.type === 'communication') {
       this.get('selectedEntitysMesh').material.color = new THREE.Color(this.get('colorListApp')[this.get('selectedEntitysMesh').userData.type]);
     }
     // Restore old color (package)

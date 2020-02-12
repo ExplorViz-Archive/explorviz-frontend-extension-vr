@@ -1599,6 +1599,7 @@ export default Component.extend(Evented, {
       const pipe = cylinderMesh(start, end, material, thickness);
 
       pipe.userData.model = drawableClazzComm;
+      pipe.userData.type = 'communication';
       this.get('openApps').get(application.id).add(pipe);
     });
 
