@@ -735,11 +735,24 @@ export default EmberObject.extend(Evented, {
     const emberModelName = emberModel.constructor.modelName;
 
 
+
+
     // Handle component of app3D hit
     if (((emberModelName === "component" && !emberModel.get("foundation")) || emberModelName === "clazz" || emberModelName === "drawableclazzcommunication") && !this.get('app3DBinded')) {
       let appID = intersectedViewObj.object.parent.userData.model.id;
 
       // Just highlight entity and communication lines if component or clazz is hit
+      
+
+      let entityID = emberModel.id;
+      let sourceClazzID = undefined;
+      let targetClazzID = undefined;
+
+      if (emberModelName === "drawableclazzcommunication") {
+        entityID = "clazzcommunication";
+        sourceClazzID = emberModel.get('sourceClazz.id');
+        targetClazzID = emberModel.get('targetClazz.id');
+      }
 
         // Check if a component is already highlighted and restore color
         if (this.get('selectedEntitysMesh') && this.get('selectedEntitysColor')) {
@@ -748,7 +761,7 @@ export default EmberObject.extend(Evented, {
           if (this.get('selectedEntitysMesh') === intersectedViewObj.object) {
             this.restoreSelectedEntity(this.get('currentUser.primaryController.id'));
             this.set('selectedEntitysMesh', null);
-            this.trigger("entityHighlighted", false, appID, emberModel.id, this.get('selectedEntitysColor'));
+            this.trigger("entityHighlighted", false, appID, entityID, sourceClazzID, targetClazzID, this.get('selectedEntitysColor'));
             this.set('selectedEntitysColor', null);
             return;
           }
@@ -759,7 +772,7 @@ export default EmberObject.extend(Evented, {
         // Save selected entity and communication highlighting
         this.saveSelectedEntity(intersectedViewObj);
 
-        this.trigger("entityHighlighted", true, appID, emberModel.id, this.get('selectedEntitysColor'));
+        this.trigger("entityHighlighted", true, appID, entityID, sourceClazzID, targetClazzID, this.get('selectedEntitysColor'));
 
         // Set new color
         let color = new THREE.Color(this.get('highlightingColor'));

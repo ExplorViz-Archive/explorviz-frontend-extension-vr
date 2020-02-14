@@ -241,8 +241,8 @@ export default VRRendering.extend(Evented, {
     this.get('world.interaction').on('applicationMoved', (appId, direction, length) => {
       this.get('sender').sendAppPositionUpdate(appId, direction, length);
     });
-    this.get('world.interaction').on('entityHighlighted', (isHighlighted, appID, entityID, color) => {
-      this.get('sender').sendHighlightingUpdate(this.get('localUser.userID'), isHighlighted, appID, entityID, color);
+    this.get('world.interaction').on('entityHighlighted', (isHighlighted, appID, entityID, sourceClazzID, targetClazzID, color) => {
+      this.get('sender').sendHighlightingUpdate(this.get('localUser.userID'), isHighlighted, appID, entityID, sourceClazzID, targetClazzID, color);
     });
   },
 
@@ -802,8 +802,8 @@ export default VRRendering.extend(Evented, {
      }       
   },
 
-  onHighlightingUpdate({ userID, isHighlighted, appID, entityID, color }){
-    
+  onHighlightingUpdate({ userID, isHighlighted, appID, entityID, sourceClazzID, targetClazzID, color }){
+
     let originalColor = color;
     let user = this.get('store').peekRecord('vr-user', userID);
 
@@ -811,30 +811,7 @@ export default VRRendering.extend(Evented, {
     if (isHighlighted){
       if (user.highlightedEntity.originalColor != null) {
         // Unhighlight possible old highlighting
-        // this.onHighlightingUpdate(userID, false, user.highlightedEntity.appID, user.highlightedEntity.entityID, user.highlightedEntity.originalColor);
-        // Apply higlighting
-
-        let app = this.get('openApps').get(user.highlightedEntity.appID);
-
-    // Return if app is not opened
-    if(!app){
-      return;
-    }
-    app.children.forEach( child => {
-
-      if (child.userData.model && child.userData.model.id === user.highlightedEntity.entityID){
-        if(this.get('world.interaction.selectedEntitysMesh') === child && !isHighlighted){
-          return;
-        }
-
-        if(this.get('world.interaction.selectedEntitysMesh') === child){
-          this.get('world.interaction').set('selectedEntitysMesh', null);
-        }
- 
-        child.material.color = new THREE.Color(user.highlightedEntity.originalColor);
-        return;
-      }
-    });
+        this.onHighlightingUpdate({userID, isHighlighted: false, appID: user.highlightedEntity.appID, entityID: user.highlightedEntity.entityID, color: user.highlightedEntity.originalColor});
       }
       user.setHighlightedEntity(appID, entityID, originalColor); // Restore highlighted entity data
     }
@@ -845,11 +822,13 @@ export default VRRendering.extend(Evented, {
     if(!app){
       return;
     }
-
+    
     // Apply higlighting
     app.children.forEach( child => {
 
-      if (child.userData.model && child.userData.model.id === entityID){
+      let model = child.userData.model;
+
+      if (model && (model.id === entityID || entityID === 'clazzcommunication' && child.userData.type === 'communication' && model.get('sourceClazz.id') === sourceClazzID && model.get('targetClazz.id') === targetClazzID )){
         if(this.get('world.interaction.selectedEntitysMesh') === child && !isHighlighted){
           return;
         }

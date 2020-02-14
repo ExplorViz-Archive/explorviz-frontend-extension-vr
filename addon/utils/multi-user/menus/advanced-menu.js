@@ -25,7 +25,7 @@ export default BaseMenu.extend(Evented, {
     this.get('menu').addTextButton('Back', 'back', {x: 100, y: 402}, 316, 50, 28, '#555555', '#ffffff', '#929292', true);
 
     this.get('menu').addTextButton('Controls', 'controls', { x: 100, y: 208 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
-    this.get('menu').addTextButton('Reset All', 'resetAll', { x: 100, y: 266 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
+    this.get('menu').addTextButton('Reset all', 'resetAll', { x: 100, y: 266 }, 316, 50, 28, '#555555', '#ffc338', '#929292', true);
     
   
     this.get('menu').interact = (action, position) => {
@@ -39,9 +39,12 @@ export default BaseMenu.extend(Evented, {
             this.close();
             this.get('user').switchHand();
           } else if (item.name === 'resetAll') {
-
-            this.close();
-            this.get('world').resetAll();
+              if (this.get('user.state') === 'offline') {
+                this.close();
+                this.get('world').resetAll();
+              } else {
+                this.get('menus.messageBox').enqueueMessage({title: 'Not available', text: 'Option not available in multi-user mode'}, 3000);
+              }
 
           } else if (item.name === 'controls') {
             this.close();
