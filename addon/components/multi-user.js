@@ -304,10 +304,19 @@ export default VRRendering.extend(Evented, {
    * If changed, sends a message of new camera and controller positions and quaternions.
    */
   updateAndSendPositions() {
+
+    //TODO comment
+    let matrix = this.get('localUser.camera.matrixWorld');
+    let posCameraMatrix = new THREE.Vector3(matrix.elements[12],matrix.elements[13],matrix.elements[14]);
+
     // If no last positions exist, set them to current position of camera and controllers
     if(this.get('localUser.camera') && this.get('localUser.threeGroup') && !this.get('lastPositions.camera')) {
+
+
       const pos = new THREE.Vector3();
       this.get('localUser.camera').getWorldPosition(pos);
+      pos.add(posCameraMatrix);
+    
       this.set('lastPositions.camera', pos.toArray());
     }
     if(this.get('localUser.controller1') && !this.get('lastPositions.controller1')) {
@@ -329,6 +338,8 @@ export default VRRendering.extend(Evented, {
     // Get current camera and controller positions
     const posCamera = new THREE.Vector3();
     this.get('localUser.camera').getWorldPosition(posCamera);
+    posCamera.add(posCameraMatrix);
+    
 
     const posSecondaryController = new THREE.Vector3();
     this.get('localUser.controller1').getWorldPosition(posSecondaryController);
