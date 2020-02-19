@@ -265,6 +265,8 @@ export default VRRendering.extend(Evented, {
         this.get('menus.connectMenu').back();
       else if (this.get('menus.advancedMenu').isOpen())
         this.get('menus.advancedMenu').back();
+      else if (this.get('menus.controlsMenu').isOpen())
+        this.get('menus.controlsMenu').back();
       else
         this.get('menus.optionsMenu').open(null);
     } else {
@@ -300,14 +302,53 @@ export default VRRendering.extend(Evented, {
     this.sendControllerUpdate();
   },
 
+  getQuaternionFromMatrix(matrix) {
+    
+    let qx, qy, qz, qw;
+    let [m00, m10, m20, m30, m01, m11, m21, m31, m02, m12, m22, m32, m03, m13, m23, m33] = matrix.elements;
+    
+    let tr = m00 + m11 + m22
+
+    if (tr > 0) { 
+      let s = Math.sqrt(tr+1.0) * 2; // s=4*qw 
+      qw = 0.25 * s;
+      qx = (m21 - m12) / s;
+      qy = (m02 - m20) / s; 
+      qz = (m10 - m01) / s; 
+    } else if ((m00 > m11)&(m00 > m22)) { 
+      let s = Math.sqrt(1.0 + m00 - m11 - m22) * 2; // s=4*qx 
+      qw = (m21 - m12) / s;
+      qx = 0.25 * s;
+      qy = (m01 + m10) / s; 
+      qz = (m02 + m20) / s; 
+    } else if (m11 > m22) { 
+      let s = Math.sqrt(1.0 + m11 - m00 - m22) * 2; // s=4*qy
+      qw = (m02 - m20) / s;
+      qx = (m01 + m10) / s; 
+      qy = 0.25 * s;
+      qz = (m12 + m21) / s; 
+    } else { 
+      let s = Math.sqrt(1.0 + m22 - m00 - m11) * 2; // s=4*qz
+      qw = (m10 - m01) / s;
+      qx = (m02 + m20) / s;
+      qy = (m12 + m21) / s;
+      qz = 0.25 * s;
+    }
+
+    return new THREE.Quaternion(qx, qy, qz, qw);
+
+  },
+
   /**
    * If changed, sends a message of new camera and controller positions and quaternions.
    */
   updateAndSendPositions() {
 
     //TODO comment
-    let matrix = this.get('localUser.camera.matrixWorld');
+    let matrix = this.get('localUser.camera.matrixWorld').clone();
     let posCameraMatrix = new THREE.Vector3(matrix.elements[12],matrix.elements[13],matrix.elements[14]);
+    
+
 
     // If no last positions exist, set them to current position of camera and controllers
     if(this.get('localUser.camera') && this.get('localUser.threeGroup') && !this.get('lastPositions.camera')) {
@@ -360,6 +401,8 @@ export default VRRendering.extend(Evented, {
     let controller2Quaternion = new THREE.Quaternion();
     this.get('localUser.controller2').getWorldQuaternion(controller2Quaternion);
 
+    let cameraQuaternion = this.getQuaternionFromMatrix(matrix);
+
     let hasChanged = false;
 
     // If changed, add new positions and quaternions to message
@@ -381,7 +424,7 @@ export default VRRendering.extend(Evented, {
       hasChanged = true;
       positionObj.camera = {
         "position": currentPositions.camera,
-        "quaternion": this.get('localUser.camera.quaternion').toArray()
+        "quaternion": cameraQuaternion.toArray()
       };
     }
 
@@ -822,9 +865,10 @@ export default VRRendering.extend(Evented, {
     if (isHighlighted){
       if (user.highlightedEntity.originalColor != null) {
         // Unhighlight possible old highlighting
-        this.onHighlightingUpdate({userID, isHighlighted: false, appID: user.highlightedEntity.appID, entityID: user.highlightedEntity.entityID, color: user.highlightedEntity.originalColor});
+        this.onHighlightingUpdate({userID, isHighlighted: false, appID: user.highlightedEntity.appID, entityID: user.highlightedEntity.entityID, 
+          sourceClazzID: user.highlightedEntity.sourceClazzID, targetClazzID: user.highlightedEntity.targetClazzID, color: user.highlightedEntity.originalColor});
       }
-      user.setHighlightedEntity(appID, entityID, originalColor); // Restore highlighted entity data
+      user.setHighlightedEntity(appID, entityID, sourceClazzID, targetClazzID, originalColor); // Restore highlighted entity data
     }
 
     let app = this.get('openApps').get(appID);
