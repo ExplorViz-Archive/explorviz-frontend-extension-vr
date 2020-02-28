@@ -1432,10 +1432,10 @@ export default Component.extend(Evented, {
   initWorldListener() {
 
     this.get('world').on('resetAll', () => {
-      this.resetLanscape();
-      this.get('world').resetLandscape();
-      this.get('localUser').resetPosition();
       this.removeOpenApps();
+      this.get('world').resetLandscape();
+      this.resetLanscape();
+      this.get('localUser').resetPosition();
       return;
     });
     
@@ -1525,7 +1525,8 @@ export default Component.extend(Evented, {
       });
       this.removeChildren(app);
     });
-    this.set('openApps', new Map());
+    
+    if (!this.get('openApps').get('isDestroyed')) this.set('openApps', new Map());
   },
 
   removeFoundation(appID, store) {
