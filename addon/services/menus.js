@@ -9,6 +9,7 @@ import ConnectMenu from '../utils/multi-user/menus/connect-menu';
 import HintMenu from '../utils/multi-user/menus/hint-menu';
 import AdvancedMenu from '../utils/multi-user/menus/advanced-menu';
 import ControlsMenu from '../utils/multi-user/menus/controls-menu';
+import TextBoxMenu from '../utils/multi-user/menus/text-box-menu';
 import { getOwner } from '@ember/application';
 
 export default Service.extend({
@@ -26,6 +27,7 @@ export default Service.extend({
     this.set('hintMenu', HintMenu.create(getOwner(this).ownerInjection()));
     this.set('messageBox', MessageBox.create(getOwner(this).ownerInjection()));
     this.set('optionsMenu', OptionsMenu.create(getOwner(this).ownerInjection()));
+    this.set('textBoxMenu', TextBoxMenu.create(getOwner(this).ownerInjection()));
   },
 
 

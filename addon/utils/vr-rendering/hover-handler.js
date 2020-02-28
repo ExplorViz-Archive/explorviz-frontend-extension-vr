@@ -285,7 +285,7 @@ export default EmberObject.extend(Evented, {
       content.innerContent.entry1 = { name1: 'Requests:', value1: "" };
       content.innerContent.entry2 = { name2: 'Avg. Response Time (ms):', value2: "" };
 
-      content.title = communication.get('sourceClazz').get('name') + " \u2192 " + communication.get('targetClazz').get('name');
+      content.title = communication.get('sourceClazz').get('name') + (communication.isBidirectional ? " \u2190" : " ") +  "\u2192 " + communication.get('targetClazz').get('name');
 
       content.innerContent.entry1.value1 = communication.get('requests');
       //content.innerContent.entry2.value2 = round(communication.get('averageResponseTime'), 2);

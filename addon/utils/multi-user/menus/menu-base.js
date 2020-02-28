@@ -51,5 +51,9 @@ export default EmberObject.extend({
    */
   addToSecondaryController() {
     this.get('menu').addToController(this.get('user.secondaryController'));
+  },
+
+  addToPrimaryController() {
+    this.get('menu').addToController(this.get('user.primaryController'));
   }
 });

@@ -250,7 +250,7 @@ export default Component.extend(Evented, {
     let line2 = new THREE.Line(this.get('geometry'));
     line2.name = 'controllerLine';
     line2.scale.z = 5;
-    line2.material.color = new THREE.Color('rgb(0,204,51)');
+    line2.material.color = new THREE.Color('rgb(0,0,0)');
     line2.material.opacity = 0.25;
     line2.position.y -= 0.005;
     line2.position.z -= 0.02;

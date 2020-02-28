@@ -431,7 +431,8 @@ export default EmberObject.extend(Evented, {
 
       if (intersectedViewObj.object.name === 'floor') {
         // Remove stored text box
-        controller.remove(controller.getObjectByName('textBox'));
+        //controller.remove(controller.getObjectByName('textBox'));
+        this.get('menus.textBoxMenu').close();
         this.get('previousToolTipObjects')[id] = null;
       }
 
@@ -445,7 +446,8 @@ export default EmberObject.extend(Evented, {
       // Remove text box if hit object is not the previous one
       if (this.get('previousToolTipObjects')[id] && this.get('previousToolTipObjects')[id].id !== intersectedViewObj.object.id) {
 
-        controller.remove(controller.getObjectByName('textBox'));
+        //controller.remove(controller.getObjectByName('textBox'));
+        this.get('menus.textBoxMenu').close();
         this.get('previousToolTipObjects')[id] = null;
       }
 
@@ -460,6 +462,8 @@ export default EmberObject.extend(Evented, {
         // Get information to display for hit object
         let content = this.get('hoverHandler').buildContent(emberModel);
 
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/** 
         let textBox = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.2));
         textBox.name = 'textBox';
 
@@ -473,23 +477,23 @@ export default EmberObject.extend(Evented, {
         // Define dimension of canvas for infotext
         let canvas = document.createElement('canvas');
         canvas.width = 2*256;
-        canvas.height = 128;
+        canvas.height = 2*128;
 
         // Fill context of canvas with color and text
         let ctx = canvas.getContext('2d');
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = '#444444';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#FDF5E6';
-        ctx.fillRect(0.4, 0.4, canvas.width - 0.8, canvas.height - 0.8);
+        ctx.fillStyle = '#777777';
+        ctx.fillRect(0, 0, canvas.width, 24);
+
 
         // Draw title
         ctx.font = '20px arial';
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = '#ffffff';
         ctx.textAlign = "center";
         ctx.fillText(content.title, canvas.width / 2, 20);
 
-        // draw line
-        ctx.fillText("---------------------------------------------------------------------------------------------", canvas.width / 2, 32);
+      
 
         // Spilt up remaining canvas for each entry
         let offset = (canvas.height - 52) / 3;
@@ -535,13 +539,24 @@ export default EmberObject.extend(Evented, {
 
         // Add mesh to controller
         controller.add(textBox);
+
+*/
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        this.get('menus.textBoxMenu').open(content);
+
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+
         this.get('previousToolTipObjects')[id] = intersectedViewObj.object;
       }
     }
     else {
       // Remove stored text box
-      controller.remove(controller.getObjectByName('textBox'));
+      //controller.remove(controller.getObjectByName('textBox'));
       this.get('previousToolTipObjects')[id] = null;
+
+      this.get('menus.textBoxMenu').close();
     }
   },
 
