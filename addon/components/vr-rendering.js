@@ -1429,8 +1429,14 @@ export default Component.extend(Evented, {
     });
   }, // END initInteraction
 
-  initWorldListener() {
 
+  /*
+   * This method is used to listen for events triggered in the world service
+   */
+  initWorldListener() {
+    /*
+     * This listener is a is used for general reset (i.e. close systems and apps, reset landscape and user position)
+     */
     this.get('world').on('resetAll', () => {
       this.removeOpenApps();
       this.get('world').resetLandscape();

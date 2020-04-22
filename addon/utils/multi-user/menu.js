@@ -56,6 +56,14 @@ export default EmberObject.extend({
     this.get('items').push({ type: 'text', name, text, size, position, color, align, clickable, hover: false, isActivated: false });
   },
 
+  /**
+   * 
+   * @param {string} url - The url of the image to be displayed.
+   * @param {number} dx - The x-axis coordinate in the canvas at which to place the top-left corner of the image.
+   * @param {number} dy - The y-axis coordinate in the canvas at which to place the top-left corner of the image.
+   * @param {number} dWidth - The width to draw the image in the canvas.
+   * @param {number} dHeight - The height to draw the image in the canvas.
+   */
   addImage(url, dx, dy, dWidth, dHeight) {
     if(!this.get('items'))
       this.set('items', new Array());
@@ -261,14 +269,7 @@ export default EmberObject.extend({
         ctx.fillStyle = item.color;
         ctx.fillRect(item.position.x, item.position.y, item.width, item.height);
       } else if(item.type === 'image') {
-        //let loader = new THREE.ImageLoader();
-        //loader.load('images/x_white.png',
-          //function (image) {
-            //ctx.drawImage(image, 0, 0);
-
-          //});
-          
-          ctx.drawImage(item.image, item.dx, item.dy, item.dWidth, item.dHeight);
+        ctx.drawImage(item.image, item.dx, item.dy, item.dWidth, item.dHeight);
       }                                                                                                   
     }                                                                       
                                

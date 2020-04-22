@@ -462,91 +462,8 @@ export default EmberObject.extend(Evented, {
         // Get information to display for hit object
         let content = this.get('hoverHandler').buildContent(emberModel);
 
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/** 
-        let textBox = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.2));
-        textBox.name = 'textBox';
-
-        // Position box for tooltip
-        textBox.position.y += 0.065;
-        textBox.position.z -= 0.115;
-        textBox.geometry.rotateX(1.5707963267949 * 1.5);
-        textBox.geometry.rotateY(1.5707963267949 * 2);
-        textBox.geometry.rotateZ(1.5707963267949 * 2);
-
-        // Define dimension of canvas for infotext
-        let canvas = document.createElement('canvas');
-        canvas.width = 2*256;
-        canvas.height = 2*128;
-
-        // Fill context of canvas with color and text
-        let ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#444444';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#777777';
-        ctx.fillRect(0, 0, canvas.width, 24);
-
-
-        // Draw title
-        ctx.font = '20px arial';
-        ctx.fillStyle = '#ffffff';
-        ctx.textAlign = "center";
-        ctx.fillText(content.title, canvas.width / 2, 20);
-
-      
-
-        // Spilt up remaining canvas for each entry
-        let offset = (canvas.height - 52) / 3;
-
-        let tempOffset = offset;
-
-        // Position under line
-        offset = 52;
-
-        // New font size for entries
-        ctx.font = '15px arial';
-        // Each entry consist of two values: name and value
-        for (let key1 in content.innerContent) {
-          let left = true;
-
-          // Draw entry
-          for (let key2 in content.innerContent[key1]) {
-            // Draw content on the left (name)
-            if (!left) {
-              ctx.textAlign = "right";
-              ctx.fillText(content.innerContent[key1][key2], canvas.width - 10, offset);
-              left = true;
-            }
-            // Draw content on the right (value)
-            else {
-              ctx.textAlign = "left";
-              ctx.fillText(content.innerContent[key1][key2], 10, offset);
-              left = false;
-            }
-          }
-          offset += tempOffset;
-        }
-
-        // Create texture out of canvas
-        let texture = new THREE.Texture(canvas);
-        // Map texture
-        let material2 = new THREE.MeshBasicMaterial({ map: texture });
-
-        // Update texture      
-        texture.needsUpdate = true;
-        // Update mesh material    
-        textBox.material = material2;
-
-        // Add mesh to controller
-        controller.add(textBox);
-
-*/
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
+        // Open text box menu and draw content
         this.get('menus.textBoxMenu').open(content);
-
-
-        //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         this.get('previousToolTipObjects')[id] = intersectedViewObj.object;
       }
@@ -556,6 +473,7 @@ export default EmberObject.extend(Evented, {
       //controller.remove(controller.getObjectByName('textBox'));
       this.get('previousToolTipObjects')[id] = null;
 
+      // Close text box menu
       this.get('menus.textBoxMenu').close();
     }
   },
@@ -1394,7 +1312,6 @@ export default EmberObject.extend(Evented, {
 
   /*
    *  This method is used to save the selected entity
-   *  and the highlighted communication lines
    */
   saveSelectedEntity(intersectedViewObj) {
     this.set('highlightedAppModel', intersectedViewObj.object.parent.userData.model);
@@ -1409,8 +1326,7 @@ export default EmberObject.extend(Evented, {
 
   /*
    *  This method is used to restore the color of
-   *  a selected entity and to reset the highlighting of the
-   *  communication lines
+   *  a selected entity 
    */
   restoreSelectedEntity(id) {
     // Restore old color (clazz)
@@ -1429,8 +1345,8 @@ export default EmberObject.extend(Evented, {
   },
 
   /*
-   *  This method is used to exclude a selected 'package' or
-   *  'clazz' from unhighlighting
+   *  This method is used to exclude a selected 'package'
+   *  'clazz' or 'communication' from unhighlighting
    */
   excludeSelectedEntity(controller, intersectedViewObj) {
     if (intersectedViewObj) {
@@ -1443,8 +1359,8 @@ export default EmberObject.extend(Evented, {
   },
 
   /*
-   *  This method is used to look for highlighted 'packages' or
-   *  'clazzes' of an application3D and restore their color if the 
+   *  This method is used to look for highlighted 'packages',
+   *  'clazzes'  or 'communications'of an application3D and restore their color if the 
    *  same controller id highlighted it
    */
   unhighlightApplication3D(id) {

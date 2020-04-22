@@ -267,6 +267,7 @@ export default EmberObject.extend(Evented, {
 
       content.innerContent.entry1.value1 = communication.get('requests');
       content.innerContent.entry2.value2 = communication.get('technology');
+      // Convert avg response time to ms
       content.innerContent.entry3.value3 = round(communication.get('averageResponseTime') / 1000000, 4);
 
       return content;
@@ -288,7 +289,7 @@ export default EmberObject.extend(Evented, {
       content.title = communication.get('sourceClazz').get('name') + (communication.isBidirectional ? " \u2190" : " ") +  "\u2192 " + communication.get('targetClazz').get('name');
 
       content.innerContent.entry1.value1 = communication.get('requests');
-      //content.innerContent.entry2.value2 = round(communication.get('averageResponseTime'), 2);
+      // Convert avg response time to ms
       content.innerContent.entry2.value2 = round(communication.get('averageResponseTime') / 1000000, 4);
 
       return content;

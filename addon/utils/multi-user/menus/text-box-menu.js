@@ -30,9 +30,6 @@ export default BaseMenu.extend({
     // Position under line
     offset = 66/3*2*1.5;
 
-    // New font size for entries
-    //ctx.font = '15px arial';
-    // Each entry consist of two values: name and value
     for (let key1 in content.innerContent) {
       let left = true;
 
@@ -40,15 +37,11 @@ export default BaseMenu.extend({
       for (let key2 in content.innerContent[key1]) {
         // Draw content on the left (name)
         if (!left) {
-          //ctx.textAlign = "right";
-          //ctx.fillText(content.innerContent[key1][key2], canvas.width - 10, offset);
           this.get('menu').addText(content.innerContent[key1][key2], '', 26, { x: 2*512/3*2-20, y: offset}, '#ffffff', 'right', false);
           left = true;
         }
         // Draw content on the right (value)
         else {
-          //ctx.textAlign = "left";
-          //ctx.fillText(content.innerContent[key1][key2], 10, offset);
           this.get('menu').addText(content.innerContent[key1][key2], '', 26, { x: 20, y: offset}, '#ffffff', 'left', false);
           left = false;
         }

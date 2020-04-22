@@ -81,6 +81,7 @@ export default Service.extend( Evented, {
     this.get('sender').sendLandscapeUpdate(delta, this.get('vrEnvironment'), this.get('environmentOffset'));
   },
 
+  // Trigger the general reset option
   resetAll() {
     this.trigger('resetAll');
   }

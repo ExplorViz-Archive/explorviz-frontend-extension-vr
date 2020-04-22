@@ -302,6 +302,12 @@ export default VRRendering.extend(Evented, {
     this.sendControllerUpdate();
   },
 
+  /**
+   * Author: Martin John Baker
+   * https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
+   * 
+   * @param {THREE.Matrix} matrix rotation matrix
+   */
   getQuaternionFromMatrix(matrix) {
     
     let qx, qy, qz, qw;
@@ -344,20 +350,18 @@ export default VRRendering.extend(Evented, {
    */
   updateAndSendPositions() {
 
-    //TODO comment
+    // Copy rotation matrix status, because getWorldPosition changes the values
     let matrix = this.get('localUser.camera.matrixWorld').clone();
+    // Matrix entries needed for position
     let posCameraMatrix = new THREE.Vector3(matrix.elements[12],matrix.elements[13],matrix.elements[14]);
     
 
 
     // If no last positions exist, set them to current position of camera and controllers
     if(this.get('localUser.camera') && this.get('localUser.threeGroup') && !this.get('lastPositions.camera')) {
-
-
       const pos = new THREE.Vector3();
       this.get('localUser.camera').getWorldPosition(pos);
       pos.add(posCameraMatrix);
-    
       this.set('lastPositions.camera', pos.toArray());
     }
     if(this.get('localUser.controller1') && !this.get('lastPositions.controller1')) {
@@ -378,7 +382,9 @@ export default VRRendering.extend(Evented, {
 
     // Get current camera and controller positions
     const posCamera = new THREE.Vector3();
+    // Get internal position with regard to teleportation etc
     this.get('localUser.camera').getWorldPosition(posCamera);
+    // Add position with regard to headset movement
     posCamera.add(posCameraMatrix);
     
 

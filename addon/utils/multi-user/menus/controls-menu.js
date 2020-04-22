@@ -53,19 +53,13 @@ export default BaseMenu.extend({
     };
     
     this.get('menu').createMesh();
-    //const mesh = this.get('menu.mesh');
-    //mesh.position.z -= 0.7;
-    //this.get('currentUser.camera').add(mesh);
-    
-    //const mesh = this.get('menu.mesh');
-    //mesh.position.y += 0.11;
-    //mesh.position.z -= 0.15;
-    //mesh.position.x += 0.2;
-    //mesh.geometry.rotateX(-0.785);
     this.addToSecondaryController();
 
   },
 
+  /*
+   * This method is used to get url for the image corresponding to the connected controller
+   */
   getControlsImageUrl() {
 
     let controller = this.get('currentUser').get('primaryController').getGamepad().id;
