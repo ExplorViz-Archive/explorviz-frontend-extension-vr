@@ -51,7 +51,7 @@ The IP address for RESTful data exchange(e.g. for landscape data) is still confi
 </p>
 
 
-### Rift Controllers (Righty):
+### Rift Controllers (Lefty):
 
 <p align="left">
   <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/oculus_controls_lefty.png"width="1000"/>
