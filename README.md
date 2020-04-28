@@ -32,26 +32,27 @@ The IP address for RESTful data exchange(e.g. for landscape data) is still confi
 
 ## Controls
 
-### Vive Controllers:
+### Vive Controllers (Righty):
 
-#### Righty
 <p align="left">
   <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/vive_controls_righty.png" width="1000"/>
 </p>
 
-#### Lefty
+### Vive Controllers (Lefty):
+
 <p align="left">
   <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/vive_controls_lefty.png"width="1000"/>
 </p>
 
-### Rift Controllers:
+### Rift Controllers (Righty):
 
-#### Righty
 <p align="left">
   <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/oculus_controls_righty.png"width="1000"/>
 </p>
 
-#### Lefty
+
+### Rift Controllers (Righty):
+
 <p align="left">
   <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/oculus_controls_lefty.png"width="1000"/>
 </p>
