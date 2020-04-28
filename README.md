@@ -3,7 +3,7 @@
 This extension adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mode to ExplorViz, which allows collaborative exploration.
 
 ## Requirements
-- [HTC Vive](https://www.vive.com) or [Oculus Rift CV1](https://www.oculus.com/rift/) with controllers and their respective firmware
+- [HTC Vive (Pro)](https://www.vive.com) or [Oculus Rift CV1](https://www.oculus.com/rift/) (basically [Oculus Rift S](https://www.oculus.com/rift-s/) is also supported) with controllers and their respective firmware
 - A powerful computer that can handle VR
 - [Mozilla Firefox](https://www.mozilla.org/) Version 72.0.2
 - [ExplorViz Backend](https://github.com/ExplorViz/explorviz-backend) Version 1.5.0
@@ -31,27 +31,28 @@ The IP address for RESTful data exchange(e.g. for landscape data) is still confi
 
 
 ## Controls
+The extension can be used in standard right-handed mode or the left-handed mode can be set. The controls for the [Oculus Rift S](https://www.oculus.com/rift-s/) are similar to those of the [Oculus Rift CV1](https://www.oculus.com/rift/).
 
-### Vive Controllers (Righty):
+### HTC Vive (Pro) Controls (right-handed):
 
 <p align="left">
   <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/vive_controls_righty.png" width="1000"/>
 </p>
 
-### Vive Controllers (Lefty):
+### HTC Vive (Pro) Controls (left-handed):
 
 <p align="left">
   <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/vive_controls_lefty.png"width="1000"/>
 </p>
 
-### Rift Controllers (Righty):
+### Oculus Rift CV1 Controls (right-handed):
 
 <p align="left">
   <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/oculus_controls_righty.png"width="1000"/>
 </p>
 
 
-### Rift Controllers (Lefty):
+### Oculus Rift CV1 Controls (left-handed):
 
 <p align="left">
   <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/oculus_controls_lefty.png"width="1000"/>
