@@ -36,22 +36,22 @@ The IP address for RESTful data exchange(e.g. for landscape data) is still confi
 
 #### Righty
 <p align="left">
-  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/vive_controls_righty.png" width="500"/>
+  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/vive_controls_righty.png" width="1000"/>
 </p>
 
 #### Lefty
 <p align="left">
-  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/vive_controls_lefty.png"width="500"/>
+  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/vive_controls_lefty.png"width="1000"/>
 </p>
 
 ### Rift Controllers:
 
 #### Righty
 <p align="left">
-  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/oculus_controls_righty.png"width="500"/>
+  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/oculus_controls_righty.png"width="1000"/>
 </p>
 
 #### Lefty
 <p align="left">
-  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/oculus_controls_lefty.png"width="500"/>
+  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/oculus_controls_lefty.png"width="1000"/>
 </p>
