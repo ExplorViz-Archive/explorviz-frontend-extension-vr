@@ -31,7 +31,7 @@ The IP address for RESTful data exchange(e.g. for landscape data) is still confi
 
 
 ## Controls
-The extension can be used in standard right-handed mode or the left-handed mode can be set. The controls for the [Oculus Rift S](https://www.oculus.com/rift-s/) are similar to those of the [Oculus Rift CV1](https://www.oculus.com/rift/).
+The extension can be used in standard right-handed mode or switched to a left-handed mode. The controls for the [Oculus Rift S](https://www.oculus.com/rift-s/) are similar to those of the [Oculus Rift CV1](https://www.oculus.com/rift/).
 
 ### HTC Vive (Pro) Controls (right-handed):
 
