@@ -41,6 +41,12 @@ export default EmberObject.extend(Evented, {
     else if (modelType === 'clazz') {
       content = buildClazzContent(emberModel);
     }
+    else if (modelType === 'drawableclazzcommunication') {
+      content = buildDrawableclasscommunicationContent(emberModel);
+    }
+    else if (modelType === 'applicationcommunication') {
+      content = buildApplicationcommunicationContent(emberModel);
+    }
 
     return content;
 
@@ -115,15 +121,17 @@ export default EmberObject.extend(Evented, {
 
       content.innerContent = { entry1: '', entry2: "", entry3: "" };
 
-      content.innerContent.entry1 = { name1: 'CPU Utilization(%):', value1: "" };
-      content.innerContent.entry2 = { name2: 'Total RAM(GB):', value2: "" };
-      content.innerContent.entry3 = { name3: 'Free RAM(%):', value3: "" };
+      content.innerContent.entry1 = { name1: 'CPU Utilization:', value1: "" };
+      content.innerContent.entry2 = { name2: 'Free RAM:', value2: "" };
+      content.innerContent.entry3 = { name3: 'Total RAM:', value3: "" };
 
       content.title = node.getDisplayName();
 
-      content.innerContent.entry1.value1 = node.get('cpuUtilization');
-      content.innerContent.entry2.value2 = node.get('freeRAM');
-      content.innerContent.entry3.value3 = node.get('usedRAM');
+      const formatFactor = (1024 * 1024 * 1024);
+
+      content.innerContent.entry1.value1 = round(node.get('cpuUtilization') * 100, 0) + '%';
+      content.innerContent.entry2.value2 = round(node.get('freeRAM') / formatFactor, 2).toFixed(2) + " GB";
+      content.innerContent.entry3.value3 = round((node.get('usedRAM') + node.get('freeRAM')) / formatFactor, 2).toFixed(2) + " GB";
 
       return content;
     }
@@ -159,7 +167,7 @@ export default EmberObject.extend(Evented, {
 
       content.innerContent.entry1.value1 = nodes.get('length');
       content.innerContent.entry2.value2 = applicationCount;
-      content.innerContent.entry3.value3 = avgNodeCPUUtil;
+      content.innerContent.entry3.value3 = round((avgNodeCPUUtil * 100) / nodes.get('length'), 0) + '%';
 
       return content;
     } // END Helper function Landscape
@@ -240,7 +248,61 @@ export default EmberObject.extend(Evented, {
         return 0;
       }
 
-    } // END helper functions application 3D
+    }
+
+    /*
+     *  This function is used to build the information about 
+     *  application communication lines
+     */
+    function buildApplicationcommunicationContent(communication) {
+      let content = { title: '', innerContent: "" };
+
+      content.innerContent = { entry1: '', entry2: "", entry3: "" };
+
+      content.innerContent.entry1 = { name1: 'Requests:', value1: "" };
+      content.innerContent.entry2 = { name2: 'Technology:', value2: "" };
+      content.innerContent.entry2 = { name3: 'Avg. Response Time (ms):', value2: "" };
+
+      content.title = communication.get('sourceApplication').get('name') + " \u2192 " + communication.get('targetApplication').get('name');
+
+      content.innerContent.entry1.value1 = communication.get('requests');
+      content.innerContent.entry2.value2 = communication.get('technology');
+      // Convert avg response time to ms
+      content.innerContent.entry3.value3 = round(communication.get('averageResponseTime') / 1000000, 4);
+
+      return content;
+
+    }
+
+    /*
+     *  This function is used to build the information about 
+     *  class communication lines
+     */
+    function buildDrawableclasscommunicationContent(communication) {
+      let content = { title: '', innerContent: "" };
+
+      content.innerContent = { entry1: '', entry2: "" };
+
+      content.innerContent.entry1 = { name1: 'Requests:', value1: "" };
+      content.innerContent.entry2 = { name2: 'Avg. Response Time (ms):', value2: "" };
+
+      content.title = communication.get('sourceClazz').get('name') + (communication.isBidirectional ? " \u2190" : " ") +  "\u2192 " + communication.get('targetClazz').get('name');
+
+      content.innerContent.entry1.value1 = communication.get('requests');
+      // Convert avg response time to ms
+      content.innerContent.entry2.value2 = round(communication.get('averageResponseTime') / 1000000, 4);
+
+      return content;
+
+    }
+
+    function round(value, precision) {
+      let multiplier = Math.pow(10, precision || 0);
+      return Math.round(value * multiplier) / multiplier;
+    }
+
+
+    // END helper functions application 3D
 
   } // END build Content
 

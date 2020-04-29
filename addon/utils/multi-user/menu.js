@@ -55,6 +55,26 @@ export default EmberObject.extend({
 
     this.get('items').push({ type: 'text', name, text, size, position, color, align, clickable, hover: false, isActivated: false });
   },
+
+  /**
+   * 
+   * @param {string} url - The url of the image to be displayed.
+   * @param {number} dx - The x-axis coordinate in the canvas at which to place the top-left corner of the image.
+   * @param {number} dy - The y-axis coordinate in the canvas at which to place the top-left corner of the image.
+   * @param {number} dWidth - The width to draw the image in the canvas.
+   * @param {number} dHeight - The height to draw the image in the canvas.
+   */
+  addImage(url, dx, dy, dWidth, dHeight) {
+    if(!this.get('items'))
+      this.set('items', new Array());
+
+    let image = new Image();
+    image.src = url;
+    image.onload = () => {
+      this.update();
+    };
+    this.get('items').push({ type: 'image', image, dx, dy, dWidth, dHeight});
+  },
   
   /**
    * Add a clickable arrow button to the menu.
@@ -248,9 +268,11 @@ export default EmberObject.extend({
       } else if(item.type === 'background') {
         ctx.fillStyle = item.color;
         ctx.fillRect(item.position.x, item.position.y, item.width, item.height);
-      }
-    }
-       
+      } else if(item.type === 'image') {
+        ctx.drawImage(item.image, item.dx, item.dy, item.dWidth, item.dHeight);
+      }                                                                                                   
+    }                                                                       
+                               
     // create texture out of canvas
     let texture = new THREE.CanvasTexture(canvas);
     // Map texture

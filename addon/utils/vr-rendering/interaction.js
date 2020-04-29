@@ -296,8 +296,9 @@ export default EmberObject.extend(Evented, {
     this.highlightLandscape(emberModel, emberModelName, intersectedViewObj, primaryControllerId, darkerColor);
 
     // Handle hit component/clazz of app3D if its not binded to a Controller
-    if ((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded')) {
+    if ((emberModelName === "component" && !emberModel.get("foundation")) && !this.get('app3DBinded')) {
       // New color 
+      
       let color = new THREE.Color(darkerColor);
       intersectedViewObj.object.material.color = color;
 
@@ -376,8 +377,10 @@ export default EmberObject.extend(Evented, {
       if (emberModelName === "system" && intersectedViewObj.object.name === "systemOpened") {
         this.trigger('showTeleportArea', intersectedViewObj.point);
       }
+
       // Handle closed component/clazz of app3D
-      else if (((emberModelName === "component" && !emberModel.get('opened')) || emberModelName === "clazz") && !this.get('app3DBinded')) {
+      else if (((emberModelName === "component" && !emberModel.get("foundation")) || emberModelName === "clazz" || emberModelName === "drawableclazzcommunication") && !this.get('app3DBinded')) {
+
         // New color 
         let color = new THREE.Color(darkerColor);
         intersectedViewObj.object.material.color = color;
@@ -422,8 +425,15 @@ export default EmberObject.extend(Evented, {
     if (intersectedViewObj) {
 
       // Handle delete button and floor exception
-      if (intersectedViewObj.object.name === 'deleteButton' || intersectedViewObj.object.name === 'floor') {
+      if (intersectedViewObj.object.name === 'deleteButton') {
         return;
+      }
+
+      if (intersectedViewObj.object.name === 'floor') {
+        // Remove stored text box
+        //controller.remove(controller.getObjectByName('textBox'));
+        this.get('menus.textBoxMenu').close();
+        this.get('previousToolTipObjects')[id] = null;
       }
 
       // Handle menus
@@ -436,7 +446,8 @@ export default EmberObject.extend(Evented, {
       // Remove text box if hit object is not the previous one
       if (this.get('previousToolTipObjects')[id] && this.get('previousToolTipObjects')[id].id !== intersectedViewObj.object.id) {
 
-        controller.remove(controller.getObjectByName('textBox'));
+        //controller.remove(controller.getObjectByName('textBox'));
+        this.get('menus.textBoxMenu').close();
         this.get('previousToolTipObjects')[id] = null;
       }
 
@@ -451,88 +462,19 @@ export default EmberObject.extend(Evented, {
         // Get information to display for hit object
         let content = this.get('hoverHandler').buildContent(emberModel);
 
-        let textBox = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2));
-        textBox.name = 'textBox';
+        // Open text box menu and draw content
+        this.get('menus.textBoxMenu').open(content);
 
-        // Position box for tooltip
-        textBox.position.y += 0.065;
-        textBox.position.z -= 0.115;
-        textBox.geometry.rotateX(1.5707963267949 * 1.5);
-        textBox.geometry.rotateY(1.5707963267949 * 2);
-        textBox.geometry.rotateZ(1.5707963267949 * 2);
-
-        // Define dimension of canvas for infotext
-        let canvas = document.createElement('canvas');
-        canvas.width = 256;
-        canvas.height = 128;
-
-        // Fill context of canvas with color and text
-        let ctx = canvas.getContext('2d');
-        ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#FDF5E6';
-        ctx.fillRect(0.4, 0.4, canvas.width - 0.8, canvas.height - 0.8);
-
-        // Draw title
-        ctx.font = '20px arial';
-        ctx.fillStyle = 'black';
-        ctx.textAlign = "center";
-        ctx.fillText(content.title, canvas.width / 2, 20);
-
-        // draw line
-        ctx.fillText("-------------------------------------------------", canvas.width / 2, 32);
-
-        // Spilt up remaining canvas for each entry
-        let offset = (canvas.height - 52) / 3;
-
-        let tempOffset = offset;
-
-        // Position under line
-        offset = 52;
-
-        // New font size for entries
-        ctx.font = '15px arial';
-        // Each entry consist of two values: name and value
-        for (let key1 in content.innerContent) {
-          let left = true;
-
-          // Draw entry
-          for (let key2 in content.innerContent[key1]) {
-            // Draw content on the left (name)
-            if (!left) {
-              ctx.textAlign = "right";
-              ctx.fillText(content.innerContent[key1][key2], canvas.width - 10, offset);
-              left = true;
-            }
-            // Draw content on the right (value)
-            else {
-              ctx.textAlign = "left";
-              ctx.fillText(content.innerContent[key1][key2], 10, offset);
-              left = false;
-            }
-          }
-          offset += tempOffset;
-        }
-
-        // Create texture out of canvas
-        let texture = new THREE.Texture(canvas);
-        // Map texture
-        let material2 = new THREE.MeshBasicMaterial({ map: texture });
-
-        // Update texture      
-        texture.needsUpdate = true;
-        // Update mesh material    
-        textBox.material = material2;
-
-        // Add mesh to controller
-        controller.add(textBox);
         this.get('previousToolTipObjects')[id] = intersectedViewObj.object;
       }
     }
     else {
       // Remove stored text box
-      controller.remove(controller.getObjectByName('textBox'));
+      //controller.remove(controller.getObjectByName('textBox'));
       this.get('previousToolTipObjects')[id] = null;
+
+      // Close text box menu
+      this.get('menus.textBoxMenu').close();
     }
   },
 
@@ -725,12 +667,25 @@ export default EmberObject.extend(Evented, {
 
     const emberModelName = emberModel.constructor.modelName;
 
+
+
+
     // Handle component of app3D hit
-    if ((emberModelName === "component" || emberModelName === "clazz") && !this.get('app3DBinded')) {
+    if (((emberModelName === "component" && !emberModel.get("foundation")) || emberModelName === "clazz" || emberModelName === "drawableclazzcommunication") && !this.get('app3DBinded')) {
       let appID = intersectedViewObj.object.parent.userData.model.id;
 
-      // Just highlight entity and communication lines if component closed or clazz
-      if (!emberModel.get('opened') || emberModelName === "clazz") {
+      // Just highlight entity and communication lines if component or clazz is hit
+      
+
+      let entityID = emberModel.id;
+      let sourceClazzID = undefined;
+      let targetClazzID = undefined;
+
+      if (emberModelName === "drawableclazzcommunication") {
+        entityID = "clazzcommunication";
+        sourceClazzID = emberModel.get('sourceClazz.id');
+        targetClazzID = emberModel.get('targetClazz.id');
+      }
 
         // Check if a component is already highlighted and restore color
         if (this.get('selectedEntitysMesh') && this.get('selectedEntitysColor')) {
@@ -739,7 +694,7 @@ export default EmberObject.extend(Evented, {
           if (this.get('selectedEntitysMesh') === intersectedViewObj.object) {
             this.restoreSelectedEntity(this.get('currentUser.primaryController.id'));
             this.set('selectedEntitysMesh', null);
-            this.trigger("entityHighlighted", false, appID, emberModel.id, this.get('selectedEntitysColor'));
+            this.trigger("entityHighlighted", false, appID, entityID, sourceClazzID, targetClazzID, this.get('selectedEntitysColor'));
             this.set('selectedEntitysColor', null);
             return;
           }
@@ -750,7 +705,7 @@ export default EmberObject.extend(Evented, {
         // Save selected entity and communication highlighting
         this.saveSelectedEntity(intersectedViewObj);
 
-        this.trigger("entityHighlighted", true, appID, emberModel.id, this.get('selectedEntitysColor'));
+        this.trigger("entityHighlighted", true, appID, entityID, sourceClazzID, targetClazzID, this.get('selectedEntitysColor'));
 
         // Set new color
         let color = new THREE.Color(this.get('highlightingColor'));
@@ -759,7 +714,6 @@ export default EmberObject.extend(Evented, {
         // Reset highlighting for selected component
         this.get('highlightedEntitiesApp')[controller.id] = null;
       }
-    }
   },
 
   /* 
@@ -1358,12 +1312,11 @@ export default EmberObject.extend(Evented, {
 
   /*
    *  This method is used to save the selected entity
-   *  and the highlighted communication lines
    */
   saveSelectedEntity(intersectedViewObj) {
     this.set('highlightedAppModel', intersectedViewObj.object.parent.userData.model);
     this.set('selectedEntitysMesh', intersectedViewObj.object);
-    if (intersectedViewObj.object.userData.type === 'clazz') {
+    if (intersectedViewObj.object.userData.type === 'clazz' || intersectedViewObj.object.userData.type === 'communication') {
       this.set('selectedEntitysColor', new THREE.Color(this.get('colorListApp')[this.get('selectedEntitysMesh').userData.type]));
     }
     else {
@@ -1373,12 +1326,11 @@ export default EmberObject.extend(Evented, {
 
   /*
    *  This method is used to restore the color of
-   *  a selected entity and to reset the highlighting of the
-   *  communication lines
+   *  a selected entity 
    */
   restoreSelectedEntity(id) {
     // Restore old color (clazz)
-    if (this.get('selectedEntitysMesh').userData.type === 'clazz') {
+    if (this.get('selectedEntitysMesh').userData.type === 'clazz' || this.get('selectedEntitysMesh').userData.type === 'communication') {
       this.get('selectedEntitysMesh').material.color = new THREE.Color(this.get('colorListApp')[this.get('selectedEntitysMesh').userData.type]);
     }
     // Restore old color (package)
@@ -1393,8 +1345,8 @@ export default EmberObject.extend(Evented, {
   },
 
   /*
-   *  This method is used to exclude a selected 'package' or
-   *  'clazz' from unhighlighting
+   *  This method is used to exclude a selected 'package'
+   *  'clazz' or 'communication' from unhighlighting
    */
   excludeSelectedEntity(controller, intersectedViewObj) {
     if (intersectedViewObj) {
@@ -1407,8 +1359,8 @@ export default EmberObject.extend(Evented, {
   },
 
   /*
-   *  This method is used to look for highlighted 'packages' or
-   *  'clazzes' of an application3D and restore their color if the 
+   *  This method is used to look for highlighted 'packages',
+   *  'clazzes'  or 'communications'of an application3D and restore their color if the 
    *  same controller id highlighted it
    */
   unhighlightApplication3D(id) {

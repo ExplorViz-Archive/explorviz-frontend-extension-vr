@@ -1,97 +1,61 @@
 # ExplorViz-Frontend-Extension-VR
 
-This extension adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mode to ExplorViz, which allows collaborative exploration.
+This extension adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mode to ExplorViz, which allows a collaborative exploration of software systems. The related backend extension can be found [here](https://github.com/ExplorViz/explorviz-backend-extension-vr).
 
 ## Requirements
-- [HTC Vive](https://www.vive.com) or [Oculus Rift CV1](https://www.oculus.com/rift/) with controllers and their respective firmware
+- [HTC Vive (Pro)](https://www.vive.com) or [Oculus Rift CV1](https://www.oculus.com/rift/) (basically [Oculus Rift S](https://www.oculus.com/rift-s/) is also supported) with controllers and their respective firmware
 - A powerful computer that can handle VR
-- Latest version of [Mozilla Firefox](https://www.mozilla.org/)
-- [ExplorViz Backend](https://github.com/ExplorViz/explorviz-backend)
+- [Mozilla Firefox](https://www.mozilla.org/) Version 72.0.2
+- [ExplorViz Backend](https://github.com/ExplorViz/explorviz-backend/tree/1.5.0) Version 1.5.0
 - [ExplorViz Backend Extension VR](https://github.com/ExplorViz/explorviz-backend-extension-vr)
-- [ExplorViz Frontend](https://github.com/ExplorViz/explorviz-frontend)
+- [ExplorViz Frontend](https://github.com/ExplorViz/explorviz-frontend/tree/1.5.0) Version 1.5.0
 
 ## Installation
 
 1. Setup and install your head-mounted display (HMD)
 
-2. Follow the installation guide of [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend#development)
+2. Setup and start [ExplorViz Backend](https://github.com/ExplorViz/explorviz-backend/tree/1.5.0) and the [ExplorViz Backend Extension VR](https://github.com/ExplorViz/explorviz-backend-extension-vr)
 
-3. Change to the frontends directory in your CLI, e.g. `cd explorviz-frontend`
+3. Follow the installation guide of [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend#development)
 
-4. Install this extension via `ember install https://github.com/ExplorViz/explorviz-frontend-extension-vr.git`
+4. Change to the frontends directory in your CLI, e.g. `cd explorviz-frontend`
+
+5. Install this extension via `ember install https://github.com/ExplorViz/explorviz-frontend-extension-vr.git`
 
 ## Running & Building
 
-Follow the respective procedure in [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend#running--development)
+Follow the respective procedure in [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend/tree/1.5.0/#running--development)
 
 ## Configuration
 
 The IP address for the WebSocket connection(e.g. for user synchronization) to the backend can be configured in the file `public/config/config_multiuser.json`. The default address for the WebSocket connection is *localhost*.
-The IP address for RESTful data exchange(e.g. for landscape data) is still configured via environments of the [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend#running--development).
+The IP address for RESTful data exchange(e.g. for landscape data) is still configured via environments of the [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend/tree/1.5.0/#running--development)
 
 
 ## Controls
+The extension can be used in standard right-handed mode or switched to a left-handed mode. The controls for the [Oculus Rift S](https://www.oculus.com/rift-s/) are similar to those of the [Oculus Rift CV1](https://www.oculus.com/rift/).
 
-### Vive Controllers:
+### HTC Vive (Pro) Controls (right-handed):
+
 <p align="left">
-  <img src="https://github.com/ExplorViz/Docs/blob/master/images/vive_controller.png" width="500"/>
+  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/vive_controls_righty.png" width="1000"/>
 </p>
 
-### Rift Controllers:
+### HTC Vive (Pro) Controls (left-handed):
+
 <p align="left">
-  <img src="https://github.com/ExplorViz/Docs/blob/master/images/oculus_controllers.png" width="800"/>
+  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/vive_controls_lefty.png"width="1000"/>
 </p>
-You can target many objects in the virtual environment with the ray of the controller and interact with them through corresponding buttons. 
-The ray of the left controller is colored black and that of the right one is colored green.
-<p></p>
 
-&#10122;:
-(Left Controller):
+### Oculus Rift CV1 Controls (right-handed):
 
-Press this button to open the options menu. If in a menu, pressing the button can be used to navigate back through previous menus.
+<p align="left">
+  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/oculus_controls_righty.png"width="1000"/>
+</p>
 
-&#10122;:
-(Right Controller):
 
-Press this button to display information about the targeted entity.
+### Oculus Rift CV1 Controls (left-handed):
 
-&#10123;:
-(Left Controller):
-
-Hold this button down to display a list of users connected to the server. Release the button to close the list.
-
-&#10123;:
-(Right Controller):
-
-Target a 3D application with the ray of the controller and
-keep this button pressed to bind the 3D application to the controller. The application now follows all movements of the controller. Release the button to stop this behavior.
-
-&#10124;: 
-(Left Controller):
-
-Target the ground with the ray of the left controller and
-press this button to teleport yourself to the displayed circle on the ground. Target the red "X" above a 3D application with the ray of the controller and press this button to delete the 3D application.
-This button can also be used to select targeted clazzes and closed packages of a 3D application. Consequently the selected entity is colored red and the associated communication lines are highlighted. If nothing is targeted press this button again to unselect the entity and restore its color and the commuincation lines.
-
-&#10124;:
-(Right Controller):
-
-Press this button to open/close targeted systems, nodegroups, packages and
-create 3D applications out of targeted 2D applications. 
-Target the red "X" above a 3D application with the ray of the controller and press this button to delete the 3D application.
-This button can also the used to navigate through menus.
-
-### Keyboard:
-
-- :arrow_up:: Move the camera upwards 
-- :arrow_down:: Move the camera downwards 
-- :arrow_left:: Move the camera leftwards
-- :arrow_right:: Move the camera rightwards
-- <kbd>+</kbd>: Move camera forwards (Zoom in)
-- <kbd>-</kbd>: Move camera backward (Zoom out)
-- <kbd>w</kbd>: Move landscape forwards
-- <kbd>s</kbd>: Move landscape backwards
-- <kbd>a</kbd>: Move landscape leftwards
-- <kbd>d</kbd>: Move landscape rightwards
-- <kbd>q</kbd>: Rotate landscape forwards
-- <kbd>w</kbd>: Rotate landscape backwards
+<p align="left">
+  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/collaborative-improvements/public/images/oculus_controls_lefty.png"width="1000"/>
+</p>

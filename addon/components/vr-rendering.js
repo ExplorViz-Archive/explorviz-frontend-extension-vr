@@ -49,6 +49,7 @@ export default Component.extend(Evented, {
   configuration: service(),
   world: service(),
   localUser: service('user'),
+  menus: service(),
 
   threePerformance: null,
   showFpsCounter: null,
@@ -95,7 +96,8 @@ export default Component.extend(Evented, {
   // An Observer calculating the new raycastObjects
   actualizeRaycastObjects() {
     let result = (this.get('vrLandscape')) ? this.get('vrLandscape').children : [];
-    const allowedObjects = ['node', 'system', 'nodegroup', 'application', 'communication', 'floor', 'component', 'clazz', 'deleteButton'];
+    const allowedObjects = ['node', 'system', 'nodegroup', 'application', 'applicationcommunication'
+      , 'drawableclazzcommunication', 'floor', 'component', 'clazz', 'deleteButton'];
 
     this.get('openApps').forEach(function (app) {
       app.children.forEach(function (child) {
@@ -244,11 +246,11 @@ export default Component.extend(Evented, {
     line1.position.y -= 0.005;
     line1.position.z -= 0.02;
 
-    // Create green ray for left controller
+    // Create green ray for right controller
     let line2 = new THREE.Line(this.get('geometry'));
     line2.name = 'controllerLine';
     line2.scale.z = 5;
-    line2.material.color = new THREE.Color('rgb(0,204,51)');
+    line2.material.color = new THREE.Color('rgb(0,0,0)');
     line2.material.opacity = 0.25;
     line2.position.y -= 0.005;
     line2.position.z -= 0.02;
@@ -325,6 +327,8 @@ export default Component.extend(Evented, {
     }
 
     this.initInteraction();
+
+    this.initWorldListener();
 
     // Set default model
     this.set('imageLoader.logos', {});
@@ -1375,6 +1379,7 @@ export default Component.extend(Evented, {
       }
     });
 
+
     /*
      * This interaction listener is used to create the application3D 
      * (controller button pressed or mouse doubleclick)
@@ -1424,6 +1429,25 @@ export default Component.extend(Evented, {
     });
   }, // END initInteraction
 
+
+  /*
+   * This method is used to listen for events triggered in the world service
+   */
+  initWorldListener() {
+    /*
+     * This listener is a is used for general reset (i.e. close systems and apps, reset landscape and user position)
+     */
+    this.get('world').on('resetAll', () => {
+      this.removeOpenApps();
+      this.get('world').resetLandscape();
+      this.resetLanscape();
+      this.get('localUser').resetPosition();
+      return;
+    });
+    
+  },
+
+  
   /*
    *  This method is used to remove the given children of an object3D.
    *  'null' or 'undefined' passed => delete all children 
@@ -1507,7 +1531,8 @@ export default Component.extend(Evented, {
       });
       this.removeChildren(app);
     });
-    this.set('openApps', new Map());
+    
+    if (!this.get('openApps').get('isDestroyed')) this.set('openApps', new Map());
   },
 
   removeFoundation(appID, store) {
@@ -1542,6 +1567,9 @@ export default Component.extend(Evented, {
    *  This method is used to add commuication lines to application3D
    */
   addCommunicationToApp(application) {
+    
+    const self = this;
+    
     const viewCenterPoint = this.get('centerAndZoomCalculator.centerPoint');
     const drawableClazzCommunications = application.get('drawableClazzCommunications');
 
@@ -1568,7 +1596,7 @@ export default Component.extend(Evented, {
       }
 
       const material = new THREE.MeshLambertMaterial({
-        color: new THREE.Color(0xf49100),
+        color: self.get('configuration.applicationColors.communication'),
         opacity: opacityValue,
         transparent: transparent
       });
@@ -1578,6 +1606,7 @@ export default Component.extend(Evented, {
       const pipe = cylinderMesh(start, end, material, thickness);
 
       pipe.userData.model = drawableClazzComm;
+      pipe.userData.type = 'communication';
       this.get('openApps').get(application.id).add(pipe);
     });
 
@@ -1670,10 +1699,11 @@ export default Component.extend(Evented, {
       This function is used to create all boxes for application3D
     */
     function addComponentToScene(component, color, appID) {
-      const grey = 0xCECECE;
-      const lightGreen = 0x00BB41;
-      const darkGreen = 0x169E2B;
-      const clazzColor = 0x3E14A0;
+      
+      const grey = self.get('configuration.applicationColors.foundation');
+      const lightGreen = self.get('configuration.applicationColors.componentEven');
+      const darkGreen = self.get('configuration.applicationColors.componentOdd');
+      const clazzColor = self.get('configuration.applicationColors.clazz');
 
       createBoxApp(component, color, false, appID);
 

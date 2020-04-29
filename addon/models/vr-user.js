@@ -11,6 +11,8 @@ export default Model.extend({
   highlightedEntity: {
     appID: null,
     entityID: null,
+    sourceClazzID: null,
+    targetClazzID: null,
     originalColor: null
   },
   controller1: null,
@@ -108,9 +110,11 @@ export default Model.extend({
     }
   },
 
-  setHighlightedEntity(appID, entityID, originalColor) {
+  setHighlightedEntity(appID, entityID, sourceClazzID, targetClazzID, originalColor) {
     this.set('highlightedEntity.appID', appID);
     this.set('highlightedEntity.entityID', entityID);
+    this.set('highlightedEntity.sourceClazzID', sourceClazzID);
+    this.set('highlightedEntity.targetClazzID', targetClazzID);
     this.set('highlightedEntity.originalColor', originalColor);
   },
 

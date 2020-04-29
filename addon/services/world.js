@@ -1,7 +1,8 @@
 import Service, { inject as service } from '@ember/service';
 import THREE from 'three';
+import Evented from '@ember/object/evented';
 
-export default Service.extend({
+export default Service.extend( Evented, {
 
   sender: service(),
   scene: null, // Root element of Object3d's - contains all visble objects
@@ -78,5 +79,13 @@ export default Service.extend({
     this.get('vrEnvironment').updateMatrix();
 
     this.get('sender').sendLandscapeUpdate(delta, this.get('vrEnvironment'), this.get('environmentOffset'));
+  },
+
+  // Trigger the general reset option
+  resetAll() {
+    this.trigger('resetAll');
   }
+  
+ 
+
 });

@@ -141,14 +141,19 @@ export default Service.extend({
    * @param {Long} entityID ID of the highlighted/unhighlighted component/clazz
    * @param {string} color Original color of the entity as hex value
    */
-  sendHighlightingUpdate(userID, isHighlighted, appID, entityID, color) {
+  sendHighlightingUpdate(userID, isHighlighted, appID, entityID, sourceClazzID, targetClazzID, color) {
+
+    // TODO update method documentation
+
     let hightlightObj = {
       "event": "receive_hightlight_update",
       "userID": userID,
       "appID": appID,
       "entityID": entityID,
+      "sourceClazzID": sourceClazzID,
+      "targetClazzID": targetClazzID,
       "isHighlighted": isHighlighted,
-      "color": color
+      "color": color instanceof THREE.Color ? color.getStyle() : color
     }
     this.get('webSocket').enqueueIfOpen(hightlightObj);
   },
