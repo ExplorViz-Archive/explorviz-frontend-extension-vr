@@ -7,14 +7,14 @@ This extension adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mo
 - A powerful computer that can handle VR
 - [Mozilla Firefox](https://www.mozilla.org/) Version 72.0.2
 - [ExplorViz Backend](https://github.com/ExplorViz/explorviz-backend/tree/1.5.0) Version 1.5.0
-- [ExplorViz Backend Extension VR](https://github.com/ExplorViz/explorviz-backend-extension-vr)
+- [ExplorViz Backend Extension VR](https://github.com/ExplorViz/explorviz-backend-extension-vr/tree/2.0) 2.0
 - [ExplorViz Frontend](https://github.com/ExplorViz/explorviz-frontend/tree/1.5.0) Version 1.5.0
 
 ## Installation
 
 1. Setup and install your head-mounted display (HMD)
 
-2. Setup and start [ExplorViz Backend](https://github.com/ExplorViz/explorviz-backend/tree/1.5.0) and the [ExplorViz Backend Extension VR](https://github.com/ExplorViz/explorviz-backend-extension-vr)
+2. Setup and start [ExplorViz Backend](https://github.com/ExplorViz/explorviz-backend/tree/1.5.0) and the [ExplorViz Backend Extension VR](https://github.com/ExplorViz/explorviz-backend-extension-vr/tree/2.0)
 
 3. Follow the installation guide of [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend#development)
 
