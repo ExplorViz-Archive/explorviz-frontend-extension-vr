@@ -1,6 +1,6 @@
 # ExplorViz-Frontend-Extension-VR
 
-This extension adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mode to ExplorViz, which allows a collaborative exploration of software systems.
+This extension adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mode to ExplorViz, which allows a collaborative exploration of software systems. The related backend extension can be found [here](https://github.com/ExplorViz/explorviz-backend-extension-vr).
 
 ## Requirements
 - [HTC Vive (Pro)](https://www.vive.com) or [Oculus Rift CV1](https://www.oculus.com/rift/) (basically [Oculus Rift S](https://www.oculus.com/rift-s/) is also supported) with controllers and their respective firmware
