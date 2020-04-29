@@ -6,19 +6,21 @@ This extension adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mo
 - [HTC Vive (Pro)](https://www.vive.com) or [Oculus Rift CV1](https://www.oculus.com/rift/) (basically [Oculus Rift S](https://www.oculus.com/rift-s/) is also supported) with controllers and their respective firmware
 - A powerful computer that can handle VR
 - [Mozilla Firefox](https://www.mozilla.org/) Version 72.0.2
-- [ExplorViz Backend](https://github.com/ExplorViz/explorviz-backend) Version 1.5.0
+- [ExplorViz Backend](https://github.com/ExplorViz/explorviz-backend/tree/1.5.0) Version 1.5.0
 - [ExplorViz Backend Extension VR](https://github.com/ExplorViz/explorviz-backend-extension-vr)
-- [ExplorViz Frontend](https://github.com/ExplorViz/explorviz-frontend) Version 1.5.0
+- [ExplorViz Frontend](https://github.com/ExplorViz/explorviz-frontend/tree/1.5.0) Version 1.5.0
 
 ## Installation
 
 1. Setup and install your head-mounted display (HMD)
 
-2. Follow the installation guide of [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend#development)
+2. Setup and start [ExplorViz Backend](https://github.com/ExplorViz/explorviz-backend/tree/1.5.0) and the [ExplorViz Backend Extension VR](https://github.com/ExplorViz/explorviz-backend-extension-vr)
 
-3. Change to the frontends directory in your CLI, e.g. `cd explorviz-frontend`
+3. Follow the installation guide of [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend#development)
 
-4. Install this extension via `ember install https://github.com/ExplorViz/explorviz-frontend-extension-vr.git`
+4. Change to the frontends directory in your CLI, e.g. `cd explorviz-frontend`
+
+5. Install this extension via `ember install https://github.com/ExplorViz/explorviz-frontend-extension-vr.git`
 
 ## Running & Building
 
