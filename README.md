@@ -24,12 +24,12 @@ This extension adds a [WebVR](https://webvr.info/)-based Virtual Reality (VR) mo
 
 ## Running & Building
 
-Follow the respective procedure in [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend#running--development)
+Follow the respective procedure in [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend/tree/1.5.0/#running--development)
 
 ## Configuration
 
 The IP address for the WebSocket connection(e.g. for user synchronization) to the backend can be configured in the file `public/config/config_multiuser.json`. The default address for the WebSocket connection is *localhost*.
-The IP address for RESTful data exchange(e.g. for landscape data) is still configured via environments of the [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend#running--development).
+The IP address for RESTful data exchange(e.g. for landscape data) is still configured via environments of the [ExplorViz frontend](https://github.com/ExplorViz/explorviz-frontend/tree/1.5.0/#running--development)
 
 
 ## Controls
