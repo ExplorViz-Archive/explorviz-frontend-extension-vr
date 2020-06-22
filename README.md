@@ -38,24 +38,24 @@ The extension can be used in standard right-handed mode or switched to a left-ha
 ### HTC Vive (Pro) Controls (right-handed):
 
 <p align="left">
-  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/public/images/vive_controls_righty.png" width="1000"/>
+  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/master/public/images/vive_controls_righty.png" width="1000"/>
 </p>
 
 ### HTC Vive (Pro) Controls (left-handed):
 
 <p align="left">
-  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/public/images/vive_controls_lefty.png"width="1000"/>
+  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/master/public/images/vive_controls_lefty.png"width="1000"/>
 </p>
 
 ### Oculus Rift CV1 Controls (right-handed):
 
 <p align="left">
-  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/public/images/oculus_controls_righty.png"width="1000"/>
+  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/master/public/images/oculus_controls_righty.png"width="1000"/>
 </p>
 
 
 ### Oculus Rift CV1 Controls (left-handed):
 
 <p align="left">
-  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/public/images/oculus_controls_lefty.png"width="1000"/>
+  <img src="https://github.com/ExplorViz/explorviz-frontend-extension-vr/blob/master/public/images/oculus_controls_lefty.png"width="1000"/>
 </p>
